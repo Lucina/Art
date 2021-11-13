@@ -5,7 +5,7 @@ namespace Art;
 /// <summary>
 /// Represents a simple <see cref="ArtifactDataManager"/> with purely file-based tracking.
 /// </summary>
-public class SimpleDataManager : ArtifactDataManager
+public class SimpleArtifactDataManager : ArtifactDataManager
 {
     /// <summary>
     /// Main artifact file name.
@@ -18,43 +18,39 @@ public class SimpleDataManager : ArtifactDataManager
     public string BaseDirectory { get; }
 
     /// <summary>
-    /// Creates a new instance of <see cref="SimpleDataManager"/>.
+    /// Creates a new instance of <see cref="SimpleArtifactDataManager"/>.
     /// </summary>
     /// <param name="baseDirectory">Base directory.</param>
-    public SimpleDataManager(string baseDirectory)
+    public SimpleArtifactDataManager(string baseDirectory)
     {
         BaseDirectory = baseDirectory;
     }
 
     /// <inheritdoc/>
-    public override bool TryGetInfo(string id, [NotNullWhen(true)] out ArtifactInfo? artifactInfo)
+    public override async Task<ArtifactInfo?> TryGetInfoAsync(string id)
     {
         string path = Path.Combine(BaseDirectory, id, ArtifactFileName);
-        if (File.Exists(path))
-        {
-            artifactInfo = Extensions.LoadFromFile<ArtifactInfo>(path);
-            return true;
-        }
-        artifactInfo = null;
-        return false;
+        return File.Exists(path) ? await Extensions.LoadFromFileAsync<ArtifactInfo>(path).ConfigureAwait(false) : null;
     }
 
     /// <inheritdoc/>
-    public override string CreateOutputDirectory(ArtifactInfo artifactInfo)
+    public override Task<Stream> CreateOutputStreamAsync(ArtifactInfo artifactInfo, string file, string? path = null)
     {
+
         string id = artifactInfo.Id;
         string dir = Path.Combine(BaseDirectory, id);
+        if (!string.IsNullOrEmpty(path)) dir = Path.Combine(dir, path);
         if (!Directory.Exists(dir)) Directory.CreateDirectory(dir);
-        return dir;
+        return Task.FromResult((Stream)File.Create(Path.Combine(dir, file)));
     }
 
     /// <inheritdoc/>
-    public override void AddInfo(ArtifactInfo artifactInfo)
+    public override async Task AddInfoAsync(ArtifactInfo artifactInfo)
     {
         if (artifactInfo.Id is not { } id) return;
         string dir = Path.Combine(BaseDirectory, id);
         if (!Directory.Exists(dir)) Directory.CreateDirectory(dir);
         string path = Path.Combine(BaseDirectory, id, ArtifactFileName);
-        artifactInfo.WriteToFile(path);
+        await artifactInfo.WriteToFileAsync(path).ConfigureAwait(false);
     }
 }

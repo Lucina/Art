@@ -1,4 +1,6 @@
-﻿namespace Art;
+﻿using System.Text.Json;
+
+namespace Art;
 
 /// <summary>
 /// Represents an artifact dumping profile.
@@ -11,5 +13,5 @@ public record ArtifactDumpingProfile(
     string AssemblyName,
     string FactoryTypeName,
     string TargetFolder,
-    Dictionary<string, string> Options
+    Dictionary<string, JsonElement> Options
     );
