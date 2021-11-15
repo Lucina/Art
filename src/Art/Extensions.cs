@@ -82,4 +82,13 @@ public static class Extensions
         using FileStream? fs = File.Create(file);
         await fr.Content.CopyToAsync(fs);
     }
+
+    private static readonly char[] s_invalid = Path.GetInvalidFileNameChars();
+
+    /// <summary>
+    /// Remove invalid filename characters, based on <see cref="Path.GetInvalidFileNameChars()"/>.
+    /// </summary>
+    /// <param name="name">String.</param>
+    /// <returns>Better filename.</returns>
+    static string SafeifyFilename(this string name) => s_invalid.Aggregate(Path.GetFileName(name), (f, v) => f.Contains(v) ? f.Replace(v, '-') : f);
 }
