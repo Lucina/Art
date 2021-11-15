@@ -90,5 +90,5 @@ public static class Extensions
     /// </summary>
     /// <param name="name">String.</param>
     /// <returns>Better filename.</returns>
-    static string SafeifyFilename(this string name) => s_invalid.Aggregate(Path.GetFileName(name), (f, v) => f.Contains(v) ? f.Replace(v, '-') : f);
+    public static string SafeifyFilename(this string name) => s_invalid.Aggregate(Path.GetFileName(name), (f, v) => f.Contains(v) ? f.Replace(v, '-') : f);
 }

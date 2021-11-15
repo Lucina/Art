@@ -9,9 +9,21 @@ namespace Art;
 public abstract class ArtifactDumper
 {
     /// <summary>
+    /// Log handler for this dumper.
+    /// </summary>
+    public ILogHandler? LogHandler;
+
+    /// <summary>
     /// Option used to check if currently in debug mode.
     /// </summary>
     public const string OptDebugMode = "debugMode";
+
+    /// <summary>
+    /// JSON serialization defaults.
+    /// </summary>
+    protected JsonSerializerOptions JsonOptions { get => _jsonOptions ??= new JsonSerializerOptions(); set => _jsonOptions = value; }
+
+    private JsonSerializerOptions _jsonOptions = new();
 
     /// <summary>
     /// Registration manager used by this instance.
@@ -142,7 +154,7 @@ public abstract class ArtifactDumper
     /// <param name="path">File path to prepend.</param>
     /// <returns>Task.</returns>
     protected async ValueTask OutputJsonAsync<T>(T data, string file, ArtifactInfo? artifactInfo = null, string? path = null)
-        => await DataManager.OutputJsonAsync<T>(data, file, artifactInfo, path).ConfigureAwait(false);
+        => await DataManager.OutputJsonAsync<T>(data, JsonOptions, file, artifactInfo, path).ConfigureAwait(false);
 
     /// <summary>
     /// Outputs a JSON-serialized file for the specified artifact.
@@ -155,4 +167,32 @@ public abstract class ArtifactDumper
     /// <returns>Task.</returns>
     protected async ValueTask OutputJsonAsync<T>(T data, JsonSerializerOptions jsonSerializerOptions, string file, ArtifactInfo? artifactInfo = null, string? path = null)
         => await DataManager.OutputJsonAsync<T>(data, jsonSerializerOptions, file, artifactInfo, path).ConfigureAwait(false);
+
+    /// <summary>
+    /// Logs information log to logger.
+    /// </summary>
+    /// <param name="title">Title.</param>
+    /// <param name="body">Body.</param>
+    protected void LogInformation(string? title, string? body = null) => LogHandler?.Log(title, body, LogLevel.Information);
+
+    /// <summary>
+    /// Logs title log to logger.
+    /// </summary>
+    /// <param name="title">Title.</param>
+    /// <param name="body">Body.</param>
+    protected void LogTitle(string? title, string? body = null) => LogHandler?.Log(title, body, LogLevel.Title);
+
+    /// <summary>
+    /// Logs warning log to logger.
+    /// </summary>
+    /// <param name="title">Title.</param>
+    /// <param name="body">Body.</param>
+    protected void LogWarning(string? title, string? body = null) => LogHandler?.Log(title, body, LogLevel.Warning);
+
+    /// <summary>
+    /// Logs error log to logger.
+    /// </summary>
+    /// <param name="title">Title.</param>
+    /// <param name="body">Body.</param>
+    protected void LogError(string? title, string? body = null) => LogHandler?.Log(title, body, LogLevel.Error);
 }

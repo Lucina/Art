@@ -69,7 +69,7 @@ public abstract class HttpArtifactDumper : ArtifactDumper
     {
         using HttpResponseMessage res = await HttpClient.GetAsync(requestUri).ConfigureAwait(false);
         res.EnsureSuccessStatusCode();
-        return (await JsonSerializer.DeserializeAsync<T>(await res.Content.ReadAsStreamAsync().ConfigureAwait(false)).ConfigureAwait(false))!;
+        return (await JsonSerializer.DeserializeAsync<T>(await res.Content.ReadAsStreamAsync().ConfigureAwait(false), JsonOptions).ConfigureAwait(false))!;
     }
 
     /// <summary>
@@ -96,7 +96,7 @@ public abstract class HttpArtifactDumper : ArtifactDumper
     {
         using HttpResponseMessage res = await HttpClient.GetAsync(requestUri).ConfigureAwait(false);
         res.EnsureSuccessStatusCode();
-        return (await JsonSerializer.DeserializeAsync<T>(await res.Content.ReadAsStreamAsync().ConfigureAwait(false)).ConfigureAwait(false))!;
+        return (await JsonSerializer.DeserializeAsync<T>(await res.Content.ReadAsStreamAsync().ConfigureAwait(false), JsonOptions).ConfigureAwait(false))!;
     }
 
     /// <summary>
@@ -123,7 +123,7 @@ public abstract class HttpArtifactDumper : ArtifactDumper
     {
         using HttpResponseMessage res = await HttpClient.SendAsync(requestMessage).ConfigureAwait(false);
         res.EnsureSuccessStatusCode();
-        return (await JsonSerializer.DeserializeAsync<T>(await res.Content.ReadAsStreamAsync().ConfigureAwait(false)).ConfigureAwait(false))!;
+        return (await JsonSerializer.DeserializeAsync<T>(await res.Content.ReadAsStreamAsync().ConfigureAwait(false), JsonOptions).ConfigureAwait(false))!;
     }
 
     /// <summary>
