@@ -15,7 +15,7 @@ public abstract class ArtifactDataManager
     /// <param name="artifactInfo">Artifact target.</param>
     /// <param name="path">File path to prepend.</param>
     /// <returns>Task returning a writeable stream to write an output to.</returns>
-    public abstract Task<Stream> CreateOutputStreamAsync(string file, ArtifactInfo? artifactInfo = null, string? path = null);
+    public abstract ValueTask<Stream> CreateOutputStreamAsync(string file, ArtifactInfo? artifactInfo = null, string? path = null);
 
     /// <summary>
     /// Outputs a text file for the specified artifact.
@@ -25,7 +25,7 @@ public abstract class ArtifactDataManager
     /// <param name="artifactInfo">Artifact target.</param>
     /// <param name="path">File path to prepend.</param>
     /// <returns>Task.</returns>
-    public virtual async Task OutputTextAsync(string text, string file, ArtifactInfo? artifactInfo = null, string? path = null)
+    public virtual async ValueTask OutputTextAsync(string text, string file, ArtifactInfo? artifactInfo = null, string? path = null)
     {
         using Stream stream = await CreateOutputStreamAsync(file, artifactInfo, path).ConfigureAwait(false);
         using var sw = new StreamWriter(stream);
@@ -40,7 +40,7 @@ public abstract class ArtifactDataManager
     /// <param name="artifactInfo">Artifact target.</param>
     /// <param name="path">File path to prepend.</param>
     /// <returns>Task.</returns>
-    public virtual async Task OutputJsonAsync<T>(T data, string file, ArtifactInfo? artifactInfo = null, string? path = null)
+    public virtual async ValueTask OutputJsonAsync<T>(T data, string file, ArtifactInfo? artifactInfo = null, string? path = null)
     {
         using Stream stream = await CreateOutputStreamAsync(file, artifactInfo, path).ConfigureAwait(false);
         await JsonSerializer.SerializeAsync(stream, data).ConfigureAwait(false);
@@ -55,7 +55,7 @@ public abstract class ArtifactDataManager
     /// <param name="artifactInfo">Artifact target.</param>
     /// <param name="path">File path to prepend.</param>
     /// <returns>Task.</returns>
-    public virtual async Task OutputJsonAsync<T>(T data, JsonSerializerOptions jsonSerializerOptions, string file, ArtifactInfo? artifactInfo = null, string? path = null)
+    public virtual async ValueTask OutputJsonAsync<T>(T data, JsonSerializerOptions jsonSerializerOptions, string file, ArtifactInfo? artifactInfo = null, string? path = null)
     {
         using Stream stream = await CreateOutputStreamAsync(file, artifactInfo, path).ConfigureAwait(false);
         await JsonSerializer.SerializeAsync(stream, data, jsonSerializerOptions).ConfigureAwait(false);

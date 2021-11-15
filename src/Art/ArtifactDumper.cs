@@ -51,7 +51,7 @@ public abstract class ArtifactDumper
     /// Dump artifacts.
     /// </summary>
     /// <returns>Task.</returns>
-    public abstract Task DumpAsync();
+    public abstract ValueTask DumpAsync();
 
     /// <summary>
     /// Attempt to get option or throw exception if not found or if null.
@@ -99,20 +99,28 @@ public abstract class ArtifactDumper
     }
 
     /// <summary>
-    /// Tests if artifact is recognizably new.
-    /// </summary>
-    /// <param name="artifactInfo">Artifact to check.</param>
-    /// <returns>Task returning true if this is a new artifact (newer than whatever exists with the same ID).</returns>
-    protected async Task<bool> IsNewArtifactAsync(ArtifactInfo artifactInfo)
-        => await RegistrationManager.IsNewArtifactAsync(artifactInfo).ConfigureAwait(false);
-
-    /// <summary>
     /// Registers artifact as known.
     /// </summary>
     /// <param name="artifactInfo">Artifact to register.</param>
     /// <returns>Task.</returns>
-    protected async Task AddInfoAsync(ArtifactInfo artifactInfo)
-        => await RegistrationManager.AddInfoAsync(artifactInfo).ConfigureAwait(false);
+    protected async ValueTask AddArtifactAsync(ArtifactInfo artifactInfo)
+        => await RegistrationManager.AddArtifactAsync(artifactInfo).ConfigureAwait(false);
+
+    /// <summary>
+    /// Attempts to get info for the artifact with the specified ID.
+    /// </summary>
+    /// <param name="id">Artifact ID.</param>
+    /// <returns>Task returning retrieved artifact, if it exists.</returns>
+    protected async ValueTask<ArtifactInfo?> TryGetArtifactAsync(string id)
+        => await RegistrationManager.TryGetArtifactAsync(id).ConfigureAwait(false);
+
+    /// <summary>
+    /// Tests if artifact is recognizably new.
+    /// </summary>
+    /// <param name="artifactInfo">Artifact to check.</param>
+    /// <returns>Task returning true if this is a new artifact (newer than whatever exists with the same ID).</returns>
+    protected async ValueTask<bool> IsNewArtifactAsync(ArtifactInfo artifactInfo)
+        => await RegistrationManager.IsNewArtifactAsync(artifactInfo).ConfigureAwait(false);
 
     /// <summary>
     /// Outputs a text file for the specified artifact.
@@ -122,7 +130,7 @@ public abstract class ArtifactDumper
     /// <param name="artifactInfo">Artifact target.</param>
     /// <param name="path">File path to prepend.</param>
     /// <returns>Task.</returns>
-    protected async Task OutputTextAsync(string text, string file, ArtifactInfo? artifactInfo = null, string? path = null)
+    protected async ValueTask OutputTextAsync(string text, string file, ArtifactInfo? artifactInfo = null, string? path = null)
     => await DataManager.OutputTextAsync(text, file, artifactInfo, path).ConfigureAwait(false);
 
     /// <summary>
@@ -133,7 +141,7 @@ public abstract class ArtifactDumper
     /// <param name="artifactInfo">Artifact target.</param>
     /// <param name="path">File path to prepend.</param>
     /// <returns>Task.</returns>
-    protected async Task OutputJsonAsync<T>(T data, string file, ArtifactInfo? artifactInfo = null, string? path = null)
+    protected async ValueTask OutputJsonAsync<T>(T data, string file, ArtifactInfo? artifactInfo = null, string? path = null)
         => await DataManager.OutputJsonAsync<T>(data, file, artifactInfo, path).ConfigureAwait(false);
 
     /// <summary>
@@ -145,6 +153,6 @@ public abstract class ArtifactDumper
     /// <param name="artifactInfo">Artifact target.</param>
     /// <param name="path">File path to prepend.</param>
     /// <returns>Task.</returns>
-    protected async Task OutputJsonAsync<T>(T data, JsonSerializerOptions jsonSerializerOptions, string file, ArtifactInfo? artifactInfo = null, string? path = null)
+    protected async ValueTask OutputJsonAsync<T>(T data, JsonSerializerOptions jsonSerializerOptions, string file, ArtifactInfo? artifactInfo = null, string? path = null)
         => await DataManager.OutputJsonAsync<T>(data, jsonSerializerOptions, file, artifactInfo, path).ConfigureAwait(false);
 }

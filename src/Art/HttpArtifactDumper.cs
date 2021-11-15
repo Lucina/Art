@@ -65,7 +65,7 @@ public abstract class HttpArtifactDumper : ArtifactDumper
     /// <typeparam name="T">Data type.</typeparam>
     /// <param name="requestUri">Request URI.</param>
     /// <returns>Task.</returns>
-    protected async Task<T> GetDeserializedJsonAsync<T>(string requestUri)
+    protected async ValueTask<T> GetDeserializedJsonAsync<T>(string requestUri)
     {
         using HttpResponseMessage res = await HttpClient.GetAsync(requestUri).ConfigureAwait(false);
         res.EnsureSuccessStatusCode();
@@ -79,7 +79,7 @@ public abstract class HttpArtifactDumper : ArtifactDumper
     /// <param name="requestUri">Request URI.</param>
     /// <param name="jsonSerializerOptions">Deserialization options.</param>
     /// <returns>Task.</returns>
-    protected async Task<T> GetDeserializedJsonAsync<T>(string requestUri, JsonSerializerOptions jsonSerializerOptions)
+    protected async ValueTask<T> GetDeserializedJsonAsync<T>(string requestUri, JsonSerializerOptions jsonSerializerOptions)
     {
         using HttpResponseMessage res = await HttpClient.GetAsync(requestUri).ConfigureAwait(false);
         res.EnsureSuccessStatusCode();
@@ -92,7 +92,7 @@ public abstract class HttpArtifactDumper : ArtifactDumper
     /// <typeparam name="T">Data type.</typeparam>
     /// <param name="requestUri">Request URI.</param>
     /// <returns>Task.</returns>
-    protected async Task<T> GetDeserializedJsonAsync<T>(Uri requestUri)
+    protected async ValueTask<T> GetDeserializedJsonAsync<T>(Uri requestUri)
     {
         using HttpResponseMessage res = await HttpClient.GetAsync(requestUri).ConfigureAwait(false);
         res.EnsureSuccessStatusCode();
@@ -106,7 +106,7 @@ public abstract class HttpArtifactDumper : ArtifactDumper
     /// <param name="requestUri">Request URI.</param>
     /// <param name="jsonSerializerOptions">Deserialization options.</param>
     /// <returns>Task.</returns>
-    protected async Task<T> GetDeserializedJsonAsync<T>(Uri requestUri, JsonSerializerOptions jsonSerializerOptions)
+    protected async ValueTask<T> GetDeserializedJsonAsync<T>(Uri requestUri, JsonSerializerOptions jsonSerializerOptions)
     {
         using HttpResponseMessage res = await HttpClient.GetAsync(requestUri).ConfigureAwait(false);
         res.EnsureSuccessStatusCode();
@@ -119,7 +119,7 @@ public abstract class HttpArtifactDumper : ArtifactDumper
     /// <typeparam name="T">Data type.</typeparam>
     /// <param name="requestMessage">Request to send.</param>
     /// <returns>Task.</returns>
-    protected async Task<T> RetrieveDeserializedJsonAsync<T>(HttpRequestMessage requestMessage)
+    protected async ValueTask<T> RetrieveDeserializedJsonAsync<T>(HttpRequestMessage requestMessage)
     {
         using HttpResponseMessage res = await HttpClient.SendAsync(requestMessage).ConfigureAwait(false);
         res.EnsureSuccessStatusCode();
@@ -133,7 +133,7 @@ public abstract class HttpArtifactDumper : ArtifactDumper
     /// <param name="requestMessage">Request to send.</param>
     /// <param name="jsonSerializerOptions">Deserialization options.</param>
     /// <returns>Task.</returns>
-    protected async Task<T> RetrieveDeserializedJsonAsync<T>(HttpRequestMessage requestMessage, JsonSerializerOptions jsonSerializerOptions)
+    protected async ValueTask<T> RetrieveDeserializedJsonAsync<T>(HttpRequestMessage requestMessage, JsonSerializerOptions jsonSerializerOptions)
     {
         using HttpResponseMessage res = await HttpClient.SendAsync(requestMessage).ConfigureAwait(false);
         res.EnsureSuccessStatusCode();
@@ -148,7 +148,7 @@ public abstract class HttpArtifactDumper : ArtifactDumper
     /// <param name="artifactInfo">Target artifact.</param>
     /// <param name="path">File path to prepend.</param>
     /// <returns>Task.</returns>
-    protected async Task DownloadResourceAsync(string requestUri, string file, ArtifactInfo? artifactInfo = null, string? path = null)
+    protected async ValueTask DownloadResourceAsync(string requestUri, string file, ArtifactInfo? artifactInfo = null, string? path = null)
     {
         using HttpResponseMessage? fr = await HttpClient.GetAsync(requestUri).ConfigureAwait(false);
         fr.EnsureSuccessStatusCode();
@@ -164,7 +164,7 @@ public abstract class HttpArtifactDumper : ArtifactDumper
     /// <param name="artifactInfo">Target artifact.</param>
     /// <param name="path">File path to prepend.</param>
     /// <returns>Task.</returns>
-    protected async Task DownloadResourceAsync(Uri requestUri, string file, ArtifactInfo? artifactInfo = null, string? path = null)
+    protected async ValueTask DownloadResourceAsync(Uri requestUri, string file, ArtifactInfo? artifactInfo = null, string? path = null)
     {
         using HttpResponseMessage? fr = await HttpClient.GetAsync(requestUri).ConfigureAwait(false);
         fr.EnsureSuccessStatusCode();
@@ -180,7 +180,7 @@ public abstract class HttpArtifactDumper : ArtifactDumper
     /// <param name="artifactInfo">Target artifact.</param>
     /// <param name="path">File path to prepend.</param>
     /// <returns>Task.</returns>
-    protected async Task DownloadResourceAsync(HttpRequestMessage requestMessage, string file, ArtifactInfo? artifactInfo = null, string? path = null)
+    protected async ValueTask DownloadResourceAsync(HttpRequestMessage requestMessage, string file, ArtifactInfo? artifactInfo = null, string? path = null)
     {
         using HttpResponseMessage? fr = await HttpClient.SendAsync(requestMessage).ConfigureAwait(false);
         fr.EnsureSuccessStatusCode();

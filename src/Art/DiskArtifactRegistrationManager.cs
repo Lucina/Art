@@ -25,14 +25,14 @@ public class DiskArtifactRegistrationManager : ArtifactRegistrationManager
     }
 
     /// <inheritdoc/>
-    public override async Task<ArtifactInfo?> TryGetInfoAsync(string id)
+    public override async ValueTask<ArtifactInfo?> TryGetArtifactAsync(string id)
     {
         string path = GetArtifactInfoFilePath(id);
         return File.Exists(path) ? await Extensions.LoadFromFileAsync<ArtifactInfo>(path).ConfigureAwait(false) : null;
     }
 
     /// <inheritdoc/>
-    public override async Task AddInfoAsync(ArtifactInfo artifactInfo)
+    public override async ValueTask AddArtifactAsync(ArtifactInfo artifactInfo)
     {
         if (!Directory.Exists(BaseDirectory)) Directory.CreateDirectory(BaseDirectory);
         string path = GetArtifactInfoFilePath(artifactInfo.Id);

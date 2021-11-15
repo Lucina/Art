@@ -10,6 +10,6 @@ namespace Art;
 /// <param name="Options">Dumper-specific options.</param>
 public record ArtifactDumpingProfile(
     string Dumper,
-    string TargetFolder,
+    string? TargetFolder,
     Dictionary<string, JsonElement>? Options
     );

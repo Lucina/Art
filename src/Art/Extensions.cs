@@ -21,7 +21,7 @@ public static class Extensions
     /// <typeparam name="T">Data type.</typeparam>
     /// <param name="stream">Stream to load from.</param>
     /// <returns>Task returning read data.</returns>
-    public static async Task<T> LoadFromUtf8StreamAsync<T>(Stream stream) => (await JsonSerializer.DeserializeAsync<T>(stream, ArtJsonOptions.JsonOptions).ConfigureAwait(false))!;
+    public static async ValueTask<T> LoadFromUtf8StreamAsync<T>(Stream stream) => (await JsonSerializer.DeserializeAsync<T>(stream, ArtJsonOptions.JsonOptions).ConfigureAwait(false))!;
 
     /// <summary>
     /// Loads an object from a JSON file.
@@ -37,7 +37,7 @@ public static class Extensions
     /// <typeparam name="T">Data type.</typeparam>
     /// <param name="file">File path to load from.</param>
     /// <returns>Task returning ead data.</returns>
-    public static async Task<T> LoadFromFileAsync<T>(string file) => JsonSerializer.Deserialize<T>(await File.ReadAllTextAsync(file).ConfigureAwait(false), ArtJsonOptions.JsonOptions)!;
+    public static async ValueTask<T> LoadFromFileAsync<T>(string file) => JsonSerializer.Deserialize<T>(await File.ReadAllTextAsync(file).ConfigureAwait(false), ArtJsonOptions.JsonOptions)!;
 
     /// <summary>
     /// Writes an object to a JSON file.
@@ -59,7 +59,7 @@ public static class Extensions
     /// <param name="value">Value to write.</param>
     /// <param name="file">File path to write to.</param>
     /// <returns>Task.</returns>
-    public static async Task WriteToFileAsync<T>(this T value, string file)
+    public static async ValueTask WriteToFileAsync<T>(this T value, string file)
     {
         using FileStream fs = File.Create(file);
         await JsonSerializer.SerializeAsync(fs, value).ConfigureAwait(false);
@@ -74,7 +74,7 @@ public static class Extensions
     /// <param name="file">File path.</param>
     /// <param name="lengthCheck">Optional length check to skip download.</param>
     /// <returns>Task.</returns>
-    public static async Task DownloadResourceToFileAsync(this HttpClient client, string url, string file, long? lengthCheck = null)
+    public static async ValueTask DownloadResourceToFileAsync(this HttpClient client, string url, string file, long? lengthCheck = null)
     {
         if (lengthCheck != null && File.Exists(file) && new FileInfo(file).Length == lengthCheck) return;
         using HttpResponseMessage? fr = await client.GetAsync(url);
