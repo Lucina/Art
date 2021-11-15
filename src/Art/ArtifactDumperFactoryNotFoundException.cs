@@ -6,24 +6,19 @@
 public class ArtifactDumperFactoryNotFoundException : Exception
 {
     /// <summary>
-    /// Target factory assembly name.
+    /// Target dumper factory.
     /// </summary>
-    public string AssemblyName { get; set; }
+    public string Dumper { get; set; }
 
-    /// <summary>
-    /// Target factory type name.
-    /// </summary>
-    public string FactoryTypeName { get; set; }
 
     private string? _message;
 
     /// <summary>
     /// Creates a new instance of <see cref="ArtifactDumperFactoryNotFoundException"/>.
     /// </summary>
-    /// <param name="assemblyName">Target factory assembly name.</param>
-    /// <param name="factoryTypeName">Target factory type name.</param>
-    public ArtifactDumperFactoryNotFoundException(string assemblyName, string factoryTypeName) => (AssemblyName, FactoryTypeName) = (assemblyName, factoryTypeName);
+    /// <param name="dumper">Target dumper factory.</param>
+    public ArtifactDumperFactoryNotFoundException(string dumper) => (Dumper) = (dumper);
 
     /// <inheritdoc/>
-    public override string Message => _message ??= $"Failed to find dumper factory {AssemblyName}::{FactoryTypeName}";
+    public override string Message => _message ??= $"Failed to find dumper factory {Dumper}";
 }

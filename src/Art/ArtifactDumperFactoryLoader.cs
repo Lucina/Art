@@ -1,4 +1,6 @@
 ﻿using System.Diagnostics.CodeAnalysis;
+using System.Reflection;
+using System.Text.RegularExpressions;
 
 namespace Art;
 
@@ -13,7 +15,7 @@ public static class ArtifactDumperFactoryLoader
     /// <param name="dumpingProfile">Artifact dumping profile.</param>
     /// <param name="factory">Factory.</param>
     /// <returns>True if successfully located and created a dumper.</returns>
-    public static bool TryLoad(ArtifactDumpingProfile dumpingProfile, [NotNullWhen(true)] out ArtifactDumperFactory? factory) => TryLoad(dumpingProfile.AssemblyName, dumpingProfile.FactoryTypeName, out factory);
+    public static bool TryLoad(ArtifactDumpingProfile dumpingProfile, [NotNullWhen(true)] out ArtifactDumperFactory? factory) => TryLoad(dumpingProfile.Dumper, out factory);
 
     /// <summary>
     /// Attempts to load artifact dumper factory from an assembly name and factory type name.
@@ -24,14 +26,28 @@ public static class ArtifactDumperFactoryLoader
     /// <returns>True if successfully located and created a dumper.</returns>
     public static bool TryLoad(string assemblyName, string factoryTypeName, [NotNullWhen(true)] out ArtifactDumperFactory? factory)
     {
-        var assembly = AppDomain.CurrentDomain.GetAssemblies().SingleOrDefault(v => v.GetName().Name == assemblyName);
+        Assembly? assembly = Assembly.Load(assemblyName);
         if (assembly == null) goto fail;
-        var type = assembly.GetType(factoryTypeName);
-        var obj = type == null ? null : Activator.CreateInstance(type);
+        Type? type = assembly.GetType(factoryTypeName);
+        object? obj = type == null ? null : Activator.CreateInstance(type);
         factory = obj is ArtifactDumperFactory adf ? adf : null;
         return factory != null;
     fail:
         factory = null;
         return false;
+    }
+
+    private static readonly Regex _dumperRegex = new Regex(@"^([\S\s]+)::([\S\s]+)$");
+    /// <summary>
+    /// Attempts to load artifact dumper factory from an artifact dumper target string (assembly::factoryType).
+    /// </summary>
+    /// <param name="dumper">Artifact dumper target string (assembly::factoryType).</param>
+    /// <param name="factory">Factory.</param>
+    /// <returns>True if successfully located and created a dumper.</returns>
+    public static bool TryLoad(string dumper, [NotNullWhen(true)] out ArtifactDumperFactory? factory)
+    {
+        if (_dumperRegex.Match(dumper) is not { Success: true } match)
+            throw new ArgumentException("Dumper string is in invalid format, must be \"<assembly>::<factoryType>\"", nameof(dumper));
+        return TryLoad(match.Groups[1].Value, match.Groups[2].Value, out factory);
     }
 }

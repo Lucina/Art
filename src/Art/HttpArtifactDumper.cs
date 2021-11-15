@@ -22,12 +22,14 @@ public abstract class HttpArtifactDumper : ArtifactDumper
     /// <summary>
     /// Creates a new instance of <see cref="HttpArtifactDumper"/>, with automatic configuration of a <see cref="System.Net.Http.HttpClient"/>.
     /// </summary>
+    /// <param name="registrationManager">Registration manager to use for this instance.</param>
     /// <param name="dataManager">Data manager to use for this instance.</param>
     /// <param name="artifactDumpingProfile">Origin dumping profile.</param>
     /// <remarks>
     /// The <see cref="HttpClient"/> member will be preconfigured, including setup with a cookie file if specified and automatic response decompression.
     /// </remarks>
-    protected HttpArtifactDumper(ArtifactDataManager dataManager, ArtifactDumpingProfile artifactDumpingProfile) : base(dataManager, artifactDumpingProfile)
+    protected HttpArtifactDumper(ArtifactRegistrationManager registrationManager, ArtifactDataManager dataManager, ArtifactDumpingProfile artifactDumpingProfile)
+        : base(registrationManager, dataManager, artifactDumpingProfile)
     {
         CookieContainer cc = new();
         if (TryGetOption(OptCookieFile, out string? cookieFile))
@@ -44,13 +46,15 @@ public abstract class HttpArtifactDumper : ArtifactDumper
     /// <summary>
     /// Creates a new instance of <see cref="HttpArtifactDumper"/>, with an existing <see cref="System.Net.Http.HttpClient"/> (no automatic configuration).
     /// </summary>
+    /// <param name="registrationManager">Registration manager to use for this instance.</param>
     /// <param name="dataManager">Data manager to use for this instance.</param>
     /// <param name="artifactDumpingProfile">Origin dumping profile.</param>
     /// <param name="httpClient">Existing http client to use.</param>
     /// <remarks>
     /// No configuration will be performed on the <see cref="System.Net.Http.HttpClient"/>. However, derived constructors can access the <see cref="HttpClient"/> member for configuration.
     /// </remarks>
-    protected HttpArtifactDumper(ArtifactDataManager dataManager, ArtifactDumpingProfile artifactDumpingProfile, HttpClient httpClient) : base(dataManager, artifactDumpingProfile)
+    protected HttpArtifactDumper(ArtifactRegistrationManager registrationManager, ArtifactDataManager dataManager, ArtifactDumpingProfile artifactDumpingProfile, HttpClient httpClient)
+        : base(registrationManager, dataManager, artifactDumpingProfile)
     {
         HttpClient = httpClient;
     }
@@ -139,48 +143,48 @@ public abstract class HttpArtifactDumper : ArtifactDumper
     /// <summary>
     /// Downloads a resource.
     /// </summary>
-    /// <param name="artifactInfo">Target artifact.</param>
     /// <param name="requestUri">Uri to download from.</param>
     /// <param name="file">Target filename.</param>
+    /// <param name="artifactInfo">Target artifact.</param>
     /// <param name="path">File path to prepend.</param>
     /// <returns>Task.</returns>
-    protected async Task DownloadResourceAsync(ArtifactInfo artifactInfo, string requestUri, string file, string? path = null)
+    protected async Task DownloadResourceAsync(string requestUri, string file, ArtifactInfo? artifactInfo = null, string? path = null)
     {
         using HttpResponseMessage? fr = await HttpClient.GetAsync(requestUri).ConfigureAwait(false);
         fr.EnsureSuccessStatusCode();
-        using Stream stream = await DataManager.CreateOutputStreamAsync(artifactInfo, file, path).ConfigureAwait(false);
+        using Stream stream = await DataManager.CreateOutputStreamAsync(file, artifactInfo, path).ConfigureAwait(false);
         await fr.Content.CopyToAsync(stream).ConfigureAwait(false);
     }
 
     /// <summary>
     /// Downloads a resource.
     /// </summary>
-    /// <param name="artifactInfo">Target artifact.</param>
     /// <param name="requestUri"><see cref="Uri"/> to download from.</param>
     /// <param name="file">Target filename.</param>
+    /// <param name="artifactInfo">Target artifact.</param>
     /// <param name="path">File path to prepend.</param>
     /// <returns>Task.</returns>
-    protected async Task DownloadResourceAsync(ArtifactInfo artifactInfo, Uri requestUri, string file, string? path = null)
+    protected async Task DownloadResourceAsync(Uri requestUri, string file, ArtifactInfo? artifactInfo = null, string? path = null)
     {
         using HttpResponseMessage? fr = await HttpClient.GetAsync(requestUri).ConfigureAwait(false);
         fr.EnsureSuccessStatusCode();
-        using Stream stream = await DataManager.CreateOutputStreamAsync(artifactInfo, file, path).ConfigureAwait(false);
+        using Stream stream = await DataManager.CreateOutputStreamAsync(file, artifactInfo, path).ConfigureAwait(false);
         await fr.Content.CopyToAsync(stream).ConfigureAwait(false);
     }
 
     /// <summary>
     /// Downloads a resource.
     /// </summary>
-    /// <param name="artifactInfo">Target artifact.</param>
     /// <param name="requestMessage">Request to send.</param>
     /// <param name="file">Target filename.</param>
+    /// <param name="artifactInfo">Target artifact.</param>
     /// <param name="path">File path to prepend.</param>
     /// <returns>Task.</returns>
-    protected async Task DownloadResourceAsync(ArtifactInfo artifactInfo, HttpRequestMessage requestMessage, string file, string? path = null)
+    protected async Task DownloadResourceAsync(HttpRequestMessage requestMessage, string file, ArtifactInfo? artifactInfo = null, string? path = null)
     {
         using HttpResponseMessage? fr = await HttpClient.SendAsync(requestMessage).ConfigureAwait(false);
         fr.EnsureSuccessStatusCode();
-        using Stream stream = await DataManager.CreateOutputStreamAsync(artifactInfo, file, path).ConfigureAwait(false);
+        using Stream stream = await DataManager.CreateOutputStreamAsync(file, artifactInfo, path).ConfigureAwait(false);
         await fr.Content.CopyToAsync(stream).ConfigureAwait(false);
     }
 }

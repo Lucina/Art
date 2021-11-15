@@ -14,6 +14,11 @@ public abstract class ArtifactDumper
     public const string OptDebugMode = "debugMode";
 
     /// <summary>
+    /// Registration manager used by this instance.
+    /// </summary>
+    protected ArtifactRegistrationManager RegistrationManager { get; }
+
+    /// <summary>
     /// Data manager used by this instance.
     /// </summary>
     protected ArtifactDataManager DataManager { get; }
@@ -31,10 +36,12 @@ public abstract class ArtifactDumper
     /// <summary>
     /// Creates a new instance of <see cref="ArtifactDumper"/>.
     /// </summary>
+    /// <param name="registrationManager">Registration manager to use for this instance.</param>
     /// <param name="dataManager">Data manager to use for this instance.</param>
     /// <param name="artifactDumpingProfile">Origin dumping profile.</param>
-    protected ArtifactDumper(ArtifactDataManager dataManager, ArtifactDumpingProfile artifactDumpingProfile)
+    protected ArtifactDumper(ArtifactRegistrationManager registrationManager, ArtifactDataManager dataManager, ArtifactDumpingProfile artifactDumpingProfile)
     {
+        RegistrationManager = registrationManager;
         DataManager = dataManager;
         Profile = artifactDumpingProfile;
         DebugMode = TryGetOption(OptDebugMode, out bool debugMode) && debugMode;
@@ -97,7 +104,7 @@ public abstract class ArtifactDumper
     /// <param name="artifactInfo">Artifact to check.</param>
     /// <returns>Task returning true if this is a new artifact (newer than whatever exists with the same ID).</returns>
     protected async Task<bool> IsNewArtifactAsync(ArtifactInfo artifactInfo)
-        => await DataManager.IsNewArtifactAsync(artifactInfo).ConfigureAwait(false);
+        => await RegistrationManager.IsNewArtifactAsync(artifactInfo).ConfigureAwait(false);
 
     /// <summary>
     /// Registers artifact as known.
@@ -105,39 +112,39 @@ public abstract class ArtifactDumper
     /// <param name="artifactInfo">Artifact to register.</param>
     /// <returns>Task.</returns>
     protected async Task AddInfoAsync(ArtifactInfo artifactInfo)
-        => await DataManager.AddInfoAsync(artifactInfo).ConfigureAwait(false);
+        => await RegistrationManager.AddInfoAsync(artifactInfo).ConfigureAwait(false);
 
     /// <summary>
     /// Outputs a text file for the specified artifact.
     /// </summary>
-    /// <param name="artifactInfo">Artifact target.</param>
     /// <param name="text">Text to output.</param>
     /// <param name="file">Target filename.</param>
+    /// <param name="artifactInfo">Artifact target.</param>
     /// <param name="path">File path to prepend.</param>
     /// <returns>Task.</returns>
-    protected async Task OutputTextAsync(ArtifactInfo artifactInfo, string text, string file, string? path = null)
-    => await DataManager.OutputTextAsync(artifactInfo, text, file, path).ConfigureAwait(false);
+    protected async Task OutputTextAsync(string text, string file, ArtifactInfo? artifactInfo = null, string? path = null)
+    => await DataManager.OutputTextAsync(text, file, artifactInfo, path).ConfigureAwait(false);
 
     /// <summary>
     /// Outputs a JSON-serialized file for the specified artifact.
     /// </summary>
-    /// <param name="artifactInfo">Artifact target.</param>
     /// <param name="data">Data to output.</param>
     /// <param name="file">Target filename.</param>
+    /// <param name="artifactInfo">Artifact target.</param>
     /// <param name="path">File path to prepend.</param>
     /// <returns>Task.</returns>
-    protected async Task OutputJsonAsync<T>(ArtifactInfo artifactInfo, T data, string file, string? path = null)
-        => await DataManager.OutputJsonAsync<T>(artifactInfo, data, file, path).ConfigureAwait(false);
+    protected async Task OutputJsonAsync<T>(T data, string file, ArtifactInfo? artifactInfo = null, string? path = null)
+        => await DataManager.OutputJsonAsync<T>(data, file, artifactInfo, path).ConfigureAwait(false);
 
     /// <summary>
     /// Outputs a JSON-serialized file for the specified artifact.
     /// </summary>
-    /// <param name="artifactInfo">Artifact target.</param>
     /// <param name="data">Data to output.</param>
     /// <param name="jsonSerializerOptions">Serialization options.</param>
     /// <param name="file">Target filename.</param>
+    /// <param name="artifactInfo">Artifact target.</param>
     /// <param name="path">File path to prepend.</param>
     /// <returns>Task.</returns>
-    protected async Task OutputJsonAsync<T>(ArtifactInfo artifactInfo, T data, JsonSerializerOptions jsonSerializerOptions, string file, string? path = null)
-        => await DataManager.OutputJsonAsync<T>(artifactInfo, data, jsonSerializerOptions, file, path).ConfigureAwait(false);
+    protected async Task OutputJsonAsync<T>(T data, JsonSerializerOptions jsonSerializerOptions, string file, ArtifactInfo? artifactInfo = null, string? path = null)
+        => await DataManager.OutputJsonAsync<T>(data, jsonSerializerOptions, file, artifactInfo, path).ConfigureAwait(false);
 }
