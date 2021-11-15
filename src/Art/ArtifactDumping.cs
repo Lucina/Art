@@ -22,6 +22,7 @@ public static class ArtifactDumping
         var srm = new DiskArtifactRegistrationManager(targetDir);
         var sdm = new DiskArtifactDataManager(targetDir);
         ArtifactDumper? dumper = await fac.CreateAsync(srm, sdm, profile);
+        dumper.LogHandler = ConsoleLogHandler.Default;
         await dumper.DumpAsync();
     }
 }
