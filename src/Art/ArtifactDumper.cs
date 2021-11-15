@@ -64,7 +64,7 @@ public abstract class ArtifactDumper
     /// <exception cref="NotSupportedException">Thrown when type not supported.</exception>
     protected void GetOptionOrExcept<T>(string optKey, out T value)
     {
-        if (!Profile.Options.TryGetValue(optKey, out JsonElement vv)) throw new ArtifactDumperOptionNotFoundException(optKey);
+        if (!(Profile.Options?.TryGetValue(optKey, out JsonElement vv) ?? false)) throw new ArtifactDumperOptionNotFoundException(optKey);
         value = vv.Deserialize<T>(ArtJsonOptions.JsonOptions)!;
     }
 
@@ -78,7 +78,7 @@ public abstract class ArtifactDumper
     /// <returns>True if value is located and of the right type.</returns>
     protected bool TryGetOption<T>(string optKey, [NotNullWhen(true)] out T? value, bool throwIfIncorrectType = false)
     {
-        if (Profile.Options.TryGetValue(optKey, out JsonElement vv))
+        if (Profile.Options?.TryGetValue(optKey, out JsonElement vv) ?? false)
         {
             try
             {

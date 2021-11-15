@@ -11,5 +11,5 @@ namespace Art;
 public record ArtifactDumpingProfile(
     string Dumper,
     string TargetFolder,
-    Dictionary<string, JsonElement> Options
+    Dictionary<string, JsonElement>? Options
     );
