@@ -27,7 +27,7 @@ public abstract class ArtifactRegistrationManager
     /// </summary>
     /// <param name="artifactInfo">Artifact to check.</param>
     /// <returns>True if this is a new artifact (newer than whatever exists with the same ID).</returns>
-    public async ValueTask<bool> IsNewArtifactAsync(ArtifactInfo artifactInfo)
+    public virtual async ValueTask<bool> IsNewArtifactAsync(ArtifactInfo artifactInfo)
     {
         return (await TryGetArtifactAsync(artifactInfo.Id).ConfigureAwait(false)) is not { } oldArtifact
             || oldArtifact.UpdateDate == null

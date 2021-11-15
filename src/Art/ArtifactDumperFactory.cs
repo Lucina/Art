@@ -12,5 +12,5 @@ public abstract class ArtifactDumperFactory
     /// <param name="artifactDataManager">Data manager.</param>
     /// <param name="artifactDumpingProfile">Profile to use with the created artifact dumper.</param>
     /// <returns>Task that returns the created dumper.</returns>
-    public abstract ValueTask<ArtifactDumper> Create(ArtifactRegistrationManager artifactRegistrationManager, ArtifactDataManager artifactDataManager, ArtifactDumpingProfile artifactDumpingProfile);
+    public abstract ValueTask<ArtifactDumper> CreateAsync(ArtifactRegistrationManager artifactRegistrationManager, ArtifactDataManager artifactDataManager, ArtifactDumpingProfile artifactDumpingProfile);
 }

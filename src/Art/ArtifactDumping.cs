@@ -21,7 +21,7 @@ public static class ArtifactDumping
         string targetDir = Path.Combine(targetDirectory, profile.TargetFolder);
         var srm = new DiskArtifactRegistrationManager(targetDir);
         var sdm = new DiskArtifactDataManager(targetDir);
-        ArtifactDumper? dumper = await fac.Create(srm, sdm, profile);
+        ArtifactDumper? dumper = await fac.CreateAsync(srm, sdm, profile);
         await dumper.DumpAsync();
     }
 }
