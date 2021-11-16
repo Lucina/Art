@@ -6,7 +6,7 @@ namespace Art;
 /// <summary>
 /// Represents an instance of an artifact dumper.
 /// </summary>
-public abstract class ArtifactDumper
+public abstract class ArtifactDumper : IDisposable
 {
     /// <summary>
     /// Log handler for this dumper.
@@ -195,4 +195,18 @@ public abstract class ArtifactDumper
     /// <param name="title">Title.</param>
     /// <param name="body">Body.</param>
     protected void LogError(string? title, string? body = null) => LogHandler?.Log(title, body, LogLevel.Error);
+
+    /// <summary>
+    /// Disposes unmanaged resources.
+    /// </summary>
+    /// <param name="disposing">Is disposing.</param>
+    protected abstract void Dispose(bool disposing);
+
+    /// <inheritdoc/>
+    public void Dispose()
+    {
+        // Do not change this code. Put cleanup code in 'Dispose(bool disposing)' method
+        Dispose(disposing: true);
+        GC.SuppressFinalize(this);
+    }
 }

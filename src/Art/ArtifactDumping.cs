@@ -1,4 +1,6 @@
-﻿namespace Art;
+﻿using System.Text.Json;
+
+namespace Art;
 
 /// <summary>
 /// Simple dumping process.
@@ -14,14 +16,23 @@ public static class ArtifactDumping
     /// <exception cref="ArtifactDumperFactoryNotFoundException"></exception>
     public static async ValueTask DumpAsync(string dumpingProfilePath, string targetDirectory)
     {
-        ArtifactDumpingProfile? profile = Extensions.LoadFromFile<ArtifactDumpingProfile>(dumpingProfilePath);
-        if (profile.TargetFolder == null) throw new IOException("Target folder not specified in profile");
-        if (!ArtifactDumperFactoryLoader.TryLoad(profile, out ArtifactDumperFactory? fac))
-            throw new ArtifactDumperFactoryNotFoundException(profile.Dumper);
-        string targetDir = Path.Combine(targetDirectory, profile.TargetFolder);
+        JsonElement element = Extensions.LoadFromFile<JsonElement>(dumpingProfilePath);
+        if (element.ValueKind == JsonValueKind.Object)
+            await DumpAsync(element.Deserialize<ArtifactDumpingProfile>(ArtJsonOptions.JsonOptions)!, targetDirectory).ConfigureAwait(false);
+        else
+            foreach (ArtifactDumpingProfile profile in element.Deserialize<List<ArtifactDumpingProfile>>(ArtJsonOptions.JsonOptions)!)
+                await DumpAsync(profile, targetDirectory).ConfigureAwait(false);
+    }
+
+    private static async ValueTask DumpAsync(ArtifactDumpingProfile artifactDumpingProfile, string targetDirectory)
+    {
+        if (artifactDumpingProfile.TargetFolder == null) throw new IOException("Target folder not specified in profile");
+        if (!ArtifactDumperFactoryLoader.TryLoad(artifactDumpingProfile, out ArtifactDumperFactory? fac))
+            throw new ArtifactDumperFactoryNotFoundException(artifactDumpingProfile.Dumper);
+        string targetDir = Path.Combine(targetDirectory, artifactDumpingProfile.TargetFolder);
         var srm = new DiskArtifactRegistrationManager(targetDir);
         var sdm = new DiskArtifactDataManager(targetDir);
-        ArtifactDumper? dumper = await fac.CreateAsync(srm, sdm, profile);
+        ArtifactDumper? dumper = await fac.CreateAsync(srm, sdm, artifactDumpingProfile);
         dumper.LogHandler = ConsoleLogHandler.Default;
         await dumper.DumpAsync();
     }
