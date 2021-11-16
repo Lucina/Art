@@ -165,7 +165,7 @@ public abstract class HttpArtifactDumper : ArtifactDumper
         NotDisposed();
         using HttpResponseMessage? fr = await HttpClient.GetAsync(requestUri).ConfigureAwait(false);
         fr.EnsureSuccessStatusCode();
-        using Stream stream = await DataManager.CreateOutputStreamAsync(file, artifactInfo, path).ConfigureAwait(false);
+        await using Stream stream = await DataManager.CreateOutputStreamAsync(file, artifactInfo, path).ConfigureAwait(false);
         await fr.Content.CopyToAsync(stream).ConfigureAwait(false);
     }
 
@@ -182,7 +182,7 @@ public abstract class HttpArtifactDumper : ArtifactDumper
         NotDisposed();
         using HttpResponseMessage? fr = await HttpClient.GetAsync(requestUri).ConfigureAwait(false);
         fr.EnsureSuccessStatusCode();
-        using Stream stream = await DataManager.CreateOutputStreamAsync(file, artifactInfo, path).ConfigureAwait(false);
+        await using Stream stream = await DataManager.CreateOutputStreamAsync(file, artifactInfo, path).ConfigureAwait(false);
         await fr.Content.CopyToAsync(stream).ConfigureAwait(false);
     }
 
@@ -199,7 +199,7 @@ public abstract class HttpArtifactDumper : ArtifactDumper
         NotDisposed();
         using HttpResponseMessage? fr = await HttpClient.SendAsync(requestMessage).ConfigureAwait(false);
         fr.EnsureSuccessStatusCode();
-        using Stream stream = await DataManager.CreateOutputStreamAsync(file, artifactInfo, path).ConfigureAwait(false);
+        await using Stream stream = await DataManager.CreateOutputStreamAsync(file, artifactInfo, path).ConfigureAwait(false);
         await fr.Content.CopyToAsync(stream).ConfigureAwait(false);
     }
 

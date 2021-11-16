@@ -27,13 +27,19 @@ public static class ArtifactDumping
     private static async ValueTask DumpAsync(ArtifactDumpingProfile artifactDumpingProfile, string targetDirectory)
     {
         if (artifactDumpingProfile.TargetFolder == null) throw new IOException("Target folder not specified in profile");
-        if (!ArtifactDumperFactoryLoader.TryLoad(artifactDumpingProfile, out ArtifactDumperFactory? fac))
-            throw new ArtifactDumperFactoryNotFoundException(artifactDumpingProfile.Dumper);
+        if (!s_dumpers.TryGetValue(artifactDumpingProfile.Dumper, out ArtifactDumperFactory? fac))
+        {
+            if (!ArtifactDumperFactoryLoader.TryLoad(artifactDumpingProfile, out fac))
+                throw new ArtifactDumperFactoryNotFoundException(artifactDumpingProfile.Dumper);
+            s_dumpers.Add(artifactDumpingProfile.Dumper, fac);
+        }
         string targetDir = Path.Combine(targetDirectory, artifactDumpingProfile.TargetFolder);
         var srm = new DiskArtifactRegistrationManager(targetDir);
         var sdm = new DiskArtifactDataManager(targetDir);
-        ArtifactDumper? dumper = await fac.CreateAsync(srm, sdm, artifactDumpingProfile);
+        using ArtifactDumper? dumper = await fac.CreateAsync(srm, sdm, artifactDumpingProfile);
         dumper.LogHandler = ConsoleLogHandler.Default;
         await dumper.DumpAsync();
     }
+
+    private static readonly Dictionary<string, ArtifactDumperFactory> s_dumpers = new();
 }
