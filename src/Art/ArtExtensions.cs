@@ -91,4 +91,18 @@ public static class ArtExtensions
     /// <param name="name">String.</param>
     /// <returns>Better filename.</returns>
     public static string SafeifyFilename(this string name) => s_invalid.Aggregate(Path.GetFileName(name), (f, v) => f.Contains(v) ? f.Replace(v, '-') : f);
+
+    /// <summary>
+    /// Copies all elements to a list asynchronously.
+    /// </summary>
+    /// <typeparam name="T">Element type.</typeparam>
+    /// <param name="enumerable">Enumerable to convert to list.</param>
+    /// <returns>Task returning list.</returns>
+    public static async Task<List<T>> ToListAsync<T>(IAsyncEnumerable<T> enumerable)
+    {
+        List<T> list = new();
+        await foreach (T value in enumerable.ConfigureAwait(false))
+            list.Add(value);
+        return list;
+    }
 }

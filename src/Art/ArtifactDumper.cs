@@ -195,6 +195,7 @@ public abstract class ArtifactDumper : IDisposable
         public override void SetLength(long value) => BaseStream.SetLength(value);
         public override void Write(byte[] buffer, int offset, int count) => BaseStream.Write(buffer, offset, count);
     }
+
     private record struct DataEntryKey(string File, ArtifactInfo ArtifactInfo, string? Path, bool InArtifactFolder);
 
     /// <summary>
