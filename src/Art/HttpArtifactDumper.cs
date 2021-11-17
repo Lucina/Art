@@ -290,6 +290,20 @@ public abstract partial class HttpArtifactDumper : ArtifactDumper
     /// Downloads a resource.
     /// </summary>
     /// <param name="requestUri">Uri to download from.</param>
+    /// <param name="stream">Target stream.</param>
+    /// <returns>Task.</returns>
+    protected internal async ValueTask DownloadResourceAsync(string requestUri, Stream stream)
+    {
+        NotDisposed();
+        using HttpResponseMessage? fr = await HttpClient.GetAsync(requestUri).ConfigureAwait(false);
+        fr.EnsureSuccessStatusCode();
+        await fr.Content.CopyToAsync(stream).ConfigureAwait(false);
+    }
+
+    /// <summary>
+    /// Downloads a resource.
+    /// </summary>
+    /// <param name="requestUri">Uri to download from.</param>
     /// <param name="file">Target filename.</param>
     /// <param name="artifactInfo">Target artifact.</param>
     /// <param name="path">File path to prepend.</param>
@@ -308,6 +322,20 @@ public abstract partial class HttpArtifactDumper : ArtifactDumper
     /// Downloads a resource.
     /// </summary>
     /// <param name="requestUri"><see cref="Uri"/> to download from.</param>
+    /// <param name="stream">Target stream.</param>
+    /// <returns>Task.</returns>
+    protected internal async ValueTask DownloadResourceAsync(Uri requestUri, Stream stream)
+    {
+        NotDisposed();
+        using HttpResponseMessage? fr = await HttpClient.GetAsync(requestUri).ConfigureAwait(false);
+        fr.EnsureSuccessStatusCode();
+        await fr.Content.CopyToAsync(stream).ConfigureAwait(false);
+    }
+
+    /// <summary>
+    /// Downloads a resource.
+    /// </summary>
+    /// <param name="requestUri"><see cref="Uri"/> to download from.</param>
     /// <param name="file">Target filename.</param>
     /// <param name="artifactInfo">Target artifact.</param>
     /// <param name="path">File path to prepend.</param>
@@ -319,6 +347,20 @@ public abstract partial class HttpArtifactDumper : ArtifactDumper
         using HttpResponseMessage? fr = await HttpClient.GetAsync(requestUri).ConfigureAwait(false);
         fr.EnsureSuccessStatusCode();
         await using Stream stream = await CreateOutputStreamAsync(file, artifactInfo, path, inArtifactFolder).ConfigureAwait(false);
+        await fr.Content.CopyToAsync(stream).ConfigureAwait(false);
+    }
+
+    /// <summary>
+    /// Downloads a resource.
+    /// </summary>
+    /// <param name="requestMessage">Request to send.</param>
+    /// <param name="stream">Target stream.</param>
+    /// <returns>Task.</returns>
+    protected internal async ValueTask DownloadResourceAsync(HttpRequestMessage requestMessage, Stream stream)
+    {
+        NotDisposed();
+        using HttpResponseMessage? fr = await HttpClient.SendAsync(requestMessage).ConfigureAwait(false);
+        fr.EnsureSuccessStatusCode();
         await fr.Content.CopyToAsync(stream).ConfigureAwait(false);
     }
 
