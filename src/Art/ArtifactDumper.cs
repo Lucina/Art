@@ -149,7 +149,7 @@ public abstract class ArtifactDumper : IDisposable
 
         private readonly Dictionary<DataEntryKey, ResultStream> _entries = new();
 
-        public override ValueTask<Stream> CreateOutputStreamAsync(string file, ArtifactInfo artifactInfo, string? path = null, bool inArtifactFolder = false)
+        public override ValueTask<Stream> CreateOutputStreamAsync(string file, ArtifactInfo artifactInfo, string? path = null, bool inArtifactFolder = true)
         {
             DataEntryKey entry = new(file, artifactInfo, path, inArtifactFolder);
             if (_entries.TryGetValue(entry, out ResultStream? stream))

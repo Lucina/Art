@@ -26,7 +26,7 @@ public record UriStringArtifactResourceInfo(HttpArtifactDumper ArtifactDumper, s
     /// <param name="inArtifactFolder">If false, sent to common directory.</param>
     /// <param name="properties">Resource properties.</param>
     /// <returns>Value.</returns>
-    public static UriStringArtifactResourceInfo Create(HttpArtifactDumper artifactDumper, string uri, string artifactId, string file, string? path = null, bool inArtifactFolder = false, IReadOnlyDictionary<string, JsonElement>? properties = null)
+    public static UriStringArtifactResourceInfo Create(HttpArtifactDumper artifactDumper, string uri, string artifactId, string file, string? path = null, bool inArtifactFolder = true, IReadOnlyDictionary<string, JsonElement>? properties = null)
         => new(artifactDumper, uri, artifactId, file, path, inArtifactFolder, properties ?? EmptyProperties);
 
     /// <inheritdoc/>

@@ -22,7 +22,7 @@ public record ArtifactResourceInfo(string ArtifactId, string File, string? Path,
     /// <param name="inArtifactFolder">If false, sent to common directory.</param>
     /// <param name="properties">Resource properties.</param>
     /// <returns>Value.</returns>
-    public static ArtifactResourceInfo Create(string artifactId, string file, string? path = null, bool inArtifactFolder = false, IReadOnlyDictionary<string, JsonElement>? properties = null)
+    public static ArtifactResourceInfo Create(string artifactId, string file, string? path = null, bool inArtifactFolder = true, IReadOnlyDictionary<string, JsonElement>? properties = null)
         => new(artifactId, file, path, inArtifactFolder, properties ?? EmptyProperties);
 
     /// <summary>

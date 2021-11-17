@@ -61,7 +61,7 @@ public class ArtifactData
     /// <param name="path">Path.</param>
     /// <param name="inArtifactFolder">If false, sent to common directory.</param>
     /// <param name="properties">Resource properties.</param>
-    public void AddString(string resource, string file, string? path = null, bool inArtifactFolder = false, IReadOnlyDictionary<string, JsonElement>? properties = null)
+    public void AddString(string resource, string file, string? path = null, bool inArtifactFolder = true, IReadOnlyDictionary<string, JsonElement>? properties = null)
         => Resources.Add(new StringArtifactResourceInfo(resource, Info.Id, file, path, inArtifactFolder, properties ?? ArtifactResourceInfo.EmptyProperties));
 
     /// <summary>
@@ -73,7 +73,7 @@ public class ArtifactData
     /// <param name="path">Path.</param>
     /// <param name="inArtifactFolder">If false, sent to common directory.</param>
     /// <param name="properties">Resource properties.</param>
-    public void AddUri(HttpArtifactDumper artifactDumper, Uri uri, string file, string? path = null, bool inArtifactFolder = false, IReadOnlyDictionary<string, JsonElement>? properties = null)
+    public void AddUri(HttpArtifactDumper artifactDumper, Uri uri, string file, string? path = null, bool inArtifactFolder = true, IReadOnlyDictionary<string, JsonElement>? properties = null)
         => Resources.Add(new UriArtifactResourceInfo(artifactDumper, uri, Info.Id, file, path, inArtifactFolder, properties ?? ArtifactResourceInfo.EmptyProperties));
 
     /// <summary>
@@ -85,7 +85,7 @@ public class ArtifactData
     /// <param name="path">Path.</param>
     /// <param name="inArtifactFolder">If false, sent to common directory.</param>
     /// <param name="properties">Resource properties.</param>
-    public void AddJson<T>(T resource, JsonSerializerOptions? serializerOptions, string file, string? path = null, bool inArtifactFolder = false, IReadOnlyDictionary<string, JsonElement>? properties = null)
+    public void AddJson<T>(T resource, JsonSerializerOptions? serializerOptions, string file, string? path = null, bool inArtifactFolder = true, IReadOnlyDictionary<string, JsonElement>? properties = null)
         => Resources.Add(new JsonArtifactResourceInfo<T>(resource, serializerOptions, Info.Id, file, path, inArtifactFolder, properties ?? ArtifactResourceInfo.EmptyProperties));
 
     /// <summary>
@@ -97,7 +97,7 @@ public class ArtifactData
     /// <param name="path">Path.</param>
     /// <param name="inArtifactFolder">If false, sent to common directory.</param>
     /// <param name="properties">Resource properties.</param>
-    public void AddUriString(HttpArtifactDumper artifactDumper, string uri, string file, string? path = null, bool inArtifactFolder = false, IReadOnlyDictionary<string, JsonElement>? properties = null)
+    public void AddUriString(HttpArtifactDumper artifactDumper, string uri, string file, string? path = null, bool inArtifactFolder = true, IReadOnlyDictionary<string, JsonElement>? properties = null)
         => Resources.Add(new UriStringArtifactResourceInfo(artifactDumper, uri, Info.Id, file, path, inArtifactFolder, properties ?? ArtifactResourceInfo.EmptyProperties));
 
     /// <summary>
@@ -109,7 +109,7 @@ public class ArtifactData
     /// <param name="path">Path.</param>
     /// <param name="inArtifactFolder">If false, sent to common directory.</param>
     /// <param name="properties">Resource properties.</param>
-    public void AddHttpRequestMessage(HttpArtifactDumper artifactDumper, HttpRequestMessage request, string file, string? path = null, bool inArtifactFolder = false, IReadOnlyDictionary<string, JsonElement>? properties = null)
+    public void AddHttpRequestMessage(HttpArtifactDumper artifactDumper, HttpRequestMessage request, string file, string? path = null, bool inArtifactFolder = true, IReadOnlyDictionary<string, JsonElement>? properties = null)
         => Resources.Add(new HttpRequestMessageArtifactResourceInfo(artifactDumper, request, Info.Id, file, path, inArtifactFolder, properties ?? ArtifactResourceInfo.EmptyProperties));
 }
 

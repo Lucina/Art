@@ -25,7 +25,7 @@ public record StreamArtifactResourceInfo(Stream Resource, string ArtifactId, str
     /// <param name="inArtifactFolder">If false, sent to common directory.</param>
     /// <param name="properties">Resource properties.</param>
     /// <returns>Value.</returns>
-    public static StreamArtifactResourceInfo Create(Stream resource, string artifactId, string file, string? path = null, bool inArtifactFolder = false, IReadOnlyDictionary<string, JsonElement>? properties = null)
+    public static StreamArtifactResourceInfo Create(Stream resource, string artifactId, string file, string? path = null, bool inArtifactFolder = true, IReadOnlyDictionary<string, JsonElement>? properties = null)
         => new(resource, artifactId, file, path, inArtifactFolder, properties ?? EmptyProperties);
 
     /// <inheritdoc/>
