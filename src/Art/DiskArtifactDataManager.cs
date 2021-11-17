@@ -8,11 +8,6 @@ namespace Art;
 public class DiskArtifactDataManager : ArtifactDataManager
 {
     /// <summary>
-    /// Main artifact file name.
-    /// </summary>
-    public const string ArtifactFileName = "artifact.json";
-
-    /// <summary>
     /// Base directory.
     /// </summary>
     public string BaseDirectory { get; }
@@ -27,7 +22,7 @@ public class DiskArtifactDataManager : ArtifactDataManager
     }
 
     /// <inheritdoc/>
-    public override ValueTask<Stream> CreateOutputStreamAsync(string file, ArtifactInfo artifactInfo, bool inArtifactFolder = true, string? path = null)
+    public override ValueTask<Stream> CreateOutputStreamAsync(string file, ArtifactInfo artifactInfo, string? path = null, bool inArtifactFolder = true)
     {
         string dir = inArtifactFolder ? Path.Combine(BaseDirectory, artifactInfo.Id) : BaseDirectory;
         if (!string.IsNullOrEmpty(path)) dir = Path.Combine(dir, path);

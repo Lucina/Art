@@ -194,11 +194,11 @@ public abstract class ArtifactDumper : IDisposable
     /// <param name="text">Text to output.</param>
     /// <param name="file">Target filename.</param>
     /// <param name="artifactInfo">Artifact target.</param>
-    /// <param name="inArtifactFolder">If false, place artifact under common root.</param>
     /// <param name="path">File path to prepend.</param>
+    /// <param name="inArtifactFolder">If false, place artifact under common root.</param>
     /// <returns>Task.</returns>
-    protected async ValueTask OutputTextAsync(string text, string file, ArtifactInfo artifactInfo, bool inArtifactFolder = true, string? path = null)
-    => await DataManager.OutputTextAsync(text, file, artifactInfo, inArtifactFolder, path).ConfigureAwait(false);
+    protected async ValueTask OutputTextAsync(string text, string file, ArtifactInfo artifactInfo, string? path = null, bool inArtifactFolder = true)
+    => await DataManager.OutputTextAsync(text, file, artifactInfo, path, inArtifactFolder).ConfigureAwait(false);
 
     /// <summary>
     /// Outputs a JSON-serialized file for the specified artifact.
@@ -206,11 +206,11 @@ public abstract class ArtifactDumper : IDisposable
     /// <param name="data">Data to output.</param>
     /// <param name="file">Target filename.</param>
     /// <param name="artifactInfo">Artifact target.</param>
-    /// <param name="inArtifactFolder">If false, place artifact under common root.</param>
     /// <param name="path">File path to prepend.</param>
+    /// <param name="inArtifactFolder">If false, place artifact under common root.</param>
     /// <returns>Task.</returns>
-    protected async ValueTask OutputJsonAsync<T>(T data, string file, ArtifactInfo artifactInfo, bool inArtifactFolder = true, string? path = null)
-        => await DataManager.OutputJsonAsync<T>(data, JsonOptions, file, artifactInfo, inArtifactFolder, path).ConfigureAwait(false);
+    protected async ValueTask OutputJsonAsync<T>(T data, string file, ArtifactInfo artifactInfo, string? path = null, bool inArtifactFolder = true)
+        => await DataManager.OutputJsonAsync<T>(data, JsonOptions, file, artifactInfo, path, inArtifactFolder).ConfigureAwait(false);
 
     /// <summary>
     /// Outputs a JSON-serialized file for the specified artifact.
@@ -219,22 +219,22 @@ public abstract class ArtifactDumper : IDisposable
     /// <param name="jsonSerializerOptions">Serialization options.</param>
     /// <param name="file">Target filename.</param>
     /// <param name="artifactInfo">Artifact target.</param>
-    /// <param name="inArtifactFolder">If false, place artifact under common root.</param>
     /// <param name="path">File path to prepend.</param>
+    /// <param name="inArtifactFolder">If false, place artifact under common root.</param>
     /// <returns>Task.</returns>
-    protected async ValueTask OutputJsonAsync<T>(T data, JsonSerializerOptions jsonSerializerOptions, string file, ArtifactInfo artifactInfo, bool inArtifactFolder = true, string? path = null)
-        => await DataManager.OutputJsonAsync<T>(data, jsonSerializerOptions, file, artifactInfo, inArtifactFolder, path).ConfigureAwait(false);
+    protected async ValueTask OutputJsonAsync<T>(T data, JsonSerializerOptions jsonSerializerOptions, string file, ArtifactInfo artifactInfo, string? path = null, bool inArtifactFolder = true)
+        => await DataManager.OutputJsonAsync<T>(data, jsonSerializerOptions, file, artifactInfo, path, inArtifactFolder).ConfigureAwait(false);
 
     /// <summary>
     /// Creates an output stream for a file for the specified artifact.
     /// </summary>
     /// <param name="file">Target filename.</param>
     /// <param name="artifactInfo">Artifact target.</param>
-    /// <param name="inArtifactFolder">If false, place artifact under common root.</param>
     /// <param name="path">File path to prepend.</param>
+    /// <param name="inArtifactFolder">If false, place artifact under common root.</param>
     /// <returns>Task returning a writeable stream to write an output to.</returns>
-    protected ValueTask<Stream> CreateOutputStreamAsync(string file, ArtifactInfo artifactInfo, bool inArtifactFolder = true, string? path = null)
-        => DataManager.CreateOutputStreamAsync(file, artifactInfo, inArtifactFolder, path);
+    protected ValueTask<Stream> CreateOutputStreamAsync(string file, ArtifactInfo artifactInfo, string? path = null, bool inArtifactFolder = true)
+        => DataManager.CreateOutputStreamAsync(file, artifactInfo, path, inArtifactFolder);
 
     #endregion
 

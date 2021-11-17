@@ -292,15 +292,15 @@ public abstract partial class HttpArtifactDumper : ArtifactDumper
     /// <param name="requestUri">Uri to download from.</param>
     /// <param name="file">Target filename.</param>
     /// <param name="artifactInfo">Target artifact.</param>
-    /// <param name="inArtifactFolder">If false, place artifact under common root.</param>
     /// <param name="path">File path to prepend.</param>
+    /// <param name="inArtifactFolder">If false, place artifact under common root.</param>
     /// <returns>Task.</returns>
-    protected async ValueTask DownloadResourceAsync(string requestUri, string file, ArtifactInfo artifactInfo, bool inArtifactFolder = false, string? path = null)
+    protected async ValueTask DownloadResourceAsync(string requestUri, string file, ArtifactInfo artifactInfo, string? path = null, bool inArtifactFolder = true)
     {
         NotDisposed();
         using HttpResponseMessage? fr = await HttpClient.GetAsync(requestUri).ConfigureAwait(false);
         fr.EnsureSuccessStatusCode();
-        await using Stream stream = await CreateOutputStreamAsync(file, artifactInfo, inArtifactFolder, path).ConfigureAwait(false);
+        await using Stream stream = await CreateOutputStreamAsync(file, artifactInfo, path, inArtifactFolder).ConfigureAwait(false);
         await fr.Content.CopyToAsync(stream).ConfigureAwait(false);
     }
 
@@ -310,15 +310,15 @@ public abstract partial class HttpArtifactDumper : ArtifactDumper
     /// <param name="requestUri"><see cref="Uri"/> to download from.</param>
     /// <param name="file">Target filename.</param>
     /// <param name="artifactInfo">Target artifact.</param>
-    /// <param name="inArtifactFolder">If false, place artifact under common root.</param>
     /// <param name="path">File path to prepend.</param>
+    /// <param name="inArtifactFolder">If false, place artifact under common root.</param>
     /// <returns>Task.</returns>
-    protected async ValueTask DownloadResourceAsync(Uri requestUri, string file, ArtifactInfo artifactInfo, bool inArtifactFolder = false, string? path = null)
+    protected async ValueTask DownloadResourceAsync(Uri requestUri, string file, ArtifactInfo artifactInfo, string? path = null, bool inArtifactFolder = true)
     {
         NotDisposed();
         using HttpResponseMessage? fr = await HttpClient.GetAsync(requestUri).ConfigureAwait(false);
         fr.EnsureSuccessStatusCode();
-        await using Stream stream = await CreateOutputStreamAsync(file, artifactInfo, inArtifactFolder, path).ConfigureAwait(false);
+        await using Stream stream = await CreateOutputStreamAsync(file, artifactInfo, path, inArtifactFolder).ConfigureAwait(false);
         await fr.Content.CopyToAsync(stream).ConfigureAwait(false);
     }
 
@@ -328,15 +328,15 @@ public abstract partial class HttpArtifactDumper : ArtifactDumper
     /// <param name="requestMessage">Request to send.</param>
     /// <param name="file">Target filename.</param>
     /// <param name="artifactInfo">Target artifact.</param>
-    /// <param name="inArtifactFolder">If false, place artifact under common root.</param>
     /// <param name="path">File path to prepend.</param>
+    /// <param name="inArtifactFolder">If false, place artifact under common root.</param>
     /// <returns>Task.</returns>
-    protected async ValueTask DownloadResourceAsync(HttpRequestMessage requestMessage, string file, ArtifactInfo artifactInfo, bool inArtifactFolder = false, string? path = null)
+    protected async ValueTask DownloadResourceAsync(HttpRequestMessage requestMessage, string file, ArtifactInfo artifactInfo, string? path = null, bool inArtifactFolder = true)
     {
         NotDisposed();
         using HttpResponseMessage? fr = await HttpClient.SendAsync(requestMessage).ConfigureAwait(false);
         fr.EnsureSuccessStatusCode();
-        await using Stream stream = await CreateOutputStreamAsync(file, artifactInfo, inArtifactFolder, path).ConfigureAwait(false);
+        await using Stream stream = await CreateOutputStreamAsync(file, artifactInfo, path, inArtifactFolder).ConfigureAwait(false);
         await fr.Content.CopyToAsync(stream).ConfigureAwait(false);
     }
 

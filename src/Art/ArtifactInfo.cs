@@ -14,12 +14,13 @@ public record ArtifactInfo(string Id, DateTimeOffset? Date, DateTimeOffset? Upda
     /// <summary>
     /// Creates a new instance of <see cref="ArtifactInfo"/>.
     /// </summary>
-    /// <param name="Id">Artifact ID.</param>
-    /// <param name="Date">Artifact creation date.</param>
-    /// <param name="UpdateDate">Artifact update date.</param>
-    public ArtifactInfo(string Id, DateTimeOffset? Date = null, DateTimeOffset? UpdateDate = null) : this(Id, Date, UpdateDate, EmptyProperties)
-    {
-    }
+    /// <param name="id">Artifact ID.</param>
+    /// <param name="date">Artifact creation date.</param>
+    /// <param name="updateDate">Artifact update date.</param>
+    /// <param name="properties">Artifact properties.</param>
+    /// <returns>Value.</returns>
+    public static ArtifactInfo Create(string id, DateTimeOffset? date = null, DateTimeOffset? updateDate = null, IReadOnlyDictionary<string, JsonElement>? properties = null)
+        => new(id, date, updateDate, properties ?? EmptyProperties);
 
     /// <summary>
     /// Singleton dummy no-entry properties.

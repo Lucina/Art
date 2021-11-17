@@ -1,4 +1,5 @@
 ﻿using System.Text.Json;
+using System.Text.Json.Serialization;
 
 namespace Art;
 
@@ -14,12 +15,13 @@ public record ArtifactResourceInfo(string ArtifactId, string File, string? Path,
     /// <summary>
     /// Creates a new instance of <see cref="ArtifactInfo"/>.
     /// </summary>
-    /// <param name="ArtifactId">Artifact ID.</param>
-    /// <param name="File">Filename.</param>
-    /// <param name="Path">Path.</param>
-    public ArtifactResourceInfo(string ArtifactId, string File, string? Path = null) : this(ArtifactId, File, Path, EmptyProperties)
-    {
-    }
+    /// <param name="artifactId">Artifact ID.</param>
+    /// <param name="file">Filename.</param>
+    /// <param name="path">Path.</param>
+    /// <param name="properties">Resource properties.</param>
+    /// <returns>Value.</returns>
+    public static ArtifactResourceInfo Create(string artifactId, string file, string? path = null, IReadOnlyDictionary<string, JsonElement>? properties = null)
+        => new(artifactId, file, path, properties ?? EmptyProperties);
 
     /// <summary>
     /// Singleton dummy no-entry properties.
