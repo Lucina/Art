@@ -4,14 +4,14 @@ using System.Text.Json;
 namespace Art;
 
 /// <summary>
-/// Represents an instance of an artifact dumper.
+/// Represents an instance of an artifact tool.
 /// </summary>
-public abstract class ArtifactDumper : IDisposable
+public abstract class ArtifactTool : IDisposable, IAsyncFinder<ArtifactData?>
 {
     #region Fields
 
     /// <summary>
-    /// Log handler for this dumper.
+    /// Log handler for this tool.
     /// </summary>
     public ILogHandler? LogHandler;
 
@@ -31,12 +31,12 @@ public abstract class ArtifactDumper : IDisposable
     protected JsonSerializerOptions JsonOptions { get => _jsonOptions ??= new JsonSerializerOptions(); set => _jsonOptions = value; }
 
     /// <summary>
-    /// Origin dumping profile.
+    /// Origin tool profile.
     /// </summary>
-    protected ArtifactDumpingProfile Profile { get; }
+    protected ArtifactToolProfile Profile { get; }
 
     /// <summary>
-    /// True if this dumper is in debug mode.
+    /// True if this tool is in debug mode.
     /// </summary>
     protected bool DebugMode { get; set; }
 
@@ -44,6 +44,21 @@ public abstract class ArtifactDumper : IDisposable
     /// True if all previous artifacts should be ignored (e.g. modifies <see cref="IsNewArtifactAsync(ArtifactInfo)"/>).
     /// </summary>
     protected bool Force { get; set; }
+
+    /// <summary>
+    /// True if this instance can find artifacts.
+    /// </summary>
+    public virtual bool CanFind => false;
+
+    /// <summary>
+    /// True if this instance can dump artifacts.
+    /// </summary>
+    public virtual bool CanDump => CanList;
+
+    /// <summary>
+    /// True if this instance can list artifacts.
+    /// </summary>
+    public virtual bool CanList => false;
 
     #endregion
 
@@ -72,16 +87,16 @@ public abstract class ArtifactDumper : IDisposable
     #region Constructor
 
     /// <summary>
-    /// Creates a new instance of <see cref="ArtifactDumper"/>.
+    /// Creates a new instance of <see cref="ArtifactTool"/>.
     /// </summary>
     /// <param name="registrationManager">Registration manager to use for this instance.</param>
     /// <param name="dataManager">Data manager to use for this instance.</param>
-    /// <param name="artifactDumpingProfile">Origin dumping profile.</param>
-    protected ArtifactDumper(ArtifactRegistrationManager registrationManager, ArtifactDataManager dataManager, ArtifactDumpingProfile artifactDumpingProfile)
+    /// <param name="artifactToolProfile">Origin tool profile.</param>
+    protected ArtifactTool(ArtifactRegistrationManager registrationManager, ArtifactDataManager dataManager, ArtifactToolProfile artifactToolProfile)
     {
         RegistrationManager = registrationManager;
         DataManager = dataManager;
-        Profile = artifactDumpingProfile;
+        Profile = artifactToolProfile;
         DebugMode = GetFlagTrue(OptDebugMode);
         Force = GetFlagTrue(OptForce);
     }
@@ -91,15 +106,26 @@ public abstract class ArtifactDumper : IDisposable
     #region API
 
     /// <summary>
-    /// Dump artifacts.
+    /// Finds an artifact with the speciied id.
     /// </summary>
-    /// <returns>Task.</returns>
-    public async ValueTask RunAsync()
+    /// <param name="id">Artifact id.</param>
+    /// <returns>Task returning found artifact or null.</returns>
+    public ValueTask<ArtifactData?> FindAsync(string id)
     {
         NotDisposed();
-        await DumpAsync().ConfigureAwait(false);
+        return DoFindAsync(id);
+    }
+
+    /// <summary>
+    /// Dumps artifacts.
+    /// </summary>
+    /// <returns>Task.</returns>
+    public async ValueTask DumpAsync()
+    {
+        NotDisposed();
+        await DoDumpAsync().ConfigureAwait(false);
         if (_runOverridden) return;
-        await foreach (ArtifactData data in DumpArtifactsAsync().ConfigureAwait(false))
+        await foreach (ArtifactData data in DoListAsync().ConfigureAwait(false))
         {
             if (!(await IsNewArtifactAsync(data.Info).ConfigureAwait(false))) continue;
             foreach (ArtifactResourceInfo resource in data.Resources)
@@ -113,20 +139,20 @@ public abstract class ArtifactDumper : IDisposable
     }
 
     /// <summary>
-    /// Get artifacts individually.
+    /// Lists artifacts.
     /// </summary>
-    /// <returns>Task returning individual artifacts.</returns>
-    public async IAsyncEnumerable<ArtifactData> GetArtifactsAsync()
+    /// <returns>Async-enumerable artifacts.</returns>
+    public async IAsyncEnumerable<ArtifactData> ListAsync()
     {
         NotDisposed();
-        await foreach (ArtifactData res in DumpArtifactsAsync().ConfigureAwait(false))
+        await foreach (ArtifactData res in DoListAsync().ConfigureAwait(false))
             yield return res;
         if (_runDataOverridden) yield break;
         ArtifactDataManager previous = DataManager;
         try
         {
             InMemoryArtifactDataManager im = new();
-            await DumpAsync().ConfigureAwait(false);
+            await DoDumpAsync().ConfigureAwait(false);
             foreach ((ArtifactInfo info, List<ArtifactResourceInfo> resources) in im.Artifacts)
             {
                 ArtifactData data = new(info);
@@ -199,20 +225,30 @@ public abstract class ArtifactDumper : IDisposable
     private record struct DataEntryKey(string File, ArtifactInfo ArtifactInfo, string? Path, bool InArtifactFolder);
 
     /// <summary>
-    /// Dump artifacts.
+    /// Finds an artifact with the specified id.
+    /// </summary>
+    /// <param name="id">Artifact id.</param>
+    /// <returns>Task returning found artifact or null.</returns>
+    protected virtual ValueTask<ArtifactData?> DoFindAsync(string id)
+    {
+        return ValueTask.FromResult<ArtifactData?>(null);
+    }
+
+    /// <summary>
+    /// Dumps artifacts.
     /// </summary>
     /// <returns>Task.</returns>
-    protected virtual ValueTask DumpAsync()
+    protected virtual ValueTask DoDumpAsync()
     {
         _runOverridden = false;
         return ValueTask.CompletedTask;
     }
 
     /// <summary>
-    /// Dump artifacts individually.
+    /// Lists artifacts.
     /// </summary>
-    /// <returns>Task returning individual artifacts.</returns>
-    protected virtual IAsyncEnumerable<ArtifactData> DumpArtifactsAsync()
+    /// <returns>Async-enumerable artifacts.</returns>
+    protected virtual IAsyncEnumerable<ArtifactData> DoListAsync()
     {
         _runDataOverridden = false;
         return EmptyAsyncEnumerable<ArtifactData>.Singleton;
@@ -242,12 +278,12 @@ public abstract class ArtifactDumper : IDisposable
     /// <typeparam name="T">Value type.</typeparam>
     /// <param name="optKey">Key to search.</param>
     /// <param name="value">Value, if located and nonnull.</param>
-    /// <exception cref="ArtifactDumperOptionNotFoundException">Thrown when option is not found.</exception>
+    /// <exception cref="ArtifactToolOptionNotFoundException">Thrown when option is not found.</exception>
     /// <exception cref="JsonException">Thrown when conversion failed.</exception>
     /// <exception cref="NotSupportedException">Thrown when type not supported.</exception>
     protected void GetOptionOrExcept<T>(string optKey, out T value)
     {
-        if (!(Profile.Options?.TryGetValue(optKey, out JsonElement vv) ?? false)) throw new ArtifactDumperOptionNotFoundException(optKey);
+        if (!(Profile.Options?.TryGetValue(optKey, out JsonElement vv) ?? false)) throw new ArtifactToolOptionNotFoundException(optKey);
         value = vv.Deserialize<T>(ArtJsonOptions.JsonOptions)!;
     }
 
@@ -474,7 +510,7 @@ public abstract class ArtifactDumper : IDisposable
 
     private void NotDisposed()
     {
-        if (_disposed) throw new ObjectDisposedException(nameof(ArtifactDumper));
+        if (_disposed) throw new ObjectDisposedException(nameof(ArtifactTool));
     }
 
     #endregion

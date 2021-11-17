@@ -1,7 +1,4 @@
-﻿using System.Diagnostics.CodeAnalysis;
-using System.Text.Json;
-
-namespace Art;
+﻿namespace Art;
 
 /// <summary>
 /// Represents a manager for artifact data.

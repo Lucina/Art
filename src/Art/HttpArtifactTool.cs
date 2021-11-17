@@ -1,14 +1,13 @@
-﻿using System.Diagnostics.CodeAnalysis;
-using System.Net;
+﻿using System.Net;
 using System.Net.Http.Headers;
 using System.Text.Json;
 
 namespace Art;
 
 /// <summary>
-/// Represents an instance of an artifact dumper that depends on an <see cref="System.Net.Http.HttpClient"/>.
+/// Represents an instance of an artifact tool that depends on an <see cref="System.Net.Http.HttpClient"/>.
 /// </summary>
-public abstract partial class HttpArtifactDumper : ArtifactDumper
+public abstract partial class HttpArtifactTool : ArtifactTool
 {
     #region Fields
     /// <summary>
@@ -65,17 +64,17 @@ public abstract partial class HttpArtifactDumper : ArtifactDumper
     #region Constructor
 
     /// <summary>
-    /// Creates a new instance of <see cref="HttpArtifactDumper"/>.
+    /// Creates a new instance of <see cref="HttpArtifactTool"/>.
     /// </summary>
     /// <param name="registrationManager">Registration manager to use for this instance.</param>
     /// <param name="dataManager">Data manager to use for this instance.</param>
-    /// <param name="artifactDumpingProfile">Origin dumping profile.</param>
+    /// <param name="artifactToolProfile">Origin tool profile.</param>
     /// <param name="httpClientInstance">Optional existing http client instance to use.</param>
     /// <remarks>
     /// No configuration will be performed on the <see cref="System.Net.Http.HttpClient"/> if provided. However, derived constructors can access the <see cref="HttpClient"/> member for configuration.
     /// </remarks>
-    protected HttpArtifactDumper(ArtifactRegistrationManager registrationManager, ArtifactDataManager dataManager, ArtifactDumpingProfile artifactDumpingProfile, HttpClientInstance? httpClientInstance = null)
-        : base(registrationManager, dataManager, artifactDumpingProfile)
+    protected HttpArtifactTool(ArtifactRegistrationManager registrationManager, ArtifactDataManager dataManager, ArtifactToolProfile artifactToolProfile, HttpClientInstance? httpClientInstance = null)
+        : base(registrationManager, dataManager, artifactToolProfile)
     {
         if (httpClientInstance != null)
         {
@@ -194,7 +193,7 @@ public abstract partial class HttpArtifactDumper : ArtifactDumper
     /// <param name="referrer">Request referrer.</param>
     /// <returns>Task returning deserialized data.</returns>
     /// <remarks>
-    /// This overload usees <see cref="ArtifactDumper.JsonOptions"/> member automatically.
+    /// This overload usees <see cref="ArtifactTool.JsonOptions"/> member automatically.
     /// </remarks>
     protected async ValueTask<T> GetDeserializedJsonAsync<T>(string requestUri, string? origin = null, string? referrer = null)
     {
@@ -236,7 +235,7 @@ public abstract partial class HttpArtifactDumper : ArtifactDumper
     /// <param name="referrer">Request referrer.</param>
     /// <returns>Task returning deserialized data.</returns>
     /// <remarks>
-    /// This overload usees <see cref="ArtifactDumper.JsonOptions"/> member automatically.
+    /// This overload usees <see cref="ArtifactTool.JsonOptions"/> member automatically.
     /// </remarks>
     protected async ValueTask<T> GetDeserializedJsonAsync<T>(Uri requestUri, string? origin = null, string? referrer = null)
     {
@@ -276,7 +275,7 @@ public abstract partial class HttpArtifactDumper : ArtifactDumper
     /// <param name="requestMessage">Request to send.</param>
     /// <returns>Task returning deserialized data.</returns>
     /// <remarks>
-    /// This overload usees <see cref="ArtifactDumper.JsonOptions"/> member automatically.
+    /// This overload usees <see cref="ArtifactTool.JsonOptions"/> member automatically.
     /// </remarks>
     protected async ValueTask<T> RetrieveDeserializedJsonAsync<T>(HttpRequestMessage requestMessage)
     {
@@ -302,19 +301,19 @@ public abstract partial class HttpArtifactDumper : ArtifactDumper
     }
 
     /// <summary>
-    /// Deserialize JSON asynchronously, with debug output if <see cref="ArtifactDumper.DebugMode"/> is enabled.
+    /// Deserialize JSON asynchronously, with debug output if <see cref="ArtifactTool.DebugMode"/> is enabled.
     /// </summary>
     /// <typeparam name="T">Data type.</typeparam>
     /// <param name="response">Response to read from.</param>
     /// <returns>Task returning value.</returns>
     /// <remarks>
-    /// This overload usees <see cref="ArtifactDumper.JsonOptions"/> member automatically.
+    /// This overload usees <see cref="ArtifactTool.JsonOptions"/> member automatically.
     /// </remarks>
     protected ValueTask<T> DeserializeJsonWithDebugAsync<T>(HttpResponseMessage response)
         => DeserializeJsonWithDebugAsync<T>(response, JsonOptions);
 
     /// <summary>
-    /// Deserialize JSON asynchronously, with debug output if <see cref="ArtifactDumper.DebugMode"/> is enabled.
+    /// Deserialize JSON asynchronously, with debug output if <see cref="ArtifactTool.DebugMode"/> is enabled.
     /// </summary>
     /// <typeparam name="T">Data type.</typeparam>
     /// <param name="response">Response to read from.</param>
@@ -492,7 +491,7 @@ public abstract partial class HttpArtifactDumper : ArtifactDumper
 
     private void NotDisposed()
     {
-        if (_disposed) throw new ObjectDisposedException(nameof(HttpArtifactDumper));
+        if (_disposed) throw new ObjectDisposedException(nameof(HttpArtifactTool));
     }
 
     #endregion

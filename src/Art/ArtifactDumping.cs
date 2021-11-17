@@ -8,38 +8,38 @@ namespace Art;
 public static class ArtifactDumping
 {
     /// <summary>
-    /// Directly dump using a dumping profile stored on disk.
+    /// Directly dump using a tool profile stored on disk.
     /// </summary>
-    /// <param name="dumpingProfilePath">Path to dumping profile.</param>
+    /// <param name="toolProfilePath">Path to tool profile.</param>
     /// <param name="targetDirectory">Base directory.</param>
     /// <returns>Task.</returns>
-    /// <exception cref="ArtifactDumperFactoryNotFoundException"></exception>
-    public static async ValueTask DumpAsync(string dumpingProfilePath, string targetDirectory)
+    /// <exception cref="ArtifactToolFactoryNotFoundException"></exception>
+    public static async ValueTask DumpAsync(string toolProfilePath, string targetDirectory)
     {
-        JsonElement element = ArtExtensions.LoadFromFile<JsonElement>(dumpingProfilePath);
+        JsonElement element = ArtExtensions.LoadFromFile<JsonElement>(toolProfilePath);
         if (element.ValueKind == JsonValueKind.Object)
-            await DumpAsync(element.Deserialize<ArtifactDumpingProfile>(ArtJsonOptions.JsonOptions)!, targetDirectory).ConfigureAwait(false);
+            await DumpAsync(element.Deserialize<ArtifactToolProfile>(ArtJsonOptions.JsonOptions)!, targetDirectory).ConfigureAwait(false);
         else
-            foreach (ArtifactDumpingProfile profile in element.Deserialize<List<ArtifactDumpingProfile>>(ArtJsonOptions.JsonOptions)!)
+            foreach (ArtifactToolProfile profile in element.Deserialize<List<ArtifactToolProfile>>(ArtJsonOptions.JsonOptions)!)
                 await DumpAsync(profile, targetDirectory).ConfigureAwait(false);
     }
 
-    private static async ValueTask DumpAsync(ArtifactDumpingProfile artifactDumpingProfile, string targetDirectory)
+    private static async ValueTask DumpAsync(ArtifactToolProfile artifactToolProfile, string targetDirectory)
     {
-        if (artifactDumpingProfile.TargetFolder == null) throw new IOException("Target folder not specified in profile");
-        if (!s_dumpers.TryGetValue(artifactDumpingProfile.Dumper, out ArtifactDumperFactory? fac))
+        if (artifactToolProfile.TargetFolder == null) throw new IOException("Target folder not specified in profile");
+        if (!s_tools.TryGetValue(artifactToolProfile.Tool, out ArtifactToolFactory? fac))
         {
-            if (!ArtifactDumperFactoryLoader.TryLoad(artifactDumpingProfile, out fac))
-                throw new ArtifactDumperFactoryNotFoundException(artifactDumpingProfile.Dumper);
-            s_dumpers.Add(artifactDumpingProfile.Dumper, fac);
+            if (!ArtifactToolFactoryLoader.TryLoad(artifactToolProfile, out fac))
+                throw new ArtifactToolFactoryNotFoundException(artifactToolProfile.Tool);
+            s_tools.Add(artifactToolProfile.Tool, fac);
         }
-        string targetDir = Path.Combine(targetDirectory, artifactDumpingProfile.TargetFolder);
+        string targetDir = Path.Combine(targetDirectory, artifactToolProfile.TargetFolder);
         var srm = new DiskArtifactRegistrationManager(targetDir);
         var sdm = new DiskArtifactDataManager(targetDir);
-        using ArtifactDumper? dumper = await fac.CreateAsync(srm, sdm, artifactDumpingProfile);
-        dumper.LogHandler = ConsoleLogHandler.Default;
-        await dumper.RunAsync();
+        using ArtifactTool? tool = await fac.CreateAsync(srm, sdm, artifactToolProfile);
+        tool.LogHandler = ConsoleLogHandler.Default;
+        await tool.DumpAsync();
     }
 
-    private static readonly Dictionary<string, ArtifactDumperFactory> s_dumpers = new();
+    private static readonly Dictionary<string, ArtifactToolFactory> s_tools = new();
 }

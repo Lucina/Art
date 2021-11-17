@@ -12,7 +12,6 @@
 
 using AngleSharp.Dom;
 using AngleSharp.Io;
-using System;
 using System.Diagnostics;
 using System.Globalization;
 using System.Net;

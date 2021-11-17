@@ -6,9 +6,9 @@ using AngleSharp.Io;
 namespace Art.Html;
 
 /// <summary>
-/// Represents an instance of an artifact dumper that works on HTML content using a <see cref="IBrowsingContext"/>.
+/// Represents an instance of an artifact tool that works on HTML content using a <see cref="IBrowsingContext"/>.
 /// </summary>
-public abstract class HtmlArtifactDumper : HttpArtifactDumper
+public abstract class HtmlArtifactTool : HttpArtifactTool
 {
     /// <summary>
     /// Active browsing context.
@@ -45,19 +45,19 @@ public abstract class HtmlArtifactDumper : HttpArtifactDumper
     private bool _disposed;
 
     /// <summary>
-    /// Creates a new instance of <see cref="HtmlArtifactDumper"/>.
+    /// Creates a new instance of <see cref="HtmlArtifactTool"/>.
     /// </summary>
     /// <param name="registrationManager">Registration manager to use for this instance.</param>
     /// <param name="dataManager">Data manager to use for this instance.</param>
-    /// <param name="artifactDumpingProfile">Origin dumping profile.</param>
+    /// <param name="artifactToolProfile">Origin tool profile.</param>
     /// <param name="httpClientInstance">Optional existing http client instance to use.</param>
     /// <param name="configuration">Optional browsing context configuration.</param>
     /// <remarks>
     /// No configuration will be performed on the <see cref="System.Net.Http.HttpClient"/> if provided. However, derived constructors can access the <see cref="HttpClient"/> member for configuration.
     /// </remarks>
 
-    protected HtmlArtifactDumper(ArtifactRegistrationManager registrationManager, ArtifactDataManager dataManager, ArtifactDumpingProfile artifactDumpingProfile, HttpClientInstance? httpClientInstance = null, IConfiguration? configuration = null)
-        : base(registrationManager, dataManager, artifactDumpingProfile, httpClientInstance)
+    protected HtmlArtifactTool(ArtifactRegistrationManager registrationManager, ArtifactDataManager dataManager, ArtifactToolProfile artifactToolProfile, HttpClientInstance? httpClientInstance = null, IConfiguration? configuration = null)
+        : base(registrationManager, dataManager, artifactToolProfile, httpClientInstance)
     {
         // try and share cookies with extant http client
         configuration = configuration?.WithOnly<ICookieProvider>(new OpenMemoryCookieProvider(HttpClientHandler.CookieContainer));
@@ -178,7 +178,7 @@ public abstract class HtmlArtifactDumper : HttpArtifactDumper
     /// <param name="url">Request URL.</param>
     /// <returns>Task returning deserialized data.</returns>
     /// <remarks>
-    /// This overload usees <see cref="ArtifactDumper.JsonOptions"/> member automatically.
+    /// This overload usees <see cref="ArtifactTool.JsonOptions"/> member automatically.
     /// </remarks>
     protected ValueTask<T> GetDeserializedJsonAsync<T>(Url url)
         => GetDeserializedJsonAsync<T>(url.ToUri());
@@ -220,7 +220,7 @@ public abstract class HtmlArtifactDumper : HttpArtifactDumper
 
     private void NotDisposed()
     {
-        if (_disposed) throw new ObjectDisposedException(nameof(HtmlArtifactDumper));
+        if (_disposed) throw new ObjectDisposedException(nameof(HtmlArtifactTool));
     }
 
     #endregion

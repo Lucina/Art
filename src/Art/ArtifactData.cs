@@ -1,5 +1,4 @@
-﻿using System;
-using System.Text.Json;
+﻿using System.Text.Json;
 
 namespace Art;
 
@@ -67,14 +66,14 @@ public class ArtifactData
     /// <summary>
     /// Adds a <see cref="UriArtifactResourceInfo"/> instance.
     /// </summary>
-    /// <param name="artifactDumper">Artifact dumper.</param>
+    /// <param name="artifactTool">Artifact tool.</param>
     /// <param name="uri">URI.</param>
     /// <param name="file">Filename.</param>
     /// <param name="path">Path.</param>
     /// <param name="inArtifactFolder">If false, sent to common directory.</param>
     /// <param name="properties">Resource properties.</param>
-    public void AddUri(HttpArtifactDumper artifactDumper, Uri uri, string file, string? path = null, bool inArtifactFolder = true, IReadOnlyDictionary<string, JsonElement>? properties = null)
-        => Resources.Add(new UriArtifactResourceInfo(artifactDumper, uri, Info.Id, file, path, inArtifactFolder, properties ?? ArtifactResourceInfo.EmptyProperties));
+    public void AddUri(HttpArtifactTool artifactTool, Uri uri, string file, string? path = null, bool inArtifactFolder = true, IReadOnlyDictionary<string, JsonElement>? properties = null)
+        => Resources.Add(new UriArtifactResourceInfo(artifactTool, uri, Info.Id, file, path, inArtifactFolder, properties ?? ArtifactResourceInfo.EmptyProperties));
 
     /// <summary>
     /// Adds a <see cref="JsonArtifactResourceInfo{Task}"/> instance.
@@ -91,25 +90,25 @@ public class ArtifactData
     /// <summary>
     /// Adds a <see cref="UriStringArtifactResourceInfo"/> instance.
     /// </summary>
-    /// <param name="artifactDumper">Artifact dumper.</param>
+    /// <param name="artifactTool">Artifact tool.</param>
     /// <param name="uri">URI.</param>
     /// <param name="file">Filename.</param>
     /// <param name="path">Path.</param>
     /// <param name="inArtifactFolder">If false, sent to common directory.</param>
     /// <param name="properties">Resource properties.</param>
-    public void AddUriString(HttpArtifactDumper artifactDumper, string uri, string file, string? path = null, bool inArtifactFolder = true, IReadOnlyDictionary<string, JsonElement>? properties = null)
-        => Resources.Add(new UriStringArtifactResourceInfo(artifactDumper, uri, Info.Id, file, path, inArtifactFolder, properties ?? ArtifactResourceInfo.EmptyProperties));
+    public void AddUriString(HttpArtifactTool artifactTool, string uri, string file, string? path = null, bool inArtifactFolder = true, IReadOnlyDictionary<string, JsonElement>? properties = null)
+        => Resources.Add(new UriStringArtifactResourceInfo(artifactTool, uri, Info.Id, file, path, inArtifactFolder, properties ?? ArtifactResourceInfo.EmptyProperties));
 
     /// <summary>
     /// Adds a <see cref="HttpRequestMessageArtifactResourceInfo"/> instance.
     /// </summary>
-    /// <param name="artifactDumper">Artifact dumper.</param>
+    /// <param name="artifactTool">Artifact tool.</param>
     /// <param name="request">Request.</param>
     /// <param name="file">Filename.</param>
     /// <param name="path">Path.</param>
     /// <param name="inArtifactFolder">If false, sent to common directory.</param>
     /// <param name="properties">Resource properties.</param>
-    public void AddHttpRequestMessage(HttpArtifactDumper artifactDumper, HttpRequestMessage request, string file, string? path = null, bool inArtifactFolder = true, IReadOnlyDictionary<string, JsonElement>? properties = null)
-        => Resources.Add(new HttpRequestMessageArtifactResourceInfo(artifactDumper, request, Info.Id, file, path, inArtifactFolder, properties ?? ArtifactResourceInfo.EmptyProperties));
+    public void AddHttpRequestMessage(HttpArtifactTool artifactTool, HttpRequestMessage request, string file, string? path = null, bool inArtifactFolder = true, IReadOnlyDictionary<string, JsonElement>? properties = null)
+        => Resources.Add(new HttpRequestMessageArtifactResourceInfo(artifactTool, request, Info.Id, file, path, inArtifactFolder, properties ?? ArtifactResourceInfo.EmptyProperties));
 }
 

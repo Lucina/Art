@@ -3,9 +3,9 @@
 namespace Art;
 
 /// <summary>
-/// Represents an exception thrown when an option needed by a <see cref="ArtifactDumper"/> is not found.
+/// Represents an exception thrown when an option needed by a <see cref="ArtifactTool"/> is not found.
 /// </summary>
-public class ArtifactDumperOptionNotFoundException : Exception
+public class ArtifactToolOptionNotFoundException : Exception
 {
     /// <summary>
     /// Missing options.
@@ -15,10 +15,10 @@ public class ArtifactDumperOptionNotFoundException : Exception
     private string? _message;
 
     /// <summary>
-    /// Creates a new instance of <see cref="ArtifactDumperOptionNotFoundException"/>.
+    /// Creates a new instance of <see cref="ArtifactToolOptionNotFoundException"/>.
     /// </summary>
     /// <param name="options">Missing options.</param>
-    public ArtifactDumperOptionNotFoundException(params string[] options)
+    public ArtifactToolOptionNotFoundException(params string[] options)
     {
         Options = options;
     }

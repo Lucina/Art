@@ -1,6 +1,4 @@
-﻿using System.Diagnostics.CodeAnalysis;
-
-namespace Art;
+﻿namespace Art;
 
 /// <summary>
 /// Represents a simple <see cref="ArtifactRegistrationManager"/> with purely file-based tracking.
