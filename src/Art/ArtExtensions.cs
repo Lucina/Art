@@ -98,7 +98,7 @@ public static class ArtExtensions
     /// <typeparam name="T">Element type.</typeparam>
     /// <param name="enumerable">Enumerable to convert to list.</param>
     /// <returns>Task returning list.</returns>
-    public static async Task<List<T>> ToListAsync<T>(IAsyncEnumerable<T> enumerable)
+    public static async Task<List<T>> ToListAsync<T>(this IAsyncEnumerable<T> enumerable)
     {
         List<T> list = new();
         await foreach (T value in enumerable.ConfigureAwait(false))
