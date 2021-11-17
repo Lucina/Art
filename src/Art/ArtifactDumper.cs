@@ -52,16 +52,20 @@ public abstract class ArtifactDumper : IDisposable
     /// <summary>
     /// Registration manager used by this instance.
     /// </summary>
-    private ArtifactRegistrationManager RegistrationManager { get; }
+    private ArtifactRegistrationManager RegistrationManager;
 
     /// <summary>
     /// Data manager used by this instance.
     /// </summary>
-    private ArtifactDataManager DataManager { get; }
+    private ArtifactDataManager DataManager;
 
     private JsonSerializerOptions _jsonOptions = new();
 
     private bool _disposed;
+
+    private bool _runOverridden = true;
+
+    private bool _runDataOverridden = true;
 
     #endregion
 
@@ -90,17 +94,142 @@ public abstract class ArtifactDumper : IDisposable
     /// Dump artifacts.
     /// </summary>
     /// <returns>Task.</returns>
-    public ValueTask RunAsync()
+    public async ValueTask RunAsync()
     {
         NotDisposed();
-        return DumpAsync();
+        await DumpAsync().ConfigureAwait(false);
+        if (_runOverridden) return;
+        await foreach (ArtifactData data in DumpArtifactsAsync().ConfigureAwait(false))
+        {
+            if (!(await IsNewArtifactAsync(data.Info).ConfigureAwait(false))) continue;
+            foreach (ArtifactResourceInfo resource in data.Resources)
+            {
+                if (!resource.Exportable) continue;
+                await using Stream stream = await CreateOutputStreamAsync(resource.File, data.Info, resource.Path, resource.InArtifactFolder).ConfigureAwait(false);
+                await resource.ExportAsync(stream).ConfigureAwait(false);
+            }
+            await AddArtifactAsync(data.Info).ConfigureAwait(false);
+        }
     }
+
+    /// <summary>
+    /// Get artifacts individually.
+    /// </summary>
+    /// <returns>Task returning individual artifacts.</returns>
+    public async IAsyncEnumerable<ArtifactData> GetArtifactsAsync()
+    {
+        NotDisposed();
+        await foreach (ArtifactData res in DumpArtifactsAsync().ConfigureAwait(false))
+            yield return res;
+        if (_runDataOverridden) yield break;
+        ArtifactDataManager previous = DataManager;
+        try
+        {
+            InMemoryArtifactDataManager im = new();
+            await DumpAsync().ConfigureAwait(false);
+            foreach ((ArtifactInfo info, List<ArtifactResourceInfo> resources) in im.Artifacts)
+            {
+                ArtifactData data = new(info);
+                data.AddRange(resources);
+                yield return data;
+            }
+        }
+        finally
+        {
+            DataManager = previous;
+        }
+    }
+
+    private class InMemoryArtifactDataManager : ArtifactDataManager
+    {
+        public IReadOnlyDictionary<ArtifactInfo, List<ArtifactResourceInfo>> Artifacts => _artifacts;
+
+        private readonly Dictionary<ArtifactInfo, List<ArtifactResourceInfo>> _artifacts = new();
+        public IReadOnlyDictionary<DataEntryKey, ResultStream> Entries => _entries;
+
+        private readonly Dictionary<DataEntryKey, ResultStream> _entries = new();
+
+        public override ValueTask<Stream> CreateOutputStreamAsync(string file, ArtifactInfo artifactInfo, string? path = null, bool inArtifactFolder = false)
+        {
+            DataEntryKey entry = new(file, artifactInfo, path, inArtifactFolder);
+            if (_entries.TryGetValue(entry, out ResultStream? stream))
+            {
+                stream.SetLength(0);
+                return new(stream);
+            }
+            stream = new ResultStream();
+            if (!_artifacts.TryGetValue(artifactInfo, out List<ArtifactResourceInfo>? list))
+                _artifacts.Add(artifactInfo, list = new List<ArtifactResourceInfo>());
+            list.Add(new ResultStreamArtifactResourceInfo(stream, artifactInfo.Id, file, path, inArtifactFolder, ArtifactResourceInfo.EmptyProperties));
+            _entries.Add(entry, stream);
+            return new(stream);
+        }
+    }
+
+    private record ResultStreamArtifactResourceInfo(Stream Resource, string ArtifactId, string File, string? Path, bool InArtifactFolder, IReadOnlyDictionary<string, JsonElement> Properties) : StreamArtifactResourceInfo(Resource, ArtifactId, File, Path, InArtifactFolder, Properties)
+    {
+        public override async ValueTask ExportAsync(Stream stream)
+        {
+            stream.Seek(0, SeekOrigin.Begin);
+            await base.ExportAsync(stream).ConfigureAwait(false);
+        }
+    }
+
+    private class ResultStream : Stream
+    {
+        public readonly MemoryStream BaseStream = new();
+
+        public override bool CanRead => true;
+
+        public override bool CanSeek => true;
+
+        public override bool CanWrite => true;
+
+        public override long Length => BaseStream.Length;
+
+        public override long Position { get => BaseStream.Position; set => BaseStream.Position = value; }
+
+        public override void Flush() => BaseStream.Flush();
+        public override int Read(byte[] buffer, int offset, int count) => BaseStream.Read(buffer, offset, count);
+        public override long Seek(long offset, SeekOrigin origin) => BaseStream.Seek(offset, origin);
+        public override void SetLength(long value) => BaseStream.SetLength(value);
+        public override void Write(byte[] buffer, int offset, int count) => BaseStream.Write(buffer, offset, count);
+    }
+    private record struct DataEntryKey(string File, ArtifactInfo ArtifactInfo, string? Path, bool InArtifactFolder);
 
     /// <summary>
     /// Dump artifacts.
     /// </summary>
     /// <returns>Task.</returns>
-    protected abstract ValueTask DumpAsync();
+    protected virtual ValueTask DumpAsync()
+    {
+        _runOverridden = false;
+        return ValueTask.CompletedTask;
+    }
+
+    /// <summary>
+    /// Dump artifacts individually.
+    /// </summary>
+    /// <returns>Task returning individual artifacts.</returns>
+    protected virtual IAsyncEnumerable<ArtifactData> DumpArtifactsAsync()
+    {
+        _runDataOverridden = false;
+        return EmptyAsyncEnumerable<ArtifactData>.Singleton;
+    }
+
+    private class EmptyAsyncEnumerable<T> : IAsyncEnumerable<T>
+    {
+        public static readonly EmptyAsyncEnumerable<T> Singleton = new();
+        public IAsyncEnumerator<T> GetAsyncEnumerator(CancellationToken cancellationToken = default) => EmptyAsyncEnumerator<T>.Singleton;
+    }
+
+    private class EmptyAsyncEnumerator<T> : IAsyncEnumerator<T>
+    {
+        public static readonly EmptyAsyncEnumerator<T> Singleton = new();
+        public T Current => default!;
+        public ValueTask DisposeAsync() => default;
+        public ValueTask<bool> MoveNextAsync() => new(false);
+    }
 
     #endregion
 

@@ -16,7 +16,7 @@ namespace Art;
 public record StringArtifactResourceInfo(string Resource, string ArtifactId, string File, string? Path, bool InArtifactFolder, IReadOnlyDictionary<string, JsonElement> Properties) : ArtifactResourceInfo(ArtifactId, File, Path, InArtifactFolder, Properties)
 {
     /// <summary>
-    /// Creates a new instance of <see cref="ArtifactInfo"/>.
+    /// Creates a new instance of <see cref="StringArtifactResourceInfo"/>.
     /// </summary>
     /// <param name="resource">Resource.</param>
     /// <param name="artifactId">Artifact ID.</param>

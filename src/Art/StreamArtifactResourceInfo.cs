@@ -13,10 +13,10 @@ namespace Art;
 /// <param name="Path">Path.</param>
 /// <param name="InArtifactFolder">If false, sent to common directory.</param>
 /// <param name="Properties">Resource properties.</param>
-public record StringArtifactResourceInfo(string Resource, string ArtifactId, string File, string? Path, bool InArtifactFolder, IReadOnlyDictionary<string, JsonElement> Properties) : ArtifactResourceInfo(ArtifactId, File, Path, InArtifactFolder, Properties)
+public record StreamArtifactResourceInfo(Stream Resource, string ArtifactId, string File, string? Path, bool InArtifactFolder, IReadOnlyDictionary<string, JsonElement> Properties) : ArtifactResourceInfo(ArtifactId, File, Path, InArtifactFolder, Properties)
 {
     /// <summary>
-    /// Creates a new instance of <see cref="ArtifactInfo"/>.
+    /// Creates a new instance of <see cref="StreamArtifactResourceInfo"/>.
     /// </summary>
     /// <param name="resource">Resource.</param>
     /// <param name="artifactId">Artifact ID.</param>
@@ -25,7 +25,7 @@ public record StringArtifactResourceInfo(string Resource, string ArtifactId, str
     /// <param name="inArtifactFolder">If false, sent to common directory.</param>
     /// <param name="properties">Resource properties.</param>
     /// <returns>Value.</returns>
-    public static StringArtifactResourceInfo Create(string resource, string artifactId, string file, string? path = null, bool inArtifactFolder = false, IReadOnlyDictionary<string, JsonElement>? properties = null)
+    public static StreamArtifactResourceInfo Create(Stream resource, string artifactId, string file, string? path = null, bool inArtifactFolder = false, IReadOnlyDictionary<string, JsonElement>? properties = null)
         => new(resource, artifactId, file, path, inArtifactFolder, properties ?? EmptyProperties);
 
     /// <inheritdoc/>
@@ -34,7 +34,6 @@ public record StringArtifactResourceInfo(string Resource, string ArtifactId, str
     /// <inheritdoc/>
     public override async ValueTask ExportAsync(Stream stream)
     {
-        using var sw = new StreamWriter(stream, Encoding.UTF8, leaveOpen: true);
-        await sw.WriteAsync(Resource).ConfigureAwait(false);
+        await Resource.CopyToAsync(stream).ConfigureAwait(false);
     }
 }
