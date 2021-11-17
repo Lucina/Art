@@ -1,4 +1,5 @@
-﻿using System.Text.Json;
+﻿using System.Globalization;
+using System.Text.Json;
 
 namespace Art;
 
@@ -105,4 +106,12 @@ public static class ArtExtensions
             list.Add(value);
         return list;
     }
+
+    /// <summary>
+    /// Simplifies a numeric key string.
+    /// </summary>
+    /// <param name="key">Number key.</param>
+    /// <returns>Normalized number key (e.g. 1, 616, 333018).</returns>
+    public static string SimplifyNumericKey(this string key)
+        => long.TryParse(key, NumberStyles.Integer, CultureInfo.InvariantCulture, out long result) ? result.ToString(CultureInfo.InvariantCulture) : key;
 }

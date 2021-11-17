@@ -1,5 +1,6 @@
 ﻿using System.Diagnostics.CodeAnalysis;
 using System.Net;
+using System.Net.Http.Headers;
 using System.Text.Json;
 
 namespace Art;
@@ -189,16 +190,21 @@ public abstract partial class HttpArtifactDumper : ArtifactDumper
     /// </summary>
     /// <typeparam name="T">Data type.</typeparam>
     /// <param name="requestUri">Request URI.</param>
+    /// <param name="origin">Request origin.</param>
+    /// <param name="referrer">Request referrer.</param>
     /// <returns>Task returning deserialized data.</returns>
     /// <remarks>
     /// This overload usees <see cref="ArtifactDumper.JsonOptions"/> member automatically.
     /// </remarks>
-    protected async ValueTask<T> GetDeserializedJsonAsync<T>(string requestUri)
+    protected async ValueTask<T> GetDeserializedJsonAsync<T>(string requestUri, string? origin = null, string? referrer = null)
     {
         NotDisposed();
-        using HttpResponseMessage res = await HttpClient.GetAsync(requestUri).ConfigureAwait(false);
+        HttpRequestMessage req = new(HttpMethod.Get, requestUri);
+        SetOriginAndReferrer(req, origin, referrer);
+        ConfigureJsonRequest(req);
+        using HttpResponseMessage res = await HttpClient.SendAsync(req).ConfigureAwait(false);
         res.EnsureSuccessStatusCode();
-        return (await DeserializeJsonAsync<T>(await res.Content.ReadAsStreamAsync().ConfigureAwait(false), JsonOptions).ConfigureAwait(false))!;
+        return await DeserializeJsonWithDebugAsync<T>(res).ConfigureAwait(false);
     }
 
     /// <summary>
@@ -207,13 +213,18 @@ public abstract partial class HttpArtifactDumper : ArtifactDumper
     /// <typeparam name="T">Data type.</typeparam>
     /// <param name="requestUri">Request URI.</param>
     /// <param name="jsonSerializerOptions">Optional deserialization options.</param>
+    /// <param name="origin">Request origin.</param>
+    /// <param name="referrer">Request referrer.</param>
     /// <returns>Task returning deserialized data.</returns>
-    protected async ValueTask<T> GetDeserializedJsonAsync<T>(string requestUri, JsonSerializerOptions? jsonSerializerOptions)
+    protected async ValueTask<T> GetDeserializedJsonAsync<T>(string requestUri, JsonSerializerOptions? jsonSerializerOptions, string? origin = null, string? referrer = null)
     {
         NotDisposed();
-        using HttpResponseMessage res = await HttpClient.GetAsync(requestUri).ConfigureAwait(false);
+        HttpRequestMessage req = new(HttpMethod.Get, requestUri);
+        SetOriginAndReferrer(req, origin, referrer);
+        ConfigureJsonRequest(req);
+        using HttpResponseMessage res = await HttpClient.SendAsync(req).ConfigureAwait(false);
         res.EnsureSuccessStatusCode();
-        return (await DeserializeJsonAsync<T>(await res.Content.ReadAsStreamAsync().ConfigureAwait(false), jsonSerializerOptions).ConfigureAwait(false))!;
+        return await DeserializeJsonWithDebugAsync<T>(res).ConfigureAwait(false);
     }
 
     /// <summary>
@@ -221,16 +232,21 @@ public abstract partial class HttpArtifactDumper : ArtifactDumper
     /// </summary>
     /// <typeparam name="T">Data type.</typeparam>
     /// <param name="requestUri">Request URI.</param>
+    /// <param name="origin">Request origin.</param>
+    /// <param name="referrer">Request referrer.</param>
     /// <returns>Task returning deserialized data.</returns>
     /// <remarks>
     /// This overload usees <see cref="ArtifactDumper.JsonOptions"/> member automatically.
     /// </remarks>
-    protected async ValueTask<T> GetDeserializedJsonAsync<T>(Uri requestUri)
+    protected async ValueTask<T> GetDeserializedJsonAsync<T>(Uri requestUri, string? origin = null, string? referrer = null)
     {
         NotDisposed();
-        using HttpResponseMessage res = await HttpClient.GetAsync(requestUri).ConfigureAwait(false);
+        HttpRequestMessage req = new(HttpMethod.Get, requestUri);
+        SetOriginAndReferrer(req, origin, referrer);
+        ConfigureJsonRequest(req);
+        using HttpResponseMessage res = await HttpClient.SendAsync(req).ConfigureAwait(false);
         res.EnsureSuccessStatusCode();
-        return (await DeserializeJsonAsync<T>(await res.Content.ReadAsStreamAsync().ConfigureAwait(false), JsonOptions).ConfigureAwait(false))!;
+        return await DeserializeJsonWithDebugAsync<T>(res).ConfigureAwait(false);
     }
 
     /// <summary>
@@ -239,13 +255,18 @@ public abstract partial class HttpArtifactDumper : ArtifactDumper
     /// <typeparam name="T">Data type.</typeparam>
     /// <param name="requestUri">Request URI.</param>
     /// <param name="jsonSerializerOptions">Optional deserialization options.</param>
+    /// <param name="origin">Request origin.</param>
+    /// <param name="referrer">Request referrer.</param>
     /// <returns>Task returning deserialized data.</returns>
-    protected async ValueTask<T> GetDeserializedJsonAsync<T>(Uri requestUri, JsonSerializerOptions? jsonSerializerOptions)
+    protected async ValueTask<T> GetDeserializedJsonAsync<T>(Uri requestUri, JsonSerializerOptions? jsonSerializerOptions, string? origin = null, string? referrer = null)
     {
         NotDisposed();
-        using HttpResponseMessage res = await HttpClient.GetAsync(requestUri).ConfigureAwait(false);
+        HttpRequestMessage req = new(HttpMethod.Get, requestUri);
+        SetOriginAndReferrer(req, origin, referrer);
+        ConfigureJsonRequest(req);
+        using HttpResponseMessage res = await HttpClient.SendAsync(req).ConfigureAwait(false);
         res.EnsureSuccessStatusCode();
-        return (await DeserializeJsonAsync<T>(await res.Content.ReadAsStreamAsync().ConfigureAwait(false), jsonSerializerOptions).ConfigureAwait(false))!;
+        return await DeserializeJsonWithDebugAsync<T>(res).ConfigureAwait(false);
     }
 
     /// <summary>
@@ -278,6 +299,68 @@ public abstract partial class HttpArtifactDumper : ArtifactDumper
         using HttpResponseMessage res = await HttpClient.SendAsync(requestMessage).ConfigureAwait(false);
         res.EnsureSuccessStatusCode();
         return (await DeserializeJsonAsync<T>(await res.Content.ReadAsStreamAsync().ConfigureAwait(false), jsonSerializerOptions).ConfigureAwait(false))!;
+    }
+
+    /// <summary>
+    /// Deserialize JSON asynchronously, with debug output if <see cref="ArtifactDumper.DebugMode"/> is enabled.
+    /// </summary>
+    /// <typeparam name="T">Data type.</typeparam>
+    /// <param name="response">Response to read from.</param>
+    /// <returns>Task returning value.</returns>
+    /// <remarks>
+    /// This overload usees <see cref="ArtifactDumper.JsonOptions"/> member automatically.
+    /// </remarks>
+    protected ValueTask<T> DeserializeJsonWithDebugAsync<T>(HttpResponseMessage response)
+        => DeserializeJsonWithDebugAsync<T>(response, JsonOptions);
+
+    /// <summary>
+    /// Deserialize JSON asynchronously, with debug output if <see cref="ArtifactDumper.DebugMode"/> is enabled.
+    /// </summary>
+    /// <typeparam name="T">Data type.</typeparam>
+    /// <param name="response">Response to read from.</param>
+    /// <param name="jsonSerializerOptions">Optional deserialization options.</param>
+    /// <returns>Task returning value.</returns>
+    protected async ValueTask<T> DeserializeJsonWithDebugAsync<T>(HttpResponseMessage response, JsonSerializerOptions? jsonSerializerOptions)
+    {
+        response.EnsureSuccessStatusCode();
+        if (!DebugMode)
+            return await DeserializeJsonAsync<T>(await response.Content.ReadAsStreamAsync().ConfigureAwait(false), jsonSerializerOptions).ConfigureAwait(false);
+        else
+        {
+            string text = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
+            LogInformation($"JSON from {response.RequestMessage?.RequestUri?.ToString() ?? "unknown request"}", text);
+            return DeserializeJson<T>(text, jsonSerializerOptions);
+        }
+    }
+
+    /// <summary>
+    /// Sets origin and referrer on a request.
+    /// </summary>
+    /// <param name="request">Request to configure.</param>
+    /// <param name="origin">Request origin.</param>
+    /// <param name="referrer">Request referrer.</param>
+    protected static void SetOriginAndReferrer(HttpRequestMessage request, string? origin, string? referrer)
+    {
+        if (origin != null)
+            request.Headers.Add("origin", referrer ?? origin);
+        if (referrer != null || origin != null)
+            request.Headers.Referrer = new((referrer ?? origin)!);
+    }
+
+    /// <summary>
+    /// Configures a JSON request.
+    /// </summary>
+    /// <param name="request">Request to configure.</param>
+    protected virtual void ConfigureJsonRequest(HttpRequestMessage request)
+    {
+        request.Headers.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
+        request.Headers.Accept.Add(new MediaTypeWithQualityHeaderValue("text/plain"));
+        request.Headers.Accept.Add(new MediaTypeWithQualityHeaderValue("*/*"));
+        request.Headers.AcceptLanguage.Add(new StringWithQualityHeaderValue("en-US"));
+        request.Headers.AcceptLanguage.Add(new StringWithQualityHeaderValue("en", 0.9));
+        request.Headers.AcceptEncoding.Add(new StringWithQualityHeaderValue("gzip"));
+        request.Headers.AcceptEncoding.Add(new StringWithQualityHeaderValue("deflate"));
+        request.Headers.AcceptEncoding.Add(new StringWithQualityHeaderValue("br"));
     }
 
     #endregion
