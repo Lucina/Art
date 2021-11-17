@@ -7,8 +7,9 @@ namespace Art;
 /// <summary>
 /// Represents an instance of an artifact dumper that depends on an <see cref="System.Net.Http.HttpClient"/>.
 /// </summary>
-public abstract class HttpArtifactDumper : ArtifactDumper
+public abstract partial class HttpArtifactDumper : ArtifactDumper
 {
+    #region Fields
     /// <summary>
     /// Option used to specify path to http client cookie file.
     /// </summary>
@@ -31,8 +32,6 @@ public abstract class HttpArtifactDumper : ArtifactDumper
         }
     }
 
-    private HttpClient _httpClient;
-
     /// <summary>
     /// Http client handler for <see cref="HttpClient"/>.
     /// </summary>
@@ -50,9 +49,19 @@ public abstract class HttpArtifactDumper : ArtifactDumper
         }
     }
 
+    #endregion
+
+    #region Private fields
+
+    private HttpClient _httpClient;
+
     private HttpClientHandler _httpClientHandler;
 
     private bool _disposed;
+
+    #endregion
+
+    #region Constructor
 
     /// <summary>
     /// Creates a new instance of <see cref="HttpArtifactDumper"/>.
@@ -80,6 +89,10 @@ public abstract class HttpArtifactDumper : ArtifactDumper
             _httpClient = CreateHttpClient(_httpClientHandler);
         }
     }
+
+    #endregion
+
+    #region Http client configuraiton
 
     /// <summary>
     /// Auto-configure an existing cookie container (using the <see cref="OptCookieFile"/> configuration option).
@@ -111,21 +124,81 @@ public abstract class HttpArtifactDumper : ArtifactDumper
     protected virtual HttpClient CreateHttpClient(HttpClientHandler httpClientHandler)
         => new(httpClientHandler);
 
+    #endregion
+
+    #region HTTP
+
+    #region Raw http requests
+
+    /// <summary>
+    /// Sends an HTTP HEAD request.
+    /// </summary>
+    /// <param name="requestUri">Request.</param>
+    /// <returns>Task returning reponse.</returns>
+    protected async ValueTask<HttpResponseMessage> HeadAsync(string requestUri)
+    {
+        return await HttpClient.SendAsync(new HttpRequestMessage(HttpMethod.Head, requestUri)).ConfigureAwait(false);
+    }
+
+    /// <summary>
+    /// Sends an HTTP HEAD request.
+    /// </summary>
+    /// <param name="requestUri">Request.</param>
+    /// <returns>Task returning reponse.</returns>
+    protected async ValueTask<HttpResponseMessage> HeadAsync(Uri requestUri)
+    {
+        return await HttpClient.SendAsync(new HttpRequestMessage(HttpMethod.Head, requestUri)).ConfigureAwait(false);
+    }
+
+    /// <summary>
+    /// Sends an HTTP GET request.
+    /// </summary>
+    /// <param name="requestUri">Request.</param>
+    /// <returns>Task returning reponse.</returns>
+    protected async ValueTask<HttpResponseMessage> GetAsync(string requestUri)
+    {
+        return await HttpClient.GetAsync(requestUri).ConfigureAwait(false);
+    }
+
+    /// <summary>
+    /// Sends an HTTP GET request.
+    /// </summary>
+    /// <param name="requestUri">Request.</param>
+    /// <returns>Task returning reponse.</returns>
+    protected async ValueTask<HttpResponseMessage> GetAsync(Uri requestUri)
+    {
+        return await HttpClient.GetAsync(requestUri).ConfigureAwait(false);
+    }
+
+    /// <summary>
+    /// Sends an HTTP request.
+    /// </summary>
+    /// <param name="requestMessage">Request.</param>
+    /// <returns>Task returning reponse.</returns>
+    protected async ValueTask<HttpResponseMessage> SendAsync(HttpRequestMessage requestMessage)
+    {
+        return await HttpClient.SendAsync(requestMessage).ConfigureAwait(false);
+    }
+
+    #endregion
+
+    #region JSON
+
     /// <summary>
     /// Retrieve deserialized JSON using a uri.
     /// </summary>
     /// <typeparam name="T">Data type.</typeparam>
     /// <param name="requestUri">Request URI.</param>
-    /// <returns>Task.</returns>
+    /// <returns>Task returning deserialized data.</returns>
     /// <remarks>
-    /// This overload usees <see cref="JsonOptions"/> member automatically.
+    /// This overload usees <see cref="ArtifactDumper.JsonOptions"/> member automatically.
     /// </remarks>
     protected async ValueTask<T> GetDeserializedJsonAsync<T>(string requestUri)
     {
         NotDisposed();
         using HttpResponseMessage res = await HttpClient.GetAsync(requestUri).ConfigureAwait(false);
         res.EnsureSuccessStatusCode();
-        return (await JsonSerializer.DeserializeAsync<T>(await res.Content.ReadAsStreamAsync().ConfigureAwait(false), JsonOptions).ConfigureAwait(false))!;
+        return (await DeserializeJsonAsync<T>(await res.Content.ReadAsStreamAsync().ConfigureAwait(false), JsonOptions).ConfigureAwait(false))!;
     }
 
     /// <summary>
@@ -133,14 +206,14 @@ public abstract class HttpArtifactDumper : ArtifactDumper
     /// </summary>
     /// <typeparam name="T">Data type.</typeparam>
     /// <param name="requestUri">Request URI.</param>
-    /// <param name="jsonSerializerOptions">Deserialization options.</param>
-    /// <returns>Task.</returns>
-    protected async ValueTask<T> GetDeserializedJsonAsync<T>(string requestUri, JsonSerializerOptions jsonSerializerOptions)
+    /// <param name="jsonSerializerOptions">Optional deserialization options.</param>
+    /// <returns>Task returning deserialized data.</returns>
+    protected async ValueTask<T> GetDeserializedJsonAsync<T>(string requestUri, JsonSerializerOptions? jsonSerializerOptions)
     {
         NotDisposed();
         using HttpResponseMessage res = await HttpClient.GetAsync(requestUri).ConfigureAwait(false);
         res.EnsureSuccessStatusCode();
-        return (await JsonSerializer.DeserializeAsync<T>(await res.Content.ReadAsStreamAsync().ConfigureAwait(false), jsonSerializerOptions).ConfigureAwait(false))!;
+        return (await DeserializeJsonAsync<T>(await res.Content.ReadAsStreamAsync().ConfigureAwait(false), jsonSerializerOptions).ConfigureAwait(false))!;
     }
 
     /// <summary>
@@ -148,16 +221,16 @@ public abstract class HttpArtifactDumper : ArtifactDumper
     /// </summary>
     /// <typeparam name="T">Data type.</typeparam>
     /// <param name="requestUri">Request URI.</param>
-    /// <returns>Task.</returns>
+    /// <returns>Task returning deserialized data.</returns>
     /// <remarks>
-    /// This overload usees <see cref="JsonOptions"/> member automatically.
+    /// This overload usees <see cref="ArtifactDumper.JsonOptions"/> member automatically.
     /// </remarks>
     protected async ValueTask<T> GetDeserializedJsonAsync<T>(Uri requestUri)
     {
         NotDisposed();
         using HttpResponseMessage res = await HttpClient.GetAsync(requestUri).ConfigureAwait(false);
         res.EnsureSuccessStatusCode();
-        return (await JsonSerializer.DeserializeAsync<T>(await res.Content.ReadAsStreamAsync().ConfigureAwait(false), JsonOptions).ConfigureAwait(false))!;
+        return (await DeserializeJsonAsync<T>(await res.Content.ReadAsStreamAsync().ConfigureAwait(false), JsonOptions).ConfigureAwait(false))!;
     }
 
     /// <summary>
@@ -165,14 +238,14 @@ public abstract class HttpArtifactDumper : ArtifactDumper
     /// </summary>
     /// <typeparam name="T">Data type.</typeparam>
     /// <param name="requestUri">Request URI.</param>
-    /// <param name="jsonSerializerOptions">Deserialization options.</param>
-    /// <returns>Task.</returns>
-    protected async ValueTask<T> GetDeserializedJsonAsync<T>(Uri requestUri, JsonSerializerOptions jsonSerializerOptions)
+    /// <param name="jsonSerializerOptions">Optional deserialization options.</param>
+    /// <returns>Task returning deserialized data.</returns>
+    protected async ValueTask<T> GetDeserializedJsonAsync<T>(Uri requestUri, JsonSerializerOptions? jsonSerializerOptions)
     {
         NotDisposed();
         using HttpResponseMessage res = await HttpClient.GetAsync(requestUri).ConfigureAwait(false);
         res.EnsureSuccessStatusCode();
-        return (await JsonSerializer.DeserializeAsync<T>(await res.Content.ReadAsStreamAsync().ConfigureAwait(false), jsonSerializerOptions).ConfigureAwait(false))!;
+        return (await DeserializeJsonAsync<T>(await res.Content.ReadAsStreamAsync().ConfigureAwait(false), jsonSerializerOptions).ConfigureAwait(false))!;
     }
 
     /// <summary>
@@ -180,16 +253,16 @@ public abstract class HttpArtifactDumper : ArtifactDumper
     /// </summary>
     /// <typeparam name="T">Data type.</typeparam>
     /// <param name="requestMessage">Request to send.</param>
-    /// <returns>Task.</returns>
+    /// <returns>Task returning deserialized data.</returns>
     /// <remarks>
-    /// This overload usees <see cref="JsonOptions"/> member automatically.
+    /// This overload usees <see cref="ArtifactDumper.JsonOptions"/> member automatically.
     /// </remarks>
     protected async ValueTask<T> RetrieveDeserializedJsonAsync<T>(HttpRequestMessage requestMessage)
     {
         NotDisposed();
         using HttpResponseMessage res = await HttpClient.SendAsync(requestMessage).ConfigureAwait(false);
         res.EnsureSuccessStatusCode();
-        return (await JsonSerializer.DeserializeAsync<T>(await res.Content.ReadAsStreamAsync().ConfigureAwait(false), JsonOptions).ConfigureAwait(false))!;
+        return (await DeserializeJsonAsync<T>(await res.Content.ReadAsStreamAsync().ConfigureAwait(false), JsonOptions).ConfigureAwait(false))!;
     }
 
     /// <summary>
@@ -197,15 +270,21 @@ public abstract class HttpArtifactDumper : ArtifactDumper
     /// </summary>
     /// <typeparam name="T">Data type.</typeparam>
     /// <param name="requestMessage">Request to send.</param>
-    /// <param name="jsonSerializerOptions">Deserialization options.</param>
-    /// <returns>Task.</returns>
-    protected async ValueTask<T> RetrieveDeserializedJsonAsync<T>(HttpRequestMessage requestMessage, JsonSerializerOptions jsonSerializerOptions)
+    /// <param name="jsonSerializerOptions">Optional deserialization options.</param>
+    /// <returns>Task returning deserialized data.</returns>
+    protected async ValueTask<T> RetrieveDeserializedJsonAsync<T>(HttpRequestMessage requestMessage, JsonSerializerOptions? jsonSerializerOptions)
     {
         NotDisposed();
         using HttpResponseMessage res = await HttpClient.SendAsync(requestMessage).ConfigureAwait(false);
         res.EnsureSuccessStatusCode();
-        return (await JsonSerializer.DeserializeAsync<T>(await res.Content.ReadAsStreamAsync().ConfigureAwait(false), jsonSerializerOptions).ConfigureAwait(false))!;
+        return (await DeserializeJsonAsync<T>(await res.Content.ReadAsStreamAsync().ConfigureAwait(false), jsonSerializerOptions).ConfigureAwait(false))!;
     }
+
+    #endregion
+
+    #endregion
+
+    #region Direct downloads
 
     /// <summary>
     /// Downloads a resource.
@@ -220,7 +299,7 @@ public abstract class HttpArtifactDumper : ArtifactDumper
         NotDisposed();
         using HttpResponseMessage? fr = await HttpClient.GetAsync(requestUri).ConfigureAwait(false);
         fr.EnsureSuccessStatusCode();
-        await using Stream stream = await DataManager.CreateOutputStreamAsync(file, artifactInfo, path).ConfigureAwait(false);
+        await using Stream stream = await CreateOutputStreamAsync(file, artifactInfo, path).ConfigureAwait(false);
         await fr.Content.CopyToAsync(stream).ConfigureAwait(false);
     }
 
@@ -237,7 +316,7 @@ public abstract class HttpArtifactDumper : ArtifactDumper
         NotDisposed();
         using HttpResponseMessage? fr = await HttpClient.GetAsync(requestUri).ConfigureAwait(false);
         fr.EnsureSuccessStatusCode();
-        await using Stream stream = await DataManager.CreateOutputStreamAsync(file, artifactInfo, path).ConfigureAwait(false);
+        await using Stream stream = await CreateOutputStreamAsync(file, artifactInfo, path).ConfigureAwait(false);
         await fr.Content.CopyToAsync(stream).ConfigureAwait(false);
     }
 
@@ -254,9 +333,13 @@ public abstract class HttpArtifactDumper : ArtifactDumper
         NotDisposed();
         using HttpResponseMessage? fr = await HttpClient.SendAsync(requestMessage).ConfigureAwait(false);
         fr.EnsureSuccessStatusCode();
-        await using Stream stream = await DataManager.CreateOutputStreamAsync(file, artifactInfo, path).ConfigureAwait(false);
+        await using Stream stream = await CreateOutputStreamAsync(file, artifactInfo, path).ConfigureAwait(false);
         await fr.Content.CopyToAsync(stream).ConfigureAwait(false);
     }
+
+    #endregion
+
+    #region IDisposable
 
     /// <inheritdoc/>
     protected override void Dispose(bool disposing)
@@ -283,10 +366,5 @@ public abstract class HttpArtifactDumper : ArtifactDumper
         if (_disposed) throw new ObjectDisposedException(nameof(HttpArtifactDumper));
     }
 
-    /// <summary>
-    /// <see cref="System.Net.Http.HttpClient"/> instance with associated <see cref="System.Net.Http.HttpClientHandler"/>.
-    /// </summary>
-    /// <param name="HttpClient">Client.</param>
-    /// <param name="HttpClientHandler">Client handler.</param>
-    public record HttpClientInstance(HttpClient HttpClient, HttpClientHandler HttpClientHandler);
+    #endregion
 }

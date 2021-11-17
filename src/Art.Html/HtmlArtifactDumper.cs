@@ -1,4 +1,5 @@
-﻿using AngleSharp;
+﻿using System.Text.Json;
+using AngleSharp;
 using AngleSharp.Dom;
 using AngleSharp.Io;
 
@@ -62,6 +63,8 @@ public abstract class HtmlArtifactDumper : HttpArtifactDumper
         configuration = configuration?.WithOnly<ICookieProvider>(new OpenMemoryCookieProvider(HttpClientHandler.CookieContainer));
         _browser = BrowsingContext.New(configuration);
     }
+
+    #region Main API
 
     /// <summary>
     /// Opens a new document loaded from the provided address.
@@ -148,6 +151,52 @@ public abstract class HtmlArtifactDumper : HttpArtifactDumper
         return DocumentNotNull.QuerySelectorAll<T>(selectors);
     }
 
+    #endregion
+
+    #region Http overloads
+
+    /// <summary>
+    /// Sends an HTTP HEAD request.
+    /// </summary>
+    /// <param name="url">Request.</param>
+    /// <returns>Task returning response.</returns>
+    protected ValueTask<HttpResponseMessage> HeadAsync(Url url)
+        => HeadAsync(url.ToUri());
+
+    /// <summary>
+    /// Sends an HTTP GET request.
+    /// </summary>
+    /// <param name="url">Request.</param>
+    /// <returns>Task returning response.</returns>
+    protected ValueTask<HttpResponseMessage> GetAsync(Url url)
+        => GetAsync(url.ToUri());
+
+    /// <summary>
+    /// Retrieve deserialized JSON using a <see cref="Url"/>.
+    /// </summary>
+    /// <typeparam name="T">Data type.</typeparam>
+    /// <param name="url">Request URL.</param>
+    /// <returns>Task returning deserialized data.</returns>
+    /// <remarks>
+    /// This overload usees <see cref="ArtifactDumper.JsonOptions"/> member automatically.
+    /// </remarks>
+    protected ValueTask<T> GetDeserializedJsonAsync<T>(Url url)
+        => GetDeserializedJsonAsync<T>(url.ToUri());
+
+    /// <summary>
+    /// Retrieve deserialized JSON using a <see cref="Url"/> and <see cref="JsonSerializerOptions"/>.
+    /// </summary>
+    /// <typeparam name="T">Data type.</typeparam>
+    /// <param name="url">Request URL.</param>
+    /// <param name="jsonSerializerOptions">Optional deserialization options.</param>
+    /// <returns>Task returning deserialized data.</returns>
+    protected ValueTask<T> GetDeserializedJsonAsync<T>(Url url, JsonSerializerOptions? jsonSerializerOptions)
+        => GetDeserializedJsonAsync<T>(url.ToUri(), jsonSerializerOptions);
+
+    #endregion
+
+    #region IDisposable
+
     /// <inheritdoc/>
     protected override void Dispose(bool disposing)
     {
@@ -173,4 +222,6 @@ public abstract class HtmlArtifactDumper : HttpArtifactDumper
     {
         if (_disposed) throw new ObjectDisposedException(nameof(HtmlArtifactDumper));
     }
+
+    #endregion
 }

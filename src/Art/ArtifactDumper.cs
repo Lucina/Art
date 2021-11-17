@@ -8,6 +8,9 @@ namespace Art;
 /// </summary>
 public abstract class ArtifactDumper : IDisposable
 {
+
+    #region Fields
+
     /// <summary>
     /// Log handler for this dumper.
     /// </summary>
@@ -22,8 +25,6 @@ public abstract class ArtifactDumper : IDisposable
     /// JSON serialization defaults.
     /// </summary>
     protected JsonSerializerOptions JsonOptions { get => _jsonOptions ??= new JsonSerializerOptions(); set => _jsonOptions = value; }
-
-    private JsonSerializerOptions _jsonOptions = new();
 
     /// <summary>
     /// Registration manager used by this instance.
@@ -45,6 +46,16 @@ public abstract class ArtifactDumper : IDisposable
     /// </summary>
     protected bool DebugMode { get; set; }
 
+    #endregion
+
+    #region Private fields
+
+    private JsonSerializerOptions _jsonOptions = new();
+
+    #endregion
+
+    #region Constructor
+
     /// <summary>
     /// Creates a new instance of <see cref="ArtifactDumper"/>.
     /// </summary>
@@ -59,11 +70,19 @@ public abstract class ArtifactDumper : IDisposable
         DebugMode = TryGetOption(OptDebugMode, out bool debugMode) && debugMode;
     }
 
+    #endregion
+
+    #region API
+
     /// <summary>
     /// Dump artifacts.
     /// </summary>
     /// <returns>Task.</returns>
     public abstract ValueTask DumpAsync();
+
+    #endregion
+
+    #region Options
 
     /// <summary>
     /// Attempt to get option or throw exception if not found or if null.
@@ -110,6 +129,10 @@ public abstract class ArtifactDumper : IDisposable
         return false;
     }
 
+    #endregion
+
+    #region Artifact management
+
     /// <summary>
     /// Registers artifact as known.
     /// </summary>
@@ -133,6 +156,10 @@ public abstract class ArtifactDumper : IDisposable
     /// <returns>Task returning true if this is a new artifact (newer than whatever exists with the same ID).</returns>
     protected async ValueTask<bool> IsNewArtifactAsync(ArtifactInfo artifactInfo)
         => await RegistrationManager.IsNewArtifactAsync(artifactInfo).ConfigureAwait(false);
+
+    #endregion
+
+    #region Outputs
 
     /// <summary>
     /// Outputs a text file for the specified artifact.
@@ -169,6 +196,70 @@ public abstract class ArtifactDumper : IDisposable
         => await DataManager.OutputJsonAsync<T>(data, jsonSerializerOptions, file, artifactInfo, path).ConfigureAwait(false);
 
     /// <summary>
+    /// Creates an output stream for a file for the specified artifact.
+    /// </summary>
+    /// <param name="file">Target filename.</param>
+    /// <param name="artifactInfo">Artifact target.</param>
+    /// <param name="path">File path to prepend.</param>
+    /// <returns>Task returning a writeable stream to write an output to.</returns>
+    protected ValueTask<Stream> CreateOutputStreamAsync(string file, ArtifactInfo? artifactInfo = null, string? path = null)
+        => DataManager.CreateOutputStreamAsync(file, artifactInfo, path);
+
+    #endregion
+
+    #region JSON
+
+
+
+    /// <summary>
+    /// Deserialize JSON from a UTF-8 stream.
+    /// </summary>
+    /// <typeparam name="T">Data type.</typeparam>
+    /// <param name="utf8Stream">UTF-8 encoded stream.</param>
+    /// <returns>Value returning deserialized data.</returns>
+    /// <remarks>
+    /// This overload usees <see cref="JsonOptions"/> member automatically.
+    /// </remarks>
+    protected async ValueTask<T> DeserializeJsonAsync<T>(Stream utf8Stream)
+        => (await JsonSerializer.DeserializeAsync<T>(utf8Stream, JsonOptions).ConfigureAwait(false))!;
+
+    /// <summary>
+    /// Deserialize JSON from a UTF-8 stream.
+    /// </summary>
+    /// <typeparam name="T">Data type.</typeparam>
+    /// <param name="utf8Stream">UTF-8 encoded stream.</param>
+    /// <param name="jsonSerializerOptions">Optional deserialization options.</param>
+    /// <returns>Value returning deserialized data.</returns>
+    protected static async ValueTask<T> DeserializeJsonAsync<T>(Stream utf8Stream, JsonSerializerOptions? jsonSerializerOptions)
+        => (await JsonSerializer.DeserializeAsync<T>(utf8Stream, jsonSerializerOptions).ConfigureAwait(false))!;
+
+    /// <summary>
+    /// Deserialize JSON from a string.
+    /// </summary>
+    /// <typeparam name="T">Data type.</typeparam>
+    /// <param name="str">String.</param>
+    /// <returns>Value returning deserialized data.</returns>
+    /// <remarks>
+    /// This overload usees <see cref="JsonOptions"/> member automatically.
+    /// </remarks>
+    protected T DeserializeJson<T>(string str)
+        => JsonSerializer.Deserialize<T>(str, JsonOptions)!;
+
+    /// <summary>
+    /// Deserialize JSON from a string.
+    /// </summary>
+    /// <typeparam name="T">Data type.</typeparam>
+    /// <param name="str">String.</param>
+    /// <param name="jsonSerializerOptions">Optional deserialization options.</param>
+    /// <returns>Value returning deserialized data.</returns>
+    protected static T DeserializeJson<T>(string str, JsonSerializerOptions? jsonSerializerOptions)
+        => JsonSerializer.Deserialize<T>(str, jsonSerializerOptions)!;
+
+    #endregion
+
+    #region Logging
+
+    /// <summary>
     /// Logs information log to logger.
     /// </summary>
     /// <param name="title">Title.</param>
@@ -196,6 +287,10 @@ public abstract class ArtifactDumper : IDisposable
     /// <param name="body">Body.</param>
     protected void LogError(string? title, string? body = null) => LogHandler?.Log(title, body, LogLevel.Error);
 
+    #endregion
+
+    #region IDisposable
+
     /// <summary>
     /// Disposes unmanaged resources.
     /// </summary>
@@ -209,4 +304,6 @@ public abstract class ArtifactDumper : IDisposable
         Dispose(disposing: true);
         GC.SuppressFinalize(this);
     }
+
+    #endregion
 }
