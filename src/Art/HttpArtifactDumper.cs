@@ -33,37 +33,83 @@ public abstract class HttpArtifactDumper : ArtifactDumper
 
     private HttpClient _httpClient;
 
+    /// <summary>
+    /// Http client handler for <see cref="HttpClient"/>.
+    /// </summary>
+    protected HttpClientHandler HttpClientHandler
+    {
+        get
+        {
+            NotDisposed();
+            return _httpClientHandler;
+        }
+        set
+        {
+            NotDisposed();
+            _httpClientHandler = value;
+        }
+    }
+
+    private HttpClientHandler _httpClientHandler;
+
     private bool _disposed;
 
     /// <summary>
-    /// Creates a new instance of <see cref="HttpArtifactDumper"/>, with an existing <see cref="System.Net.Http.HttpClient"/> (no automatic configuration).
+    /// Creates a new instance of <see cref="HttpArtifactDumper"/>.
     /// </summary>
     /// <param name="registrationManager">Registration manager to use for this instance.</param>
     /// <param name="dataManager">Data manager to use for this instance.</param>
     /// <param name="artifactDumpingProfile">Origin dumping profile.</param>
-    /// <param name="httpClient">Optional existing http client to use.</param>
+    /// <param name="httpClientInstance">Optional existing http client instance to use.</param>
     /// <remarks>
     /// No configuration will be performed on the <see cref="System.Net.Http.HttpClient"/> if provided. However, derived constructors can access the <see cref="HttpClient"/> member for configuration.
     /// </remarks>
-    protected HttpArtifactDumper(ArtifactRegistrationManager registrationManager, ArtifactDataManager dataManager, ArtifactDumpingProfile artifactDumpingProfile, HttpClient? httpClient = null)
+    protected HttpArtifactDumper(ArtifactRegistrationManager registrationManager, ArtifactDataManager dataManager, ArtifactDumpingProfile artifactDumpingProfile, HttpClientInstance? httpClientInstance = null)
         : base(registrationManager, dataManager, artifactDumpingProfile)
     {
-        if (httpClient != null)
-            _httpClient = httpClient;
+        if (httpClientInstance != null)
+        {
+            _httpClient = httpClientInstance.HttpClient;
+            _httpClientHandler = httpClientInstance.HttpClientHandler;
+        }
         else
         {
-            CookieContainer cc = new();
-            if (TryGetOption(OptCookieFile, out string? cookieFile))
-                using (StreamReader? f = File.OpenText(cookieFile))
-                    cc.LoadCookieFile(f);
-            HttpClientHandler hch = new()
-            {
-                AutomaticDecompression = DecompressionMethods.All,
-                CookieContainer = cc
-            };
-            _httpClient = new(hch);
+            CookieContainer cookies = new();
+            ConfigureCookieContainer(cookies);
+            _httpClientHandler = CreateHttpClientHandler(cookies);
+            _httpClient = CreateHttpClient(_httpClientHandler);
         }
     }
+
+    /// <summary>
+    /// Auto-configure an existing cookie container (using the <see cref="OptCookieFile"/> configuration option).
+    /// </summary>
+    /// <param name="cookies">Cookie container to configure.</param>
+    protected virtual void ConfigureCookieContainer(CookieContainer cookies)
+    {
+        if (TryGetOption(OptCookieFile, out string? cookieFile))
+            using (StreamReader? f = File.OpenText(cookieFile))
+                cookies.LoadCookieFile(f);
+    }
+
+    /// <summary>
+    /// Creates an <see cref="HttpClientHandler"/> instance configured to use the specified cookies.
+    /// </summary>
+    /// <param name="cookies"></param>
+    /// <returns></returns>
+    protected virtual HttpClientHandler CreateHttpClientHandler(CookieContainer cookies) => new()
+    {
+        AutomaticDecompression = DecompressionMethods.All,
+        CookieContainer = cookies
+    };
+
+    /// <summary>
+    /// Creates an <see cref="System.Net.Http.HttpClient"/> instance configured to use the specified client handler.
+    /// </summary>
+    /// <param name="httpClientHandler">Client handler.</param>
+    /// <returns>Configured HTTP client.</returns>
+    protected virtual HttpClient CreateHttpClient(HttpClientHandler httpClientHandler)
+        => new(httpClientHandler);
 
     /// <summary>
     /// Retrieve deserialized JSON using a uri.
@@ -71,6 +117,9 @@ public abstract class HttpArtifactDumper : ArtifactDumper
     /// <typeparam name="T">Data type.</typeparam>
     /// <param name="requestUri">Request URI.</param>
     /// <returns>Task.</returns>
+    /// <remarks>
+    /// This overload usees <see cref="JsonOptions"/> member automatically.
+    /// </remarks>
     protected async ValueTask<T> GetDeserializedJsonAsync<T>(string requestUri)
     {
         NotDisposed();
@@ -100,6 +149,9 @@ public abstract class HttpArtifactDumper : ArtifactDumper
     /// <typeparam name="T">Data type.</typeparam>
     /// <param name="requestUri">Request URI.</param>
     /// <returns>Task.</returns>
+    /// <remarks>
+    /// This overload usees <see cref="JsonOptions"/> member automatically.
+    /// </remarks>
     protected async ValueTask<T> GetDeserializedJsonAsync<T>(Uri requestUri)
     {
         NotDisposed();
@@ -129,6 +181,9 @@ public abstract class HttpArtifactDumper : ArtifactDumper
     /// <typeparam name="T">Data type.</typeparam>
     /// <param name="requestMessage">Request to send.</param>
     /// <returns>Task.</returns>
+    /// <remarks>
+    /// This overload usees <see cref="JsonOptions"/> member automatically.
+    /// </remarks>
     protected async ValueTask<T> RetrieveDeserializedJsonAsync<T>(HttpRequestMessage requestMessage)
     {
         NotDisposed();
@@ -212,11 +267,13 @@ public abstract class HttpArtifactDumper : ArtifactDumper
             {
                 // dispose managed state (managed objects)
                 _httpClient.Dispose();
+                _httpClientHandler.Dispose();
             }
 
             // free unmanaged resources (unmanaged objects) and override finalizer
             // set large fields to null
             _httpClient = null!;
+            _httpClientHandler = null!;
             _disposed = true;
         }
     }
@@ -225,4 +282,11 @@ public abstract class HttpArtifactDumper : ArtifactDumper
     {
         if (_disposed) throw new ObjectDisposedException(nameof(HttpArtifactDumper));
     }
+
+    /// <summary>
+    /// <see cref="System.Net.Http.HttpClient"/> instance with associated <see cref="System.Net.Http.HttpClientHandler"/>.
+    /// </summary>
+    /// <param name="HttpClient">Client.</param>
+    /// <param name="HttpClientHandler">Client handler.</param>
+    public record HttpClientInstance(HttpClient HttpClient, HttpClientHandler HttpClientHandler);
 }

@@ -28,7 +28,7 @@ public class DiskArtifactRegistrationManager : ArtifactRegistrationManager
     public override async ValueTask<ArtifactInfo?> TryGetArtifactAsync(string id)
     {
         string path = GetArtifactInfoFilePath(id);
-        return File.Exists(path) ? await Extensions.LoadFromFileAsync<ArtifactInfo>(path).ConfigureAwait(false) : null;
+        return File.Exists(path) ? await ArtExtensions.LoadFromFileAsync<ArtifactInfo>(path).ConfigureAwait(false) : null;
     }
 
     /// <inheritdoc/>

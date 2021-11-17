@@ -16,7 +16,7 @@ public static class ArtifactDumping
     /// <exception cref="ArtifactDumperFactoryNotFoundException"></exception>
     public static async ValueTask DumpAsync(string dumpingProfilePath, string targetDirectory)
     {
-        JsonElement element = Extensions.LoadFromFile<JsonElement>(dumpingProfilePath);
+        JsonElement element = ArtExtensions.LoadFromFile<JsonElement>(dumpingProfilePath);
         if (element.ValueKind == JsonValueKind.Object)
             await DumpAsync(element.Deserialize<ArtifactDumpingProfile>(ArtJsonOptions.JsonOptions)!, targetDirectory).ConfigureAwait(false);
         else

@@ -1,13 +1,13 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <PackageVersion>0.8.0</PackageVersion>
+    <PackageVersion>0.9.0</PackageVersion>
     <AssemblyVersion>1.0.0</AssemblyVersion>
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Art" Version="0.8.0"/>
-    <!-- <ProjectReference Include="..\Art\Art.csproj" /> -->
+    <!--<PackageReference Include="Art" Version="0.9.0"/>-->
+    <ProjectReference Include="..\Art\Art.csproj" />
   </ItemGroup>
 
   <ItemGroup>

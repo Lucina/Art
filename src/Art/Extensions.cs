@@ -5,7 +5,7 @@ namespace Art;
 /// <summary>
 /// Provides utility functions.
 /// </summary>
-public static class Extensions
+public static class ArtExtensions
 {
     /// <summary>
     /// Loads an object from a UTF-8 JSON stream.

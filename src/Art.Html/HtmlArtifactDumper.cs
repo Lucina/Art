@@ -1,5 +1,6 @@
 ﻿using AngleSharp;
 using AngleSharp.Dom;
+using AngleSharp.Io;
 
 namespace Art.Html;
 
@@ -43,20 +44,22 @@ public abstract class HtmlArtifactDumper : HttpArtifactDumper
     private bool _disposed;
 
     /// <summary>
-    /// Creates a new instance of <see cref="HtmlArtifactDumper"/>, with an existing <see cref="System.Net.Http.HttpClient"/> (no automatic configuration).
+    /// Creates a new instance of <see cref="HtmlArtifactDumper"/>.
     /// </summary>
     /// <param name="registrationManager">Registration manager to use for this instance.</param>
     /// <param name="dataManager">Data manager to use for this instance.</param>
     /// <param name="artifactDumpingProfile">Origin dumping profile.</param>
-    /// <param name="httpClient">Optional existing http client to use.</param>
+    /// <param name="httpClientInstance">Optional existing http client instance to use.</param>
     /// <param name="configuration">Optional browsing context configuration.</param>
     /// <remarks>
     /// No configuration will be performed on the <see cref="System.Net.Http.HttpClient"/> if provided. However, derived constructors can access the <see cref="HttpClient"/> member for configuration.
     /// </remarks>
 
-    protected HtmlArtifactDumper(ArtifactRegistrationManager registrationManager, ArtifactDataManager dataManager, ArtifactDumpingProfile artifactDumpingProfile, HttpClient? httpClient = null, IConfiguration? configuration = null)
-        : base(registrationManager, dataManager, artifactDumpingProfile, httpClient)
+    protected HtmlArtifactDumper(ArtifactRegistrationManager registrationManager, ArtifactDataManager dataManager, ArtifactDumpingProfile artifactDumpingProfile, HttpClientInstance? httpClientInstance = null, IConfiguration? configuration = null)
+        : base(registrationManager, dataManager, artifactDumpingProfile, httpClientInstance)
     {
+        // try and share cookies with extant http client
+        configuration = configuration?.WithOnly<ICookieProvider>(new OpenMemoryCookieProvider(HttpClientHandler.CookieContainer));
         _browser = BrowsingContext.New(configuration);
     }
 
@@ -76,10 +79,21 @@ public abstract class HtmlArtifactDumper : HttpArtifactDumper
     /// </summary>
     /// <param name="address">Address to load.</param>
     /// <returns>Task returning the loaded document.</returns>
-    protected async ValueTask<IDocument> OpenAsync(AngleSharp.Dom.Url address)
+    protected async ValueTask<IDocument> OpenAsync(Url address)
     {
         NotDisposed();
         return Document = await Browser.OpenAsync(address).ConfigureAwait(false);
+    }
+
+    /// <summary>
+    /// Opens a new document loaded from the provided request.
+    /// </summary>
+    /// <param name="request">Request to load.</param>
+    /// <returns>Task returning the loaded document.</returns>
+    protected async ValueTask<IDocument> OpenAsync(DocumentRequest request)
+    {
+        NotDisposed();
+        return Document = await Browser.OpenAsync(request).ConfigureAwait(false);
     }
 
     /// <summary>
