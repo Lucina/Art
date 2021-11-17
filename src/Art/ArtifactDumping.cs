@@ -38,7 +38,7 @@ public static class ArtifactDumping
         var sdm = new DiskArtifactDataManager(targetDir);
         using ArtifactDumper? dumper = await fac.CreateAsync(srm, sdm, artifactDumpingProfile);
         dumper.LogHandler = ConsoleLogHandler.Default;
-        await dumper.DumpAsync();
+        await dumper.RunAsync();
     }
 
     private static readonly Dictionary<string, ArtifactDumperFactory> s_dumpers = new();

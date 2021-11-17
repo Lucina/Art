@@ -347,6 +347,7 @@ public abstract partial class HttpArtifactDumper : ArtifactDumper
     /// <inheritdoc/>
     protected override void Dispose(bool disposing)
     {
+        base.Dispose(disposing);
         if (!_disposed)
         {
             if (disposing)

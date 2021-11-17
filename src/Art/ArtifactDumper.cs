@@ -8,7 +8,6 @@ namespace Art;
 /// </summary>
 public abstract class ArtifactDumper : IDisposable
 {
-
     #region Fields
 
     /// <summary>
@@ -22,19 +21,14 @@ public abstract class ArtifactDumper : IDisposable
     public const string OptDebugMode = "debugMode";
 
     /// <summary>
+    /// Option used to check if currently using force (invalidating previous artifacts).
+    /// </summary>
+    public const string OptForce = "force";
+
+    /// <summary>
     /// JSON serialization defaults.
     /// </summary>
     protected JsonSerializerOptions JsonOptions { get => _jsonOptions ??= new JsonSerializerOptions(); set => _jsonOptions = value; }
-
-    /// <summary>
-    /// Registration manager used by this instance.
-    /// </summary>
-    protected ArtifactRegistrationManager RegistrationManager { get; }
-
-    /// <summary>
-    /// Data manager used by this instance.
-    /// </summary>
-    protected ArtifactDataManager DataManager { get; }
 
     /// <summary>
     /// Origin dumping profile.
@@ -46,11 +40,28 @@ public abstract class ArtifactDumper : IDisposable
     /// </summary>
     protected bool DebugMode { get; set; }
 
+    /// <summary>
+    /// True if all previous artifacts should be ignored (e.g. modifies <see cref="IsNewArtifactAsync(ArtifactInfo)"/>).
+    /// </summary>
+    protected bool Force { get; set; }
+
     #endregion
 
     #region Private fields
 
+    /// <summary>
+    /// Registration manager used by this instance.
+    /// </summary>
+    private ArtifactRegistrationManager RegistrationManager { get; }
+
+    /// <summary>
+    /// Data manager used by this instance.
+    /// </summary>
+    private ArtifactDataManager DataManager { get; }
+
     private JsonSerializerOptions _jsonOptions = new();
+
+    private bool _disposed;
 
     #endregion
 
@@ -67,7 +78,8 @@ public abstract class ArtifactDumper : IDisposable
         RegistrationManager = registrationManager;
         DataManager = dataManager;
         Profile = artifactDumpingProfile;
-        DebugMode = TryGetOption(OptDebugMode, out bool debugMode) && debugMode;
+        DebugMode = GetFlagTrue(OptDebugMode);
+        Force = GetFlagTrue(OptForce);
     }
 
     #endregion
@@ -78,7 +90,17 @@ public abstract class ArtifactDumper : IDisposable
     /// Dump artifacts.
     /// </summary>
     /// <returns>Task.</returns>
-    public abstract ValueTask DumpAsync();
+    public ValueTask RunAsync()
+    {
+        NotDisposed();
+        return DumpAsync();
+    }
+
+    /// <summary>
+    /// Dump artifacts.
+    /// </summary>
+    /// <returns>Task.</returns>
+    protected abstract ValueTask DumpAsync();
 
     #endregion
 
@@ -105,7 +127,7 @@ public abstract class ArtifactDumper : IDisposable
     /// <typeparam name="T">Value type.</typeparam>
     /// <param name="optKey">Key to search.</param>
     /// <param name="value">Value, if located and nonnull.</param>
-    /// <param name="throwIfIncorrectType">If true, throw a <see cref="JsonException"/> or <see cref="NotSupportedException"/> if type is wrong.</param>
+    /// <param name="throwIfIncorrectType">If true, throw a <see cref="JsonException"/> if type is wrong.</param>
     /// <returns>True if value is located and of the right type.</returns>
     protected bool TryGetOption<T>(string optKey, [NotNullWhen(true)] out T? value, bool throwIfIncorrectType = false)
     {
@@ -120,14 +142,19 @@ public abstract class ArtifactDumper : IDisposable
             {
                 if (throwIfIncorrectType) throw;
             }
-            catch (NotSupportedException)
-            {
-                if (throwIfIncorrectType) throw;
-            }
         }
         value = default;
         return false;
     }
+
+    /// <summary>
+    /// Checks if a flag is true.
+    /// </summary>
+    /// <param name="optKey">Key to search.</param>
+    /// <param name="throwIfIncorrectType">If true, throw a <see cref="JsonException"/> or <see cref="NotSupportedException"/> if type is wrong.</param>
+    /// <returns>True if flag is set to true.</returns>
+    protected bool GetFlagTrue(string optKey, bool throwIfIncorrectType = false)
+        => TryGetOption(optKey, out bool? value, throwIfIncorrectType) && value.Value;
 
     #endregion
 
@@ -155,7 +182,7 @@ public abstract class ArtifactDumper : IDisposable
     /// <param name="artifactInfo">Artifact to check.</param>
     /// <returns>Task returning true if this is a new artifact (newer than whatever exists with the same ID).</returns>
     protected async ValueTask<bool> IsNewArtifactAsync(ArtifactInfo artifactInfo)
-        => await RegistrationManager.IsNewArtifactAsync(artifactInfo).ConfigureAwait(false);
+        => await RegistrationManager.IsNewArtifactAsync(artifactInfo).ConfigureAwait(false) || Force; // Forward to RegistrationManager even if forcing
 
     #endregion
 
@@ -299,7 +326,13 @@ public abstract class ArtifactDumper : IDisposable
     /// Disposes unmanaged resources.
     /// </summary>
     /// <param name="disposing">Is disposing.</param>
-    protected abstract void Dispose(bool disposing);
+    protected virtual void Dispose(bool disposing)
+    {
+        if (!_disposed)
+        {
+            _disposed = true;
+        }
+    }
 
     /// <inheritdoc/>
     public void Dispose()
@@ -307,6 +340,11 @@ public abstract class ArtifactDumper : IDisposable
         // Do not change this code. Put cleanup code in 'Dispose(bool disposing)' method
         Dispose(disposing: true);
         GC.SuppressFinalize(this);
+    }
+
+    private void NotDisposed()
+    {
+        if (_disposed) throw new ObjectDisposedException(nameof(ArtifactDumper));
     }
 
     #endregion
