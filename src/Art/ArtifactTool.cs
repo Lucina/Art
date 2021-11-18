@@ -106,7 +106,7 @@ public abstract class ArtifactTool : IDisposable, IAsyncFinder<ArtifactData?>
     #region API
 
     /// <summary>
-    /// Finds an artifact with the speciied id.
+    /// Finds an artifact with the specified id.
     /// </summary>
     /// <param name="id">Artifact id.</param>
     /// <returns>Task returning found artifact or null.</returns>
