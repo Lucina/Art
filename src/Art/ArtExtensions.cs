@@ -114,4 +114,17 @@ public static class ArtExtensions
     /// <returns>Normalized number key (e.g. 1, 616, 333018).</returns>
     public static string SimplifyNumericKey(this string key)
         => long.TryParse(key, NumberStyles.Integer, CultureInfo.InvariantCulture, out long result) ? result.ToString(CultureInfo.InvariantCulture) : key;
+
+    /// <summary>
+    /// Lists artifacts as key-value pairs of ID to artifact data.
+    /// </summary>
+    /// <param name="artifactTool">Artifact tool.</param>
+    /// <returns>Task returning created dictionary.</returns>
+    public static async ValueTask<Dictionary<string, ArtifactData>> ListDictionaryAsync(this ArtifactTool artifactTool)
+    {
+        Dictionary<string, ArtifactData> res = new();
+        await foreach (ArtifactData artifactData in artifactTool.ListAsync().ConfigureAwait(false))
+            res[artifactData.Info.Id] = artifactData;
+        return res;
+    }
 }

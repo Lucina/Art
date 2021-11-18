@@ -128,7 +128,7 @@ public abstract class ArtifactTool : IDisposable, IAsyncFinder<ArtifactData?>
         await foreach (ArtifactData data in DoListAsync().ConfigureAwait(false))
         {
             if (!(await IsNewArtifactAsync(data.Info).ConfigureAwait(false))) continue;
-            foreach (ArtifactResourceInfo resource in data.Resources)
+            foreach (ArtifactResourceInfo resource in data.Values)
             {
                 if (!resource.Exportable) continue;
                 await using Stream stream = await CreateOutputStreamAsync(resource.File, data.Info, resource.Path, resource.InArtifactFolder).ConfigureAwait(false);

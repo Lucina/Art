@@ -1,11 +1,13 @@
-﻿using System.Text.Json;
+﻿using System.Collections;
+using System.Diagnostics.CodeAnalysis;
+using System.Text.Json;
 
 namespace Art;
 
 /// <summary>
 /// Stores data relevant to an artifact.
 /// </summary>
-public class ArtifactData
+public class ArtifactData : IReadOnlyDictionary<RK, ArtifactResourceInfo>
 {
     /// <summary>
     /// Info for this artifact.
@@ -15,7 +17,19 @@ public class ArtifactData
     /// <summary>
     /// Resources for this artifact.
     /// </summary>
-    public readonly List<ArtifactResourceInfo> Resources = new();
+    public readonly Dictionary<RK, ArtifactResourceInfo> Resources = new();
+
+    /// <inheritdoc/>
+    public IEnumerable<RK> Keys => Resources.Keys;
+
+    /// <inheritdoc/>
+    public IEnumerable<ArtifactResourceInfo> Values => Resources.Values;
+
+    /// <inheritdoc/>
+    public int Count => Resources.Count;
+
+    /// <inheritdoc/>
+    public ArtifactResourceInfo this[RK key] => Resources[key];
 
     /// <summary>
     /// Creates a new instance of <see cref="ArtifactData"/>.
@@ -43,14 +57,19 @@ public class ArtifactData
     /// </summary>
     /// <param name="resource">Resource to add.</param>
     public void Add(ArtifactResourceInfo resource)
-        => Resources.Add(resource);
+    {
+        Resources[resource.ToKey()] = resource;
+    }
 
     /// <summary>
     /// Adds resources to this instance.
     /// </summary>
     /// <param name="resources">Resources to add.</param>
     public void AddRange(IEnumerable<ArtifactResourceInfo> resources)
-        => Resources.AddRange(resources);
+    {
+        foreach (ArtifactResourceInfo resource in resources)
+            Add(resource);
+    }
 
     /// <summary>
     /// Adds a <see cref="StringArtifactResourceInfo"/> instance.
@@ -61,7 +80,7 @@ public class ArtifactData
     /// <param name="inArtifactFolder">If false, sent to common directory.</param>
     /// <param name="properties">Resource properties.</param>
     public void AddString(string resource, string file, string? path = null, bool inArtifactFolder = true, IReadOnlyDictionary<string, JsonElement>? properties = null)
-        => Resources.Add(new StringArtifactResourceInfo(resource, Info.Id, file, path, inArtifactFolder, properties ?? ArtifactResourceInfo.EmptyProperties));
+        => Add(new StringArtifactResourceInfo(resource, Info.Id, file, path, inArtifactFolder, properties ?? ArtifactResourceInfo.EmptyProperties));
 
     /// <summary>
     /// Adds a <see cref="UriArtifactResourceInfo"/> instance.
@@ -73,7 +92,7 @@ public class ArtifactData
     /// <param name="inArtifactFolder">If false, sent to common directory.</param>
     /// <param name="properties">Resource properties.</param>
     public void AddUri(HttpArtifactTool artifactTool, Uri uri, string file, string? path = null, bool inArtifactFolder = true, IReadOnlyDictionary<string, JsonElement>? properties = null)
-        => Resources.Add(new UriArtifactResourceInfo(artifactTool, uri, Info.Id, file, path, inArtifactFolder, properties ?? ArtifactResourceInfo.EmptyProperties));
+        => Add(new UriArtifactResourceInfo(artifactTool, uri, Info.Id, file, path, inArtifactFolder, properties ?? ArtifactResourceInfo.EmptyProperties));
 
     /// <summary>
     /// Adds a <see cref="JsonArtifactResourceInfo{Task}"/> instance.
@@ -85,7 +104,7 @@ public class ArtifactData
     /// <param name="inArtifactFolder">If false, sent to common directory.</param>
     /// <param name="properties">Resource properties.</param>
     public void AddJson<T>(T resource, JsonSerializerOptions? serializerOptions, string file, string? path = null, bool inArtifactFolder = true, IReadOnlyDictionary<string, JsonElement>? properties = null)
-        => Resources.Add(new JsonArtifactResourceInfo<T>(resource, serializerOptions, Info.Id, file, path, inArtifactFolder, properties ?? ArtifactResourceInfo.EmptyProperties));
+        => Add(new JsonArtifactResourceInfo<T>(resource, serializerOptions, Info.Id, file, path, inArtifactFolder, properties ?? ArtifactResourceInfo.EmptyProperties));
 
     /// <summary>
     /// Adds a <see cref="UriStringArtifactResourceInfo"/> instance.
@@ -97,7 +116,7 @@ public class ArtifactData
     /// <param name="inArtifactFolder">If false, sent to common directory.</param>
     /// <param name="properties">Resource properties.</param>
     public void AddUriString(HttpArtifactTool artifactTool, string uri, string file, string? path = null, bool inArtifactFolder = true, IReadOnlyDictionary<string, JsonElement>? properties = null)
-        => Resources.Add(new UriStringArtifactResourceInfo(artifactTool, uri, Info.Id, file, path, inArtifactFolder, properties ?? ArtifactResourceInfo.EmptyProperties));
+        => Add(new UriStringArtifactResourceInfo(artifactTool, uri, Info.Id, file, path, inArtifactFolder, properties ?? ArtifactResourceInfo.EmptyProperties));
 
     /// <summary>
     /// Adds a <see cref="HttpRequestMessageArtifactResourceInfo"/> instance.
@@ -109,6 +128,17 @@ public class ArtifactData
     /// <param name="inArtifactFolder">If false, sent to common directory.</param>
     /// <param name="properties">Resource properties.</param>
     public void AddHttpRequestMessage(HttpArtifactTool artifactTool, HttpRequestMessage request, string file, string? path = null, bool inArtifactFolder = true, IReadOnlyDictionary<string, JsonElement>? properties = null)
-        => Resources.Add(new HttpRequestMessageArtifactResourceInfo(artifactTool, request, Info.Id, file, path, inArtifactFolder, properties ?? ArtifactResourceInfo.EmptyProperties));
+        => Add(new HttpRequestMessageArtifactResourceInfo(artifactTool, request, Info.Id, file, path, inArtifactFolder, properties ?? ArtifactResourceInfo.EmptyProperties));
+
+    /// <inheritdoc/>
+    public bool ContainsKey(RK key) => Resources.ContainsKey(key);
+
+    /// <inheritdoc/>
+    public bool TryGetValue(RK key, [MaybeNullWhen(false)] out ArtifactResourceInfo value) => Resources.TryGetValue(key, out value);
+
+    /// <inheritdoc/>
+    public IEnumerator<KeyValuePair<RK, ArtifactResourceInfo>> GetEnumerator() => Resources.GetEnumerator();
+
+    IEnumerator IEnumerable.GetEnumerator() => ((IEnumerable)Resources).GetEnumerator();
 }
 

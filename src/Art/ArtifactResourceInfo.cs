@@ -42,4 +42,10 @@ public record ArtifactResourceInfo(string ArtifactId, string File, string? Path,
     /// <exception cref="NotSupportedException">Thrown if this instance cannot be exported.</exception>
     public virtual ValueTask ExportAsync(Stream stream)
         => throw new NotSupportedException($"This is a raw instance of {nameof(ArtifactResourceInfo)} that is not exportable");
+
+    /// <summary>
+    /// Gets associated resource key for this object.
+    /// </summary>
+    /// <returns>Resource key.</returns>
+    public RK ToKey() => new(File, Path, InArtifactFolder);
 }
