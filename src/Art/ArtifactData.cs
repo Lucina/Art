@@ -34,13 +34,15 @@ public class ArtifactData : IReadOnlyDictionary<RK, ArtifactResourceInfo>
     /// <summary>
     /// Creates a new instance of <see cref="ArtifactData"/>.
     /// </summary>
+    /// <param name="tool">Tool id.</param>
+    /// <param name="group">Group.</param>
     /// <param name="id">Artifact ID.</param>
     /// <param name="date">Artifact creation date.</param>
     /// <param name="updateDate">Artifact update date.</param>
     /// <param name="properties">Artifact properties.</param>
-    public ArtifactData(string id, DateTimeOffset? date = null, DateTimeOffset? updateDate = null, IReadOnlyDictionary<string, JsonElement>? properties = null)
+    public ArtifactData(string tool, string group, string id, DateTimeOffset? date = null, DateTimeOffset? updateDate = null, IReadOnlyDictionary<string, JsonElement>? properties = null)
     {
-        Info = new ArtifactInfo(id, date, updateDate, properties ?? ArtifactInfo.EmptyProperties);
+        Info = new ArtifactInfo(tool, group, id, date, updateDate, properties ?? ArtifactInfo.EmptyProperties);
     }
 
     /// <summary>

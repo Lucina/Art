@@ -37,7 +37,6 @@ public static class ArtifactToolLoader
         return false;
     }
 
-    private static readonly Regex s_toolRegex = new(@"^([\S\s]+)::([\S\s]+)$");
     /// <summary>
     /// Attempts to load artifact tool from an artifact tool target string (assembly::toolType).
     /// </summary>
@@ -46,8 +45,7 @@ public static class ArtifactToolLoader
     /// <returns>True if successfully located and created a tool.</returns>
     public static bool TryLoad(string toolId, [NotNullWhen(true)] out ArtifactTool? tool)
     {
-        if (s_toolRegex.Match(toolId) is not { Success: true } match)
-            throw new ArgumentException("Tool string is in invalid format, must be \"<assembly>::<toolType>\"", nameof(toolId));
-        return TryLoad(match.Groups[1].Value, match.Groups[2].Value, out tool);
+        (string assembly, string type) = ArtifactToolProfile.GetId(toolId);
+        return TryLoad(assembly, type, out tool);
     }
 }

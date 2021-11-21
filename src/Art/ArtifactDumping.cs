@@ -26,10 +26,10 @@ public static class ArtifactDumping
 
     private static async ValueTask DumpAsync(ArtifactToolProfile artifactToolProfile, string targetDirectory)
     {
-        if (artifactToolProfile.TargetFolder == null) throw new IOException("Target folder not specified in profile");
+        if (artifactToolProfile.Group == null) throw new IOException("Group not specified in profile");
         if (!ArtifactToolLoader.TryLoad(artifactToolProfile, out ArtifactTool? t))
             throw new ArtifactToolNotFoundException(artifactToolProfile.Tool);
-        string targetDir = Path.Combine(targetDirectory, artifactToolProfile.TargetFolder);
+        string targetDir = Path.Combine(targetDirectory, artifactToolProfile.Group);
         var srm = new DiskArtifactRegistrationManager(targetDir);
         var sdm = new DiskArtifactDataManager(targetDir);
         ArtifactToolRuntimeConfig config = new(srm, sdm, artifactToolProfile);
