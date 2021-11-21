@@ -27,7 +27,7 @@ public abstract class HtmlArtifactTool : HttpArtifactTool
         }
     }
 
-    private IBrowsingContext _browser;
+    private IBrowsingContext _browser = null!;
 
     /// <summary>
     /// Current document, if one is loaded.
@@ -44,32 +44,17 @@ public abstract class HtmlArtifactTool : HttpArtifactTool
 
     private bool _disposed;
 
-    /// <summary>
-    /// Creates a new instance of <see cref="HtmlArtifactTool"/>.
-    /// </summary>
-    protected HtmlArtifactTool()
+    #region Configuration
+
+    /// <inheritdoc/>
+    public override async Task ConfigureAsync(ArtifactToolRuntimeConfig runtimeConfig)
     {
-        // try and share cookies with extant http client
+        await base.ConfigureAsync(runtimeConfig);
         IConfiguration configuration = Configuration.Default.WithOnly<ICookieProvider>(new OpenMemoryCookieProvider(HttpClientHandler.CookieContainer));
         _browser = BrowsingContext.New(configuration);
     }
 
-    /// <summary>
-    /// Creates a new instance of <see cref="HtmlArtifactTool"/>.
-    /// </summary>
-    /// <param name="httpClientInstance">Optional existing http client instance to use.</param>
-    /// <param name="configuration">Optional browsing context configuration.</param>
-    /// <remarks>
-    /// No configuration will be performed on the <see cref="System.Net.Http.HttpClient"/> if provided. However, derived constructors can access the <see cref="HttpClient"/> member for configuration.
-    /// </remarks>
-
-    protected HtmlArtifactTool(IConfiguration? configuration = null, HttpClientInstance? httpClientInstance = null)
-        : base(httpClientInstance)
-    {
-        // try and share cookies with extant http client
-        configuration = configuration?.WithOnly<ICookieProvider>(new OpenMemoryCookieProvider(HttpClientHandler.CookieContainer));
-        _browser = BrowsingContext.New(configuration);
-    }
+    #endregion
 
     #region Main API
 

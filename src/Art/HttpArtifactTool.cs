@@ -58,65 +58,40 @@ public abstract class HttpArtifactTool : ArtifactTool
 
     #region Private fields
 
-    private HttpClient _httpClient;
+    private HttpClient _httpClient = null!;
 
-    private HttpClientHandler _httpClientHandler;
+    private HttpClientHandler _httpClientHandler = null!;
 
     private bool _disposed;
 
     #endregion
 
-    #region Constructor
+    #region Configuration
 
-    /// <summary>
-    /// Creates a new instance of <see cref="HttpArtifactTool"/>.
-    /// </summary>
-    protected HttpArtifactTool()
+    /// <inheritdoc/>
+    public override async Task ConfigureAsync(ArtifactToolRuntimeConfig runtimeConfig)
     {
-        CookieContainer cookies = new();
-        ConfigureCookieContainer(cookies);
+        await base.ConfigureAsync(runtimeConfig);
+        CookieContainer cookies = CreateCookieContainer();
         _httpClientHandler = CreateHttpClientHandler(cookies);
         _httpClient = CreateHttpClient(_httpClientHandler);
-        _httpClient.DefaultRequestHeaders.UserAgent.ParseAdd(DefaultUserAgent);
+        _httpClient.DefaultRequestHeaders.UserAgent.TryParseAdd(DefaultUserAgent);
     }
-
-    /// <summary>
-    /// Creates a new instance of <see cref="HttpArtifactTool"/>.
-    /// </summary>
-    /// <param name="httpClientInstance">Optional existing http client instance to use.</param>
-    /// <remarks>
-    /// No configuration will be performed on the <see cref="System.Net.Http.HttpClient"/> if provided. However, derived constructors can access the <see cref="HttpClient"/> member for configuration.
-    /// </remarks>
-    protected HttpArtifactTool(HttpClientInstance? httpClientInstance)
-    {
-        if (httpClientInstance != null)
-        {
-            _httpClient = httpClientInstance.HttpClient;
-            _httpClientHandler = httpClientInstance.HttpClientHandler;
-        }
-        else
-        {
-            CookieContainer cookies = new();
-            ConfigureCookieContainer(cookies);
-            _httpClientHandler = CreateHttpClientHandler(cookies);
-            _httpClient = CreateHttpClient(_httpClientHandler);
-            _httpClient.DefaultRequestHeaders.UserAgent.TryParseAdd(DefaultUserAgent);
-        }
-    }
-
     #endregion
 
     #region Http client configuraiton
 
     /// <summary>
-    /// Auto-configure an existing cookie container (using the <see cref="OptCookieFile"/> configuration option).
+    /// Creates a cookie container (by default using the <see cref="OptCookieFile"/> configuration option).
     /// </summary>
-    /// <param name="cookies">Cookie container to configure.</param>
-    protected virtual void ConfigureCookieContainer(CookieContainer cookies)
+    /// <returns>A cookie container.</returns>
+    protected virtual CookieContainer CreateCookieContainer()
     {
+        CookieContainer cookies = new();
         if (TryGetOption(OptCookieFile, out string? cookieFile))
             using (StreamReader? f = File.OpenText(cookieFile))
                 cookies.LoadCookieFile(f);
+        return cookies;
     }
 
     /// <summary>
