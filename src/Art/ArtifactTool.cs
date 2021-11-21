@@ -81,8 +81,6 @@ public abstract partial class ArtifactTool : IDisposable, IAsyncFinder<ArtifactD
         _registrationManager = null!;
         _dataManager = null!;
         Profile = null!;
-        DebugMode = GetFlagTrue(OptDebugMode);
-        Force = GetFlagTrue(OptForce);
     }
 
     #endregion
@@ -103,6 +101,8 @@ public abstract partial class ArtifactTool : IDisposable, IAsyncFinder<ArtifactD
         _registrationManager = runtimeConfig.RegistrationManager;
         _dataManager = runtimeConfig.DataManager;
         Profile = runtimeConfig.Profile;
+        DebugMode = GetFlagTrue(OptDebugMode);
+        Force = GetFlagTrue(OptForce);
         _configured = true;
         return Task.CompletedTask;
     }
