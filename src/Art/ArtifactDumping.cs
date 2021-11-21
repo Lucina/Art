@@ -33,8 +33,8 @@ public static class ArtifactDumping
         var sdm = new DiskArtifactDataManager(targetDirectory);
         ArtifactToolRuntimeConfig config = new(srm, sdm, artifactToolProfile);
         using ArtifactTool? tool = t;
-        await tool.ConfigureAsync(config).ConfigureAwait(false);
         tool.LogHandler = ConsoleLogHandler.Default;
+        await tool.ConfigureAsync(config).ConfigureAwait(false);
         await tool.DumpAsync();
     }
 }

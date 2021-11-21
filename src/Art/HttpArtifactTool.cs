@@ -500,8 +500,8 @@ public abstract class HttpArtifactTool : ArtifactTool
             if (disposing)
             {
                 // dispose managed state (managed objects)
-                _httpClient.Dispose();
-                _httpClientHandler.Dispose();
+                _httpClient?.Dispose();
+                _httpClientHandler?.Dispose();
             }
 
             // free unmanaged resources (unmanaged objects) and override finalizer

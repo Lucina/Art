@@ -360,12 +360,12 @@ public abstract partial class ArtifactTool : IDisposable, IAsyncFinder<ArtifactD
     private void EnsureState()
     {
         EnsureNotDisposed();
-        if (_disposed) throw new ObjectDisposedException(nameof(ArtifactTool));
+        if (!_configured) throw new InvalidOperationException("Tool has not been initialized");
     }
 
     private void EnsureNotDisposed()
     {
-        if (!_configured) throw new InvalidOperationException("Tool has not been initialized");
+        if (_disposed) throw new ObjectDisposedException(nameof(ArtifactTool));
     }
 
     #endregion

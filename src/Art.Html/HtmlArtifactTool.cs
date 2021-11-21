@@ -198,7 +198,7 @@ public abstract class HtmlArtifactTool : HttpArtifactTool
             if (disposing)
             {
                 // dispose managed state (managed objects)
-                _browser.Dispose();
+                _browser?.Dispose();
                 Document?.Dispose();
             }
 
