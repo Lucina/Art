@@ -78,7 +78,7 @@ public abstract class HtmlArtifactTool : HttpArtifactTool
     /// </summary>
     /// <param name="address">Address to load.</param>
     /// <returns>Task returning the loaded document.</returns>
-    protected async ValueTask<IDocument> OpenAsync(string address)
+    protected async Task<IDocument> OpenAsync(string address)
     {
         NotDisposed();
         return Document = await Browser.OpenAsync(address).ConfigureAwait(false);
@@ -89,7 +89,7 @@ public abstract class HtmlArtifactTool : HttpArtifactTool
     /// </summary>
     /// <param name="address">Address to load.</param>
     /// <returns>Task returning the loaded document.</returns>
-    protected async ValueTask<IDocument> OpenAsync(Url address)
+    protected async Task<IDocument> OpenAsync(Url address)
     {
         NotDisposed();
         return Document = await Browser.OpenAsync(address).ConfigureAwait(false);
@@ -100,7 +100,7 @@ public abstract class HtmlArtifactTool : HttpArtifactTool
     /// </summary>
     /// <param name="request">Request to load.</param>
     /// <returns>Task returning the loaded document.</returns>
-    protected async ValueTask<IDocument> OpenAsync(DocumentRequest request)
+    protected async Task<IDocument> OpenAsync(DocumentRequest request)
     {
         NotDisposed();
         return Document = await Browser.OpenAsync(request).ConfigureAwait(false);
@@ -167,7 +167,7 @@ public abstract class HtmlArtifactTool : HttpArtifactTool
     /// </summary>
     /// <param name="url">Request.</param>
     /// <returns>Task returning response.</returns>
-    protected ValueTask<HttpResponseMessage> HeadAsync(Url url)
+    protected Task<HttpResponseMessage> HeadAsync(Url url)
         => HeadAsync(url.ToUri());
 
     /// <summary>
@@ -175,7 +175,7 @@ public abstract class HtmlArtifactTool : HttpArtifactTool
     /// </summary>
     /// <param name="url">Request.</param>
     /// <returns>Task returning response.</returns>
-    protected ValueTask<HttpResponseMessage> GetAsync(Url url)
+    protected Task<HttpResponseMessage> GetAsync(Url url)
         => GetAsync(url.ToUri());
 
     /// <summary>
@@ -187,7 +187,7 @@ public abstract class HtmlArtifactTool : HttpArtifactTool
     /// <remarks>
     /// This overload usees <see cref="ArtifactTool.JsonOptions"/> member automatically.
     /// </remarks>
-    protected ValueTask<T> GetDeserializedJsonAsync<T>(Url url)
+    protected Task<T> GetDeserializedJsonAsync<T>(Url url)
         => GetDeserializedJsonAsync<T>(url.ToUri());
 
     /// <summary>
@@ -197,7 +197,7 @@ public abstract class HtmlArtifactTool : HttpArtifactTool
     /// <param name="url">Request URL.</param>
     /// <param name="jsonSerializerOptions">Optional deserialization options.</param>
     /// <returns>Task returning deserialized data.</returns>
-    protected ValueTask<T> GetDeserializedJsonAsync<T>(Url url, JsonSerializerOptions? jsonSerializerOptions)
+    protected Task<T> GetDeserializedJsonAsync<T>(Url url, JsonSerializerOptions? jsonSerializerOptions)
         => GetDeserializedJsonAsync<T>(url.ToUri(), jsonSerializerOptions);
 
     #endregion

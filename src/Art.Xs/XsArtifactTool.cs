@@ -1,4 +1,6 @@
 ﻿using System.Net;
+using AngleSharp.Dom;
+using Art.Html;
 using Xs;
 
 namespace Art.Xs;
@@ -6,13 +8,27 @@ namespace Art.Xs;
 /// <summary>
 /// Represents an artifact tool that uses <see cref="XsClient"/>.
 /// </summary>
-public abstract class XsArtifactTool : HttpArtifactTool
+public abstract class XsArtifactTool : HtmlArtifactTool
 {
     /// <summary>
     /// Asynchronously creates a <see cref="XsClient"/>.
     /// </summary>
     /// <returns>Task rturning an Xs client.</returns>
     protected static Task<XsClient> CreateXsClientAsync() => XsManager.CreateClientAsync();
+
+    #region Html overloads
+
+    /// <summary>
+    /// Opens a new document loaded from the provided <see cref="XsClient"/>.
+    /// </summary>
+    /// <param name="xs">Client with active page.</param>
+    /// <returns>Task returning the loaded document.</returns>
+    protected async Task<IDocument> OpenAsync(XsClient xs)
+        => await OpenAsync(await xs.GetContentAsync()).ConfigureAwait(false);
+
+    #endregion
+
+    #region HttpClient syncing
 
     /// <summary>
     /// Synchronizes settings from an <see cref="XsClient"/> to current <see cref="HttpClient"/>.
@@ -44,4 +60,6 @@ public abstract class XsArtifactTool : HttpArtifactTool
             w.Settings.UserAgent = ua;
         });
     }
+
+    #endregion
 }

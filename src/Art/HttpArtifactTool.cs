@@ -151,7 +151,7 @@ public abstract class HttpArtifactTool : ArtifactTool
     /// <param name="origin">Request origin.</param>
     /// <param name="referrer">Request referrer.</param>
     /// <returns>Task returning reponse (status left unchecked).</returns>
-    protected async ValueTask<HttpResponseMessage> HeadAsync(string requestUri, string? origin = null, string? referrer = null)
+    protected async Task<HttpResponseMessage> HeadAsync(string requestUri, string? origin = null, string? referrer = null)
     {
         NotDisposed();
         HttpRequestMessage req = new(HttpMethod.Head, requestUri);
@@ -167,7 +167,7 @@ public abstract class HttpArtifactTool : ArtifactTool
     /// <param name="origin">Request origin.</param>
     /// <param name="referrer">Request referrer.</param>
     /// <returns>Task returning reponse (status left unchecked).</returns>
-    protected async ValueTask<HttpResponseMessage> HeadAsync(Uri requestUri, string? origin = null, string? referrer = null)
+    protected async Task<HttpResponseMessage> HeadAsync(Uri requestUri, string? origin = null, string? referrer = null)
     {
         NotDisposed();
         HttpRequestMessage req = new(HttpMethod.Head, requestUri);
@@ -183,7 +183,7 @@ public abstract class HttpArtifactTool : ArtifactTool
     /// <param name="origin">Request origin.</param>
     /// <param name="referrer">Request referrer.</param>
     /// <returns>Task returning reponse (status left unchecked).</returns>
-    protected async ValueTask<HttpResponseMessage> GetAsync(string requestUri, string? origin = null, string? referrer = null)
+    protected async Task<HttpResponseMessage> GetAsync(string requestUri, string? origin = null, string? referrer = null)
     {
         NotDisposed();
         HttpRequestMessage req = new(HttpMethod.Get, requestUri);
@@ -199,7 +199,7 @@ public abstract class HttpArtifactTool : ArtifactTool
     /// <param name="origin">Request origin.</param>
     /// <param name="referrer">Request referrer.</param>
     /// <returns>Task returning reponse (status left unchecked).</returns>
-    protected async ValueTask<HttpResponseMessage> GetAsync(Uri requestUri, string? origin = null, string? referrer = null)
+    protected async Task<HttpResponseMessage> GetAsync(Uri requestUri, string? origin = null, string? referrer = null)
     {
         NotDisposed();
         HttpRequestMessage req = new(HttpMethod.Get, requestUri);
@@ -213,7 +213,7 @@ public abstract class HttpArtifactTool : ArtifactTool
     /// </summary>
     /// <param name="requestMessage">Request.</param>
     /// <returns>Task returning reponse (status left unchecked).</returns>
-    protected async ValueTask<HttpResponseMessage> SendAsync(HttpRequestMessage requestMessage)
+    protected async Task<HttpResponseMessage> SendAsync(HttpRequestMessage requestMessage)
     {
         NotDisposed();
         return await HttpClient.SendAsync(requestMessage).ConfigureAwait(false);
@@ -245,7 +245,7 @@ public abstract class HttpArtifactTool : ArtifactTool
     /// <remarks>
     /// This overload usees <see cref="ArtifactTool.JsonOptions"/> member automatically.
     /// </remarks>
-    protected async ValueTask<T> GetDeserializedJsonAsync<T>(string requestUri, string? origin = null, string? referrer = null)
+    protected async Task<T> GetDeserializedJsonAsync<T>(string requestUri, string? origin = null, string? referrer = null)
     {
         NotDisposed();
         HttpRequestMessage req = new(HttpMethod.Get, requestUri);
@@ -265,7 +265,7 @@ public abstract class HttpArtifactTool : ArtifactTool
     /// <param name="origin">Request origin.</param>
     /// <param name="referrer">Request referrer.</param>
     /// <returns>Task returning deserialized data.</returns>
-    protected async ValueTask<T> GetDeserializedJsonAsync<T>(string requestUri, JsonSerializerOptions? jsonSerializerOptions, string? origin = null, string? referrer = null)
+    protected async Task<T> GetDeserializedJsonAsync<T>(string requestUri, JsonSerializerOptions? jsonSerializerOptions, string? origin = null, string? referrer = null)
     {
         NotDisposed();
         HttpRequestMessage req = new(HttpMethod.Get, requestUri);
@@ -287,7 +287,7 @@ public abstract class HttpArtifactTool : ArtifactTool
     /// <remarks>
     /// This overload usees <see cref="ArtifactTool.JsonOptions"/> member automatically.
     /// </remarks>
-    protected async ValueTask<T> GetDeserializedJsonAsync<T>(Uri requestUri, string? origin = null, string? referrer = null)
+    protected async Task<T> GetDeserializedJsonAsync<T>(Uri requestUri, string? origin = null, string? referrer = null)
     {
         NotDisposed();
         HttpRequestMessage req = new(HttpMethod.Get, requestUri);
@@ -307,7 +307,7 @@ public abstract class HttpArtifactTool : ArtifactTool
     /// <param name="origin">Request origin.</param>
     /// <param name="referrer">Request referrer.</param>
     /// <returns>Task returning deserialized data.</returns>
-    protected async ValueTask<T> GetDeserializedJsonAsync<T>(Uri requestUri, JsonSerializerOptions? jsonSerializerOptions, string? origin = null, string? referrer = null)
+    protected async Task<T> GetDeserializedJsonAsync<T>(Uri requestUri, JsonSerializerOptions? jsonSerializerOptions, string? origin = null, string? referrer = null)
     {
         NotDisposed();
         HttpRequestMessage req = new(HttpMethod.Get, requestUri);
@@ -327,7 +327,7 @@ public abstract class HttpArtifactTool : ArtifactTool
     /// <remarks>
     /// This overload usees <see cref="ArtifactTool.JsonOptions"/> member automatically.
     /// </remarks>
-    protected async ValueTask<T> RetrieveDeserializedJsonAsync<T>(HttpRequestMessage requestMessage)
+    protected async Task<T> RetrieveDeserializedJsonAsync<T>(HttpRequestMessage requestMessage)
     {
         NotDisposed();
         using HttpResponseMessage res = await HttpClient.SendAsync(requestMessage).ConfigureAwait(false);
@@ -342,7 +342,7 @@ public abstract class HttpArtifactTool : ArtifactTool
     /// <param name="requestMessage">Request to send.</param>
     /// <param name="jsonSerializerOptions">Optional deserialization options.</param>
     /// <returns>Task returning deserialized data.</returns>
-    protected async ValueTask<T> RetrieveDeserializedJsonAsync<T>(HttpRequestMessage requestMessage, JsonSerializerOptions? jsonSerializerOptions)
+    protected async Task<T> RetrieveDeserializedJsonAsync<T>(HttpRequestMessage requestMessage, JsonSerializerOptions? jsonSerializerOptions)
     {
         NotDisposed();
         using HttpResponseMessage res = await HttpClient.SendAsync(requestMessage).ConfigureAwait(false);
