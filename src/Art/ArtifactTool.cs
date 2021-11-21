@@ -173,9 +173,7 @@ public abstract partial class ArtifactTool : IDisposable, IAsyncFinder<ArtifactD
     /// <param name="updateDate">Artifact update date.</param>
     /// <param name="properties">Artifact properties.</param>
     public ArtifactData CreateData(string id, DateTimeOffset? date = null, DateTimeOffset? updateDate = null, IReadOnlyDictionary<string, JsonElement>? properties = null)
-    {
-        return new ArtifactData(Profile.Tool, Profile.Group, id, date, updateDate, properties ?? ArtifactInfo.EmptyProperties);
-    }
+        => new(Profile.Tool, Profile.Group, id, date, updateDate, properties);
 
     /// <summary>
     /// Registers artifact as known.
@@ -191,7 +189,7 @@ public abstract partial class ArtifactTool : IDisposable, IAsyncFinder<ArtifactD
     /// <param name="id">Artifact ID.</param>
     /// <returns>Task returning retrieved artifact, if it exists.</returns>
     protected async ValueTask<ArtifactInfo?> TryGetArtifactAsync(string id)
-        => await _registrationManager.TryGetArtifactAsync(id).ConfigureAwait(false);
+        => await _registrationManager.TryGetArtifactAsync(Profile.Tool, Profile.Group, id).ConfigureAwait(false);
 
     /// <summary>
     /// Tests if artifact is recognizably new.

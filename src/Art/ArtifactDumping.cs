@@ -29,9 +29,8 @@ public static class ArtifactDumping
         if (artifactToolProfile.Group == null) throw new IOException("Group not specified in profile");
         if (!ArtifactToolLoader.TryLoad(artifactToolProfile, out ArtifactTool? t))
             throw new ArtifactToolNotFoundException(artifactToolProfile.Tool);
-        string targetDir = Path.Combine(targetDirectory, artifactToolProfile.Group);
-        var srm = new DiskArtifactRegistrationManager(targetDir);
-        var sdm = new DiskArtifactDataManager(targetDir);
+        var srm = new DiskArtifactRegistrationManager(targetDirectory);
+        var sdm = new DiskArtifactDataManager(targetDirectory);
         ArtifactToolRuntimeConfig config = new(srm, sdm, artifactToolProfile);
         using ArtifactTool? tool = t;
         await tool.ConfigureAsync(config).ConfigureAwait(false);

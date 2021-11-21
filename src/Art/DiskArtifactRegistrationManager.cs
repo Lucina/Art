@@ -7,6 +7,7 @@ namespace Art;
 /// </summary>
 public class DiskArtifactRegistrationManager : ArtifactRegistrationManager
 {
+    private const string ArtifactDir = ".artifacts";
     private const string ArtifactFileName = "{0}.json";
 
     /// <summary>
@@ -24,19 +25,23 @@ public class DiskArtifactRegistrationManager : ArtifactRegistrationManager
     }
 
     /// <inheritdoc/>
-    public override async ValueTask<ArtifactInfo?> TryGetArtifactAsync(string id)
+    public override async ValueTask<ArtifactInfo?> TryGetArtifactAsync(string toolId, string group, string id)
     {
-        string path = GetArtifactInfoFilePath(id);
+        string dir = GetArtifactInfoDir(toolId, group);
+        string path = GetArtifactInfoFilePath(dir, id);
         return File.Exists(path) ? await ArtExtensions.LoadFromFileAsync<ArtifactInfo>(path).ConfigureAwait(false) : null;
     }
 
     /// <inheritdoc/>
     public override async ValueTask AddArtifactAsync(ArtifactInfo artifactInfo)
     {
-        if (!Directory.Exists(BaseDirectory)) Directory.CreateDirectory(BaseDirectory);
-        string path = GetArtifactInfoFilePath(artifactInfo.Id);
+        string dir = GetArtifactInfoDir(artifactInfo.Tool, artifactInfo.Group);
+        if (!Directory.Exists(dir)) Directory.CreateDirectory(dir);
+        string path = GetArtifactInfoFilePath(dir, artifactInfo.Id);
         await artifactInfo.WriteToFileAsync(path).ConfigureAwait(false);
     }
 
-    private string GetArtifactInfoFilePath(string id) => Path.Combine(BaseDirectory, string.Format(CultureInfo.InvariantCulture, ArtifactFileName, id));
+    private string GetArtifactInfoDir(string toolId, string group) => Path.Combine(DiskPaths.GetBasePath(BaseDirectory, toolId, group), ArtifactDir);
+
+    private static string GetArtifactInfoFilePath(string dir, string id) => Path.Combine(dir, string.Format(CultureInfo.InvariantCulture, ArtifactFileName, id));
 }

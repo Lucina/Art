@@ -15,9 +15,11 @@ public abstract class ArtifactRegistrationManager
     /// <summary>
     /// Attempts to get info for the artifact with the specified ID.
     /// </summary>
+    /// <param name="toolId">Tool id.</param>
+    /// <param name="group">Group.</param>
     /// <param name="id">Artifact ID.</param>
     /// <returns>Task returning retrieved artifact, if it exists.</returns>
-    public abstract ValueTask<ArtifactInfo?> TryGetArtifactAsync(string id);
+    public abstract ValueTask<ArtifactInfo?> TryGetArtifactAsync(string toolId, string group, string id);
 
     /// <summary>
     /// Tests if artifact is recognizably new.
@@ -26,7 +28,7 @@ public abstract class ArtifactRegistrationManager
     /// <returns>True if this is a new artifact (newer than whatever exists with the same ID).</returns>
     public virtual async ValueTask<bool> IsNewArtifactAsync(ArtifactInfo artifactInfo)
     {
-        return (await TryGetArtifactAsync(artifactInfo.Id).ConfigureAwait(false)) is not { } oldArtifact
+        return (await TryGetArtifactAsync(artifactInfo.Tool, artifactInfo.Group, artifactInfo.Id).ConfigureAwait(false)) is not { } oldArtifact
             || oldArtifact.UpdateDate == null
             || artifactInfo.UpdateDate != null && oldArtifact.UpdateDate.Value < artifactInfo.UpdateDate.Value;
     }
