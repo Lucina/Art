@@ -47,17 +47,24 @@ public abstract class HtmlArtifactTool : HttpArtifactTool
     /// <summary>
     /// Creates a new instance of <see cref="HtmlArtifactTool"/>.
     /// </summary>
-    /// <param name="registrationManager">Registration manager to use for this instance.</param>
-    /// <param name="dataManager">Data manager to use for this instance.</param>
-    /// <param name="artifactToolProfile">Origin tool profile.</param>
+    protected HtmlArtifactTool()
+    {
+        // try and share cookies with extant http client
+        IConfiguration configuration = Configuration.Default.WithOnly<ICookieProvider>(new OpenMemoryCookieProvider(HttpClientHandler.CookieContainer));
+        _browser = BrowsingContext.New(configuration);
+    }
+
+    /// <summary>
+    /// Creates a new instance of <see cref="HtmlArtifactTool"/>.
+    /// </summary>
     /// <param name="httpClientInstance">Optional existing http client instance to use.</param>
     /// <param name="configuration">Optional browsing context configuration.</param>
     /// <remarks>
     /// No configuration will be performed on the <see cref="System.Net.Http.HttpClient"/> if provided. However, derived constructors can access the <see cref="HttpClient"/> member for configuration.
     /// </remarks>
 
-    protected HtmlArtifactTool(ArtifactRegistrationManager registrationManager, ArtifactDataManager dataManager, ArtifactToolProfile artifactToolProfile, HttpClientInstance? httpClientInstance = null, IConfiguration? configuration = null)
-        : base(registrationManager, dataManager, artifactToolProfile, httpClientInstance)
+    protected HtmlArtifactTool(IConfiguration? configuration = null, HttpClientInstance? httpClientInstance = null)
+        : base(httpClientInstance)
     {
         // try and share cookies with extant http client
         configuration = configuration?.WithOnly<ICookieProvider>(new OpenMemoryCookieProvider(HttpClientHandler.CookieContainer));

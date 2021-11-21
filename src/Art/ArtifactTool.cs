@@ -6,7 +6,7 @@ namespace Art;
 /// <summary>
 /// Represents an instance of an artifact tool.
 /// </summary>
-public abstract class ArtifactTool : IDisposable, IAsyncFinder<ArtifactData?>
+public abstract partial class ArtifactTool : IDisposable, IAsyncFinder<ArtifactData?>
 {
     #region Fields
 
@@ -33,7 +33,7 @@ public abstract class ArtifactTool : IDisposable, IAsyncFinder<ArtifactData?>
     /// <summary>
     /// Origin tool profile.
     /// </summary>
-    protected ArtifactToolProfile Profile { get; }
+    protected ArtifactToolProfile Profile { get; private set; }
 
     /// <summary>
     /// True if this tool is in debug mode.
@@ -45,21 +45,6 @@ public abstract class ArtifactTool : IDisposable, IAsyncFinder<ArtifactData?>
     /// </summary>
     protected bool Force { get; set; }
 
-    /// <summary>
-    /// True if this instance can find artifacts.
-    /// </summary>
-    public virtual bool CanFind => false;
-
-    /// <summary>
-    /// True if this instance can dump artifacts.
-    /// </summary>
-    public virtual bool CanDump => CanList;
-
-    /// <summary>
-    /// True if this instance can list artifacts.
-    /// </summary>
-    public virtual bool CanList => false;
-
     #endregion
 
     #region Private fields
@@ -67,14 +52,16 @@ public abstract class ArtifactTool : IDisposable, IAsyncFinder<ArtifactData?>
     /// <summary>
     /// Registration manager used by this instance.
     /// </summary>
-    private ArtifactRegistrationManager RegistrationManager;
+    private ArtifactRegistrationManager _registrationManager;
 
     /// <summary>
     /// Data manager used by this instance.
     /// </summary>
-    private ArtifactDataManager DataManager;
+    private ArtifactDataManager _dataManager;
 
     private JsonSerializerOptions _jsonOptions = new();
+
+    private bool _configured;
 
     private bool _disposed;
 
@@ -89,183 +76,35 @@ public abstract class ArtifactTool : IDisposable, IAsyncFinder<ArtifactData?>
     /// <summary>
     /// Creates a new instance of <see cref="ArtifactTool"/>.
     /// </summary>
-    /// <param name="registrationManager">Registration manager to use for this instance.</param>
-    /// <param name="dataManager">Data manager to use for this instance.</param>
-    /// <param name="artifactToolProfile">Origin tool profile.</param>
-    protected ArtifactTool(ArtifactRegistrationManager registrationManager, ArtifactDataManager dataManager, ArtifactToolProfile artifactToolProfile)
+    protected ArtifactTool()
     {
-        RegistrationManager = registrationManager;
-        DataManager = dataManager;
-        Profile = artifactToolProfile;
+        _registrationManager = null!;
+        _dataManager = null!;
+        Profile = null!;
         DebugMode = GetFlagTrue(OptDebugMode);
         Force = GetFlagTrue(OptForce);
     }
 
     #endregion
 
-    #region API
+    #region Setup
 
     /// <summary>
-    /// Finds an artifact with the specified id.
+    /// Initializes this tool with the specified runtime configuration.
     /// </summary>
-    /// <param name="id">Artifact id.</param>
-    /// <returns>Task returning found artifact or null.</returns>
-    public ValueTask<ArtifactData?> FindAsync(string id)
+    /// <param name="runtimeConfig">Runtime configuration.</param>
+    public virtual Task ConfigureAsync(ArtifactToolRuntimeConfig runtimeConfig)
     {
-        NotDisposed();
-        return DoFindAsync(id);
-    }
-
-    /// <summary>
-    /// Dumps artifacts.
-    /// </summary>
-    /// <returns>Task.</returns>
-    public async ValueTask DumpAsync()
-    {
-        NotDisposed();
-        await DoDumpAsync().ConfigureAwait(false);
-        if (_runOverridden) return;
-        await foreach (ArtifactData data in DoListAsync().ConfigureAwait(false))
-        {
-            if (!(await IsNewArtifactAsync(data.Info).ConfigureAwait(false))) continue;
-            foreach (ArtifactResourceInfo resource in data.Values)
-            {
-                if (!resource.Exportable) continue;
-                await using Stream stream = await CreateOutputStreamAsync(resource.File, data.Info, resource.Path, resource.InArtifactFolder).ConfigureAwait(false);
-                await resource.ExportAsync(stream).ConfigureAwait(false);
-            }
-            await AddArtifactAsync(data.Info).ConfigureAwait(false);
-        }
-    }
-
-    /// <summary>
-    /// Lists artifacts.
-    /// </summary>
-    /// <returns>Async-enumerable artifacts.</returns>
-    public async IAsyncEnumerable<ArtifactData> ListAsync()
-    {
-        NotDisposed();
-        await foreach (ArtifactData res in DoListAsync().ConfigureAwait(false))
-            yield return res;
-        if (_runDataOverridden) yield break;
-        ArtifactDataManager previous = DataManager;
-        try
-        {
-            InMemoryArtifactDataManager im = new();
-            await DoDumpAsync().ConfigureAwait(false);
-            foreach ((ArtifactInfo info, List<ArtifactResourceInfo> resources) in im.Artifacts)
-            {
-                ArtifactData data = new(info);
-                data.AddRange(resources);
-                yield return data;
-            }
-        }
-        finally
-        {
-            DataManager = previous;
-        }
-    }
-
-    private class InMemoryArtifactDataManager : ArtifactDataManager
-    {
-        public IReadOnlyDictionary<ArtifactInfo, List<ArtifactResourceInfo>> Artifacts => _artifacts;
-
-        private readonly Dictionary<ArtifactInfo, List<ArtifactResourceInfo>> _artifacts = new();
-        public IReadOnlyDictionary<DataEntryKey, ResultStream> Entries => _entries;
-
-        private readonly Dictionary<DataEntryKey, ResultStream> _entries = new();
-
-        public override ValueTask<Stream> CreateOutputStreamAsync(string file, ArtifactInfo artifactInfo, string? path = null, bool inArtifactFolder = true)
-        {
-            DataEntryKey entry = new(file, artifactInfo, path, inArtifactFolder);
-            if (_entries.TryGetValue(entry, out ResultStream? stream))
-            {
-                stream.SetLength(0);
-                return new(stream);
-            }
-            stream = new ResultStream();
-            if (!_artifacts.TryGetValue(artifactInfo, out List<ArtifactResourceInfo>? list))
-                _artifacts.Add(artifactInfo, list = new List<ArtifactResourceInfo>());
-            list.Add(new ResultStreamArtifactResourceInfo(stream, artifactInfo.Id, file, path, inArtifactFolder, ArtifactResourceInfo.EmptyProperties));
-            _entries.Add(entry, stream);
-            return new(stream);
-        }
-    }
-
-    private record ResultStreamArtifactResourceInfo(Stream Resource, string ArtifactId, string File, string? Path, bool InArtifactFolder, IReadOnlyDictionary<string, JsonElement> Properties) : StreamArtifactResourceInfo(Resource, ArtifactId, File, Path, InArtifactFolder, Properties)
-    {
-        public override async ValueTask ExportAsync(Stream stream)
-        {
-            stream.Seek(0, SeekOrigin.Begin);
-            await base.ExportAsync(stream).ConfigureAwait(false);
-        }
-    }
-
-    private class ResultStream : Stream
-    {
-        public readonly MemoryStream BaseStream = new();
-
-        public override bool CanRead => true;
-
-        public override bool CanSeek => true;
-
-        public override bool CanWrite => true;
-
-        public override long Length => BaseStream.Length;
-
-        public override long Position { get => BaseStream.Position; set => BaseStream.Position = value; }
-
-        public override void Flush() => BaseStream.Flush();
-        public override int Read(byte[] buffer, int offset, int count) => BaseStream.Read(buffer, offset, count);
-        public override long Seek(long offset, SeekOrigin origin) => BaseStream.Seek(offset, origin);
-        public override void SetLength(long value) => BaseStream.SetLength(value);
-        public override void Write(byte[] buffer, int offset, int count) => BaseStream.Write(buffer, offset, count);
-    }
-
-    private record struct DataEntryKey(string File, ArtifactInfo ArtifactInfo, string? Path, bool InArtifactFolder);
-
-    /// <summary>
-    /// Finds an artifact with the specified id.
-    /// </summary>
-    /// <param name="id">Artifact id.</param>
-    /// <returns>Task returning found artifact or null.</returns>
-    protected virtual ValueTask<ArtifactData?> DoFindAsync(string id)
-    {
-        return ValueTask.FromResult<ArtifactData?>(null);
-    }
-
-    /// <summary>
-    /// Dumps artifacts.
-    /// </summary>
-    /// <returns>Task.</returns>
-    protected virtual ValueTask DoDumpAsync()
-    {
-        _runOverridden = false;
-        return ValueTask.CompletedTask;
-    }
-
-    /// <summary>
-    /// Lists artifacts.
-    /// </summary>
-    /// <returns>Async-enumerable artifacts.</returns>
-    protected virtual IAsyncEnumerable<ArtifactData> DoListAsync()
-    {
-        _runDataOverridden = false;
-        return EmptyAsyncEnumerable<ArtifactData>.Singleton;
-    }
-
-    private class EmptyAsyncEnumerable<T> : IAsyncEnumerable<T>
-    {
-        public static readonly EmptyAsyncEnumerable<T> Singleton = new();
-        public IAsyncEnumerator<T> GetAsyncEnumerator(CancellationToken cancellationToken = default) => EmptyAsyncEnumerator<T>.Singleton;
-    }
-
-    private class EmptyAsyncEnumerator<T> : IAsyncEnumerator<T>
-    {
-        public static readonly EmptyAsyncEnumerator<T> Singleton = new();
-        public T Current => default!;
-        public ValueTask DisposeAsync() => default;
-        public ValueTask<bool> MoveNextAsync() => new(false);
+        EnsureNotDisposed();
+        if (runtimeConfig == null) throw new ArgumentNullException(nameof(runtimeConfig));
+        if (runtimeConfig.RegistrationManager == null) throw new ArgumentException("Cannot configure with null registration manager");
+        if (runtimeConfig.DataManager == null) throw new ArgumentException("Cannot configure with null data manager");
+        if (runtimeConfig.Profile == null) throw new ArgumentException("Cannot configure with null profile");
+        _registrationManager = runtimeConfig.RegistrationManager;
+        _dataManager = runtimeConfig.DataManager;
+        Profile = runtimeConfig.Profile;
+        _configured = true;
+        return Task.CompletedTask;
     }
 
     #endregion
@@ -332,7 +171,7 @@ public abstract class ArtifactTool : IDisposable, IAsyncFinder<ArtifactData?>
     /// <param name="artifactInfo">Artifact to register.</param>
     /// <returns>Task.</returns>
     protected async ValueTask AddArtifactAsync(ArtifactInfo artifactInfo)
-        => await RegistrationManager.AddArtifactAsync(artifactInfo).ConfigureAwait(false);
+        => await _registrationManager.AddArtifactAsync(artifactInfo).ConfigureAwait(false);
 
     /// <summary>
     /// Attempts to get info for the artifact with the specified ID.
@@ -340,7 +179,7 @@ public abstract class ArtifactTool : IDisposable, IAsyncFinder<ArtifactData?>
     /// <param name="id">Artifact ID.</param>
     /// <returns>Task returning retrieved artifact, if it exists.</returns>
     protected async ValueTask<ArtifactInfo?> TryGetArtifactAsync(string id)
-        => await RegistrationManager.TryGetArtifactAsync(id).ConfigureAwait(false);
+        => await _registrationManager.TryGetArtifactAsync(id).ConfigureAwait(false);
 
     /// <summary>
     /// Tests if artifact is recognizably new.
@@ -348,7 +187,7 @@ public abstract class ArtifactTool : IDisposable, IAsyncFinder<ArtifactData?>
     /// <param name="artifactInfo">Artifact to check.</param>
     /// <returns>Task returning true if this is a new artifact (newer than whatever exists with the same ID).</returns>
     protected async ValueTask<bool> IsNewArtifactAsync(ArtifactInfo artifactInfo)
-        => await RegistrationManager.IsNewArtifactAsync(artifactInfo).ConfigureAwait(false) || Force; // Forward to RegistrationManager even if forcing
+        => await _registrationManager.IsNewArtifactAsync(artifactInfo).ConfigureAwait(false) || Force; // Forward to RegistrationManager even if forcing
 
     #endregion
 
@@ -364,7 +203,7 @@ public abstract class ArtifactTool : IDisposable, IAsyncFinder<ArtifactData?>
     /// <param name="inArtifactFolder">If false, place artifact under common root.</param>
     /// <returns>Task.</returns>
     protected async ValueTask OutputTextAsync(string text, string file, ArtifactInfo artifactInfo, string? path = null, bool inArtifactFolder = true)
-    => await DataManager.OutputTextAsync(text, file, artifactInfo, path, inArtifactFolder).ConfigureAwait(false);
+    => await _dataManager.OutputTextAsync(text, file, artifactInfo, path, inArtifactFolder).ConfigureAwait(false);
 
     /// <summary>
     /// Outputs a JSON-serialized file for the specified artifact.
@@ -376,7 +215,7 @@ public abstract class ArtifactTool : IDisposable, IAsyncFinder<ArtifactData?>
     /// <param name="inArtifactFolder">If false, place artifact under common root.</param>
     /// <returns>Task.</returns>
     protected async ValueTask OutputJsonAsync<T>(T data, string file, ArtifactInfo artifactInfo, string? path = null, bool inArtifactFolder = true)
-        => await DataManager.OutputJsonAsync<T>(data, JsonOptions, file, artifactInfo, path, inArtifactFolder).ConfigureAwait(false);
+        => await _dataManager.OutputJsonAsync<T>(data, JsonOptions, file, artifactInfo, path, inArtifactFolder).ConfigureAwait(false);
 
     /// <summary>
     /// Outputs a JSON-serialized file for the specified artifact.
@@ -389,7 +228,7 @@ public abstract class ArtifactTool : IDisposable, IAsyncFinder<ArtifactData?>
     /// <param name="inArtifactFolder">If false, place artifact under common root.</param>
     /// <returns>Task.</returns>
     protected async ValueTask OutputJsonAsync<T>(T data, JsonSerializerOptions jsonSerializerOptions, string file, ArtifactInfo artifactInfo, string? path = null, bool inArtifactFolder = true)
-        => await DataManager.OutputJsonAsync<T>(data, jsonSerializerOptions, file, artifactInfo, path, inArtifactFolder).ConfigureAwait(false);
+        => await _dataManager.OutputJsonAsync<T>(data, jsonSerializerOptions, file, artifactInfo, path, inArtifactFolder).ConfigureAwait(false);
 
     /// <summary>
     /// Creates an output stream for a file for the specified artifact.
@@ -400,7 +239,7 @@ public abstract class ArtifactTool : IDisposable, IAsyncFinder<ArtifactData?>
     /// <param name="inArtifactFolder">If false, place artifact under common root.</param>
     /// <returns>Task returning a writeable stream to write an output to.</returns>
     protected ValueTask<Stream> CreateOutputStreamAsync(string file, ArtifactInfo artifactInfo, string? path = null, bool inArtifactFolder = true)
-        => DataManager.CreateOutputStreamAsync(file, artifactInfo, path, inArtifactFolder);
+        => _dataManager.CreateOutputStreamAsync(file, artifactInfo, path, inArtifactFolder);
 
     #endregion
 
@@ -508,9 +347,15 @@ public abstract class ArtifactTool : IDisposable, IAsyncFinder<ArtifactData?>
         GC.SuppressFinalize(this);
     }
 
-    private void NotDisposed()
+    private void EnsureState()
     {
+        EnsureNotDisposed();
         if (_disposed) throw new ObjectDisposedException(nameof(ArtifactTool));
+    }
+
+    private void EnsureNotDisposed()
+    {
+        if (!_configured) throw new InvalidOperationException("Tool has not been initialized");
     }
 
     #endregion

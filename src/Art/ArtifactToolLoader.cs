@@ -1,0 +1,53 @@
+﻿using System.Diagnostics.CodeAnalysis;
+using System.Reflection;
+using System.Text.RegularExpressions;
+
+namespace Art;
+
+/// <summary>
+/// Provides loading facility for artifact tools via reflection.
+/// </summary>
+public static class ArtifactToolLoader
+{
+    /// <summary>
+    /// Attempts to load artifact tool from a profile.
+    /// </summary>
+    /// <param name="artifactToolProfile">Artifact tool profile.</param>
+    /// <param name="tool">Tool.</param>
+    /// <returns>True if successfully located and created a tool.</returns>
+    public static bool TryLoad(ArtifactToolProfile artifactToolProfile, [NotNullWhen(true)] out ArtifactTool? tool) => TryLoad(artifactToolProfile.Tool, out tool);
+
+    /// <summary>
+    /// Attempts to load artifact tool from an assembly name and tool type name.
+    /// </summary>
+    /// <param name="assemblyName">Artifact tool assembly name.</param>
+    /// <param name="toolTypeName">Artifact tool type name.</param>
+    /// <param name="tool">Tool.</param>
+    /// <returns>True if successfully located and created a tool.</returns>
+    public static bool TryLoad(string assemblyName, string toolTypeName, [NotNullWhen(true)] out ArtifactTool? tool)
+    {
+        Assembly? assembly = Assembly.Load(assemblyName);
+        if (assembly == null) goto fail;
+        Type? type = assembly.GetType(toolTypeName);
+        object? obj = type == null ? null : Activator.CreateInstance(type);
+        tool = obj is ArtifactTool at ? at : null;
+        return tool != null;
+    fail:
+        tool = null;
+        return false;
+    }
+
+    private static readonly Regex s_toolRegex = new(@"^([\S\s]+)::([\S\s]+)$");
+    /// <summary>
+    /// Attempts to load artifact tool from an artifact tool target string (assembly::toolType).
+    /// </summary>
+    /// <param name="toolId">Artifact tool target string (assembly::toolType).</param>
+    /// <param name="tool">Tool.</param>
+    /// <returns>True if successfully located and created a tool.</returns>
+    public static bool TryLoad(string toolId, [NotNullWhen(true)] out ArtifactTool? tool)
+    {
+        if (s_toolRegex.Match(toolId) is not { Success: true } match)
+            throw new ArgumentException("Tool string is in invalid format, must be \"<assembly>::<toolType>\"", nameof(toolId));
+        return TryLoad(match.Groups[1].Value, match.Groups[2].Value, out tool);
+    }
+}

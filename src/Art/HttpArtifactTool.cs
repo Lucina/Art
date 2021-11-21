@@ -66,15 +66,22 @@ public abstract partial class HttpArtifactTool : ArtifactTool
     /// <summary>
     /// Creates a new instance of <see cref="HttpArtifactTool"/>.
     /// </summary>
-    /// <param name="registrationManager">Registration manager to use for this instance.</param>
-    /// <param name="dataManager">Data manager to use for this instance.</param>
-    /// <param name="artifactToolProfile">Origin tool profile.</param>
+    protected HttpArtifactTool()
+    {
+        CookieContainer cookies = new();
+        ConfigureCookieContainer(cookies);
+        _httpClientHandler = CreateHttpClientHandler(cookies);
+        _httpClient = CreateHttpClient(_httpClientHandler);
+    }
+
+    /// <summary>
+    /// Creates a new instance of <see cref="HttpArtifactTool"/>.
+    /// </summary>
     /// <param name="httpClientInstance">Optional existing http client instance to use.</param>
     /// <remarks>
     /// No configuration will be performed on the <see cref="System.Net.Http.HttpClient"/> if provided. However, derived constructors can access the <see cref="HttpClient"/> member for configuration.
     /// </remarks>
-    protected HttpArtifactTool(ArtifactRegistrationManager registrationManager, ArtifactDataManager dataManager, ArtifactToolProfile artifactToolProfile, HttpClientInstance? httpClientInstance = null)
-        : base(registrationManager, dataManager, artifactToolProfile)
+    protected HttpArtifactTool(HttpClientInstance? httpClientInstance)
     {
         if (httpClientInstance != null)
         {

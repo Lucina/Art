@@ -13,7 +13,7 @@ public static class ArtifactDumping
     /// <param name="toolProfilePath">Path to tool profile.</param>
     /// <param name="targetDirectory">Base directory.</param>
     /// <returns>Task.</returns>
-    /// <exception cref="ArtifactToolFactoryNotFoundException"></exception>
+    /// <exception cref="ArtifactToolNotFoundException"></exception>
     public static async ValueTask DumpAsync(string toolProfilePath, string targetDirectory)
     {
         JsonElement element = ArtExtensions.LoadFromFile<JsonElement>(toolProfilePath);
@@ -27,19 +27,15 @@ public static class ArtifactDumping
     private static async ValueTask DumpAsync(ArtifactToolProfile artifactToolProfile, string targetDirectory)
     {
         if (artifactToolProfile.TargetFolder == null) throw new IOException("Target folder not specified in profile");
-        if (!s_tools.TryGetValue(artifactToolProfile.Tool, out ArtifactToolFactory? fac))
-        {
-            if (!ArtifactToolFactoryLoader.TryLoad(artifactToolProfile, out fac))
-                throw new ArtifactToolFactoryNotFoundException(artifactToolProfile.Tool);
-            s_tools.Add(artifactToolProfile.Tool, fac);
-        }
+        if (!ArtifactToolLoader.TryLoad(artifactToolProfile, out ArtifactTool? t))
+            throw new ArtifactToolNotFoundException(artifactToolProfile.Tool);
         string targetDir = Path.Combine(targetDirectory, artifactToolProfile.TargetFolder);
         var srm = new DiskArtifactRegistrationManager(targetDir);
         var sdm = new DiskArtifactDataManager(targetDir);
-        using ArtifactTool? tool = await fac.CreateAsync(srm, sdm, artifactToolProfile);
+        ArtifactToolRuntimeConfig config = new(srm, sdm, artifactToolProfile);
+        using ArtifactTool? tool = t;
+        await tool.ConfigureAsync(config).ConfigureAwait(false);
         tool.LogHandler = ConsoleLogHandler.Default;
         await tool.DumpAsync();
     }
-
-    private static readonly Dictionary<string, ArtifactToolFactory> s_tools = new();
 }
