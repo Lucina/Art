@@ -26,7 +26,7 @@
                 Console.WriteLine(title);
             }
             if (body != null)
-                Console.WriteLine(level);
+                Console.WriteLine(body);
         }
     }
 }
