@@ -7,6 +7,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Art", "Art\Art.csproj", "{5
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Art.Html", "Art.Html\Art.Html.csproj", "{6502CA9A-36FC-4497-9913-018094BEFA10}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Art.Xs", "Art.Xs\Art.Xs.csproj", "{49A54D37-1CED-4FC9-A464-EB02910DEE12}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -24,5 +26,9 @@ Global
 		{6502CA9A-36FC-4497-9913-018094BEFA10}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{6502CA9A-36FC-4497-9913-018094BEFA10}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{6502CA9A-36FC-4497-9913-018094BEFA10}.Release|Any CPU.Build.0 = Release|Any CPU
+		{49A54D37-1CED-4FC9-A464-EB02910DEE12}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{49A54D37-1CED-4FC9-A464-EB02910DEE12}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{49A54D37-1CED-4FC9-A464-EB02910DEE12}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{49A54D37-1CED-4FC9-A464-EB02910DEE12}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal

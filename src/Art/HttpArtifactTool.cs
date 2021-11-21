@@ -7,7 +7,7 @@ namespace Art;
 /// <summary>
 /// Represents an instance of an artifact tool that depends on an <see cref="System.Net.Http.HttpClient"/>.
 /// </summary>
-public abstract partial class HttpArtifactTool : ArtifactTool
+public abstract class HttpArtifactTool : ArtifactTool
 {
     #region Fields
     /// <summary>
@@ -49,6 +49,11 @@ public abstract partial class HttpArtifactTool : ArtifactTool
         }
     }
 
+    /// <summary>
+    /// Dummy default user agent string.
+    /// </summary>
+    protected const string DefaultUserAgent = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/90.0.4430.85 Safari/537.36 Edg/90.0.818.46";
+
     #endregion
 
     #region Private fields
@@ -72,6 +77,7 @@ public abstract partial class HttpArtifactTool : ArtifactTool
         ConfigureCookieContainer(cookies);
         _httpClientHandler = CreateHttpClientHandler(cookies);
         _httpClient = CreateHttpClient(_httpClientHandler);
+        _httpClient.DefaultRequestHeaders.UserAgent.ParseAdd(DefaultUserAgent);
     }
 
     /// <summary>
@@ -94,6 +100,7 @@ public abstract partial class HttpArtifactTool : ArtifactTool
             ConfigureCookieContainer(cookies);
             _httpClientHandler = CreateHttpClientHandler(cookies);
             _httpClient = CreateHttpClient(_httpClientHandler);
+            _httpClient.DefaultRequestHeaders.UserAgent.TryParseAdd(DefaultUserAgent);
         }
     }
 
@@ -141,50 +148,86 @@ public abstract partial class HttpArtifactTool : ArtifactTool
     /// Sends an HTTP HEAD request.
     /// </summary>
     /// <param name="requestUri">Request.</param>
-    /// <returns>Task returning reponse.</returns>
-    protected async ValueTask<HttpResponseMessage> HeadAsync(string requestUri)
+    /// <param name="origin">Request origin.</param>
+    /// <param name="referrer">Request referrer.</param>
+    /// <returns>Task returning reponse (status left unchecked).</returns>
+    protected async ValueTask<HttpResponseMessage> HeadAsync(string requestUri, string? origin = null, string? referrer = null)
     {
-        return await HttpClient.SendAsync(new HttpRequestMessage(HttpMethod.Head, requestUri)).ConfigureAwait(false);
+        NotDisposed();
+        HttpRequestMessage req = new(HttpMethod.Head, requestUri);
+        SetOriginAndReferrer(req, origin, referrer);
+        ConfigureHttpRequest(req);
+        return await HttpClient.SendAsync(req).ConfigureAwait(false);
     }
 
     /// <summary>
     /// Sends an HTTP HEAD request.
     /// </summary>
     /// <param name="requestUri">Request.</param>
-    /// <returns>Task returning reponse.</returns>
-    protected async ValueTask<HttpResponseMessage> HeadAsync(Uri requestUri)
+    /// <param name="origin">Request origin.</param>
+    /// <param name="referrer">Request referrer.</param>
+    /// <returns>Task returning reponse (status left unchecked).</returns>
+    protected async ValueTask<HttpResponseMessage> HeadAsync(Uri requestUri, string? origin = null, string? referrer = null)
     {
-        return await HttpClient.SendAsync(new HttpRequestMessage(HttpMethod.Head, requestUri)).ConfigureAwait(false);
+        NotDisposed();
+        HttpRequestMessage req = new(HttpMethod.Head, requestUri);
+        SetOriginAndReferrer(req, origin, referrer);
+        ConfigureHttpRequest(req);
+        return await HttpClient.SendAsync(req).ConfigureAwait(false);
     }
 
     /// <summary>
     /// Sends an HTTP GET request.
     /// </summary>
     /// <param name="requestUri">Request.</param>
-    /// <returns>Task returning reponse.</returns>
-    protected async ValueTask<HttpResponseMessage> GetAsync(string requestUri)
+    /// <param name="origin">Request origin.</param>
+    /// <param name="referrer">Request referrer.</param>
+    /// <returns>Task returning reponse (status left unchecked).</returns>
+    protected async ValueTask<HttpResponseMessage> GetAsync(string requestUri, string? origin = null, string? referrer = null)
     {
-        return await HttpClient.GetAsync(requestUri).ConfigureAwait(false);
+        NotDisposed();
+        HttpRequestMessage req = new(HttpMethod.Get, requestUri);
+        SetOriginAndReferrer(req, origin, referrer);
+        ConfigureHttpRequest(req);
+        return await HttpClient.SendAsync(req).ConfigureAwait(false);
     }
 
     /// <summary>
     /// Sends an HTTP GET request.
     /// </summary>
     /// <param name="requestUri">Request.</param>
-    /// <returns>Task returning reponse.</returns>
-    protected async ValueTask<HttpResponseMessage> GetAsync(Uri requestUri)
+    /// <param name="origin">Request origin.</param>
+    /// <param name="referrer">Request referrer.</param>
+    /// <returns>Task returning reponse (status left unchecked).</returns>
+    protected async ValueTask<HttpResponseMessage> GetAsync(Uri requestUri, string? origin = null, string? referrer = null)
     {
-        return await HttpClient.GetAsync(requestUri).ConfigureAwait(false);
+        NotDisposed();
+        HttpRequestMessage req = new(HttpMethod.Get, requestUri);
+        SetOriginAndReferrer(req, origin, referrer);
+        ConfigureHttpRequest(req);
+        return await HttpClient.SendAsync(req).ConfigureAwait(false);
     }
 
     /// <summary>
     /// Sends an HTTP request.
     /// </summary>
     /// <param name="requestMessage">Request.</param>
-    /// <returns>Task returning reponse.</returns>
+    /// <returns>Task returning reponse (status left unchecked).</returns>
     protected async ValueTask<HttpResponseMessage> SendAsync(HttpRequestMessage requestMessage)
     {
+        NotDisposed();
         return await HttpClient.SendAsync(requestMessage).ConfigureAwait(false);
+    }
+
+    /// <summary>
+    /// Configures an HTTP request.
+    /// </summary>
+    /// <param name="request">Request to configure.</param>
+    protected virtual void ConfigureHttpRequest(HttpRequestMessage request)
+    {
+        request.Headers.AcceptEncoding.Add(new StringWithQualityHeaderValue("gzip"));
+        request.Headers.AcceptEncoding.Add(new StringWithQualityHeaderValue("deflate"));
+        request.Headers.AcceptEncoding.Add(new StringWithQualityHeaderValue("br"));
     }
 
     #endregion
@@ -359,14 +402,12 @@ public abstract partial class HttpArtifactTool : ArtifactTool
     /// <param name="request">Request to configure.</param>
     protected virtual void ConfigureJsonRequest(HttpRequestMessage request)
     {
+        ConfigureHttpRequest(request);
         request.Headers.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
         request.Headers.Accept.Add(new MediaTypeWithQualityHeaderValue("text/plain"));
         request.Headers.Accept.Add(new MediaTypeWithQualityHeaderValue("*/*"));
         request.Headers.AcceptLanguage.Add(new StringWithQualityHeaderValue("en-US"));
         request.Headers.AcceptLanguage.Add(new StringWithQualityHeaderValue("en", 0.9));
-        request.Headers.AcceptEncoding.Add(new StringWithQualityHeaderValue("gzip"));
-        request.Headers.AcceptEncoding.Add(new StringWithQualityHeaderValue("deflate"));
-        request.Headers.AcceptEncoding.Add(new StringWithQualityHeaderValue("br"));
     }
 
     #endregion
