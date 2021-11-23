@@ -124,7 +124,7 @@ public static class ArtExtensions
     {
         Dictionary<string, ArtifactData> res = new();
         await foreach (ArtifactData artifactData in artifactTool.ListAsync().ConfigureAwait(false))
-            res[artifactData.Info.Id] = artifactData;
+            res[artifactData.Info.Key.Id] = artifactData;
         return res;
     }
 }

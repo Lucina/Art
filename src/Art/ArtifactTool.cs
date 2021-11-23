@@ -28,7 +28,7 @@ public abstract partial class ArtifactTool : IDisposable, IAsyncFinder<ArtifactD
     /// <summary>
     /// JSON serialization defaults.
     /// </summary>
-    protected JsonSerializerOptions JsonOptions { get => _jsonOptions ??= new JsonSerializerOptions(); set => _jsonOptions = value; }
+    protected internal JsonSerializerOptions JsonOptions { get => _jsonOptions ??= new JsonSerializerOptions(); set => _jsonOptions = value; }
 
     /// <summary>
     /// Origin tool profile.
@@ -185,12 +185,20 @@ public abstract partial class ArtifactTool : IDisposable, IAsyncFinder<ArtifactD
         => await _registrationManager.AddArtifactAsync(artifactInfo).ConfigureAwait(false);
 
     /// <summary>
+    /// Registers artifact resource as known.
+    /// </summary>
+    /// <param name="artifactResourceInfo">Artifact resource to register.</param>
+    /// <returns>Task.</returns>
+    protected async ValueTask AddResourceAsync(ArtifactResourceInfo artifactResourceInfo)
+        => await _registrationManager.AddResourceAsync(artifactResourceInfo).ConfigureAwait(false);
+
+    /// <summary>
     /// Attempts to get info for the artifact with the specified ID.
     /// </summary>
     /// <param name="id">Artifact ID.</param>
     /// <returns>Task returning retrieved artifact, if it exists.</returns>
     protected async ValueTask<ArtifactInfo?> TryGetArtifactAsync(string id)
-        => await _registrationManager.TryGetArtifactAsync(Profile.Tool, Profile.Group, id).ConfigureAwait(false);
+        => await _registrationManager.TryGetArtifactAsync(new ArtifactKey(Profile.Tool, Profile.Group, id)).ConfigureAwait(false);
 
     /// <summary>
     /// Tests if artifact is recognizably new.

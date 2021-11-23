@@ -63,13 +63,13 @@ public partial class ArtifactTool
             stream = new ResultStream();
             if (!_artifacts.TryGetValue(artifactInfo, out List<ArtifactResourceInfo>? list))
                 _artifacts.Add(artifactInfo, list = new List<ArtifactResourceInfo>());
-            list.Add(new ResultStreamArtifactResourceInfo(stream, artifactInfo.Id, file, path, inArtifactFolder, ArtifactResourceInfo.EmptyProperties));
+            list.Add(new ResultStreamArtifactResourceInfo(stream, artifactInfo.Key, file, path, inArtifactFolder, ArtifactResourceInfo.EmptyProperties));
             _entries.Add(entry, stream);
             return new(stream);
         }
     }
 
-    private record ResultStreamArtifactResourceInfo(Stream Resource, string ArtifactId, string File, string? Path, bool InArtifactFolder, IReadOnlyDictionary<string, JsonElement> Properties) : StreamArtifactResourceInfo(Resource, ArtifactId, File, Path, InArtifactFolder, Properties)
+    private record ResultStreamArtifactResourceInfo(Stream Resource, ArtifactKey Key, string File, string? Path, bool InArtifactFolder, IReadOnlyDictionary<string, JsonElement> Properties) : StreamArtifactResourceInfo(Resource, Key, File, Path, InArtifactFolder, Properties)
     {
         public override async ValueTask ExportAsync(Stream stream)
         {

@@ -22,9 +22,7 @@ public class DiskArtifactDataManager : ArtifactDataManager
     /// <inheritdoc/>
     public override ValueTask<Stream> CreateOutputStreamAsync(string file, ArtifactInfo artifactInfo, string? path = null, bool inArtifactFolder = true)
     {
-        string dir = DiskPaths.GetBasePath(BaseDirectory, artifactInfo.Tool, artifactInfo.Group);
-        dir = inArtifactFolder ? Path.Combine(dir, artifactInfo.Id) : dir;
-        if (!string.IsNullOrEmpty(path)) dir = Path.Combine(dir, path);
+        string dir = DiskPaths.GetResourceDir(DiskPaths.GetBasePath(BaseDirectory, artifactInfo.Key.Tool, artifactInfo.Key.Group), artifactInfo.Key.Id, path, inArtifactFolder);
         if (!Directory.Exists(dir)) Directory.CreateDirectory(dir);
         return new ValueTask<Stream>(File.Create(Path.Combine(dir, file)));
     }

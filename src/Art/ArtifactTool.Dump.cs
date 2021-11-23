@@ -33,6 +33,7 @@ public partial class ArtifactTool
                 if (!resource.Exportable) continue;
                 await using Stream stream = await CreateOutputStreamAsync(resource.File, data.Info, resource.Path, resource.InArtifactFolder).ConfigureAwait(false);
                 await resource.ExportAsync(stream).ConfigureAwait(false);
+                await AddResourceAsync(resource).ConfigureAwait(false);
             }
             await AddArtifactAsync(data.Info).ConfigureAwait(false);
         }
