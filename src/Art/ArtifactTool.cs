@@ -172,8 +172,9 @@ public abstract partial class ArtifactTool : IDisposable, IAsyncFinder<ArtifactD
     /// <param name="date">Artifact creation date.</param>
     /// <param name="updateDate">Artifact update date.</param>
     /// <param name="properties">Artifact properties.</param>
-    public ArtifactData CreateData(string id, DateTimeOffset? date = null, DateTimeOffset? updateDate = null, IReadOnlyDictionary<string, JsonElement>? properties = null)
-        => new(Profile.Tool, Profile.Group, id, date, updateDate, properties);
+    /// <param name="full">True if this is a full artifact.</param>
+    public ArtifactData CreateData(string id, DateTimeOffset? date = null, DateTimeOffset? updateDate = null, IReadOnlyDictionary<string, JsonElement>? properties = null, bool full = true)
+        => new(this, Profile.Tool, Profile.Group, id, date, updateDate, properties, full);
 
     /// <summary>
     /// Registers artifact as known.

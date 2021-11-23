@@ -17,15 +17,17 @@ public partial class ArtifactTool
     /// <summary>
     /// Dumps artifacts.
     /// </summary>
+    /// <param name="includeNonFull">Overwrite full entries with non-full if newer.</param>
     /// <returns>Task.</returns>
-    public async ValueTask DumpAsync()
+    public async ValueTask DumpAsync(bool includeNonFull = false)
     {
         EnsureState();
-        await DoDumpAsync().ConfigureAwait(false);
+        await DoDumpAsync(includeNonFull).ConfigureAwait(false);
         if (_runOverridden) return;
         await foreach (ArtifactData data in DoListAsync().ConfigureAwait(false))
         {
-            if (!(await IsNewArtifactAsync(data.Info).ConfigureAwait(false))) continue;
+            if (!await IsNewArtifactAsync(data.Info).ConfigureAwait(false)) continue;
+            if (!data.Info.Full && !includeNonFull) continue;
             foreach (ArtifactResourceInfo resource in data.Values)
             {
                 if (!resource.Exportable) continue;
@@ -39,8 +41,9 @@ public partial class ArtifactTool
     /// <summary>
     /// Dumps artifacts.
     /// </summary>
+    /// <param name="includeNonFull">Overwrite full entries with non-full if newer.</param>
     /// <returns>Task.</returns>
-    protected virtual ValueTask DoDumpAsync()
+    protected virtual ValueTask DoDumpAsync(bool includeNonFull = false)
     {
         _runOverridden = false;
         return ValueTask.CompletedTask;

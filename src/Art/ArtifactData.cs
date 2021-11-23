@@ -14,6 +14,8 @@ public class ArtifactData : IReadOnlyDictionary<RK, ArtifactResourceInfo>
     /// </summary>
     public readonly ArtifactInfo Info;
 
+    private readonly ArtifactTool? _tool;
+
     /// <summary>
     /// Resources for this artifact.
     /// </summary>
@@ -40,9 +42,27 @@ public class ArtifactData : IReadOnlyDictionary<RK, ArtifactResourceInfo>
     /// <param name="date">Artifact creation date.</param>
     /// <param name="updateDate">Artifact update date.</param>
     /// <param name="properties">Artifact properties.</param>
-    public ArtifactData(string tool, string group, string id, DateTimeOffset? date = null, DateTimeOffset? updateDate = null, IReadOnlyDictionary<string, JsonElement>? properties = null)
+    /// <param name="full">True if this is a full artifact.</param>
+    public ArtifactData(string tool, string group, string id, DateTimeOffset? date = null, DateTimeOffset? updateDate = null, IReadOnlyDictionary<string, JsonElement>? properties = null, bool full = true)
     {
-        Info = new ArtifactInfo(tool, group, id, date, updateDate, properties ?? ArtifactInfo.EmptyProperties);
+        Info = new ArtifactInfo(tool, group, id, date, updateDate, properties ?? ArtifactInfo.EmptyProperties, full);
+    }
+
+    /// <summary>
+    /// Creates a new instance of <see cref="ArtifactData"/>.
+    /// </summary>
+    /// <param name="artifactTool">Artifact tool.</param>
+    /// <param name="tool">Tool id.</param>
+    /// <param name="group">Group.</param>
+    /// <param name="id">Artifact ID.</param>
+    /// <param name="date">Artifact creation date.</param>
+    /// <param name="updateDate">Artifact update date.</param>
+    /// <param name="properties">Artifact properties.</param>
+    /// <param name="full">True if this is a full artifact.</param>
+    public ArtifactData(ArtifactTool artifactTool, string tool, string group, string id, DateTimeOffset? date = null, DateTimeOffset? updateDate = null, IReadOnlyDictionary<string, JsonElement>? properties = null, bool full = true)
+    {
+        Info = new ArtifactInfo(tool, group, id, date, updateDate, properties ?? ArtifactInfo.EmptyProperties, full);
+        _tool = artifactTool;
     }
 
     /// <summary>
@@ -85,6 +105,18 @@ public class ArtifactData : IReadOnlyDictionary<RK, ArtifactResourceInfo>
         => Add(new StringArtifactResourceInfo(resource, Info.Id, file, path, inArtifactFolder, properties ?? ArtifactResourceInfo.EmptyProperties));
 
     /// <summary>
+    /// Adds a <see cref="JsonArtifactResourceInfo{Task}"/> instance.
+    /// </summary>
+    /// <param name="resource">Resource.</param>
+    /// <param name="serializerOptions">Serializer options.</param>
+    /// <param name="file">Filename.</param>
+    /// <param name="path">Path.</param>
+    /// <param name="inArtifactFolder">If false, sent to common directory.</param>
+    /// <param name="properties">Resource properties.</param>
+    public void AddJson<T>(T resource, JsonSerializerOptions? serializerOptions, string file, string? path = null, bool inArtifactFolder = true, IReadOnlyDictionary<string, JsonElement>? properties = null)
+        => Add(new JsonArtifactResourceInfo<T>(resource, serializerOptions, Info.Id, file, path, inArtifactFolder, properties ?? ArtifactResourceInfo.EmptyProperties));
+
+    /// <summary>
     /// Adds a <see cref="UriArtifactResourceInfo"/> instance.
     /// </summary>
     /// <param name="artifactTool">Artifact tool.</param>
@@ -97,16 +129,15 @@ public class ArtifactData : IReadOnlyDictionary<RK, ArtifactResourceInfo>
         => Add(new UriArtifactResourceInfo(artifactTool, uri, Info.Id, file, path, inArtifactFolder, properties ?? ArtifactResourceInfo.EmptyProperties));
 
     /// <summary>
-    /// Adds a <see cref="JsonArtifactResourceInfo{Task}"/> instance.
+    /// Adds a <see cref="UriArtifactResourceInfo"/> instance.
     /// </summary>
-    /// <param name="resource">Resource.</param>
-    /// <param name="serializerOptions">Serializer options.</param>
+    /// <param name="uri">URI.</param>
     /// <param name="file">Filename.</param>
     /// <param name="path">Path.</param>
     /// <param name="inArtifactFolder">If false, sent to common directory.</param>
     /// <param name="properties">Resource properties.</param>
-    public void AddJson<T>(T resource, JsonSerializerOptions? serializerOptions, string file, string? path = null, bool inArtifactFolder = true, IReadOnlyDictionary<string, JsonElement>? properties = null)
-        => Add(new JsonArtifactResourceInfo<T>(resource, serializerOptions, Info.Id, file, path, inArtifactFolder, properties ?? ArtifactResourceInfo.EmptyProperties));
+    public void AddUri(Uri uri, string file, string? path = null, bool inArtifactFolder = true, IReadOnlyDictionary<string, JsonElement>? properties = null)
+        => AddUri(GetArtifactTool<HttpArtifactTool>(), uri, file, path, inArtifactFolder, properties);
 
     /// <summary>
     /// Adds a <see cref="UriStringArtifactResourceInfo"/> instance.
@@ -121,6 +152,17 @@ public class ArtifactData : IReadOnlyDictionary<RK, ArtifactResourceInfo>
         => Add(new UriStringArtifactResourceInfo(artifactTool, uri, Info.Id, file, path, inArtifactFolder, properties ?? ArtifactResourceInfo.EmptyProperties));
 
     /// <summary>
+    /// Adds a <see cref="UriStringArtifactResourceInfo"/> instance.
+    /// </summary>
+    /// <param name="uri">URI.</param>
+    /// <param name="file">Filename.</param>
+    /// <param name="path">Path.</param>
+    /// <param name="inArtifactFolder">If false, sent to common directory.</param>
+    /// <param name="properties">Resource properties.</param>
+    public void AddUriString(string uri, string file, string? path = null, bool inArtifactFolder = true, IReadOnlyDictionary<string, JsonElement>? properties = null)
+        => AddUriString(GetArtifactTool<HttpArtifactTool>(), uri, file, path, inArtifactFolder, properties);
+
+    /// <summary>
     /// Adds a <see cref="HttpRequestMessageArtifactResourceInfo"/> instance.
     /// </summary>
     /// <param name="artifactTool">Artifact tool.</param>
@@ -131,6 +173,22 @@ public class ArtifactData : IReadOnlyDictionary<RK, ArtifactResourceInfo>
     /// <param name="properties">Resource properties.</param>
     public void AddHttpRequestMessage(HttpArtifactTool artifactTool, HttpRequestMessage request, string file, string? path = null, bool inArtifactFolder = true, IReadOnlyDictionary<string, JsonElement>? properties = null)
         => Add(new HttpRequestMessageArtifactResourceInfo(artifactTool, request, Info.Id, file, path, inArtifactFolder, properties ?? ArtifactResourceInfo.EmptyProperties));
+
+    /// <summary>
+    /// Adds a <see cref="HttpRequestMessageArtifactResourceInfo"/> instance.
+    /// </summary>
+    /// <param name="request">Request.</param>
+    /// <param name="file">Filename.</param>
+    /// <param name="path">Path.</param>
+    /// <param name="inArtifactFolder">If false, sent to common directory.</param>
+    /// <param name="properties">Resource properties.</param>
+    public void AddHttpRequestMessage(HttpRequestMessage request, string file, string? path = null, bool inArtifactFolder = true, IReadOnlyDictionary<string, JsonElement>? properties = null)
+        => AddHttpRequestMessage(GetArtifactTool<HttpArtifactTool>(), request, file, path, inArtifactFolder, properties);
+
+    private T GetArtifactTool<T>() where T : ArtifactTool
+        => ((_tool
+        ?? throw new InvalidOperationException("Data object was not initialized with an artifact tool")) as T)
+        ?? throw new InvalidCastException("Tool type for this data object is not compatible with needed type");
 
     /// <inheritdoc/>
     public bool ContainsKey(RK key) => Resources.ContainsKey(key);
