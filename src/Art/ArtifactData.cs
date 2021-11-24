@@ -125,6 +125,16 @@ public class ArtifactData : IReadOnlyDictionary<ArtifactResourceKey, ArtifactRes
     /// Adds a <see cref="StringArtifactResourceInfo"/> instance.
     /// </summary>
     /// <param name="resource">Resource.</param>
+    /// <param name="key">Resource key.</param>
+    /// <param name="version">Version.</param>
+    /// <param name="properties">Resource properties.</param>
+    public void AddString(string resource, ArtifactResourceKey key, string? version = null, IReadOnlyDictionary<string, JsonElement>? properties = null)
+        => Add(new StringArtifactResourceInfo(resource, key, version, properties ?? ArtifactResourceInfo.EmptyProperties));
+
+    /// <summary>
+    /// Adds a <see cref="StringArtifactResourceInfo"/> instance.
+    /// </summary>
+    /// <param name="resource">Resource.</param>
     /// <param name="file">Filename.</param>
     /// <param name="path">Path.</param>
     /// <param name="inArtifactFolder">If false, sent to common directory.</param>
@@ -187,8 +197,10 @@ public class ArtifactData : IReadOnlyDictionary<ArtifactResourceKey, ArtifactRes
     /// <param name="key">Resource key.</param>
     /// <param name="version">Version.</param>
     /// <param name="properties">Resource properties.</param>
-    public void AddUri(HttpArtifactTool artifactTool, Uri uri, ArtifactResourceKey key, string? version = null, IReadOnlyDictionary<string, JsonElement>? properties = null)
-        => Add(new UriArtifactResourceInfo(artifactTool, uri, key, version, properties ?? ArtifactResourceInfo.EmptyProperties));
+    /// <param name="origin">Request origin.</param>
+    /// <param name="referrer">Request referrer.</param>
+    public void AddUri(HttpArtifactTool artifactTool, Uri uri, ArtifactResourceKey key, string? version = null, IReadOnlyDictionary<string, JsonElement>? properties = null, string? origin = null, string? referrer = null)
+        => Add(new UriArtifactResourceInfo(artifactTool, uri, origin, referrer, key, version, properties ?? ArtifactResourceInfo.EmptyProperties));
 
     /// <summary>
     /// Adds a <see cref="UriArtifactResourceInfo"/> instance.
@@ -200,8 +212,10 @@ public class ArtifactData : IReadOnlyDictionary<ArtifactResourceKey, ArtifactRes
     /// <param name="inArtifactFolder">If false, sent to common directory.</param>
     /// <param name="version">Version.</param>
     /// <param name="properties">Resource properties.</param>
-    public void AddUri(HttpArtifactTool artifactTool, Uri uri, string file, string? path = null, bool inArtifactFolder = true, string? version = null, IReadOnlyDictionary<string, JsonElement>? properties = null)
-        => Add(new UriArtifactResourceInfo(artifactTool, uri, ArtifactResourceKey.Create(Info.Key, file, path, inArtifactFolder), version, properties ?? ArtifactResourceInfo.EmptyProperties));
+    /// <param name="origin">Request origin.</param>
+    /// <param name="referrer">Request referrer.</param>
+    public void AddUri(HttpArtifactTool artifactTool, Uri uri, string file, string? path = null, bool inArtifactFolder = true, string? version = null, IReadOnlyDictionary<string, JsonElement>? properties = null, string? origin = null, string? referrer = null)
+        => Add(new UriArtifactResourceInfo(artifactTool, uri, origin, referrer, ArtifactResourceKey.Create(Info.Key, file, path, inArtifactFolder), version, properties ?? ArtifactResourceInfo.EmptyProperties));
 
     /// <summary>
     /// Adds a <see cref="UriArtifactResourceInfo"/> instance.
@@ -210,8 +224,10 @@ public class ArtifactData : IReadOnlyDictionary<ArtifactResourceKey, ArtifactRes
     /// <param name="key">Resource key.</param>
     /// <param name="version">Version.</param>
     /// <param name="properties">Resource properties.</param>
-    public void AddUri(Uri uri, ArtifactResourceKey key, string? version = null, IReadOnlyDictionary<string, JsonElement>? properties = null)
-        => AddUri(GetArtifactTool<HttpArtifactTool>(), uri, key, version, properties);
+    /// <param name="origin">Request origin.</param>
+    /// <param name="referrer">Request referrer.</param>
+    public void AddUri(Uri uri, ArtifactResourceKey key, string? version = null, IReadOnlyDictionary<string, JsonElement>? properties = null, string? origin = null, string? referrer = null)
+        => AddUri(GetArtifactTool<HttpArtifactTool>(), uri, key, version, properties, origin, referrer);
 
     /// <summary>
     /// Adds a <see cref="UriArtifactResourceInfo"/> instance.
@@ -222,8 +238,10 @@ public class ArtifactData : IReadOnlyDictionary<ArtifactResourceKey, ArtifactRes
     /// <param name="inArtifactFolder">If false, sent to common directory.</param>
     /// <param name="version">Version.</param>
     /// <param name="properties">Resource properties.</param>
-    public void AddUri(Uri uri, string file, string? path = null, bool inArtifactFolder = true, string? version = null, IReadOnlyDictionary<string, JsonElement>? properties = null)
-        => AddUri(GetArtifactTool<HttpArtifactTool>(), uri, file, path, inArtifactFolder, version, properties);
+    /// <param name="origin">Request origin.</param>
+    /// <param name="referrer">Request referrer.</param>
+    public void AddUri(Uri uri, string file, string? path = null, bool inArtifactFolder = true, string? version = null, IReadOnlyDictionary<string, JsonElement>? properties = null, string? origin = null, string? referrer = null)
+        => AddUri(GetArtifactTool<HttpArtifactTool>(), uri, file, path, inArtifactFolder, version, properties, origin, referrer);
 
     /// <summary>
     /// Adds a <see cref="UriStringArtifactResourceInfo"/> instance.
@@ -233,8 +251,10 @@ public class ArtifactData : IReadOnlyDictionary<ArtifactResourceKey, ArtifactRes
     /// <param name="key">Resource key.</param>
     /// <param name="version">Version.</param>
     /// <param name="properties">Resource properties.</param>
-    public void AddUriString(HttpArtifactTool artifactTool, string uri, ArtifactResourceKey key, string? version = null, IReadOnlyDictionary<string, JsonElement>? properties = null)
-        => Add(new UriStringArtifactResourceInfo(artifactTool, uri, key, version, properties ?? ArtifactResourceInfo.EmptyProperties));
+    /// <param name="origin">Request origin.</param>
+    /// <param name="referrer">Request referrer.</param>
+    public void AddUriString(HttpArtifactTool artifactTool, string uri, ArtifactResourceKey key, string? version = null, IReadOnlyDictionary<string, JsonElement>? properties = null, string? origin = null, string? referrer = null)
+        => Add(new UriStringArtifactResourceInfo(artifactTool, uri, origin, referrer, key, version, properties ?? ArtifactResourceInfo.EmptyProperties));
 
     /// <summary>
     /// Adds a <see cref="UriStringArtifactResourceInfo"/> instance.
@@ -246,8 +266,10 @@ public class ArtifactData : IReadOnlyDictionary<ArtifactResourceKey, ArtifactRes
     /// <param name="inArtifactFolder">If false, sent to common directory.</param>
     /// <param name="version">Version.</param>
     /// <param name="properties">Resource properties.</param>
-    public void AddUriString(HttpArtifactTool artifactTool, string uri, string file, string? path = null, bool inArtifactFolder = true, string? version = null, IReadOnlyDictionary<string, JsonElement>? properties = null)
-        => Add(new UriStringArtifactResourceInfo(artifactTool, uri, ArtifactResourceKey.Create(Info.Key, file, path, inArtifactFolder), version, properties ?? ArtifactResourceInfo.EmptyProperties));
+    /// <param name="origin">Request origin.</param>
+    /// <param name="referrer">Request referrer.</param>
+    public void AddUriString(HttpArtifactTool artifactTool, string uri, string file, string? path = null, bool inArtifactFolder = true, string? version = null, IReadOnlyDictionary<string, JsonElement>? properties = null, string? origin = null, string? referrer = null)
+        => Add(new UriStringArtifactResourceInfo(artifactTool, uri, origin, referrer, ArtifactResourceKey.Create(Info.Key, file, path, inArtifactFolder), version, properties ?? ArtifactResourceInfo.EmptyProperties));
 
     /// <summary>
     /// Adds a <see cref="UriStringArtifactResourceInfo"/> instance.
@@ -256,8 +278,10 @@ public class ArtifactData : IReadOnlyDictionary<ArtifactResourceKey, ArtifactRes
     /// <param name="key">Resource key.</param>
     /// <param name="version">Version.</param>
     /// <param name="properties">Resource properties.</param>
-    public void AddUriString(string uri, ArtifactResourceKey key, string? version = null, IReadOnlyDictionary<string, JsonElement>? properties = null)
-        => AddUriString(GetArtifactTool<HttpArtifactTool>(), uri, key, version, properties);
+    /// <param name="origin">Request origin.</param>
+    /// <param name="referrer">Request referrer.</param>
+    public void AddUriString(string uri, ArtifactResourceKey key, string? version = null, IReadOnlyDictionary<string, JsonElement>? properties = null, string? origin = null, string? referrer = null)
+        => AddUriString(GetArtifactTool<HttpArtifactTool>(), uri, key, version, properties, origin, referrer);
 
     /// <summary>
     /// Adds a <see cref="UriStringArtifactResourceInfo"/> instance.
@@ -268,8 +292,10 @@ public class ArtifactData : IReadOnlyDictionary<ArtifactResourceKey, ArtifactRes
     /// <param name="inArtifactFolder">If false, sent to common directory.</param>
     /// <param name="version">Version.</param>
     /// <param name="properties">Resource properties.</param>
-    public void AddUriString(string uri, string file, string? path = null, bool inArtifactFolder = true, string? version = null, IReadOnlyDictionary<string, JsonElement>? properties = null)
-        => AddUriString(GetArtifactTool<HttpArtifactTool>(), uri, file, path, inArtifactFolder, version, properties);
+    /// <param name="origin">Request origin.</param>
+    /// <param name="referrer">Request referrer.</param>
+    public void AddUriString(string uri, string file, string? path = null, bool inArtifactFolder = true, string? version = null, IReadOnlyDictionary<string, JsonElement>? properties = null, string? origin = null, string? referrer = null)
+        => AddUriString(GetArtifactTool<HttpArtifactTool>(), uri, file, path, inArtifactFolder, version, properties, origin, referrer);
 
     /// <summary>
     /// Adds a <see cref="HttpRequestMessageArtifactResourceInfo"/> instance.

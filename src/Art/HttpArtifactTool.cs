@@ -126,7 +126,7 @@ public abstract class HttpArtifactTool : ArtifactTool
     /// <param name="origin">Request origin.</param>
     /// <param name="referrer">Request referrer.</param>
     /// <returns>Task returning reponse (status left unchecked).</returns>
-    protected async Task<HttpResponseMessage> HeadAsync(string requestUri, string? origin = null, string? referrer = null)
+    protected internal async Task<HttpResponseMessage> HeadAsync(string requestUri, string? origin = null, string? referrer = null)
     {
         NotDisposed();
         HttpRequestMessage req = new(HttpMethod.Head, requestUri);
@@ -142,7 +142,7 @@ public abstract class HttpArtifactTool : ArtifactTool
     /// <param name="origin">Request origin.</param>
     /// <param name="referrer">Request referrer.</param>
     /// <returns>Task returning reponse (status left unchecked).</returns>
-    protected async Task<HttpResponseMessage> HeadAsync(Uri requestUri, string? origin = null, string? referrer = null)
+    protected internal async Task<HttpResponseMessage> HeadAsync(Uri requestUri, string? origin = null, string? referrer = null)
     {
         NotDisposed();
         HttpRequestMessage req = new(HttpMethod.Head, requestUri);
@@ -158,7 +158,7 @@ public abstract class HttpArtifactTool : ArtifactTool
     /// <param name="origin">Request origin.</param>
     /// <param name="referrer">Request referrer.</param>
     /// <returns>Task returning reponse (status left unchecked).</returns>
-    protected async Task<HttpResponseMessage> GetAsync(string requestUri, string? origin = null, string? referrer = null)
+    protected internal async Task<HttpResponseMessage> GetAsync(string requestUri, string? origin = null, string? referrer = null)
     {
         NotDisposed();
         HttpRequestMessage req = new(HttpMethod.Get, requestUri);
@@ -174,7 +174,7 @@ public abstract class HttpArtifactTool : ArtifactTool
     /// <param name="origin">Request origin.</param>
     /// <param name="referrer">Request referrer.</param>
     /// <returns>Task returning reponse (status left unchecked).</returns>
-    protected async Task<HttpResponseMessage> GetAsync(Uri requestUri, string? origin = null, string? referrer = null)
+    protected internal async Task<HttpResponseMessage> GetAsync(Uri requestUri, string? origin = null, string? referrer = null)
     {
         NotDisposed();
         HttpRequestMessage req = new(HttpMethod.Get, requestUri);
@@ -188,7 +188,7 @@ public abstract class HttpArtifactTool : ArtifactTool
     /// </summary>
     /// <param name="requestMessage">Request.</param>
     /// <returns>Task returning reponse (status left unchecked).</returns>
-    protected async Task<HttpResponseMessage> SendAsync(HttpRequestMessage requestMessage)
+    protected internal async Task<HttpResponseMessage> SendAsync(HttpRequestMessage requestMessage)
     {
         NotDisposed();
         return await HttpClient.SendAsync(requestMessage).ConfigureAwait(false);
@@ -220,7 +220,7 @@ public abstract class HttpArtifactTool : ArtifactTool
     /// <remarks>
     /// This overload usees <see cref="ArtifactTool.JsonOptions"/> member automatically.
     /// </remarks>
-    protected async Task<T> GetDeserializedJsonAsync<T>(string requestUri, string? origin = null, string? referrer = null)
+    protected internal async Task<T> GetDeserializedJsonAsync<T>(string requestUri, string? origin = null, string? referrer = null)
     {
         NotDisposed();
         HttpRequestMessage req = new(HttpMethod.Get, requestUri);
@@ -240,7 +240,7 @@ public abstract class HttpArtifactTool : ArtifactTool
     /// <param name="origin">Request origin.</param>
     /// <param name="referrer">Request referrer.</param>
     /// <returns>Task returning deserialized data.</returns>
-    protected async Task<T> GetDeserializedJsonAsync<T>(string requestUri, JsonSerializerOptions? jsonSerializerOptions, string? origin = null, string? referrer = null)
+    protected internal async Task<T> GetDeserializedJsonAsync<T>(string requestUri, JsonSerializerOptions? jsonSerializerOptions, string? origin = null, string? referrer = null)
     {
         NotDisposed();
         HttpRequestMessage req = new(HttpMethod.Get, requestUri);
@@ -262,7 +262,7 @@ public abstract class HttpArtifactTool : ArtifactTool
     /// <remarks>
     /// This overload usees <see cref="ArtifactTool.JsonOptions"/> member automatically.
     /// </remarks>
-    protected async Task<T> GetDeserializedJsonAsync<T>(Uri requestUri, string? origin = null, string? referrer = null)
+    protected internal async Task<T> GetDeserializedJsonAsync<T>(Uri requestUri, string? origin = null, string? referrer = null)
     {
         NotDisposed();
         HttpRequestMessage req = new(HttpMethod.Get, requestUri);
@@ -282,7 +282,7 @@ public abstract class HttpArtifactTool : ArtifactTool
     /// <param name="origin">Request origin.</param>
     /// <param name="referrer">Request referrer.</param>
     /// <returns>Task returning deserialized data.</returns>
-    protected async Task<T> GetDeserializedJsonAsync<T>(Uri requestUri, JsonSerializerOptions? jsonSerializerOptions, string? origin = null, string? referrer = null)
+    protected internal async Task<T> GetDeserializedJsonAsync<T>(Uri requestUri, JsonSerializerOptions? jsonSerializerOptions, string? origin = null, string? referrer = null)
     {
         NotDisposed();
         HttpRequestMessage req = new(HttpMethod.Get, requestUri);
@@ -302,7 +302,7 @@ public abstract class HttpArtifactTool : ArtifactTool
     /// <remarks>
     /// This overload usees <see cref="ArtifactTool.JsonOptions"/> member automatically.
     /// </remarks>
-    protected async Task<T> RetrieveDeserializedJsonAsync<T>(HttpRequestMessage requestMessage)
+    protected internal async Task<T> RetrieveDeserializedJsonAsync<T>(HttpRequestMessage requestMessage)
     {
         NotDisposed();
         using HttpResponseMessage res = await HttpClient.SendAsync(requestMessage).ConfigureAwait(false);
@@ -317,7 +317,7 @@ public abstract class HttpArtifactTool : ArtifactTool
     /// <param name="requestMessage">Request to send.</param>
     /// <param name="jsonSerializerOptions">Optional deserialization options.</param>
     /// <returns>Task returning deserialized data.</returns>
-    protected async Task<T> RetrieveDeserializedJsonAsync<T>(HttpRequestMessage requestMessage, JsonSerializerOptions? jsonSerializerOptions)
+    protected internal async Task<T> RetrieveDeserializedJsonAsync<T>(HttpRequestMessage requestMessage, JsonSerializerOptions? jsonSerializerOptions)
     {
         NotDisposed();
         using HttpResponseMessage res = await HttpClient.SendAsync(requestMessage).ConfigureAwait(false);
@@ -334,7 +334,7 @@ public abstract class HttpArtifactTool : ArtifactTool
     /// <remarks>
     /// This overload usees <see cref="ArtifactTool.JsonOptions"/> member automatically.
     /// </remarks>
-    protected ValueTask<T> DeserializeJsonWithDebugAsync<T>(HttpResponseMessage response)
+    protected internal ValueTask<T> DeserializeJsonWithDebugAsync<T>(HttpResponseMessage response)
         => DeserializeJsonWithDebugAsync<T>(response, JsonOptions);
 
     /// <summary>
@@ -344,7 +344,7 @@ public abstract class HttpArtifactTool : ArtifactTool
     /// <param name="response">Response to read from.</param>
     /// <param name="jsonSerializerOptions">Optional deserialization options.</param>
     /// <returns>Task returning value.</returns>
-    protected async ValueTask<T> DeserializeJsonWithDebugAsync<T>(HttpResponseMessage response, JsonSerializerOptions? jsonSerializerOptions)
+    protected internal async ValueTask<T> DeserializeJsonWithDebugAsync<T>(HttpResponseMessage response, JsonSerializerOptions? jsonSerializerOptions)
     {
         response.EnsureSuccessStatusCode();
         if (!DebugMode)
@@ -396,11 +396,16 @@ public abstract class HttpArtifactTool : ArtifactTool
     /// </summary>
     /// <param name="requestUri">Uri to download from.</param>
     /// <param name="stream">Target stream.</param>
+    /// <param name="origin">Request origin.</param>
+    /// <param name="referrer">Request referrer.</param>
     /// <returns>Task.</returns>
-    protected internal async ValueTask DownloadResourceAsync(string requestUri, Stream stream)
+    protected internal async ValueTask DownloadResourceAsync(string requestUri, Stream stream, string? origin = null, string? referrer = null)
     {
         NotDisposed();
-        using HttpResponseMessage? fr = await HttpClient.GetAsync(requestUri).ConfigureAwait(false);
+        HttpRequestMessage req = new(HttpMethod.Get, requestUri);
+        SetOriginAndReferrer(req, origin, referrer);
+        ConfigureHttpRequest(req);
+        using HttpResponseMessage? fr = await HttpClient.SendAsync(req).ConfigureAwait(false);
         fr.EnsureSuccessStatusCode();
         await fr.Content.CopyToAsync(stream).ConfigureAwait(false);
     }
@@ -410,11 +415,16 @@ public abstract class HttpArtifactTool : ArtifactTool
     /// </summary>
     /// <param name="requestUri">Uri to download from.</param>
     /// <param name="key">Resource key.</param>
+    /// <param name="origin">Request origin.</param>
+    /// <param name="referrer">Request referrer.</param>
     /// <returns>Task.</returns>
-    protected async ValueTask DownloadResourceAsync(string requestUri, ArtifactResourceKey key)
+    protected internal async ValueTask DownloadResourceAsync(string requestUri, ArtifactResourceKey key, string? origin = null, string? referrer = null)
     {
         NotDisposed();
-        using HttpResponseMessage? fr = await HttpClient.GetAsync(requestUri).ConfigureAwait(false);
+        HttpRequestMessage req = new(HttpMethod.Get, requestUri);
+        SetOriginAndReferrer(req, origin, referrer);
+        ConfigureHttpRequest(req);
+        using HttpResponseMessage? fr = await HttpClient.SendAsync(req).ConfigureAwait(false);
         fr.EnsureSuccessStatusCode();
         await using Stream stream = await CreateOutputStreamAsync(key).ConfigureAwait(false);
         await fr.Content.CopyToAsync(stream).ConfigureAwait(false);
@@ -428,8 +438,10 @@ public abstract class HttpArtifactTool : ArtifactTool
     /// <param name="key">Artifact key.</param>
     /// <param name="path">File path to prepend.</param>
     /// <param name="inArtifactFolder">If false, place artifact under common root.</param>
+    /// <param name="origin">Request origin.</param>
+    /// <param name="referrer">Request referrer.</param>
     /// <returns>Task.</returns>
-    protected ValueTask DownloadResourceAsync(string requestUri, string file, ArtifactKey key, string? path = null, bool inArtifactFolder = true)
+    protected internal ValueTask DownloadResourceAsync(string requestUri, string file, ArtifactKey key, string? path = null, bool inArtifactFolder = true, string? origin = null, string? referrer = null)
         => DownloadResourceAsync(requestUri, ArtifactResourceKey.Create(key, file, path, inArtifactFolder));
 
     /// <summary>
@@ -437,11 +449,16 @@ public abstract class HttpArtifactTool : ArtifactTool
     /// </summary>
     /// <param name="requestUri"><see cref="Uri"/> to download from.</param>
     /// <param name="stream">Target stream.</param>
+    /// <param name="origin">Request origin.</param>
+    /// <param name="referrer">Request referrer.</param>
     /// <returns>Task.</returns>
-    protected internal async ValueTask DownloadResourceAsync(Uri requestUri, Stream stream)
+    protected internal async ValueTask DownloadResourceAsync(Uri requestUri, Stream stream, string? origin = null, string? referrer = null)
     {
         NotDisposed();
-        using HttpResponseMessage? fr = await HttpClient.GetAsync(requestUri).ConfigureAwait(false);
+        HttpRequestMessage req = new(HttpMethod.Get, requestUri);
+        SetOriginAndReferrer(req, origin, referrer);
+        ConfigureHttpRequest(req);
+        using HttpResponseMessage? fr = await HttpClient.SendAsync(req).ConfigureAwait(false);
         fr.EnsureSuccessStatusCode();
         await fr.Content.CopyToAsync(stream).ConfigureAwait(false);
     }
@@ -451,11 +468,16 @@ public abstract class HttpArtifactTool : ArtifactTool
     /// </summary>
     /// <param name="requestUri"><see cref="Uri"/> to download from.</param>
     /// <param name="key">Resource key.</param>
+    /// <param name="origin">Request origin.</param>
+    /// <param name="referrer">Request referrer.</param>
     /// <returns>Task.</returns>
-    protected async ValueTask DownloadResourceAsync(Uri requestUri, ArtifactResourceKey key)
+    protected internal async ValueTask DownloadResourceAsync(Uri requestUri, ArtifactResourceKey key, string? origin = null, string? referrer = null)
     {
         NotDisposed();
-        using HttpResponseMessage? fr = await HttpClient.GetAsync(requestUri).ConfigureAwait(false);
+        HttpRequestMessage req = new(HttpMethod.Get, requestUri);
+        SetOriginAndReferrer(req, origin, referrer);
+        ConfigureHttpRequest(req);
+        using HttpResponseMessage? fr = await HttpClient.SendAsync(req).ConfigureAwait(false);
         fr.EnsureSuccessStatusCode();
         await using Stream stream = await CreateOutputStreamAsync(key).ConfigureAwait(false);
         await fr.Content.CopyToAsync(stream).ConfigureAwait(false);
@@ -469,9 +491,11 @@ public abstract class HttpArtifactTool : ArtifactTool
     /// <param name="key">Artifact key.</param>
     /// <param name="path">File path to prepend.</param>
     /// <param name="inArtifactFolder">If false, place artifact under common root.</param>
+    /// <param name="origin">Request origin.</param>
+    /// <param name="referrer">Request referrer.</param>
     /// <returns>Task.</returns>
-    protected ValueTask DownloadResourceAsync(Uri requestUri, string file, ArtifactKey key, string? path = null, bool inArtifactFolder = true)
-        => DownloadResourceAsync(requestUri, ArtifactResourceKey.Create(key, file, path, inArtifactFolder));
+    protected internal ValueTask DownloadResourceAsync(Uri requestUri, string file, ArtifactKey key, string? path = null, bool inArtifactFolder = true, string? origin = null, string? referrer = null)
+        => DownloadResourceAsync(requestUri, ArtifactResourceKey.Create(key, file, path, inArtifactFolder), origin, referrer);
 
     /// <summary>
     /// Downloads a resource.
@@ -493,7 +517,7 @@ public abstract class HttpArtifactTool : ArtifactTool
     /// <param name="requestMessage">Request to send.</param>
     /// <param name="key">Resource key.</param>
     /// <returns>Task.</returns>
-    protected async ValueTask DownloadResourceAsync(HttpRequestMessage requestMessage, ArtifactResourceKey key)
+    protected internal async ValueTask DownloadResourceAsync(HttpRequestMessage requestMessage, ArtifactResourceKey key)
     {
         NotDisposed();
         using HttpResponseMessage? fr = await HttpClient.SendAsync(requestMessage).ConfigureAwait(false);
@@ -511,7 +535,7 @@ public abstract class HttpArtifactTool : ArtifactTool
     /// <param name="path">File path to prepend.</param>
     /// <param name="inArtifactFolder">If false, place artifact under common root.</param>
     /// <returns>Task.</returns>
-    protected ValueTask DownloadResourceAsync(HttpRequestMessage requestMessage, string file, ArtifactKey key, string? path = null, bool inArtifactFolder = true)
+    protected internal ValueTask DownloadResourceAsync(HttpRequestMessage requestMessage, string file, ArtifactKey key, string? path = null, bool inArtifactFolder = true)
         => DownloadResourceAsync(requestMessage, ArtifactResourceKey.Create(key, file, path, inArtifactFolder));
 
     #endregion

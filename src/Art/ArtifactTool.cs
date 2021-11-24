@@ -45,6 +45,11 @@ public abstract partial class ArtifactTool : IDisposable, IAsyncFinder<ArtifactD
     /// </summary>
     protected bool Force { get; set; }
 
+    /// <summary>
+    /// Configuration
+    /// </summary>
+    protected ArtifactToolRuntimeConfig Config { get; private set; }
+
     #endregion
 
     #region Private fields
@@ -81,6 +86,7 @@ public abstract partial class ArtifactTool : IDisposable, IAsyncFinder<ArtifactD
         _registrationManager = null!;
         _dataManager = null!;
         Profile = null!;
+        Config = null!;
     }
 
     #endregion
@@ -98,6 +104,7 @@ public abstract partial class ArtifactTool : IDisposable, IAsyncFinder<ArtifactD
         if (runtimeConfig.RegistrationManager == null) throw new ArgumentException("Cannot configure with null registration manager");
         if (runtimeConfig.DataManager == null) throw new ArgumentException("Cannot configure with null data manager");
         if (runtimeConfig.Profile == null) throw new ArgumentException("Cannot configure with null profile");
+        Config = runtimeConfig;
         _registrationManager = runtimeConfig.RegistrationManager;
         _dataManager = runtimeConfig.DataManager;
         Profile = runtimeConfig.Profile;
@@ -209,6 +216,14 @@ public abstract partial class ArtifactTool : IDisposable, IAsyncFinder<ArtifactD
         => await _registrationManager.TryGetArtifactAsync(key).ConfigureAwait(false);
 
     /// <summary>
+    /// Attempts to get info for the resource with the specified key.
+    /// </summary>
+    /// <param name="key">Resource key.</param>
+    /// <returns>Task returning retrieved resource, if it exists.</returns>
+    protected async ValueTask<ArtifactResourceInfo?> TryGetResourceAsync(ArtifactResourceKey key)
+        => await _registrationManager.TryGetResourceAsync(key).ConfigureAwait(false);
+
+    /// <summary>
     /// Tests if artifact is recognizably new.
     /// </summary>
     /// <param name="artifactInfo">Artifact to check.</param>
@@ -233,12 +248,12 @@ public abstract partial class ArtifactTool : IDisposable, IAsyncFinder<ArtifactD
     /// Outputs a text file for the specified artifact.
     /// </summary>
     /// <param name="text">Text to output.</param>
-    /// <param name="file">Target filename.</param>
     /// <param name="key">Artifact key.</param>
+    /// <param name="file">Target filename.</param>
     /// <param name="path">File path to prepend.</param>
     /// <param name="inArtifactFolder">If false, place artifact under common root.</param>
     /// <returns>Task.</returns>
-    protected async ValueTask OutputTextAsync(string text, string file, ArtifactKey key, string? path = null, bool inArtifactFolder = true)
+    protected async ValueTask OutputTextAsync(string text, ArtifactKey key, string file, string? path = null, bool inArtifactFolder = true)
     => await OutputTextAsync(text, ArtifactResourceKey.Create(key, file, path, inArtifactFolder)).ConfigureAwait(false);
 
     /// <summary>
@@ -254,12 +269,12 @@ public abstract partial class ArtifactTool : IDisposable, IAsyncFinder<ArtifactD
     /// Outputs a JSON-serialized file for the specified artifact.
     /// </summary>
     /// <param name="data">Data to output.</param>
-    /// <param name="file">Target filename.</param>
     /// <param name="key">Artifact key.</param>
+    /// <param name="file">Target filename.</param>
     /// <param name="path">File path to prepend.</param>
     /// <param name="inArtifactFolder">If false, place artifact under common root.</param>
     /// <returns>Task.</returns>
-    protected async ValueTask OutputJsonAsync<T>(T data, string file, ArtifactKey key, string? path = null, bool inArtifactFolder = true)
+    protected async ValueTask OutputJsonAsync<T>(T data, ArtifactKey key, string file, string? path = null, bool inArtifactFolder = true)
         => await OutputJsonAsync<T>(data, JsonOptions, ArtifactResourceKey.Create(key, file, path, inArtifactFolder)).ConfigureAwait(false);
 
     /// <summary>
@@ -277,12 +292,12 @@ public abstract partial class ArtifactTool : IDisposable, IAsyncFinder<ArtifactD
     /// </summary>
     /// <param name="data">Data to output.</param>
     /// <param name="jsonSerializerOptions">Serialization options.</param>
-    /// <param name="file">Target filename.</param>
     /// <param name="key">Artifact key.</param>
+    /// <param name="file">Target filename.</param>
     /// <param name="path">File path to prepend.</param>
     /// <param name="inArtifactFolder">If false, place artifact under common root.</param>
     /// <returns>Task.</returns>
-    protected async ValueTask OutputJsonAsync<T>(T data, JsonSerializerOptions jsonSerializerOptions, string file, ArtifactKey key, string? path = null, bool inArtifactFolder = true)
+    protected async ValueTask OutputJsonAsync<T>(T data, JsonSerializerOptions jsonSerializerOptions, ArtifactKey key, string file, string? path = null, bool inArtifactFolder = true)
         => await OutputJsonAsync<T>(data, jsonSerializerOptions, ArtifactResourceKey.Create(key, file, path, inArtifactFolder)).ConfigureAwait(false);
 
     /// <summary>
@@ -296,12 +311,12 @@ public abstract partial class ArtifactTool : IDisposable, IAsyncFinder<ArtifactD
     /// <summary>
     /// Creates an output stream for a file for the specified artifact.
     /// </summary>
-    /// <param name="file">Target filename.</param>
     /// <param name="key">Artifact key.</param>
+    /// <param name="file">Target filename.</param>
     /// <param name="path">File path to prepend.</param>
     /// <param name="inArtifactFolder">If false, place artifact under common root.</param>
     /// <returns>Task returning a writeable stream to write an output to.</returns>
-    protected ValueTask<Stream> CreateOutputStreamAsync(string file, ArtifactKey key, string? path = null, bool inArtifactFolder = true)
+    protected ValueTask<Stream> CreateOutputStreamAsync(ArtifactKey key, string file, string? path = null, bool inArtifactFolder = true)
         => CreateOutputStreamAsync(ArtifactResourceKey.Create(key, file, path, inArtifactFolder));
 
     #endregion

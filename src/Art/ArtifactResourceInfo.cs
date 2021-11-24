@@ -1,4 +1,5 @@
 ﻿using System.Text.Json;
+using System.Text.Json.Serialization;
 
 namespace Art;
 
@@ -41,7 +42,14 @@ public record ArtifactResourceInfo(ArtifactResourceKey Key, string? Version, IRe
     /// <summary>
     /// If true, this resource is a file-exportable reference.
     /// </summary>
+    [JsonIgnore]
     public virtual bool Exportable => false;
+
+    /// <summary>
+    /// If true, this resource can be queried for version.
+    /// </summary>
+    [JsonIgnore]
+    public virtual bool Queryable => false;
 
     /// <summary>
     /// Exports a resource.
@@ -51,4 +59,22 @@ public record ArtifactResourceInfo(ArtifactResourceKey Key, string? Version, IRe
     /// <exception cref="NotSupportedException">Thrown if this instance cannot be exported.</exception>
     public virtual ValueTask ExportAsync(Stream stream)
         => throw new NotSupportedException($"This is a raw instance of {nameof(ArtifactResourceInfo)} that is not exportable");
+
+    /// <summary>
+    /// Queries a resource for version.
+    /// </summary>
+    /// <returns>Task returning version or null.</returns>
+    /// <exception cref="NotSupportedException">Thrown if this instance cannot be queried.</exception>
+    public virtual ValueTask<string?> QueryVersionAsync()
+        => throw new NotSupportedException($"This is a raw instance of {nameof(ArtifactResourceInfo)} that is not queryable");
+
+    /// <summary>
+    /// Gets this resource with associated version, if available.
+    /// </summary>
+    /// <returns>Resource with version if available.</returns>
+    public async ValueTask<ArtifactResourceInfo> GetVersionedAsync()
+    {
+        if (Version == null && Queryable) return this with { Version = await QueryVersionAsync().ConfigureAwait(false) };
+        return this;
+    }
 }

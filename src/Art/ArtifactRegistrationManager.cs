@@ -20,11 +20,18 @@ public abstract class ArtifactRegistrationManager
     public abstract ValueTask AddResourceAsync(ArtifactResourceInfo artifactResourceInfo);
 
     /// <summary>
-    /// Attempts to get info for the artifact with the specified ID.
+    /// Attempts to get info for the artifact with the specified key.
     /// </summary>
     /// <param name="key">Artifact key.</param>
     /// <returns>Task returning retrieved artifact, if it exists.</returns>
     public abstract ValueTask<ArtifactInfo?> TryGetArtifactAsync(ArtifactKey key);
+
+    /// <summary>
+    /// Attempts to get info for the resource with the specified key.
+    /// </summary>
+    /// <param name="key">Resource key.</param>
+    /// <returns>Task returning retrieved resource, if it exists.</returns>
+    public abstract ValueTask<ArtifactResourceInfo?> TryGetResourceAsync(ArtifactResourceKey key);
 
     /// <summary>
     /// Tests if artifact is recognizably new.

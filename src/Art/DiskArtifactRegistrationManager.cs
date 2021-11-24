@@ -27,14 +27,6 @@ public class DiskArtifactRegistrationManager : ArtifactRegistrationManager
     }
 
     /// <inheritdoc/>
-    public override async ValueTask<ArtifactInfo?> TryGetArtifactAsync(ArtifactKey key)
-    {
-        string dir = GetArtifactInfoDir(key);
-        string path = GetArtifactInfoFilePath(dir, key);
-        return File.Exists(path) ? await ArtExtensions.LoadFromFileAsync<ArtifactInfo>(path).ConfigureAwait(false) : null;
-    }
-
-    /// <inheritdoc/>
     public override async ValueTask AddArtifactAsync(ArtifactInfo artifactInfo)
     {
         string dir = GetArtifactInfoDir(artifactInfo.Key);
@@ -46,10 +38,26 @@ public class DiskArtifactRegistrationManager : ArtifactRegistrationManager
     /// <inheritdoc/>
     public override async ValueTask AddResourceAsync(ArtifactResourceInfo artifactResourceInfo)
     {
-        string dir = GetResourceInfoDir(artifactResourceInfo);
+        string dir = GetResourceInfoDir(artifactResourceInfo.Key);
         if (!Directory.Exists(dir)) Directory.CreateDirectory(dir);
-        string path = GetResourceInfoFilePath(dir, artifactResourceInfo);
+        string path = GetResourceInfoFilePath(dir, artifactResourceInfo.Key);
         await artifactResourceInfo.WriteToFileAsync(path).ConfigureAwait(false);
+    }
+
+    /// <inheritdoc/>
+    public override async ValueTask<ArtifactInfo?> TryGetArtifactAsync(ArtifactKey key)
+    {
+        string dir = GetArtifactInfoDir(key);
+        string path = GetArtifactInfoFilePath(dir, key);
+        return File.Exists(path) ? await ArtExtensions.LoadFromFileAsync<ArtifactInfo>(path).ConfigureAwait(false) : null;
+    }
+
+    /// <inheritdoc/>
+    public override async ValueTask<ArtifactResourceInfo?> TryGetResourceAsync(ArtifactResourceKey key)
+    {
+        string dir = GetResourceInfoDir(key);
+        string path = GetResourceInfoFilePath(dir, key);
+        return File.Exists(path) ? await ArtExtensions.LoadFromFileAsync<ArtifactResourceInfo>(path).ConfigureAwait(false) : null;
     }
 
     private string GetBasePath(ArtifactKey key)
@@ -72,15 +80,15 @@ public class DiskArtifactRegistrationManager : ArtifactRegistrationManager
         return Path.Combine(dir, string.Format(CultureInfo.InvariantCulture, ArtifactFileName, key.Id));
     }
 
-    private string GetResourceInfoDir(ArtifactResourceInfo ari)
+    private string GetResourceInfoDir(ArtifactResourceKey key)
     {
-        string dir = Path.Combine(GetBasePath(ari.Key), ResourceDir);
-        dir = DiskPaths.GetResourceDir(dir, ari.Key.Artifact.Id, ari.Key.Path, ari.Key.InArtifactFolder);
+        string dir = Path.Combine(GetBasePath(key), ResourceDir);
+        dir = DiskPaths.GetResourceDir(dir, key.Artifact.Id, key.Path, key.InArtifactFolder);
         return dir;
     }
 
-    private static string GetResourceInfoFilePath(string dir, ArtifactResourceInfo ari)
+    private static string GetResourceInfoFilePath(string dir, ArtifactResourceKey key)
     {
-        return Path.Combine(dir, string.Format(CultureInfo.InvariantCulture, ResourceFileName, ari.Key.File.SafeifyFileName()));
+        return Path.Combine(dir, string.Format(CultureInfo.InvariantCulture, ResourceFileName, key.File.SafeifyFileName()));
     }
 }

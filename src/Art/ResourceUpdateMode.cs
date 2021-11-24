@@ -6,11 +6,15 @@
 public enum ResourceUpdateMode
 {
     /// <summary>
+    /// Update resource iff an artifact has been updated and a new version is detected.
+    /// </summary>
+    ArtifactSoft,
+    /// <summary>
     /// Update resource iff an artifact has been updated.
     /// </summary>
-    Artifact,
+    ArtifactHard,
     /// <summary>
-    /// Update resource version but do not retrieve resource.
+    /// Always update resource information but do not retrieve resource itself.
     /// </summary>
     Populate,
     /// <summary>
