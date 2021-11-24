@@ -57,6 +57,11 @@ public class DiskArtifactRegistrationManager : ArtifactRegistrationManager
         return DiskPaths.GetBasePath(BaseDirectory, key.Tool, key.Group);
     }
 
+    private string GetBasePath(ArtifactResourceKey key)
+    {
+        return DiskPaths.GetBasePath(BaseDirectory, key.Artifact.Tool, key.Artifact.Group);
+    }
+
     private string GetArtifactInfoDir(ArtifactKey key)
     {
         return Path.Combine(GetBasePath(key), ArtifactDir);
@@ -70,12 +75,12 @@ public class DiskArtifactRegistrationManager : ArtifactRegistrationManager
     private string GetResourceInfoDir(ArtifactResourceInfo ari)
     {
         string dir = Path.Combine(GetBasePath(ari.Key), ResourceDir);
-        dir = DiskPaths.GetResourceDir(dir, ari.Key.Id, ari.Path, ari.InArtifactFolder);
+        dir = DiskPaths.GetResourceDir(dir, ari.Key.Artifact.Id, ari.Key.Path, ari.Key.InArtifactFolder);
         return dir;
     }
 
     private static string GetResourceInfoFilePath(string dir, ArtifactResourceInfo ari)
     {
-        return Path.Combine(dir, string.Format(CultureInfo.InvariantCulture, ResourceFileName, ari.File.SafeifyFileName()));
+        return Path.Combine(dir, string.Format(CultureInfo.InvariantCulture, ResourceFileName, ari.Key.File.SafeifyFileName()));
     }
 }

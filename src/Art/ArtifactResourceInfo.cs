@@ -5,24 +5,33 @@ namespace Art;
 /// <summary>
 /// Provides artifact information.
 /// </summary>
-/// <param name="Key">Artifact key.</param>
-/// <param name="File">Filename.</param>
-/// <param name="Path">Path.</param>
-/// <param name="InArtifactFolder">If false, sent to common directory.</param>
+/// <param name="Key">Resource key.</param>
+/// <param name="Version">Version.</param>
 /// <param name="Properties">Resource properties.</param>
-public record ArtifactResourceInfo(ArtifactKey Key, string File, string? Path, bool InArtifactFolder, IReadOnlyDictionary<string, JsonElement> Properties)
+public record ArtifactResourceInfo(ArtifactResourceKey Key, string? Version, IReadOnlyDictionary<string, JsonElement> Properties)
 {
     /// <summary>
-    /// Creates a new instance of <see cref="ArtifactInfo"/>.
+    /// Creates a new instance of <see cref="ArtifactResourceInfo"/>.
     /// </summary>
     /// <param name="key">Artifact key.</param>
     /// <param name="file">Filename.</param>
     /// <param name="path">Path.</param>
     /// <param name="inArtifactFolder">If false, sent to common directory.</param>
+    /// <param name="version">Version.</param>
     /// <param name="properties">Resource properties.</param>
     /// <returns>Value.</returns>
-    public static ArtifactResourceInfo Create(ArtifactKey key, string file, string? path = null, bool inArtifactFolder = true, IReadOnlyDictionary<string, JsonElement>? properties = null)
-        => new(key, file, path, inArtifactFolder, properties ?? EmptyProperties);
+    public static ArtifactResourceInfo Create(ArtifactKey key, string file, string? path = null, bool inArtifactFolder = true, string? version = null, IReadOnlyDictionary<string, JsonElement>? properties = null)
+        => new(ArtifactResourceKey.Create(key, file, path, inArtifactFolder), version, properties ?? EmptyProperties);
+
+    /// <summary>
+    /// Creates a new instance of <see cref="ArtifactResourceInfo"/>.
+    /// </summary>
+    /// <param name="key">Resource key.</param>
+    /// <param name="version">Version.</param>
+    /// <param name="properties">Resource properties.</param>
+    /// <returns>Value.</returns>
+    public static ArtifactResourceInfo Create(ArtifactResourceKey key, string? version = null, IReadOnlyDictionary<string, JsonElement>? properties = null)
+        => new(key, version, properties ?? EmptyProperties);
 
     /// <summary>
     /// Singleton dummy no-entry properties.
@@ -42,10 +51,4 @@ public record ArtifactResourceInfo(ArtifactKey Key, string File, string? Path, b
     /// <exception cref="NotSupportedException">Thrown if this instance cannot be exported.</exception>
     public virtual ValueTask ExportAsync(Stream stream)
         => throw new NotSupportedException($"This is a raw instance of {nameof(ArtifactResourceInfo)} that is not exportable");
-
-    /// <summary>
-    /// Gets associated resource key for this object.
-    /// </summary>
-    /// <returns>Resource key.</returns>
-    public RK ToKey() => new(File, Path, InArtifactFolder);
 }

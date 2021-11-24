@@ -13,7 +13,7 @@ public abstract partial class ArtifactTool : IDisposable, IAsyncFinder<ArtifactD
     /// <summary>
     /// Log handler for this tool.
     /// </summary>
-    public ILogHandler? LogHandler;
+    public IToolLogHandler? LogHandler;
 
     /// <summary>
     /// Option used to check if currently in debug mode.
@@ -123,7 +123,7 @@ public abstract partial class ArtifactTool : IDisposable, IAsyncFinder<ArtifactD
     protected void GetOptionOrExcept<T>(string optKey, out T value)
     {
         if (!(Profile.Options?.TryGetValue(optKey, out JsonElement vv) ?? false)) throw new ArtifactToolOptionNotFoundException(optKey);
-        value = vv.Deserialize<T>(ArtJsonOptions.JsonOptions)!;
+        value = vv.Deserialize<T>(ArtJsonOptions.s_jsonOptions)!;
     }
 
     /// <summary>
@@ -140,7 +140,7 @@ public abstract partial class ArtifactTool : IDisposable, IAsyncFinder<ArtifactD
         {
             try
             {
-                value = vv.Deserialize<T>(ArtJsonOptions.JsonOptions)!;
+                value = vv.Deserialize<T>(ArtJsonOptions.s_jsonOptions)!;
                 return true;
             }
             catch (JsonException)
@@ -201,6 +201,14 @@ public abstract partial class ArtifactTool : IDisposable, IAsyncFinder<ArtifactD
         => await _registrationManager.TryGetArtifactAsync(new ArtifactKey(Profile.Tool, Profile.Group, id)).ConfigureAwait(false);
 
     /// <summary>
+    /// Attempts to get info for the artifact with the specified ID.
+    /// </summary>
+    /// <param name="key">Artifact key.</param>
+    /// <returns>Task returning retrieved artifact, if it exists.</returns>
+    protected async ValueTask<ArtifactInfo?> TryGetArtifactAsync(ArtifactKey key)
+        => await _registrationManager.TryGetArtifactAsync(key).ConfigureAwait(false);
+
+    /// <summary>
     /// Tests if artifact is recognizably new.
     /// </summary>
     /// <param name="artifactInfo">Artifact to check.</param>
@@ -216,25 +224,53 @@ public abstract partial class ArtifactTool : IDisposable, IAsyncFinder<ArtifactD
     /// Outputs a text file for the specified artifact.
     /// </summary>
     /// <param name="text">Text to output.</param>
+    /// <param name="key">Resource key.</param>
+    /// <returns>Task.</returns>
+    protected async ValueTask OutputTextAsync(string text, ArtifactResourceKey key)
+    => await _dataManager.OutputTextAsync(text, key).ConfigureAwait(false);
+
+    /// <summary>
+    /// Outputs a text file for the specified artifact.
+    /// </summary>
+    /// <param name="text">Text to output.</param>
     /// <param name="file">Target filename.</param>
-    /// <param name="artifactInfo">Artifact target.</param>
+    /// <param name="key">Artifact key.</param>
     /// <param name="path">File path to prepend.</param>
     /// <param name="inArtifactFolder">If false, place artifact under common root.</param>
     /// <returns>Task.</returns>
-    protected async ValueTask OutputTextAsync(string text, string file, ArtifactInfo artifactInfo, string? path = null, bool inArtifactFolder = true)
-    => await _dataManager.OutputTextAsync(text, file, artifactInfo, path, inArtifactFolder).ConfigureAwait(false);
+    protected async ValueTask OutputTextAsync(string text, string file, ArtifactKey key, string? path = null, bool inArtifactFolder = true)
+    => await OutputTextAsync(text, ArtifactResourceKey.Create(key, file, path, inArtifactFolder)).ConfigureAwait(false);
+
+    /// <summary>
+    /// Outputs a JSON-serialized file for the specified artifact.
+    /// </summary>
+    /// <param name="data">Data to output.</param>
+    /// <param name="key">Resource key.</param>
+    /// <returns>Task.</returns>
+    protected async ValueTask OutputJsonAsync<T>(T data, ArtifactResourceKey key)
+        => await _dataManager.OutputJsonAsync<T>(data, JsonOptions, key).ConfigureAwait(false);
 
     /// <summary>
     /// Outputs a JSON-serialized file for the specified artifact.
     /// </summary>
     /// <param name="data">Data to output.</param>
     /// <param name="file">Target filename.</param>
-    /// <param name="artifactInfo">Artifact target.</param>
+    /// <param name="key">Artifact key.</param>
     /// <param name="path">File path to prepend.</param>
     /// <param name="inArtifactFolder">If false, place artifact under common root.</param>
     /// <returns>Task.</returns>
-    protected async ValueTask OutputJsonAsync<T>(T data, string file, ArtifactInfo artifactInfo, string? path = null, bool inArtifactFolder = true)
-        => await _dataManager.OutputJsonAsync<T>(data, JsonOptions, file, artifactInfo, path, inArtifactFolder).ConfigureAwait(false);
+    protected async ValueTask OutputJsonAsync<T>(T data, string file, ArtifactKey key, string? path = null, bool inArtifactFolder = true)
+        => await OutputJsonAsync<T>(data, JsonOptions, ArtifactResourceKey.Create(key, file, path, inArtifactFolder)).ConfigureAwait(false);
+
+    /// <summary>
+    /// Outputs a JSON-serialized file for the specified artifact.
+    /// </summary>
+    /// <param name="data">Data to output.</param>
+    /// <param name="jsonSerializerOptions">Serialization options.</param>
+    /// <param name="key">Resource key.</param>
+    /// <returns>Task.</returns>
+    protected async ValueTask OutputJsonAsync<T>(T data, JsonSerializerOptions jsonSerializerOptions, ArtifactResourceKey key)
+        => await _dataManager.OutputJsonAsync<T>(data, jsonSerializerOptions, key).ConfigureAwait(false);
 
     /// <summary>
     /// Outputs a JSON-serialized file for the specified artifact.
@@ -242,23 +278,31 @@ public abstract partial class ArtifactTool : IDisposable, IAsyncFinder<ArtifactD
     /// <param name="data">Data to output.</param>
     /// <param name="jsonSerializerOptions">Serialization options.</param>
     /// <param name="file">Target filename.</param>
-    /// <param name="artifactInfo">Artifact target.</param>
+    /// <param name="key">Artifact key.</param>
     /// <param name="path">File path to prepend.</param>
     /// <param name="inArtifactFolder">If false, place artifact under common root.</param>
     /// <returns>Task.</returns>
-    protected async ValueTask OutputJsonAsync<T>(T data, JsonSerializerOptions jsonSerializerOptions, string file, ArtifactInfo artifactInfo, string? path = null, bool inArtifactFolder = true)
-        => await _dataManager.OutputJsonAsync<T>(data, jsonSerializerOptions, file, artifactInfo, path, inArtifactFolder).ConfigureAwait(false);
+    protected async ValueTask OutputJsonAsync<T>(T data, JsonSerializerOptions jsonSerializerOptions, string file, ArtifactKey key, string? path = null, bool inArtifactFolder = true)
+        => await OutputJsonAsync<T>(data, jsonSerializerOptions, ArtifactResourceKey.Create(key, file, path, inArtifactFolder)).ConfigureAwait(false);
+
+    /// <summary>
+    /// Creates an output stream for a file for the specified artifact.
+    /// </summary>
+    /// <param name="key">Resource key.</param>
+    /// <returns>Task returning a writeable stream to write an output to.</returns>
+    protected ValueTask<Stream> CreateOutputStreamAsync(ArtifactResourceKey key)
+        => _dataManager.CreateOutputStreamAsync(key);
 
     /// <summary>
     /// Creates an output stream for a file for the specified artifact.
     /// </summary>
     /// <param name="file">Target filename.</param>
-    /// <param name="artifactInfo">Artifact target.</param>
+    /// <param name="key">Artifact key.</param>
     /// <param name="path">File path to prepend.</param>
     /// <param name="inArtifactFolder">If false, place artifact under common root.</param>
     /// <returns>Task returning a writeable stream to write an output to.</returns>
-    protected ValueTask<Stream> CreateOutputStreamAsync(string file, ArtifactInfo artifactInfo, string? path = null, bool inArtifactFolder = true)
-        => _dataManager.CreateOutputStreamAsync(file, artifactInfo, path, inArtifactFolder);
+    protected ValueTask<Stream> CreateOutputStreamAsync(string file, ArtifactKey key, string? path = null, bool inArtifactFolder = true)
+        => CreateOutputStreamAsync(ArtifactResourceKey.Create(key, file, path, inArtifactFolder));
 
     #endregion
 

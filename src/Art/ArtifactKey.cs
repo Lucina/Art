@@ -1,7 +1,7 @@
 ﻿namespace Art;
 
 /// <summary>
-/// Represents a key for an artifact..
+/// Represents a key for an artifact.
 /// </summary>
 /// <param name="Tool">Tool id.</param>
 /// <param name="Group">Group.</param>

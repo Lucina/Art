@@ -12,16 +12,18 @@ public static class ArtifactDumping
     /// </summary>
     /// <param name="artifactToolProfilePath">Path to tool profile.</param>
     /// <param name="targetDirectory">Base directory.</param>
+    /// <param name="options">Runtime tool options.</param>
     /// <returns>Task.</returns>
     /// <exception cref="ArtifactToolNotFoundException"></exception>
-    public static async Task DumpAsync(string artifactToolProfilePath, string targetDirectory)
+    public static async Task DumpAsync(string artifactToolProfilePath, string targetDirectory, ArtifactToolRuntimeOptions? options = null)
     {
         JsonElement element = ArtExtensions.LoadFromFile<JsonElement>(artifactToolProfilePath);
+        options ??= new ArtifactToolRuntimeOptions();
         if (element.ValueKind == JsonValueKind.Object)
-            await DumpAsync(element.Deserialize<ArtifactToolProfile>(ArtJsonOptions.JsonOptions)!, targetDirectory).ConfigureAwait(false);
+            await DumpAsync(element.Deserialize<ArtifactToolProfile>(ArtJsonOptions.s_jsonOptions)!, targetDirectory, options).ConfigureAwait(false);
         else
-            foreach (ArtifactToolProfile profile in element.Deserialize<List<ArtifactToolProfile>>(ArtJsonOptions.JsonOptions)!)
-                await DumpAsync(profile, targetDirectory).ConfigureAwait(false);
+            foreach (ArtifactToolProfile profile in element.Deserialize<List<ArtifactToolProfile>>(ArtJsonOptions.s_jsonOptions)!)
+                await DumpAsync(profile, targetDirectory, options).ConfigureAwait(false);
     }
 
     /// <summary>
@@ -29,16 +31,17 @@ public static class ArtifactDumping
     /// </summary>
     /// <param name="artifactToolProfile">Tool profile.</param>
     /// <param name="targetDirectory">Base directory.</param>
+    /// <param name="options">Runtime tool options.</param>
     /// <returns>Task.</returns>
     /// <exception cref="ArtifactToolNotFoundException"></exception>
-    public static async Task DumpAsync(ArtifactToolProfile artifactToolProfile, string targetDirectory)
+    public static async Task DumpAsync(ArtifactToolProfile artifactToolProfile, string targetDirectory, ArtifactToolRuntimeOptions? options = null)
     {
         if (artifactToolProfile.Group == null) throw new IOException("Group not specified in profile");
         if (!ArtifactToolLoader.TryLoad(artifactToolProfile, out ArtifactTool? t))
             throw new ArtifactToolNotFoundException(artifactToolProfile.Tool);
         var srm = new DiskArtifactRegistrationManager(targetDirectory);
         var sdm = new DiskArtifactDataManager(targetDirectory);
-        ArtifactToolRuntimeConfig config = new(srm, sdm, artifactToolProfile);
+        ArtifactToolRuntimeConfig config = new(srm, sdm, artifactToolProfile, options ?? new ArtifactToolRuntimeOptions());
         using ArtifactTool? tool = t;
         tool.LogHandler = ConsoleLogHandler.Default;
         await tool.ConfigureAsync(config).ConfigureAwait(false);

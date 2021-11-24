@@ -30,8 +30,9 @@ public partial class ArtifactTool
         {
             InMemoryArtifactDataManager im = new();
             await DoDumpAsync().ConfigureAwait(false);
-            foreach ((ArtifactInfo info, List<ArtifactResourceInfo> resources) in im.Artifacts)
+            foreach ((ArtifactKey ak, List<ArtifactResourceInfo> resources) in im.Artifacts)
             {
+                if (await TryGetArtifactAsync(ak).ConfigureAwait(false) is not { } info) continue;
                 ArtifactData data = new(info);
                 data.AddRange(resources);
                 yield return data;
@@ -45,31 +46,32 @@ public partial class ArtifactTool
 
     private class InMemoryArtifactDataManager : ArtifactDataManager
     {
-        public IReadOnlyDictionary<ArtifactInfo, List<ArtifactResourceInfo>> Artifacts => _artifacts;
+        public IReadOnlyDictionary<ArtifactKey, List<ArtifactResourceInfo>> Artifacts => _artifacts;
 
-        private readonly Dictionary<ArtifactInfo, List<ArtifactResourceInfo>> _artifacts = new();
-        public IReadOnlyDictionary<DataEntryKey, ResultStream> Entries => _entries;
+        private readonly Dictionary<ArtifactKey, List<ArtifactResourceInfo>> _artifacts = new();
+        public IReadOnlyDictionary<ArtifactResourceKey, ResultStream> Entries => _entries;
 
-        private readonly Dictionary<DataEntryKey, ResultStream> _entries = new();
+        private readonly Dictionary<ArtifactResourceKey, ResultStream> _entries = new();
 
-        public override ValueTask<Stream> CreateOutputStreamAsync(string file, ArtifactInfo artifactInfo, string? path = null, bool inArtifactFolder = true)
+        public override ValueTask<Stream> CreateOutputStreamAsync(ArtifactResourceKey key)
         {
-            DataEntryKey entry = new(file, artifactInfo, path, inArtifactFolder);
-            if (_entries.TryGetValue(entry, out ResultStream? stream))
+            if (_entries.TryGetValue(key, out ResultStream? stream))
             {
                 stream.SetLength(0);
                 return new(stream);
             }
             stream = new ResultStream();
-            if (!_artifacts.TryGetValue(artifactInfo, out List<ArtifactResourceInfo>? list))
-                _artifacts.Add(artifactInfo, list = new List<ArtifactResourceInfo>());
-            list.Add(new ResultStreamArtifactResourceInfo(stream, artifactInfo.Key, file, path, inArtifactFolder, ArtifactResourceInfo.EmptyProperties));
-            _entries.Add(entry, stream);
+            ArtifactKey ak = key.Artifact;
+            if (!_artifacts.TryGetValue(ak, out List<ArtifactResourceInfo>? list))
+                _artifacts.Add(ak, list = new List<ArtifactResourceInfo>());
+            list.Add(new ResultStreamArtifactResourceInfo(stream, key, null, ArtifactResourceInfo.EmptyProperties));
+            _entries.Add(key, stream);
             return new(stream);
         }
     }
 
-    private record ResultStreamArtifactResourceInfo(Stream Resource, ArtifactKey Key, string File, string? Path, bool InArtifactFolder, IReadOnlyDictionary<string, JsonElement> Properties) : StreamArtifactResourceInfo(Resource, Key, File, Path, InArtifactFolder, Properties)
+    private record ResultStreamArtifactResourceInfo(Stream Resource, ArtifactResourceKey Key, string? Version, IReadOnlyDictionary<string, JsonElement> Properties)
+        : StreamArtifactResourceInfo(Resource, Key, Version, Properties)
     {
         public override async ValueTask ExportAsync(Stream stream)
         {
@@ -98,8 +100,6 @@ public partial class ArtifactTool
         public override void SetLength(long value) => BaseStream.SetLength(value);
         public override void Write(byte[] buffer, int offset, int count) => BaseStream.Write(buffer, offset, count);
     }
-
-    private record struct DataEntryKey(string File, ArtifactInfo ArtifactInfo, string? Path, bool InArtifactFolder);
 
     /// <summary>
     /// Lists artifacts.

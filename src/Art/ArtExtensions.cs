@@ -14,7 +14,7 @@ public static class ArtExtensions
     /// <typeparam name="T">Data type.</typeparam>
     /// <param name="stream">Stream to load from.</param>
     /// <returns>Read data.</returns>
-    public static T LoadFromUtf8Stream<T>(Stream stream) => JsonSerializer.Deserialize<T>(stream, ArtJsonOptions.JsonOptions)!;
+    public static T LoadFromUtf8Stream<T>(Stream stream) => JsonSerializer.Deserialize<T>(stream, ArtJsonOptions.s_jsonOptions)!;
 
     /// <summary>
     /// Loads an object from a UTF-8 JSON stream.
@@ -22,7 +22,7 @@ public static class ArtExtensions
     /// <typeparam name="T">Data type.</typeparam>
     /// <param name="stream">Stream to load from.</param>
     /// <returns>Task returning read data.</returns>
-    public static async ValueTask<T> LoadFromUtf8StreamAsync<T>(Stream stream) => (await JsonSerializer.DeserializeAsync<T>(stream, ArtJsonOptions.JsonOptions).ConfigureAwait(false))!;
+    public static async ValueTask<T> LoadFromUtf8StreamAsync<T>(Stream stream) => (await JsonSerializer.DeserializeAsync<T>(stream, ArtJsonOptions.s_jsonOptions).ConfigureAwait(false))!;
 
     /// <summary>
     /// Loads an object from a JSON file.
@@ -30,7 +30,7 @@ public static class ArtExtensions
     /// <typeparam name="T">Data type.</typeparam>
     /// <param name="file">File path to load from.</param>
     /// <returns>Read data.</returns>
-    public static T LoadFromFile<T>(string file) => JsonSerializer.Deserialize<T>(File.ReadAllText(file), ArtJsonOptions.JsonOptions)!;
+    public static T LoadFromFile<T>(string file) => JsonSerializer.Deserialize<T>(File.ReadAllText(file), ArtJsonOptions.s_jsonOptions)!;
 
     /// <summary>
     /// Loads an object from a JSON file.
@@ -38,7 +38,7 @@ public static class ArtExtensions
     /// <typeparam name="T">Data type.</typeparam>
     /// <param name="file">File path to load from.</param>
     /// <returns>Task returning ead data.</returns>
-    public static async ValueTask<T> LoadFromFileAsync<T>(string file) => JsonSerializer.Deserialize<T>(await File.ReadAllTextAsync(file).ConfigureAwait(false), ArtJsonOptions.JsonOptions)!;
+    public static async ValueTask<T> LoadFromFileAsync<T>(string file) => JsonSerializer.Deserialize<T>(await File.ReadAllTextAsync(file).ConfigureAwait(false), ArtJsonOptions.s_jsonOptions)!;
 
     /// <summary>
     /// Writes an object to a JSON file.

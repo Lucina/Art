@@ -409,19 +409,28 @@ public abstract class HttpArtifactTool : ArtifactTool
     /// Downloads a resource.
     /// </summary>
     /// <param name="requestUri">Uri to download from.</param>
-    /// <param name="file">Target filename.</param>
-    /// <param name="artifactInfo">Target artifact.</param>
-    /// <param name="path">File path to prepend.</param>
-    /// <param name="inArtifactFolder">If false, place artifact under common root.</param>
+    /// <param name="key">Resource key.</param>
     /// <returns>Task.</returns>
-    protected async ValueTask DownloadResourceAsync(string requestUri, string file, ArtifactInfo artifactInfo, string? path = null, bool inArtifactFolder = true)
+    protected async ValueTask DownloadResourceAsync(string requestUri, ArtifactResourceKey key)
     {
         NotDisposed();
         using HttpResponseMessage? fr = await HttpClient.GetAsync(requestUri).ConfigureAwait(false);
         fr.EnsureSuccessStatusCode();
-        await using Stream stream = await CreateOutputStreamAsync(file, artifactInfo, path, inArtifactFolder).ConfigureAwait(false);
+        await using Stream stream = await CreateOutputStreamAsync(key).ConfigureAwait(false);
         await fr.Content.CopyToAsync(stream).ConfigureAwait(false);
     }
+
+    /// <summary>
+    /// Downloads a resource.
+    /// </summary>
+    /// <param name="requestUri">Uri to download from.</param>
+    /// <param name="file">Target filename.</param>
+    /// <param name="key">Artifact key.</param>
+    /// <param name="path">File path to prepend.</param>
+    /// <param name="inArtifactFolder">If false, place artifact under common root.</param>
+    /// <returns>Task.</returns>
+    protected ValueTask DownloadResourceAsync(string requestUri, string file, ArtifactKey key, string? path = null, bool inArtifactFolder = true)
+        => DownloadResourceAsync(requestUri, ArtifactResourceKey.Create(key, file, path, inArtifactFolder));
 
     /// <summary>
     /// Downloads a resource.
@@ -441,19 +450,28 @@ public abstract class HttpArtifactTool : ArtifactTool
     /// Downloads a resource.
     /// </summary>
     /// <param name="requestUri"><see cref="Uri"/> to download from.</param>
-    /// <param name="file">Target filename.</param>
-    /// <param name="artifactInfo">Target artifact.</param>
-    /// <param name="path">File path to prepend.</param>
-    /// <param name="inArtifactFolder">If false, place artifact under common root.</param>
+    /// <param name="key">Resource key.</param>
     /// <returns>Task.</returns>
-    protected async ValueTask DownloadResourceAsync(Uri requestUri, string file, ArtifactInfo artifactInfo, string? path = null, bool inArtifactFolder = true)
+    protected async ValueTask DownloadResourceAsync(Uri requestUri, ArtifactResourceKey key)
     {
         NotDisposed();
         using HttpResponseMessage? fr = await HttpClient.GetAsync(requestUri).ConfigureAwait(false);
         fr.EnsureSuccessStatusCode();
-        await using Stream stream = await CreateOutputStreamAsync(file, artifactInfo, path, inArtifactFolder).ConfigureAwait(false);
+        await using Stream stream = await CreateOutputStreamAsync(key).ConfigureAwait(false);
         await fr.Content.CopyToAsync(stream).ConfigureAwait(false);
     }
+
+    /// <summary>
+    /// Downloads a resource.
+    /// </summary>
+    /// <param name="requestUri"><see cref="Uri"/> to download from.</param>
+    /// <param name="file">Target filename.</param>
+    /// <param name="key">Artifact key.</param>
+    /// <param name="path">File path to prepend.</param>
+    /// <param name="inArtifactFolder">If false, place artifact under common root.</param>
+    /// <returns>Task.</returns>
+    protected ValueTask DownloadResourceAsync(Uri requestUri, string file, ArtifactKey key, string? path = null, bool inArtifactFolder = true)
+        => DownloadResourceAsync(requestUri, ArtifactResourceKey.Create(key, file, path, inArtifactFolder));
 
     /// <summary>
     /// Downloads a resource.
@@ -473,19 +491,28 @@ public abstract class HttpArtifactTool : ArtifactTool
     /// Downloads a resource.
     /// </summary>
     /// <param name="requestMessage">Request to send.</param>
-    /// <param name="file">Target filename.</param>
-    /// <param name="artifactInfo">Target artifact.</param>
-    /// <param name="path">File path to prepend.</param>
-    /// <param name="inArtifactFolder">If false, place artifact under common root.</param>
+    /// <param name="key">Resource key.</param>
     /// <returns>Task.</returns>
-    protected async ValueTask DownloadResourceAsync(HttpRequestMessage requestMessage, string file, ArtifactInfo artifactInfo, string? path = null, bool inArtifactFolder = true)
+    protected async ValueTask DownloadResourceAsync(HttpRequestMessage requestMessage, ArtifactResourceKey key)
     {
         NotDisposed();
         using HttpResponseMessage? fr = await HttpClient.SendAsync(requestMessage).ConfigureAwait(false);
         fr.EnsureSuccessStatusCode();
-        await using Stream stream = await CreateOutputStreamAsync(file, artifactInfo, path, inArtifactFolder).ConfigureAwait(false);
+        await using Stream stream = await CreateOutputStreamAsync(key).ConfigureAwait(false);
         await fr.Content.CopyToAsync(stream).ConfigureAwait(false);
     }
+
+    /// <summary>
+    /// Downloads a resource.
+    /// </summary>
+    /// <param name="requestMessage">Request to send.</param>
+    /// <param name="file">Target filename.</param>
+    /// <param name="key">Artifact key.</param>
+    /// <param name="path">File path to prepend.</param>
+    /// <param name="inArtifactFolder">If false, place artifact under common root.</param>
+    /// <returns>Task.</returns>
+    protected ValueTask DownloadResourceAsync(HttpRequestMessage requestMessage, string file, ArtifactKey key, string? path = null, bool inArtifactFolder = true)
+        => DownloadResourceAsync(requestMessage, ArtifactResourceKey.Create(key, file, path, inArtifactFolder));
 
     #endregion
 
