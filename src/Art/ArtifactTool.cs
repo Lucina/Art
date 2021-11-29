@@ -168,6 +168,70 @@ public abstract partial class ArtifactTool : IDisposable, IAsyncFinder<ArtifactD
     protected bool GetFlagTrue(string optKey, bool throwIfIncorrectType = false)
         => TryGetOption(optKey, out bool? value, throwIfIncorrectType) && value.Value;
 
+    /// <summary>
+    /// Gets an string option from a string value, or take value from <see cref="ArtifactToolProfile.Group"/>.
+    /// </summary>
+    /// <param name="optKey">Key to search.</param>
+    /// <returns>Option value.</returns>
+    protected string GetStringOptionOrGroup(string optKey)
+    {
+        return TryGetOption(optKey, out string? optValue) ? optValue : Profile.Group;
+    }
+
+    /// <summary>
+    /// Gets an Int64 option from a string or literal value, or parses value from <see cref="ArtifactToolProfile.Group"/>.
+    /// </summary>
+    /// <param name="optKey">Key to search.</param>
+    /// <returns>Option value.</returns>
+    protected long GetInt64OptionOrGroup(string optKey)
+    {
+        return TryGetInt64Option(optKey, out long? optValue) ? optValue.Value : long.Parse(Profile.Group);
+    }
+
+    /// <summary>
+    /// Gets an UInt64 option from a string or literal value, or parses value from <see cref="ArtifactToolProfile.Group"/>.
+    /// </summary>
+    /// <param name="optKey">Key to search.</param>
+    /// <returns>Option value.</returns>
+    protected ulong GetUInt64OptionOrGroup(string optKey)
+    {
+        return TryGetUInt64Option(optKey, out ulong? optValue) ? optValue.Value : ulong.Parse(Profile.Group);
+    }
+
+    /// <summary>
+    /// Attempts to get an Int64 option from a string or literal value.
+    /// </summary>
+    /// <param name="optKey">Key to search.</param>
+    /// <param name="value">Value, if located and nonnull.</param>
+    /// <returns>True if found.</returns>
+    protected bool TryGetInt64Option(string optKey, [NotNullWhen(true)] out long? value)
+    {
+        if (TryGetOption(optKey, out value)) return true;
+        if (TryGetOption(optKey, out string? valueStr) && long.TryParse(valueStr, out long valueParsed))
+        {
+            value = valueParsed;
+            return true;
+        }
+        return false;
+    }
+
+    /// <summary>
+    /// Attempts to get an UInt64 option from a string or literal value.
+    /// </summary>
+    /// <param name="optKey">Key to search.</param>
+    /// <param name="value">Value, if located and nonnull.</param>
+    /// <returns>True if found.</returns>
+    protected bool TryGetUInt64Option(string optKey, [NotNullWhen(true)] out ulong? value)
+    {
+        if (TryGetOption(optKey, out value)) return true;
+        if (TryGetOption(optKey, out string? valueStr) && ulong.TryParse(valueStr, out ulong valueParsed))
+        {
+            value = valueParsed;
+            return true;
+        }
+        return false;
+    }
+
     #endregion
 
     #region Artifact management

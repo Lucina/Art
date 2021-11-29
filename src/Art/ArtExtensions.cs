@@ -127,4 +127,23 @@ public static class ArtExtensions
             res[artifactData.Info.Key.Id] = artifactData;
         return res;
     }
+
+    /// <summary>
+    /// Takes up to a specified number of elements from an enumerator.
+    /// </summary>
+    /// <typeparam name="T">Element type.</typeparam>
+    /// <param name="enumerator">Enumerator.</param>
+    /// <param name="collection">Collection to populate.</param>
+    /// <param name="max">Maximum number of elements to take.</param>
+    /// <returns>True if any elements were taken (false if no more enumerator elements remained).</returns>
+    public static bool DoTake<T>(this IEnumerator<T> enumerator, ICollection<T> collection, int max)
+    {
+        bool any = false;
+        while (max-- > 0 && enumerator.MoveNext())
+        {
+            collection.Add(enumerator.Current);
+            any = true;
+        }
+        return any;
+    }
 }
