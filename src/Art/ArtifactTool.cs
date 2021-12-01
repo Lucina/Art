@@ -480,10 +480,9 @@ public abstract partial class ArtifactTool : IDisposable, IAsyncFinder<ArtifactD
     /// <summary>
     /// Delays this operation for <see cref="DelaySeconds"/> seconds, after the first call to this method.
     /// </summary>
-    /// <param name="delaySeconds">Delay in seconds.</param>
     /// <param name="cancellationToken">Cancellation token.</param>
     /// <returns>Task.</returns>
-    protected Task DelayAfterFirstAsync(double? delaySeconds = null, CancellationToken? cancellationToken = null)
+    protected Task DelayAfterFirstAsync(CancellationToken cancellationToken = default)
         => DelayAfterFirstAsync(DelaySeconds, cancellationToken);
 
     /// <summary>
