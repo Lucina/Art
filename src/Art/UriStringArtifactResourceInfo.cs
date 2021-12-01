@@ -33,16 +33,16 @@ public record UriStringArtifactResourceInfo(HttpArtifactTool ArtifactTool, strin
     public override bool Exportable => true;
 
     /// <inheritdoc/>
-    public override ValueTask ExportAsync(Stream stream)
-        => ArtifactTool.DownloadResourceAsync(Uri, stream, Origin, Referrer);
+    public override ValueTask ExportAsync(Stream stream, CancellationToken cancellationToken = default)
+        => ArtifactTool.DownloadResourceAsync(Uri, stream, Origin, Referrer, cancellationToken);
 
     /// <inheritdoc/>
     public override bool Queryable => true;
 
     /// <inheritdoc/>
-    public override async ValueTask<string?> QueryVersionAsync()
+    public override async ValueTask<string?> QueryVersionAsync(CancellationToken cancellationToken = default)
     {
-        HttpResponseMessage rsp = await ArtifactTool.HeadAsync(Uri, Origin, Referrer).ConfigureAwait(false);
+        HttpResponseMessage rsp = await ArtifactTool.HeadAsync(Uri, Origin, Referrer, cancellationToken).ConfigureAwait(false);
         rsp.EnsureSuccessStatusCode();
         return rsp.Headers.ETag?.Tag;
     }

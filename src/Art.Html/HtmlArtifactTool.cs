@@ -47,9 +47,9 @@ public abstract class HtmlArtifactTool : HttpArtifactTool
     #region Configuration
 
     /// <inheritdoc/>
-    public override async Task ConfigureAsync(ArtifactToolRuntimeConfig runtimeConfig)
+    public override async Task ConfigureAsync(ArtifactToolRuntimeConfig runtimeConfig, CancellationToken cancellationToken = default)
     {
-        await base.ConfigureAsync(runtimeConfig);
+        await base.ConfigureAsync(runtimeConfig, cancellationToken);
         IConfiguration configuration = Configuration.Default.WithOnly<ICookieProvider>(new OpenMemoryCookieProvider(HttpClientHandler.CookieContainer));
         _browser = BrowsingContext.New(configuration);
     }
@@ -62,33 +62,36 @@ public abstract class HtmlArtifactTool : HttpArtifactTool
     /// Opens a new document loaded from the provided address.
     /// </summary>
     /// <param name="address">Address to load.</param>
+    /// <param name="cancellationToken">Cancellation token.</param>
     /// <returns>Task returning the loaded document.</returns>
-    protected async Task<IDocument> OpenAsync(string address)
+    protected async Task<IDocument> OpenAsync(string address, CancellationToken cancellationToken = default)
     {
         NotDisposed();
-        return Document = await Browser.OpenAsync(address).ConfigureAwait(false);
+        return Document = await Browser.OpenAsync(address, cancellation: cancellationToken).ConfigureAwait(false);
     }
 
     /// <summary>
     /// Opens a new document loaded from the provided address.
     /// </summary>
     /// <param name="address">Address to load.</param>
+    /// <param name="cancellationToken">Cancellation token.</param>
     /// <returns>Task returning the loaded document.</returns>
-    protected async Task<IDocument> OpenAsync(Url address)
+    protected async Task<IDocument> OpenAsync(Url address, CancellationToken cancellationToken = default)
     {
         NotDisposed();
-        return Document = await Browser.OpenAsync(address).ConfigureAwait(false);
+        return Document = await Browser.OpenAsync(address, cancel: cancellationToken).ConfigureAwait(false);
     }
 
     /// <summary>
     /// Opens a new document loaded from the provided request.
     /// </summary>
     /// <param name="request">Request to load.</param>
+    /// <param name="cancellationToken">Cancellation token.</param>
     /// <returns>Task returning the loaded document.</returns>
-    protected async Task<IDocument> OpenAsync(DocumentRequest request)
+    protected async Task<IDocument> OpenAsync(DocumentRequest request, CancellationToken cancellationToken = default)
     {
         NotDisposed();
-        return Document = await Browser.OpenAsync(request).ConfigureAwait(false);
+        return Document = await Browser.OpenAsync(request, cancel: cancellationToken).ConfigureAwait(false);
     }
 
     /// <summary>
@@ -151,29 +154,32 @@ public abstract class HtmlArtifactTool : HttpArtifactTool
     /// Sends an HTTP HEAD request.
     /// </summary>
     /// <param name="url">Request.</param>
+    /// <param name="cancellationToken">Cancellation token.</param>
     /// <returns>Task returning response.</returns>
-    protected Task<HttpResponseMessage> HeadAsync(Url url)
-        => HeadAsync(url.ToUri());
+    protected Task<HttpResponseMessage> HeadAsync(Url url, CancellationToken cancellationToken = default)
+        => HeadAsync(url.ToUri(), cancellationToken: cancellationToken);
 
     /// <summary>
     /// Sends an HTTP GET request.
     /// </summary>
     /// <param name="url">Request.</param>
+    /// <param name="cancellationToken">Cancellation token.</param>
     /// <returns>Task returning response.</returns>
-    protected Task<HttpResponseMessage> GetAsync(Url url)
-        => GetAsync(url.ToUri());
+    protected Task<HttpResponseMessage> GetAsync(Url url, CancellationToken cancellationToken = default)
+        => GetAsync(url.ToUri(), cancellationToken: cancellationToken);
 
     /// <summary>
     /// Retrieve deserialized JSON using a <see cref="Url"/>.
     /// </summary>
     /// <typeparam name="T">Data type.</typeparam>
     /// <param name="url">Request URL.</param>
+    /// <param name="cancellationToken">Cancellation token.</param>
     /// <returns>Task returning deserialized data.</returns>
     /// <remarks>
     /// This overload usees <see cref="ArtifactTool.JsonOptions"/> member automatically.
     /// </remarks>
-    protected Task<T> GetDeserializedJsonAsync<T>(Url url)
-        => GetDeserializedJsonAsync<T>(url.ToUri());
+    protected Task<T> GetDeserializedJsonAsync<T>(Url url, CancellationToken cancellationToken = default)
+        => GetDeserializedJsonAsync<T>(url.ToUri(), cancellationToken: cancellationToken);
 
     /// <summary>
     /// Retrieve deserialized JSON using a <see cref="Url"/> and <see cref="JsonSerializerOptions"/>.
@@ -181,9 +187,10 @@ public abstract class HtmlArtifactTool : HttpArtifactTool
     /// <typeparam name="T">Data type.</typeparam>
     /// <param name="url">Request URL.</param>
     /// <param name="jsonSerializerOptions">Optional deserialization options.</param>
+    /// <param name="cancellationToken">Cancellation token.</param>
     /// <returns>Task returning deserialized data.</returns>
-    protected Task<T> GetDeserializedJsonAsync<T>(Url url, JsonSerializerOptions? jsonSerializerOptions)
-        => GetDeserializedJsonAsync<T>(url.ToUri(), jsonSerializerOptions);
+    protected Task<T> GetDeserializedJsonAsync<T>(Url url, JsonSerializerOptions? jsonSerializerOptions, CancellationToken cancellationToken = default)
+        => GetDeserializedJsonAsync<T>(url.ToUri(), jsonSerializerOptions, cancellationToken: cancellationToken);
 
     #endregion
 

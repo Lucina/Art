@@ -21,8 +21,9 @@ public static class ArtExtensions
     /// </summary>
     /// <typeparam name="T">Data type.</typeparam>
     /// <param name="stream">Stream to load from.</param>
+    /// <param name="cancellationToken">Cancellation token.</param>
     /// <returns>Task returning read data.</returns>
-    public static async ValueTask<T> LoadFromUtf8StreamAsync<T>(Stream stream) => (await JsonSerializer.DeserializeAsync<T>(stream, ArtJsonOptions.s_jsonOptions).ConfigureAwait(false))!;
+    public static async ValueTask<T> LoadFromUtf8StreamAsync<T>(Stream stream, CancellationToken cancellationToken = default) => (await JsonSerializer.DeserializeAsync<T>(stream, ArtJsonOptions.s_jsonOptions, cancellationToken).ConfigureAwait(false))!;
 
     /// <summary>
     /// Loads an object from a JSON file.
@@ -37,8 +38,9 @@ public static class ArtExtensions
     /// </summary>
     /// <typeparam name="T">Data type.</typeparam>
     /// <param name="file">File path to load from.</param>
+    /// <param name="cancellationToken">Cancellation token.</param>
     /// <returns>Task returning ead data.</returns>
-    public static async ValueTask<T> LoadFromFileAsync<T>(string file) => JsonSerializer.Deserialize<T>(await File.ReadAllTextAsync(file).ConfigureAwait(false), ArtJsonOptions.s_jsonOptions)!;
+    public static async ValueTask<T> LoadFromFileAsync<T>(string file, CancellationToken cancellationToken = default) => JsonSerializer.Deserialize<T>(await File.ReadAllTextAsync(file, cancellationToken).ConfigureAwait(false), ArtJsonOptions.s_jsonOptions)!;
 
     /// <summary>
     /// Writes an object to a JSON file.
@@ -59,11 +61,12 @@ public static class ArtExtensions
     /// <typeparam name="T">Data type.</typeparam>
     /// <param name="value">Value to write.</param>
     /// <param name="file">File path to write to.</param>
+    /// <param name="cancellationToken">Cancellation token.</param>
     /// <returns>Task.</returns>
-    public static async ValueTask WriteToFileAsync<T>(this T value, string file)
+    public static async ValueTask WriteToFileAsync<T>(this T value, string file, CancellationToken cancellationToken = default)
     {
         using FileStream fs = File.Create(file);
-        await JsonSerializer.SerializeAsync(fs, value).ConfigureAwait(false);
+        await JsonSerializer.SerializeAsync(fs, value, cancellationToken: cancellationToken).ConfigureAwait(false);
         return;
     }
 
@@ -74,14 +77,15 @@ public static class ArtExtensions
     /// <param name="url">URL to download from.</param>
     /// <param name="file">File path.</param>
     /// <param name="lengthCheck">Optional length check to skip download.</param>
+    /// <param name="cancellationToken">Cancellation token.</param>
     /// <returns>Task.</returns>
-    public static async ValueTask DownloadResourceToFileAsync(this HttpClient client, string url, string file, long? lengthCheck = null)
+    public static async ValueTask DownloadResourceToFileAsync(this HttpClient client, string url, string file, long? lengthCheck = null, CancellationToken cancellationToken = default)
     {
         if (lengthCheck != null && File.Exists(file) && new FileInfo(file).Length == lengthCheck) return;
-        using HttpResponseMessage? fr = await client.GetAsync(url);
+        using HttpResponseMessage? fr = await client.GetAsync(url, cancellationToken);
         fr.EnsureSuccessStatusCode();
         using FileStream? fs = File.Create(file);
-        await fr.Content.CopyToAsync(fs);
+        await fr.Content.CopyToAsync(fs, cancellationToken);
     }
 
     private static readonly char[] s_invalid = Path.GetInvalidFileNameChars();
@@ -98,11 +102,12 @@ public static class ArtExtensions
     /// </summary>
     /// <typeparam name="T">Element type.</typeparam>
     /// <param name="enumerable">Enumerable to convert to list.</param>
+    /// <param name="cancellationToken">Cancellation token.</param>
     /// <returns>Task returning list.</returns>
-    public static async Task<List<T>> ToListAsync<T>(this IAsyncEnumerable<T> enumerable)
+    public static async Task<List<T>> ToListAsync<T>(this IAsyncEnumerable<T> enumerable, CancellationToken cancellationToken = default)
     {
         List<T> list = new();
-        await foreach (T value in enumerable.ConfigureAwait(false))
+        await foreach (T value in enumerable.WithCancellation(cancellationToken).ConfigureAwait(false))
             list.Add(value);
         return list;
     }
@@ -119,11 +124,12 @@ public static class ArtExtensions
     /// Lists artifacts as key-value pairs of ID to artifact data.
     /// </summary>
     /// <param name="artifactTool">Artifact tool.</param>
+    /// <param name="cancellationToken">Cancellation token.</param>
     /// <returns>Task returning created dictionary.</returns>
-    public static async ValueTask<Dictionary<string, ArtifactData>> ListDictionaryAsync(this ArtifactTool artifactTool)
+    public static async ValueTask<Dictionary<string, ArtifactData>> ListDictionaryAsync(this ArtifactTool artifactTool, CancellationToken cancellationToken = default)
     {
         Dictionary<string, ArtifactData> res = new();
-        await foreach (ArtifactData artifactData in artifactTool.ListAsync().ConfigureAwait(false))
+        await foreach (ArtifactData artifactData in artifactTool.ListAsync(cancellationToken).ConfigureAwait(false))
             res[artifactData.Info.Key.Id] = artifactData;
         return res;
     }

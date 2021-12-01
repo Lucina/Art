@@ -29,8 +29,8 @@ public record JsonArtifactResourceInfo<T>(T Resource, JsonSerializerOptions? Ser
     public override bool Exportable => true;
 
     /// <inheritdoc/>
-    public override async ValueTask ExportAsync(Stream stream)
+    public override async ValueTask ExportAsync(Stream stream, CancellationToken cancellationToken = default)
     {
-        await JsonSerializer.SerializeAsync<T>(stream, Resource, SerializerOptions).ConfigureAwait(false);
+        await JsonSerializer.SerializeAsync<T>(stream, Resource, SerializerOptions, cancellationToken).ConfigureAwait(false);
     }
 }

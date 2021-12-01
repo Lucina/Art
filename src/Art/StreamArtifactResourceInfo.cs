@@ -27,8 +27,8 @@ public record StreamArtifactResourceInfo(Stream Resource, ArtifactResourceKey Ke
     public override bool Exportable => true;
 
     /// <inheritdoc/>
-    public override async ValueTask ExportAsync(Stream stream)
+    public override async ValueTask ExportAsync(Stream stream, CancellationToken cancellationToken = default)
     {
-        await Resource.CopyToAsync(stream).ConfigureAwait(false);
+        await Resource.CopyToAsync(stream, cancellationToken).ConfigureAwait(false);
     }
 }

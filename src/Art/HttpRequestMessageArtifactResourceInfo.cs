@@ -29,6 +29,6 @@ public record HttpRequestMessageArtifactResourceInfo(HttpArtifactTool ArtifactTo
     public override bool Exportable => true;
 
     /// <inheritdoc/>
-    public override ValueTask ExportAsync(Stream stream)
-        => ArtifactTool.DownloadResourceAsync(Request, stream);
+    public override ValueTask ExportAsync(Stream stream, CancellationToken cancellationToken = default)
+        => ArtifactTool.DownloadResourceAsync(Request, stream, cancellationToken);
 }

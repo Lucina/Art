@@ -1,4 +1,5 @@
-﻿using System.Text.Json;
+﻿using System.Runtime.CompilerServices;
+using System.Text.Json;
 
 namespace Art;
 
@@ -18,21 +19,22 @@ public partial class ArtifactTool
     /// <summary>
     /// Lists artifacts.
     /// </summary>
+    /// <param name="cancellationToken">Cancellation token.</param>
     /// <returns>Async-enumerable artifacts.</returns>
-    public async IAsyncEnumerable<ArtifactData> ListAsync()
+    public async IAsyncEnumerable<ArtifactData> ListAsync([EnumeratorCancellation] CancellationToken cancellationToken = default)
     {
         EnsureState();
-        await foreach (ArtifactData res in DoListAsync().ConfigureAwait(false))
+        await foreach (ArtifactData res in DoListAsync(cancellationToken).ConfigureAwait(false))
             yield return res;
         if (_runDataOverridden) yield break;
         ArtifactDataManager previous = _dataManager;
         try
         {
             InMemoryArtifactDataManager im = new();
-            await DoDumpAsync().ConfigureAwait(false);
+            await DoDumpAsync(cancellationToken).ConfigureAwait(false);
             foreach ((ArtifactKey ak, List<ArtifactResourceInfo> resources) in im.Artifacts)
             {
-                if (await TryGetArtifactAsync(ak).ConfigureAwait(false) is not { } info) continue;
+                if (await TryGetArtifactAsync(ak, cancellationToken).ConfigureAwait(false) is not { } info) continue;
                 ArtifactData data = new(info);
                 data.AddRange(resources);
                 yield return data;
@@ -53,7 +55,7 @@ public partial class ArtifactTool
 
         private readonly Dictionary<ArtifactResourceKey, ResultStream> _entries = new();
 
-        public override ValueTask<Stream> CreateOutputStreamAsync(ArtifactResourceKey key)
+        public override ValueTask<Stream> CreateOutputStreamAsync(ArtifactResourceKey key, CancellationToken cancellationToken = default)
         {
             if (_entries.TryGetValue(key, out ResultStream? stream))
             {
@@ -73,10 +75,10 @@ public partial class ArtifactTool
     private record ResultStreamArtifactResourceInfo(Stream Resource, ArtifactResourceKey Key, string? Version, IReadOnlyDictionary<string, JsonElement> Properties)
         : StreamArtifactResourceInfo(Resource, Key, Version, Properties)
     {
-        public override async ValueTask ExportAsync(Stream stream)
+        public override async ValueTask ExportAsync(Stream stream, CancellationToken cancellationToken = default)
         {
             stream.Seek(0, SeekOrigin.Begin);
-            await base.ExportAsync(stream).ConfigureAwait(false);
+            await base.ExportAsync(stream, cancellationToken).ConfigureAwait(false);
         }
     }
 
@@ -104,8 +106,9 @@ public partial class ArtifactTool
     /// <summary>
     /// Lists artifacts.
     /// </summary>
+    /// <param name="cancellationToken">Cancellation token.</param>
     /// <returns>Async-enumerable artifacts.</returns>
-    protected virtual IAsyncEnumerable<ArtifactData> DoListAsync()
+    protected virtual IAsyncEnumerable<ArtifactData> DoListAsync(CancellationToken cancellationToken = default)
     {
         _runDataOverridden = false;
         return EmptyAsyncEnumerable<ArtifactData>.Singleton;

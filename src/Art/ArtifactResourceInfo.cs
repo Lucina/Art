@@ -55,26 +55,29 @@ public record ArtifactResourceInfo(ArtifactResourceKey Key, string? Version, IRe
     /// Exports a resource.
     /// </summary>
     /// <param name="stream">Stream to export to.</param>
+    /// <param name="cancellationToken">Cancellation token.</param>
     /// <returns>Task.</returns>
     /// <exception cref="NotSupportedException">Thrown if this instance cannot be exported.</exception>
-    public virtual ValueTask ExportAsync(Stream stream)
+    public virtual ValueTask ExportAsync(Stream stream, CancellationToken cancellationToken = default)
         => throw new NotSupportedException($"This is a raw instance of {nameof(ArtifactResourceInfo)} that is not exportable");
 
     /// <summary>
     /// Queries a resource for version.
     /// </summary>
+    /// <param name="cancellationToken">Cancellation token.</param>
     /// <returns>Task returning version or null.</returns>
     /// <exception cref="NotSupportedException">Thrown if this instance cannot be queried.</exception>
-    public virtual ValueTask<string?> QueryVersionAsync()
+    public virtual ValueTask<string?> QueryVersionAsync(CancellationToken cancellationToken = default)
         => throw new NotSupportedException($"This is a raw instance of {nameof(ArtifactResourceInfo)} that is not queryable");
 
     /// <summary>
     /// Gets this resource with associated version, if available.
     /// </summary>
+    /// <param name="cancellationToken">Cancellation token.</param>
     /// <returns>Resource with version if available.</returns>
-    public async ValueTask<ArtifactResourceInfo> GetVersionedAsync()
+    public async ValueTask<ArtifactResourceInfo> GetVersionedAsync(CancellationToken cancellationToken = default)
     {
-        if (Version == null && Queryable) return this with { Version = await QueryVersionAsync().ConfigureAwait(false) };
+        if (Version == null && Queryable) return this with { Version = await QueryVersionAsync(cancellationToken).ConfigureAwait(false) };
         return this;
     }
 }

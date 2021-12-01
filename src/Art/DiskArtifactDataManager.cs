@@ -20,7 +20,7 @@ public class DiskArtifactDataManager : ArtifactDataManager
     }
 
     /// <inheritdoc/>
-    public override ValueTask<Stream> CreateOutputStreamAsync(ArtifactResourceKey key)
+    public override ValueTask<Stream> CreateOutputStreamAsync(ArtifactResourceKey key, CancellationToken cancellationToken = default)
     {
         string dir = DiskPaths.GetResourceDir(DiskPaths.GetBasePath(BaseDirectory, key.Artifact.Tool, key.Artifact.Group), key.Artifact.Id, key.Path, key.InArtifactFolder);
         if (!Directory.Exists(dir)) Directory.CreateDirectory(dir);

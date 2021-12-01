@@ -13,17 +13,18 @@ public static class ArtifactDumping
     /// <param name="artifactToolProfilePath">Path to tool profile.</param>
     /// <param name="targetDirectory">Base directory.</param>
     /// <param name="options">Runtime tool options.</param>
+    /// <param name="cancellationToken">Cancellation token.</param>
     /// <returns>Task.</returns>
     /// <exception cref="ArtifactToolNotFoundException"></exception>
-    public static async Task DumpAsync(string artifactToolProfilePath, string targetDirectory, ArtifactToolRuntimeOptions? options = null)
+    public static async Task DumpAsync(string artifactToolProfilePath, string targetDirectory, ArtifactToolRuntimeOptions? options = null, CancellationToken cancellationToken = default)
     {
         JsonElement element = ArtExtensions.LoadFromFile<JsonElement>(artifactToolProfilePath);
         options ??= new ArtifactToolRuntimeOptions();
         if (element.ValueKind == JsonValueKind.Object)
-            await DumpAsync(element.Deserialize<ArtifactToolProfile>(ArtJsonOptions.s_jsonOptions)!, targetDirectory, options).ConfigureAwait(false);
+            await DumpAsync(element.Deserialize<ArtifactToolProfile>(ArtJsonOptions.s_jsonOptions)!, targetDirectory, options, cancellationToken: cancellationToken).ConfigureAwait(false);
         else
             foreach (ArtifactToolProfile profile in element.Deserialize<List<ArtifactToolProfile>>(ArtJsonOptions.s_jsonOptions)!)
-                await DumpAsync(profile, targetDirectory, options).ConfigureAwait(false);
+                await DumpAsync(profile, targetDirectory, options, cancellationToken).ConfigureAwait(false);
     }
 
     /// <summary>
@@ -32,9 +33,10 @@ public static class ArtifactDumping
     /// <param name="artifactToolProfile">Tool profile.</param>
     /// <param name="targetDirectory">Base directory.</param>
     /// <param name="options">Runtime tool options.</param>
+    /// <param name="cancellationToken">Cancellation token.</param>
     /// <returns>Task.</returns>
     /// <exception cref="ArtifactToolNotFoundException"></exception>
-    public static async Task DumpAsync(ArtifactToolProfile artifactToolProfile, string targetDirectory, ArtifactToolRuntimeOptions? options = null)
+    public static async Task DumpAsync(ArtifactToolProfile artifactToolProfile, string targetDirectory, ArtifactToolRuntimeOptions? options = null, CancellationToken cancellationToken = default)
     {
         if (artifactToolProfile.Group == null) throw new IOException("Group not specified in profile");
         if (!ArtifactToolLoader.TryLoad(artifactToolProfile, out ArtifactTool? t))
@@ -44,8 +46,8 @@ public static class ArtifactDumping
         ArtifactToolRuntimeConfig config = new(srm, sdm, artifactToolProfile, options ?? new ArtifactToolRuntimeOptions());
         using ArtifactTool? tool = t;
         tool.LogHandler = ConsoleLogHandler.Default;
-        await tool.ConfigureAsync(config).ConfigureAwait(false);
-        await tool.DumpAsync();
+        await tool.ConfigureAsync(config, cancellationToken).ConfigureAwait(false);
+        await tool.DumpAsync(cancellationToken);
     }
 
     /// <summary>

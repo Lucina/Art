@@ -28,7 +28,7 @@ public record StringArtifactResourceInfo(string Resource, ArtifactResourceKey Ke
     public override bool Exportable => true;
 
     /// <inheritdoc/>
-    public override async ValueTask ExportAsync(Stream stream)
+    public override async ValueTask ExportAsync(Stream stream, CancellationToken cancellationToken = default)
     {
         using var sw = new StreamWriter(stream, Encoding.UTF8, leaveOpen: true);
         await sw.WriteAsync(Resource).ConfigureAwait(false);

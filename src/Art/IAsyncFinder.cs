@@ -10,6 +10,7 @@ public interface IAsyncFinder<T>
     /// Finds a value.
     /// </summary>
     /// <param name="key">Key.</param>
+    /// <param name="cancellationToken">Cancellation token.</param>
     /// <returns>Task returning value if it exists or null.</returns>
-    ValueTask<T?> FindAsync(string key);
+    ValueTask<T?> FindAsync(string key, CancellationToken cancellationToken = default);
 }
