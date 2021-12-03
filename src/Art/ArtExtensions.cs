@@ -152,4 +152,12 @@ public static class ArtExtensions
         }
         return any;
     }
+
+    /// <summary>
+    /// Fallback empty enumerable.
+    /// </summary>
+    /// <typeparam name="T">Element type.</typeparam>
+    /// <param name="enumerable">Enumerable.</param>
+    /// <returns>Nonnull enumerable.</returns>
+    public static IEnumerable<T> FallbackEmpty<T>(this IEnumerable<T>? enumerable) => enumerable ?? Array.Empty<T>();
 }

@@ -112,6 +112,16 @@ public class ArtifactData : IReadOnlyDictionary<ArtifactResourceKey, ArtifactRes
     }
 
     /// <summary>
+    /// Adds a resource to this instance.
+    /// </summary>
+    /// <param name="resource">Resource to add.</param>
+    public void Add(ArtifactDataResource resource)
+    {
+        if (resource.Data != this) throw new ArgumentException("Cannot add a data resource with different source data object");
+        Resources[resource.Info.Key] = resource.Info;
+    }
+
+    /// <summary>
     /// Adds resources to this instance.
     /// </summary>
     /// <param name="resources">Resources to add.</param>
@@ -122,17 +132,17 @@ public class ArtifactData : IReadOnlyDictionary<ArtifactResourceKey, ArtifactRes
     }
 
     /// <summary>
-    /// Adds a <see cref="StringArtifactResourceInfo"/> instance.
+    /// Creates a <see cref="StringArtifactResourceInfo"/> resource.
     /// </summary>
     /// <param name="resource">Resource.</param>
     /// <param name="key">Resource key.</param>
     /// <param name="version">Version.</param>
     /// <param name="properties">Resource properties.</param>
-    public void AddString(string resource, ArtifactResourceKey key, string? version = null, IReadOnlyDictionary<string, JsonElement>? properties = null)
-        => Add(new StringArtifactResourceInfo(resource, key, version, properties ?? ArtifactResourceInfo.EmptyProperties));
+    public ArtifactDataResource String(string resource, ArtifactResourceKey key, string? version = null, IReadOnlyDictionary<string, JsonElement>? properties = null)
+        => new(this, new StringArtifactResourceInfo(resource, key, version, properties ?? ArtifactResourceInfo.EmptyProperties));
 
     /// <summary>
-    /// Adds a <see cref="StringArtifactResourceInfo"/> instance.
+    /// Creates a <see cref="StringArtifactResourceInfo"/> resource.
     /// </summary>
     /// <param name="resource">Resource.</param>
     /// <param name="file">Filename.</param>
@@ -140,45 +150,45 @@ public class ArtifactData : IReadOnlyDictionary<ArtifactResourceKey, ArtifactRes
     /// <param name="inArtifactFolder">If false, sent to common directory.</param>
     /// <param name="version">Version.</param>
     /// <param name="properties">Resource properties.</param>
-    public void AddString(string resource, string file, string? path = null, bool inArtifactFolder = true, string? version = null, IReadOnlyDictionary<string, JsonElement>? properties = null)
-        => Add(new StringArtifactResourceInfo(resource, ArtifactResourceKey.Create(Info.Key, file, path, inArtifactFolder), version, properties ?? ArtifactResourceInfo.EmptyProperties));
+    public ArtifactDataResource String(string resource, string file, string? path = null, bool inArtifactFolder = true, string? version = null, IReadOnlyDictionary<string, JsonElement>? properties = null)
+        => new(this, new StringArtifactResourceInfo(resource, ArtifactResourceKey.Create(Info.Key, file, path, inArtifactFolder), version, properties ?? ArtifactResourceInfo.EmptyProperties));
 
     /// <summary>
-    /// Adds a <see cref="JsonArtifactResourceInfo{T}"/> instance.
-    /// </summary>
-    /// <param name="resource">Resource.</param>
-    /// <param name="serializerOptions">Serializer options.</param>
-    /// <param name="key">Resource key.</param>
-    /// <param name="version">Version.</param>
-    /// <param name="properties">Resource properties.</param>
-    public void AddJson<T>(T resource, JsonSerializerOptions? serializerOptions, ArtifactResourceKey key, string? version = null, IReadOnlyDictionary<string, JsonElement>? properties = null)
-        => Add(new JsonArtifactResourceInfo<T>(resource, serializerOptions, key, version, properties ?? ArtifactResourceInfo.EmptyProperties));
-
-    /// <summary>
-    /// Adds a <see cref="JsonArtifactResourceInfo{T}"/> instance.
+    /// Creates a <see cref="JsonArtifactResourceInfo{T}"/> resource.
     /// </summary>
     /// <param name="resource">Resource.</param>
     /// <param name="serializerOptions">Serializer options.</param>
+    /// <param name="key">Resource key.</param>
+    /// <param name="version">Version.</param>
+    /// <param name="properties">Resource properties.</param>
+    public ArtifactDataResource Json<T>(T resource, JsonSerializerOptions? serializerOptions, ArtifactResourceKey key, string? version = null, IReadOnlyDictionary<string, JsonElement>? properties = null)
+        => new(this, new JsonArtifactResourceInfo<T>(resource, serializerOptions, key, version, properties ?? ArtifactResourceInfo.EmptyProperties));
+
+    /// <summary>
+    /// Creates a <see cref="JsonArtifactResourceInfo{T}"/> resource.
+    /// </summary>
+    /// <param name="resource">Resource.</param>
+    /// <param name="serializerOptions">Serializer options.</param>
     /// <param name="file">Filename.</param>
     /// <param name="path">Path.</param>
     /// <param name="inArtifactFolder">If false, sent to common directory.</param>
     /// <param name="version">Version.</param>
     /// <param name="properties">Resource properties.</param>
-    public void AddJson<T>(T resource, JsonSerializerOptions? serializerOptions, string file, string? path = null, bool inArtifactFolder = true, string? version = null, IReadOnlyDictionary<string, JsonElement>? properties = null)
-        => Add(new JsonArtifactResourceInfo<T>(resource, serializerOptions, ArtifactResourceKey.Create(Info.Key, file, path, inArtifactFolder), version, properties ?? ArtifactResourceInfo.EmptyProperties));
+    public ArtifactDataResource Json<T>(T resource, JsonSerializerOptions? serializerOptions, string file, string? path = null, bool inArtifactFolder = true, string? version = null, IReadOnlyDictionary<string, JsonElement>? properties = null)
+        => new(this, new JsonArtifactResourceInfo<T>(resource, serializerOptions, ArtifactResourceKey.Create(Info.Key, file, path, inArtifactFolder), version, properties ?? ArtifactResourceInfo.EmptyProperties));
 
     /// <summary>
-    /// Adds a <see cref="JsonArtifactResourceInfo{T}"/> instance.
+    /// Creates a <see cref="JsonArtifactResourceInfo{T}"/> resource.
     /// </summary>
     /// <param name="resource">Resource.</param>
     /// <param name="key">Resource key.</param>
     /// <param name="version">Version.</param>
     /// <param name="properties">Resource properties.</param>
-    public void AddJson<T>(T resource, ArtifactResourceKey key, string? version = null, IReadOnlyDictionary<string, JsonElement>? properties = null)
-        => Add(new JsonArtifactResourceInfo<T>(resource, _tool?.JsonOptions, key, version, properties ?? ArtifactResourceInfo.EmptyProperties));
+    public ArtifactDataResource Json<T>(T resource, ArtifactResourceKey key, string? version = null, IReadOnlyDictionary<string, JsonElement>? properties = null)
+        => new(this, new JsonArtifactResourceInfo<T>(resource, _tool?.JsonOptions, key, version, properties ?? ArtifactResourceInfo.EmptyProperties));
 
     /// <summary>
-    /// Adds a <see cref="JsonArtifactResourceInfo{T}"/> instance.
+    /// Creates a <see cref="JsonArtifactResourceInfo{T}"/> resource.
     /// </summary>
     /// <param name="resource">Resource.</param>
     /// <param name="file">Filename.</param>
@@ -186,11 +196,11 @@ public class ArtifactData : IReadOnlyDictionary<ArtifactResourceKey, ArtifactRes
     /// <param name="inArtifactFolder">If false, sent to common directory.</param>
     /// <param name="version">Version.</param>
     /// <param name="properties">Resource properties.</param>
-    public void AddJson<T>(T resource, string file, string? path = null, bool inArtifactFolder = true, string? version = null, IReadOnlyDictionary<string, JsonElement>? properties = null)
-        => Add(new JsonArtifactResourceInfo<T>(resource, _tool?.JsonOptions, ArtifactResourceKey.Create(Info.Key, file, path, inArtifactFolder), version, properties ?? ArtifactResourceInfo.EmptyProperties));
+    public ArtifactDataResource Json<T>(T resource, string file, string? path = null, bool inArtifactFolder = true, string? version = null, IReadOnlyDictionary<string, JsonElement>? properties = null)
+        => new(this, new JsonArtifactResourceInfo<T>(resource, _tool?.JsonOptions, ArtifactResourceKey.Create(Info.Key, file, path, inArtifactFolder), version, properties ?? ArtifactResourceInfo.EmptyProperties));
 
     /// <summary>
-    /// Adds a <see cref="UriArtifactResourceInfo"/> instance.
+    /// Creates a <see cref="UriArtifactResourceInfo"/> resource.
     /// </summary>
     /// <param name="artifactTool">Artifact tool.</param>
     /// <param name="uri">URI.</param>
@@ -199,65 +209,11 @@ public class ArtifactData : IReadOnlyDictionary<ArtifactResourceKey, ArtifactRes
     /// <param name="properties">Resource properties.</param>
     /// <param name="origin">Request origin.</param>
     /// <param name="referrer">Request referrer.</param>
-    public void AddUri(HttpArtifactTool artifactTool, Uri uri, ArtifactResourceKey key, string? version = null, IReadOnlyDictionary<string, JsonElement>? properties = null, string? origin = null, string? referrer = null)
-        => Add(new UriArtifactResourceInfo(artifactTool, uri, origin, referrer, key, version, properties ?? ArtifactResourceInfo.EmptyProperties));
+    public ArtifactDataResource Uri(HttpArtifactTool artifactTool, Uri uri, ArtifactResourceKey key, string? version = null, IReadOnlyDictionary<string, JsonElement>? properties = null, string? origin = null, string? referrer = null)
+        => new(this, new UriArtifactResourceInfo(artifactTool, uri, origin, referrer, key, version, properties ?? ArtifactResourceInfo.EmptyProperties));
 
     /// <summary>
-    /// Adds a <see cref="UriArtifactResourceInfo"/> instance.
-    /// </summary>
-    /// <param name="artifactTool">Artifact tool.</param>
-    /// <param name="uri">URI.</param>
-    /// <param name="file">Filename.</param>
-    /// <param name="path">Path.</param>
-    /// <param name="inArtifactFolder">If false, sent to common directory.</param>
-    /// <param name="version">Version.</param>
-    /// <param name="properties">Resource properties.</param>
-    /// <param name="origin">Request origin.</param>
-    /// <param name="referrer">Request referrer.</param>
-    public void AddUri(HttpArtifactTool artifactTool, Uri uri, string file, string? path = null, bool inArtifactFolder = true, string? version = null, IReadOnlyDictionary<string, JsonElement>? properties = null, string? origin = null, string? referrer = null)
-        => Add(new UriArtifactResourceInfo(artifactTool, uri, origin, referrer, ArtifactResourceKey.Create(Info.Key, file, path, inArtifactFolder), version, properties ?? ArtifactResourceInfo.EmptyProperties));
-
-    /// <summary>
-    /// Adds a <see cref="UriArtifactResourceInfo"/> instance.
-    /// </summary>
-    /// <param name="uri">URI.</param>
-    /// <param name="key">Resource key.</param>
-    /// <param name="version">Version.</param>
-    /// <param name="properties">Resource properties.</param>
-    /// <param name="origin">Request origin.</param>
-    /// <param name="referrer">Request referrer.</param>
-    public void AddUri(Uri uri, ArtifactResourceKey key, string? version = null, IReadOnlyDictionary<string, JsonElement>? properties = null, string? origin = null, string? referrer = null)
-        => AddUri(GetArtifactTool<HttpArtifactTool>(), uri, key, version, properties, origin, referrer);
-
-    /// <summary>
-    /// Adds a <see cref="UriArtifactResourceInfo"/> instance.
-    /// </summary>
-    /// <param name="uri">URI.</param>
-    /// <param name="file">Filename.</param>
-    /// <param name="path">Path.</param>
-    /// <param name="inArtifactFolder">If false, sent to common directory.</param>
-    /// <param name="version">Version.</param>
-    /// <param name="properties">Resource properties.</param>
-    /// <param name="origin">Request origin.</param>
-    /// <param name="referrer">Request referrer.</param>
-    public void AddUri(Uri uri, string file, string? path = null, bool inArtifactFolder = true, string? version = null, IReadOnlyDictionary<string, JsonElement>? properties = null, string? origin = null, string? referrer = null)
-        => AddUri(GetArtifactTool<HttpArtifactTool>(), uri, file, path, inArtifactFolder, version, properties, origin, referrer);
-
-    /// <summary>
-    /// Adds a <see cref="UriStringArtifactResourceInfo"/> instance.
-    /// </summary>
-    /// <param name="artifactTool">Artifact tool.</param>
-    /// <param name="uri">URI.</param>
-    /// <param name="key">Resource key.</param>
-    /// <param name="version">Version.</param>
-    /// <param name="properties">Resource properties.</param>
-    /// <param name="origin">Request origin.</param>
-    /// <param name="referrer">Request referrer.</param>
-    public void AddUriString(HttpArtifactTool artifactTool, string uri, ArtifactResourceKey key, string? version = null, IReadOnlyDictionary<string, JsonElement>? properties = null, string? origin = null, string? referrer = null)
-        => Add(new UriStringArtifactResourceInfo(artifactTool, uri, origin, referrer, key, version, properties ?? ArtifactResourceInfo.EmptyProperties));
-
-    /// <summary>
-    /// Adds a <see cref="UriStringArtifactResourceInfo"/> instance.
+    /// Creates a <see cref="UriArtifactResourceInfo"/> resource.
     /// </summary>
     /// <param name="artifactTool">Artifact tool.</param>
     /// <param name="uri">URI.</param>
@@ -268,11 +224,11 @@ public class ArtifactData : IReadOnlyDictionary<ArtifactResourceKey, ArtifactRes
     /// <param name="properties">Resource properties.</param>
     /// <param name="origin">Request origin.</param>
     /// <param name="referrer">Request referrer.</param>
-    public void AddUriString(HttpArtifactTool artifactTool, string uri, string file, string? path = null, bool inArtifactFolder = true, string? version = null, IReadOnlyDictionary<string, JsonElement>? properties = null, string? origin = null, string? referrer = null)
-        => Add(new UriStringArtifactResourceInfo(artifactTool, uri, origin, referrer, ArtifactResourceKey.Create(Info.Key, file, path, inArtifactFolder), version, properties ?? ArtifactResourceInfo.EmptyProperties));
+    public ArtifactDataResource Uri(HttpArtifactTool artifactTool, Uri uri, string file, string? path = null, bool inArtifactFolder = true, string? version = null, IReadOnlyDictionary<string, JsonElement>? properties = null, string? origin = null, string? referrer = null)
+        => new(this, new UriArtifactResourceInfo(artifactTool, uri, origin, referrer, ArtifactResourceKey.Create(Info.Key, file, path, inArtifactFolder), version, properties ?? ArtifactResourceInfo.EmptyProperties));
 
     /// <summary>
-    /// Adds a <see cref="UriStringArtifactResourceInfo"/> instance.
+    /// Creates a <see cref="UriArtifactResourceInfo"/> resource.
     /// </summary>
     /// <param name="uri">URI.</param>
     /// <param name="key">Resource key.</param>
@@ -280,11 +236,11 @@ public class ArtifactData : IReadOnlyDictionary<ArtifactResourceKey, ArtifactRes
     /// <param name="properties">Resource properties.</param>
     /// <param name="origin">Request origin.</param>
     /// <param name="referrer">Request referrer.</param>
-    public void AddUriString(string uri, ArtifactResourceKey key, string? version = null, IReadOnlyDictionary<string, JsonElement>? properties = null, string? origin = null, string? referrer = null)
-        => AddUriString(GetArtifactTool<HttpArtifactTool>(), uri, key, version, properties, origin, referrer);
+    public ArtifactDataResource Uri(Uri uri, ArtifactResourceKey key, string? version = null, IReadOnlyDictionary<string, JsonElement>? properties = null, string? origin = null, string? referrer = null)
+        => Uri(GetArtifactTool<HttpArtifactTool>(), uri, key, version, properties, origin, referrer);
 
     /// <summary>
-    /// Adds a <see cref="UriStringArtifactResourceInfo"/> instance.
+    /// Creates a <see cref="UriArtifactResourceInfo"/> resource.
     /// </summary>
     /// <param name="uri">URI.</param>
     /// <param name="file">Filename.</param>
@@ -294,54 +250,108 @@ public class ArtifactData : IReadOnlyDictionary<ArtifactResourceKey, ArtifactRes
     /// <param name="properties">Resource properties.</param>
     /// <param name="origin">Request origin.</param>
     /// <param name="referrer">Request referrer.</param>
-    public void AddUriString(string uri, string file, string? path = null, bool inArtifactFolder = true, string? version = null, IReadOnlyDictionary<string, JsonElement>? properties = null, string? origin = null, string? referrer = null)
-        => AddUriString(GetArtifactTool<HttpArtifactTool>(), uri, file, path, inArtifactFolder, version, properties, origin, referrer);
+    public ArtifactDataResource Uri(Uri uri, string file, string? path = null, bool inArtifactFolder = true, string? version = null, IReadOnlyDictionary<string, JsonElement>? properties = null, string? origin = null, string? referrer = null)
+        => Uri(GetArtifactTool<HttpArtifactTool>(), uri, file, path, inArtifactFolder, version, properties, origin, referrer);
 
     /// <summary>
-    /// Adds a <see cref="HttpRequestMessageArtifactResourceInfo"/> instance.
+    /// Creates a <see cref="UriStringArtifactResourceInfo"/> resource.
+    /// </summary>
+    /// <param name="artifactTool">Artifact tool.</param>
+    /// <param name="uri">URI.</param>
+    /// <param name="key">Resource key.</param>
+    /// <param name="version">Version.</param>
+    /// <param name="properties">Resource properties.</param>
+    /// <param name="origin">Request origin.</param>
+    /// <param name="referrer">Request referrer.</param>
+    public ArtifactDataResource UriString(HttpArtifactTool artifactTool, string uri, ArtifactResourceKey key, string? version = null, IReadOnlyDictionary<string, JsonElement>? properties = null, string? origin = null, string? referrer = null)
+        => new(this, new UriStringArtifactResourceInfo(artifactTool, uri, origin, referrer, key, version, properties ?? ArtifactResourceInfo.EmptyProperties));
+
+    /// <summary>
+    /// Creates a <see cref="UriStringArtifactResourceInfo"/> resource.
+    /// </summary>
+    /// <param name="artifactTool">Artifact tool.</param>
+    /// <param name="uri">URI.</param>
+    /// <param name="file">Filename.</param>
+    /// <param name="path">Path.</param>
+    /// <param name="inArtifactFolder">If false, sent to common directory.</param>
+    /// <param name="version">Version.</param>
+    /// <param name="properties">Resource properties.</param>
+    /// <param name="origin">Request origin.</param>
+    /// <param name="referrer">Request referrer.</param>
+    public ArtifactDataResource UriString(HttpArtifactTool artifactTool, string uri, string file, string? path = null, bool inArtifactFolder = true, string? version = null, IReadOnlyDictionary<string, JsonElement>? properties = null, string? origin = null, string? referrer = null)
+        => new(this, new UriStringArtifactResourceInfo(artifactTool, uri, origin, referrer, ArtifactResourceKey.Create(Info.Key, file, path, inArtifactFolder), version, properties ?? ArtifactResourceInfo.EmptyProperties));
+
+    /// <summary>
+    /// Creates a <see cref="UriStringArtifactResourceInfo"/> resource.
+    /// </summary>
+    /// <param name="uri">URI.</param>
+    /// <param name="key">Resource key.</param>
+    /// <param name="version">Version.</param>
+    /// <param name="properties">Resource properties.</param>
+    /// <param name="origin">Request origin.</param>
+    /// <param name="referrer">Request referrer.</param>
+    public ArtifactDataResource UriString(string uri, ArtifactResourceKey key, string? version = null, IReadOnlyDictionary<string, JsonElement>? properties = null, string? origin = null, string? referrer = null)
+        => UriString(GetArtifactTool<HttpArtifactTool>(), uri, key, version, properties, origin, referrer);
+
+    /// <summary>
+    /// Creates a <see cref="UriStringArtifactResourceInfo"/> resource.
+    /// </summary>
+    /// <param name="uri">URI.</param>
+    /// <param name="file">Filename.</param>
+    /// <param name="path">Path.</param>
+    /// <param name="inArtifactFolder">If false, sent to common directory.</param>
+    /// <param name="version">Version.</param>
+    /// <param name="properties">Resource properties.</param>
+    /// <param name="origin">Request origin.</param>
+    /// <param name="referrer">Request referrer.</param>
+    public ArtifactDataResource UriString(string uri, string file, string? path = null, bool inArtifactFolder = true, string? version = null, IReadOnlyDictionary<string, JsonElement>? properties = null, string? origin = null, string? referrer = null)
+        => UriString(GetArtifactTool<HttpArtifactTool>(), uri, file, path, inArtifactFolder, version, properties, origin, referrer);
+
+    /// <summary>
+    /// Creates a <see cref="HttpRequestMessageArtifactResourceInfo"/> resource.
     /// </summary>
     /// <param name="artifactTool">Artifact tool.</param>
     /// <param name="request">Request.</param>
     /// <param name="key">Resource key.</param>
     /// <param name="version">Version.</param>
     /// <param name="properties">Resource properties.</param>
-    public void AddHttpRequestMessage(HttpArtifactTool artifactTool, HttpRequestMessage request, ArtifactResourceKey key, string? version = null, IReadOnlyDictionary<string, JsonElement>? properties = null)
-        => Add(new HttpRequestMessageArtifactResourceInfo(artifactTool, request, key, version, properties ?? ArtifactResourceInfo.EmptyProperties));
+    public ArtifactDataResource HttpRequestMessage(HttpArtifactTool artifactTool, HttpRequestMessage request, ArtifactResourceKey key, string? version = null, IReadOnlyDictionary<string, JsonElement>? properties = null)
+        => new(this, new HttpRequestMessageArtifactResourceInfo(artifactTool, request, key, version, properties ?? ArtifactResourceInfo.EmptyProperties));
 
     /// <summary>
-    /// Adds a <see cref="HttpRequestMessageArtifactResourceInfo"/> instance.
+    /// Creates a <see cref="HttpRequestMessageArtifactResourceInfo"/> resource.
     /// </summary>
     /// <param name="artifactTool">Artifact tool.</param>
-    /// <param name="request">Request.</param>
-    /// <param name="file">Filename.</param>
-    /// <param name="path">Path.</param>
-    /// <param name="inArtifactFolder">If false, sent to common directory.</param>
-    /// <param name="version">Version.</param>
-    /// <param name="properties">Resource properties.</param>
-    public void AddHttpRequestMessage(HttpArtifactTool artifactTool, HttpRequestMessage request, string file, string? path = null, bool inArtifactFolder = true, string? version = null, IReadOnlyDictionary<string, JsonElement>? properties = null)
-        => Add(new HttpRequestMessageArtifactResourceInfo(artifactTool, request, ArtifactResourceKey.Create(Info.Key, file, path, inArtifactFolder), version, properties ?? ArtifactResourceInfo.EmptyProperties));
-
-    /// <summary>
-    /// Adds a <see cref="HttpRequestMessageArtifactResourceInfo"/> instance.
-    /// </summary>
-    /// <param name="request">Request.</param>
-    /// <param name="key">Resource key.</param>
-    /// <param name="version">Version.</param>
-    /// <param name="properties">Resource properties.</param>
-    public void AddHttpRequestMessage(HttpRequestMessage request, ArtifactResourceKey key, string? version = null, IReadOnlyDictionary<string, JsonElement>? properties = null)
-        => AddHttpRequestMessage(GetArtifactTool<HttpArtifactTool>(), request, key, version, properties);
-
-    /// <summary>
-    /// Adds a <see cref="HttpRequestMessageArtifactResourceInfo"/> instance.
-    /// </summary>
     /// <param name="request">Request.</param>
     /// <param name="file">Filename.</param>
     /// <param name="path">Path.</param>
     /// <param name="inArtifactFolder">If false, sent to common directory.</param>
     /// <param name="version">Version.</param>
     /// <param name="properties">Resource properties.</param>
-    public void AddHttpRequestMessage(HttpRequestMessage request, string file, string? path = null, bool inArtifactFolder = true, string? version = null, IReadOnlyDictionary<string, JsonElement>? properties = null)
-        => AddHttpRequestMessage(GetArtifactTool<HttpArtifactTool>(), request, file, path, inArtifactFolder, version, properties);
+    public ArtifactDataResource HttpRequestMessage(HttpArtifactTool artifactTool, HttpRequestMessage request, string file, string? path = null, bool inArtifactFolder = true, string? version = null, IReadOnlyDictionary<string, JsonElement>? properties = null)
+        => new(this, new HttpRequestMessageArtifactResourceInfo(artifactTool, request, ArtifactResourceKey.Create(Info.Key, file, path, inArtifactFolder), version, properties ?? ArtifactResourceInfo.EmptyProperties));
+
+    /// <summary>
+    /// Creates a <see cref="HttpRequestMessageArtifactResourceInfo"/> resource.
+    /// </summary>
+    /// <param name="request">Request.</param>
+    /// <param name="key">Resource key.</param>
+    /// <param name="version">Version.</param>
+    /// <param name="properties">Resource properties.</param>
+    public ArtifactDataResource HttpRequestMessage(HttpRequestMessage request, ArtifactResourceKey key, string? version = null, IReadOnlyDictionary<string, JsonElement>? properties = null)
+        => HttpRequestMessage(GetArtifactTool<HttpArtifactTool>(), request, key, version, properties);
+
+    /// <summary>
+    /// Creates a <see cref="HttpRequestMessageArtifactResourceInfo"/> resource.
+    /// </summary>
+    /// <param name="request">Request.</param>
+    /// <param name="file">Filename.</param>
+    /// <param name="path">Path.</param>
+    /// <param name="inArtifactFolder">If false, sent to common directory.</param>
+    /// <param name="version">Version.</param>
+    /// <param name="properties">Resource properties.</param>
+    public ArtifactDataResource HttpRequestMessage(HttpRequestMessage request, string file, string? path = null, bool inArtifactFolder = true, string? version = null, IReadOnlyDictionary<string, JsonElement>? properties = null)
+        => HttpRequestMessage(GetArtifactTool<HttpArtifactTool>(), request, file, path, inArtifactFolder, version, properties);
 
     private T GetArtifactTool<T>() where T : ArtifactTool
         => ((_tool
@@ -359,4 +369,3 @@ public class ArtifactData : IReadOnlyDictionary<ArtifactResourceKey, ArtifactRes
 
     IEnumerator IEnumerable.GetEnumerator() => ((IEnumerable)Resources).GetEnumerator();
 }
-
