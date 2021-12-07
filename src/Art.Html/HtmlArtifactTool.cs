@@ -13,7 +13,7 @@ public abstract class HtmlArtifactTool : HttpArtifactTool
     /// <summary>
     /// Active browsing context.
     /// </summary>
-    protected IBrowsingContext Browser
+    public IBrowsingContext Browser
     {
         get
         {
@@ -32,7 +32,7 @@ public abstract class HtmlArtifactTool : HttpArtifactTool
     /// <summary>
     /// Current document, if one is loaded.
     /// </summary>
-    protected IDocument? Document;
+    public IDocument? Document;
 
     /// <summary>
     /// Current document.
@@ -40,7 +40,7 @@ public abstract class HtmlArtifactTool : HttpArtifactTool
     /// <remarks>
     /// Accessing this property throws an <see cref="InvalidOperationException"/> if a document is not loaded.
     /// </remarks>
-    protected IDocument DocumentNotNull => Document ?? throw new InvalidOperationException("Document not currently loaded");
+    public IDocument DocumentNotNull => Document ?? throw new InvalidOperationException("Document not currently loaded");
 
     private bool _disposed;
 
@@ -64,7 +64,7 @@ public abstract class HtmlArtifactTool : HttpArtifactTool
     /// <param name="address">Address to load.</param>
     /// <param name="cancellationToken">Cancellation token.</param>
     /// <returns>Task returning the loaded document.</returns>
-    protected async Task<IDocument> OpenAsync(string address, CancellationToken cancellationToken = default)
+    public async Task<IDocument> OpenAsync(string address, CancellationToken cancellationToken = default)
     {
         NotDisposed();
         return Document = await Browser.OpenAsync(address, cancellation: cancellationToken).ConfigureAwait(false);
@@ -76,7 +76,7 @@ public abstract class HtmlArtifactTool : HttpArtifactTool
     /// <param name="address">Address to load.</param>
     /// <param name="cancellationToken">Cancellation token.</param>
     /// <returns>Task returning the loaded document.</returns>
-    protected async Task<IDocument> OpenAsync(Url address, CancellationToken cancellationToken = default)
+    public async Task<IDocument> OpenAsync(Url address, CancellationToken cancellationToken = default)
     {
         NotDisposed();
         return Document = await Browser.OpenAsync(address, cancel: cancellationToken).ConfigureAwait(false);
@@ -88,7 +88,7 @@ public abstract class HtmlArtifactTool : HttpArtifactTool
     /// <param name="request">Request to load.</param>
     /// <param name="cancellationToken">Cancellation token.</param>
     /// <returns>Task returning the loaded document.</returns>
-    protected async Task<IDocument> OpenAsync(DocumentRequest request, CancellationToken cancellationToken = default)
+    public async Task<IDocument> OpenAsync(DocumentRequest request, CancellationToken cancellationToken = default)
     {
         NotDisposed();
         return Document = await Browser.OpenAsync(request, cancel: cancellationToken).ConfigureAwait(false);
@@ -101,7 +101,7 @@ public abstract class HtmlArtifactTool : HttpArtifactTool
     /// </summary>
     /// <param name="selectors">The group of selectors to use.</param>
     /// <returns>The found element.</returns>
-    protected IElement? QuerySelector(string selectors)
+    public IElement? QuerySelector(string selectors)
     {
         NotDisposed();
         return DocumentNotNull.QuerySelector(selectors);
@@ -114,7 +114,7 @@ public abstract class HtmlArtifactTool : HttpArtifactTool
     /// </summary>
     /// <param name="selectors">The group of selectors to use.</param>
     /// <returns>The found element.</returns>
-    protected IElement QuerySelectorRequired(string selectors)
+    public IElement QuerySelectorRequired(string selectors)
     {
         NotDisposed();
         return DocumentNotNull.QuerySelectorRequired(selectors);
@@ -127,7 +127,7 @@ public abstract class HtmlArtifactTool : HttpArtifactTool
     /// </summary>
     /// <param name="selectors">The group of selectors to use.</param>
     /// <returns>The found element.</returns>
-    protected T? QuerySelector<T>(string selectors) where T : class, IElement
+    public T? QuerySelector<T>(string selectors) where T : class, IElement
     {
         NotDisposed();
         return DocumentNotNull.QuerySelector<T>(selectors);
@@ -140,7 +140,7 @@ public abstract class HtmlArtifactTool : HttpArtifactTool
     /// </summary>
     /// <param name="selectors">The group of selectors to use.</param>
     /// <returns>The found elements.</returns>
-    protected IHtmlCollection<IElement> QuerySelectorAll(string selectors)
+    public IHtmlCollection<IElement> QuerySelectorAll(string selectors)
     {
         NotDisposed();
         return DocumentNotNull.QuerySelectorAll(selectors);
@@ -153,7 +153,7 @@ public abstract class HtmlArtifactTool : HttpArtifactTool
     /// </summary>
     /// <param name="selectors">The group of selectors to use.</param>
     /// <returns>The found elements.</returns>
-    protected IEnumerable<T> QuerySelectorAll<T>(string selectors) where T : class, IElement
+    public IEnumerable<T> QuerySelectorAll<T>(string selectors) where T : class, IElement
     {
         NotDisposed();
         return DocumentNotNull.QuerySelectorAll<T>(selectors);
@@ -169,7 +169,7 @@ public abstract class HtmlArtifactTool : HttpArtifactTool
     /// <param name="url">Request.</param>
     /// <param name="cancellationToken">Cancellation token.</param>
     /// <returns>Task returning response.</returns>
-    protected Task<HttpResponseMessage> HeadAsync(Url url, CancellationToken cancellationToken = default)
+    public Task<HttpResponseMessage> HeadAsync(Url url, CancellationToken cancellationToken = default)
         => HeadAsync(url.ToUri(), cancellationToken: cancellationToken);
 
     /// <summary>
@@ -178,7 +178,7 @@ public abstract class HtmlArtifactTool : HttpArtifactTool
     /// <param name="url">Request.</param>
     /// <param name="cancellationToken">Cancellation token.</param>
     /// <returns>Task returning response.</returns>
-    protected Task<HttpResponseMessage> GetAsync(Url url, CancellationToken cancellationToken = default)
+    public Task<HttpResponseMessage> GetAsync(Url url, CancellationToken cancellationToken = default)
         => GetAsync(url.ToUri(), cancellationToken: cancellationToken);
 
     /// <summary>
@@ -191,7 +191,7 @@ public abstract class HtmlArtifactTool : HttpArtifactTool
     /// <remarks>
     /// This overload usees <see cref="ArtifactTool.JsonOptions"/> member automatically.
     /// </remarks>
-    protected Task<T> GetDeserializedJsonAsync<T>(Url url, CancellationToken cancellationToken = default)
+    public Task<T> GetDeserializedJsonAsync<T>(Url url, CancellationToken cancellationToken = default)
         => GetDeserializedJsonAsync<T>(url.ToUri(), cancellationToken: cancellationToken);
 
     /// <summary>
@@ -202,7 +202,7 @@ public abstract class HtmlArtifactTool : HttpArtifactTool
     /// <param name="jsonSerializerOptions">Optional deserialization options.</param>
     /// <param name="cancellationToken">Cancellation token.</param>
     /// <returns>Task returning deserialized data.</returns>
-    protected Task<T> GetDeserializedJsonAsync<T>(Url url, JsonSerializerOptions? jsonSerializerOptions, CancellationToken cancellationToken = default)
+    public Task<T> GetDeserializedJsonAsync<T>(Url url, JsonSerializerOptions? jsonSerializerOptions, CancellationToken cancellationToken = default)
         => GetDeserializedJsonAsync<T>(url.ToUri(), jsonSerializerOptions, cancellationToken: cancellationToken);
 
     #endregion

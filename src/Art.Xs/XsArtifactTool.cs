@@ -14,7 +14,7 @@ public abstract class XsArtifactTool : HtmlArtifactTool
     /// Asynchronously creates a <see cref="XsClient"/>.
     /// </summary>
     /// <returns>Task rturning an Xs client.</returns>
-    protected static Task<XsClient> CreateXsClientAsync() => XsManager.CreateClientAsync();
+    public static Task<XsClient> CreateXsClientAsync() => XsManager.CreateClientAsync();
 
     #region Html overloads
 
@@ -23,7 +23,7 @@ public abstract class XsArtifactTool : HtmlArtifactTool
     /// </summary>
     /// <param name="xs">Client with active page.</param>
     /// <returns>Task returning the loaded document.</returns>
-    protected async Task<IDocument> OpenAsync(XsClient xs)
+    public async Task<IDocument> OpenAsync(XsClient xs)
         => await OpenAsync(await xs.GetContentAsync()).ConfigureAwait(false);
 
     #endregion
@@ -35,7 +35,7 @@ public abstract class XsArtifactTool : HtmlArtifactTool
     /// </summary>
     /// <param name="xs">Xs client.</param>
     /// <returns>Task.</returns>
-    protected async Task SyncToHttpClientAsync(XsClient xs)
+    public async Task SyncToHttpClientAsync(XsClient xs)
     {
         (List<Cookie> cookies, string ua) = await xs.ExecuteAsync(
             async w => ((await w.CookieManager.GetCookiesAsync("")).Select(c => c.ToSystemNetCookie()).ToList(), w.Settings.UserAgent));
@@ -49,7 +49,7 @@ public abstract class XsArtifactTool : HtmlArtifactTool
     /// </summary>
     /// <param name="xs">Xs client.</param>
     /// <returns>Task.</returns>
-    protected async Task SyncFromHttpClientAsync(XsClient xs)
+    public async Task SyncFromHttpClientAsync(XsClient xs)
     {
         List<Cookie> cookies = HttpClientHandler.CookieContainer.GetAllCookies().ToList();
         string ua = HttpClient.DefaultRequestHeaders.UserAgent.ToString();

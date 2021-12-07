@@ -126,7 +126,7 @@ public static class ArtExtensions
     /// <param name="artifactTool">Artifact tool.</param>
     /// <param name="cancellationToken">Cancellation token.</param>
     /// <returns>Task returning created dictionary.</returns>
-    public static async ValueTask<Dictionary<string, ArtifactData>> ListDictionaryAsync(this ArtifactTool artifactTool, CancellationToken cancellationToken = default)
+    public static async ValueTask<Dictionary<string, ArtifactData>> ListDictionaryAsync(this IArtifactToolList artifactTool, CancellationToken cancellationToken = default)
     {
         Dictionary<string, ArtifactData> res = new();
         await foreach (ArtifactData artifactData in artifactTool.ListAsync(cancellationToken).ConfigureAwait(false))

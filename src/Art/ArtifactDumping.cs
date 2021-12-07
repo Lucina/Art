@@ -47,7 +47,7 @@ public static class ArtifactDumping
         using ArtifactTool? tool = t;
         tool.LogHandler = ConsoleLogHandler.Default;
         await tool.ConfigureAsync(config, cancellationToken).ConfigureAwait(false);
-        await tool.DumpAsync(cancellationToken);
+        await new ArtifactToolDumpProxy(tool).DumpAsync(cancellationToken);
     }
 
     /// <summary>

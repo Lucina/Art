@@ -3,17 +3,12 @@ using System.Text.Json;
 
 namespace Art;
 
-public partial class ArtifactTool
+/// <summary>
+/// Proxy to run artifact tool as a list tool.
+/// </summary>
+/// <param name="ArtifactTool">Artifact tool.</param>
+public record ArtifactToolListProxy(ArtifactTool ArtifactTool)
 {
-    #region Fields
-
-    /// <summary>
-    /// True if this instance can list artifacts.
-    /// </summary>
-    public virtual bool CanList => false;
-
-    #endregion
-
     #region API
 
     /// <summary>
@@ -23,27 +18,34 @@ public partial class ArtifactTool
     /// <returns>Async-enumerable artifacts.</returns>
     public async IAsyncEnumerable<ArtifactData> ListAsync([EnumeratorCancellation] CancellationToken cancellationToken = default)
     {
-        EnsureState();
-        await foreach (ArtifactData res in DoListAsync(cancellationToken).ConfigureAwait(false))
-            yield return res;
-        if (_runDataOverridden) yield break;
-        ArtifactDataManager previous = _dataManager;
-        try
+        if (ArtifactTool is IArtifactToolList listTool)
         {
-            InMemoryArtifactDataManager im = new();
-            await DoDumpAsync(cancellationToken).ConfigureAwait(false);
-            foreach ((ArtifactKey ak, List<ArtifactResourceInfo> resources) in im.Artifacts)
+            await foreach (ArtifactData res in listTool.ListAsync(cancellationToken).ConfigureAwait(false))
+                yield return res;
+            yield break;
+        }
+        if (ArtifactTool is IArtifactToolDump dumpTool)
+        {
+            ArtifactDataManager previous = ArtifactTool.DataManager;
+            try
             {
-                if (await TryGetArtifactAsync(ak, cancellationToken).ConfigureAwait(false) is not { } info) continue;
-                ArtifactData data = new(info);
-                data.AddRange(resources);
-                yield return data;
+                InMemoryArtifactDataManager im = new();
+                await dumpTool.DumpAsync(cancellationToken).ConfigureAwait(false);
+                foreach ((ArtifactKey ak, List<ArtifactResourceInfo> resources) in im.Artifacts)
+                {
+                    if (await ArtifactTool.TryGetArtifactAsync(ak, cancellationToken).ConfigureAwait(false) is not { } info) continue;
+                    ArtifactData data = new(info);
+                    data.AddRange(resources);
+                    yield return data;
+                }
             }
+            finally
+            {
+                ArtifactTool.DataManager = previous;
+            }
+            yield break;
         }
-        finally
-        {
-            _dataManager = previous;
-        }
+        throw new NotSupportedException("Artifact tool is not a supported type");
     }
 
     private class InMemoryArtifactDataManager : ArtifactDataManager
@@ -101,17 +103,6 @@ public partial class ArtifactTool
         public override long Seek(long offset, SeekOrigin origin) => BaseStream.Seek(offset, origin);
         public override void SetLength(long value) => BaseStream.SetLength(value);
         public override void Write(byte[] buffer, int offset, int count) => BaseStream.Write(buffer, offset, count);
-    }
-
-    /// <summary>
-    /// Lists artifacts.
-    /// </summary>
-    /// <param name="cancellationToken">Cancellation token.</param>
-    /// <returns>Async-enumerable artifacts.</returns>
-    protected virtual IAsyncEnumerable<ArtifactData> DoListAsync(CancellationToken cancellationToken = default)
-    {
-        _runDataOverridden = false;
-        return EmptyAsyncEnumerable<ArtifactData>.Singleton;
     }
 
     private class EmptyAsyncEnumerable<T> : IAsyncEnumerable<T>
