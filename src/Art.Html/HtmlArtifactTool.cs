@@ -50,7 +50,7 @@ public abstract class HtmlArtifactTool : HttpArtifactTool
     public override async Task ConfigureAsync(ArtifactToolRuntimeConfig runtimeConfig, CancellationToken cancellationToken = default)
     {
         await base.ConfigureAsync(runtimeConfig, cancellationToken);
-        IConfiguration configuration = Configuration.Default.WithOnly<ICookieProvider>(new OpenMemoryCookieProvider(HttpClientHandler.CookieContainer));
+        IConfiguration configuration = Configuration.Default.WithDefaultLoader().WithOnly<ICookieProvider>(new OpenMemoryCookieProvider(HttpClientHandler.CookieContainer));
         _browser = BrowsingContext.New(configuration);
     }
 
@@ -105,6 +105,19 @@ public abstract class HtmlArtifactTool : HttpArtifactTool
     {
         NotDisposed();
         return DocumentNotNull.QuerySelector(selectors);
+    }
+
+    /// <summary>
+    /// Returns the first element within the document
+    /// (using depth-first pre-order traversal of the document's nodes)
+    /// that matches the specified group of selectors.
+    /// </summary>
+    /// <param name="selectors">The group of selectors to use.</param>
+    /// <returns>The found element.</returns>
+    protected IElement QuerySelectorRequired(string selectors)
+    {
+        NotDisposed();
+        return DocumentNotNull.QuerySelectorRequired(selectors);
     }
 
     /// <summary>
