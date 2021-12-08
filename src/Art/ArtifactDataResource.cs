@@ -5,7 +5,7 @@ namespace Art;
 /// <summary>
 /// Pending <see cref="ArtifactResourceInfo"/> relative to a <see cref="ArtifactData"/>.
 /// </summary>
-public record ArtifactDataResource(ArtifactData Data, ArtifactResourceInfo Info)
+public record struct ArtifactDataResource(ArtifactData Data, ArtifactResourceInfo Info)
 {
     /// <summary>
     /// Creates an instance of this resource with an added decryption layer.

@@ -2,6 +2,7 @@
 using AngleSharp;
 using AngleSharp.Dom;
 using AngleSharp.Io;
+using AngleSharp.Text;
 
 namespace Art.Html;
 
@@ -57,6 +58,18 @@ public abstract class HtmlArtifactTool : HttpArtifactTool
     #endregion
 
     #region Main API
+
+    /// <summary>
+    /// Opens a new document loaded from the provided address.
+    /// </summary>
+    /// <param name="content">Content to load.</param>
+    /// <param name="cancellationToken">Cancellation token.</param>
+    /// <returns>Task returning the loaded document.</returns>
+    public async Task<IDocument> OpenStringAsync(string content, CancellationToken cancellationToken = default)
+    {
+        NotDisposed();
+        return Document = await Browser.OpenAsync(r => r.Content(content), cancellationToken).ConfigureAwait(false);
+    }
 
     /// <summary>
     /// Opens a new document loaded from the provided address.
@@ -191,8 +204,21 @@ public abstract class HtmlArtifactTool : HttpArtifactTool
     /// <remarks>
     /// This overload usees <see cref="ArtifactTool.JsonOptions"/> member automatically.
     /// </remarks>
-    public Task<T> GetDeserializedJsonAsync<T>(Url url, CancellationToken cancellationToken = default)
+    public Task<T?> GetDeserializedJsonAsync<T>(Url url, CancellationToken cancellationToken = default)
         => GetDeserializedJsonAsync<T>(url.ToUri(), cancellationToken: cancellationToken);
+
+    /// <summary>
+    /// Retrieve deserialized JSON using a <see cref="Url"/>.
+    /// </summary>
+    /// <typeparam name="T">Data type.</typeparam>
+    /// <param name="url">Request URL.</param>
+    /// <param name="cancellationToken">Cancellation token.</param>
+    /// <returns>Task returning deserialized data.</returns>
+    /// <remarks>
+    /// This overload usees <see cref="ArtifactTool.JsonOptions"/> member automatically.
+    /// </remarks>
+    public Task<T> GetDeserializedRequiredJsonAsync<T>(Url url, CancellationToken cancellationToken = default)
+        => GetDeserializedRequiredJsonAsync<T>(url.ToUri(), cancellationToken: cancellationToken);
 
     /// <summary>
     /// Retrieve deserialized JSON using a <see cref="Url"/> and <see cref="JsonSerializerOptions"/>.
@@ -202,8 +228,19 @@ public abstract class HtmlArtifactTool : HttpArtifactTool
     /// <param name="jsonSerializerOptions">Optional deserialization options.</param>
     /// <param name="cancellationToken">Cancellation token.</param>
     /// <returns>Task returning deserialized data.</returns>
-    public Task<T> GetDeserializedJsonAsync<T>(Url url, JsonSerializerOptions? jsonSerializerOptions, CancellationToken cancellationToken = default)
+    public Task<T?> GetDeserializedJsonAsync<T>(Url url, JsonSerializerOptions? jsonSerializerOptions, CancellationToken cancellationToken = default)
         => GetDeserializedJsonAsync<T>(url.ToUri(), jsonSerializerOptions, cancellationToken: cancellationToken);
+
+    /// <summary>
+    /// Retrieve deserialized JSON using a <see cref="Url"/> and <see cref="JsonSerializerOptions"/>.
+    /// </summary>
+    /// <typeparam name="T">Data type.</typeparam>
+    /// <param name="url">Request URL.</param>
+    /// <param name="jsonSerializerOptions">Optional deserialization options.</param>
+    /// <param name="cancellationToken">Cancellation token.</param>
+    /// <returns>Task returning deserialized data.</returns>
+    public Task<T> GetDeserializedRequiredJsonAsync<T>(Url url, JsonSerializerOptions? jsonSerializerOptions, CancellationToken cancellationToken = default)
+        => GetDeserializedRequiredJsonAsync<T>(url.ToUri(), jsonSerializerOptions, cancellationToken: cancellationToken);
 
     #endregion
 

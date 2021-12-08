@@ -37,4 +37,40 @@ public record ArtifactToolProfile(
             throw new ArgumentException("Tool string is in invalid format, must be \"<assembly>::<toolType>\"", nameof(tool));
         return (match.Groups[1].Value, match.Groups[2].Value);
     }
+
+    /// <summary>
+    /// Deserializes profiles.
+    /// </summary>
+    /// <param name="path">Path to file containing profile or profile array.</param>
+    /// <returns>Array of profiles.</returns>
+    /// <exception cref="InvalidDataException">Thrown if null value encountered.</exception>
+    public static ArtifactToolProfile[] DeserializeProfilesFromFile(string path)
+    {
+        return DeserializeProfiles(JsonSerializer.Deserialize<JsonElement>(File.ReadAllText(path)));
+    }
+
+    /// <summary>
+    /// Deserializes profiles.
+    /// </summary>
+    /// <param name="utf8Stream">UTF-8 stream containing profile or profile array.</param>
+    /// <returns>Array of profiles.</returns>
+    /// <exception cref="InvalidDataException">Thrown if null value encountered.</exception>
+    public static ArtifactToolProfile[] DeserializeProfiles(Stream utf8Stream)
+    {
+        return DeserializeProfiles(JsonSerializer.Deserialize<JsonElement>(utf8Stream));
+    }
+
+    /// <summary>
+    /// Deserializes profiles.
+    /// </summary>
+    /// <param name="element">Element containing profile or profile array.</param>
+    /// <returns>Array of profiles.</returns>
+    /// <exception cref="InvalidDataException">Thrown if null value encountered.</exception>
+    public static ArtifactToolProfile[] DeserializeProfiles(JsonElement element)
+    {
+        if (element.ValueKind == JsonValueKind.Object)
+            return new[] { element.Deserialize<ArtifactToolProfile>(ArtJsonOptions.s_jsonOptions) ?? throw new InvalidDataException() };
+        else
+            return element.Deserialize<ArtifactToolProfile[]>(ArtJsonOptions.s_jsonOptions) ?? throw new InvalidDataException();
+    }
 }

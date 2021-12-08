@@ -11,5 +11,5 @@ public interface IArtifactToolFind
     /// <param name="id">Artifact id.</param>
     /// <param name="cancellationToken">Cancellation token.</param>
     /// <returns>Task returning found artifact or null.</returns>
-    ValueTask<ArtifactData?> FindAsync(string id, CancellationToken cancellationToken = default);
+    Task<ArtifactData?> FindAsync(string id, CancellationToken cancellationToken = default);
 }

@@ -24,7 +24,7 @@ public abstract class XsArtifactTool : HtmlArtifactTool
     /// <param name="xs">Client with active page.</param>
     /// <returns>Task returning the loaded document.</returns>
     public async Task<IDocument> OpenAsync(XsClient xs)
-        => await OpenAsync(await xs.GetContentAsync()).ConfigureAwait(false);
+        => await OpenStringAsync(await xs.GetContentAsync()).ConfigureAwait(false);
 
     #endregion
 

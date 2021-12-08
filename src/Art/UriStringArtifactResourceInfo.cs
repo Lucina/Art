@@ -33,8 +33,8 @@ public record UriStringArtifactResourceInfo(HttpArtifactTool ArtifactTool, strin
     public override bool Exportable => true;
 
     /// <inheritdoc/>
-    public override ValueTask ExportAsync(Stream stream, CancellationToken cancellationToken = default)
-        => ArtifactTool.DownloadResourceAsync(Uri, stream, Origin, Referrer, cancellationToken);
+    public override async ValueTask ExportAsync(Stream stream, CancellationToken cancellationToken = default)
+        => await ArtifactTool.DownloadResourceAsync(Uri, stream, Origin, Referrer, cancellationToken);
 
     /// <inheritdoc/>
     public override bool Queryable => true;

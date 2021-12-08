@@ -10,5 +10,5 @@ public interface IArtifactToolDump
     /// </summary>
     /// <param name="cancellationToken">Cancellation token.</param>
     /// <returns>Task.</returns>
-    ValueTask DumpAsync(CancellationToken cancellationToken = default);
+    Task DumpAsync(CancellationToken cancellationToken = default);
 }

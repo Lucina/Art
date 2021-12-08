@@ -1,4 +1,5 @@
 ﻿using System.Globalization;
+using System.Runtime.CompilerServices;
 using System.Text.Json;
 
 namespace Art;
@@ -14,7 +15,7 @@ public static class ArtExtensions
     /// <typeparam name="T">Data type.</typeparam>
     /// <param name="stream">Stream to load from.</param>
     /// <returns>Read data.</returns>
-    public static T LoadFromUtf8Stream<T>(Stream stream) => JsonSerializer.Deserialize<T>(stream, ArtJsonOptions.s_jsonOptions)!;
+    public static T? LoadFromUtf8Stream<T>(Stream stream) => JsonSerializer.Deserialize<T>(stream, ArtJsonOptions.s_jsonOptions);
 
     /// <summary>
     /// Loads an object from a UTF-8 JSON stream.
@@ -23,7 +24,7 @@ public static class ArtExtensions
     /// <param name="stream">Stream to load from.</param>
     /// <param name="cancellationToken">Cancellation token.</param>
     /// <returns>Task returning read data.</returns>
-    public static async ValueTask<T> LoadFromUtf8StreamAsync<T>(Stream stream, CancellationToken cancellationToken = default) => (await JsonSerializer.DeserializeAsync<T>(stream, ArtJsonOptions.s_jsonOptions, cancellationToken).ConfigureAwait(false))!;
+    public static async Task<T?> LoadFromUtf8StreamAsync<T>(Stream stream, CancellationToken cancellationToken = default) => (await JsonSerializer.DeserializeAsync<T>(stream, ArtJsonOptions.s_jsonOptions, cancellationToken).ConfigureAwait(false));
 
     /// <summary>
     /// Loads an object from a JSON file.
@@ -31,7 +32,7 @@ public static class ArtExtensions
     /// <typeparam name="T">Data type.</typeparam>
     /// <param name="file">File path to load from.</param>
     /// <returns>Read data.</returns>
-    public static T LoadFromFile<T>(string file) => JsonSerializer.Deserialize<T>(File.ReadAllText(file), ArtJsonOptions.s_jsonOptions)!;
+    public static T? LoadFromFile<T>(string file) => JsonSerializer.Deserialize<T>(File.ReadAllText(file), ArtJsonOptions.s_jsonOptions);
 
     /// <summary>
     /// Loads an object from a JSON file.
@@ -40,7 +41,7 @@ public static class ArtExtensions
     /// <param name="file">File path to load from.</param>
     /// <param name="cancellationToken">Cancellation token.</param>
     /// <returns>Task returning ead data.</returns>
-    public static async ValueTask<T> LoadFromFileAsync<T>(string file, CancellationToken cancellationToken = default) => JsonSerializer.Deserialize<T>(await File.ReadAllTextAsync(file, cancellationToken).ConfigureAwait(false), ArtJsonOptions.s_jsonOptions)!;
+    public static async Task<T?> LoadFromFileAsync<T>(string file, CancellationToken cancellationToken = default) => JsonSerializer.Deserialize<T>(await File.ReadAllTextAsync(file, cancellationToken).ConfigureAwait(false), ArtJsonOptions.s_jsonOptions);
 
     /// <summary>
     /// Writes an object to a JSON file.
@@ -160,4 +161,36 @@ public static class ArtExtensions
     /// <param name="enumerable">Enumerable.</param>
     /// <returns>Nonnull enumerable.</returns>
     public static IEnumerable<T> FallbackEmpty<T>(this IEnumerable<T>? enumerable) => enumerable ?? Array.Empty<T>();
+
+    /// <summary>
+    /// Shorthand for ConfigureAwait(false).
+    /// </summary>
+    /// <param name="task">Task to wrap.</param>
+    /// <returns>Wrapped task.</returns>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static ConfiguredTaskAwaitable Caf(this Task task) => task.ConfigureAwait(false);
+
+    /// <summary>
+    /// Shorthand for ConfigureAwait(false).
+    /// </summary>
+    /// <param name="task">Task to wrap.</param>
+    /// <returns>Wrapped task.</returns>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static ConfiguredTaskAwaitable<T> Caf<T>(this Task<T> task) => task.ConfigureAwait(false);
+
+    /// <summary>
+    /// Shorthand for ConfigureAwait(false).
+    /// </summary>
+    /// <param name="task">Task to wrap.</param>
+    /// <returns>Wrapped task.</returns>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static ConfiguredValueTaskAwaitable Caf(this ValueTask task) => task.ConfigureAwait(false);
+
+    /// <summary>
+    /// Shorthand for ConfigureAwait(false).
+    /// </summary>
+    /// <param name="task">Task to wrap.</param>
+    /// <returns>Wrapped task.</returns>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static ConfiguredValueTaskAwaitable<T> Caf<T>(this ValueTask<T> task) => task.ConfigureAwait(false);
 }
