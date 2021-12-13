@@ -12,13 +12,14 @@ public class SqliteTests
     public async Task TestSqliteDatabaseFile()
     {
         string tempFile = Path.GetTempFileName();
+        SqliteArtifactRegistrationManager r = new(tempFile);
         try
         {
-            using SqliteArtifactRegistrationManager r = new(tempFile);
             await TestSqliteDatabase(r);
         }
         catch
         {
+            r.Dispose();
             try
             {
                 File.Delete(tempFile);
@@ -29,6 +30,7 @@ public class SqliteTests
             }
             throw;
         }
+        r.Dispose();
         for (int i = 10; --i >= 0;)
             try
             {
