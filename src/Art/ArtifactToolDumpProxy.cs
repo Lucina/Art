@@ -25,16 +25,16 @@ public record ArtifactToolDumpProxy(ArtifactTool ArtifactTool, ArtifactToolDumpO
             {
                 switch (Options.SkipMode)
                 {
-                    case ArtifactSkipMode.NoSkip:
+                    case ArtifactSkipMode.None:
                         break;
-                    case ArtifactSkipMode.SkipAllFromFirstKnown:
+                    case ArtifactSkipMode.FastExit:
                         {
                             ArtifactInfo? info = await ArtifactTool.TryGetArtifactAsync(data.Info.Key.Id, cancellationToken).ConfigureAwait(false);
                             if (info != null)
                                 return;
                             break;
                         }
-                    case ArtifactSkipMode.SkipKnown:
+                    case ArtifactSkipMode.Known:
                         {
                             ArtifactInfo? info = await ArtifactTool.TryGetArtifactAsync(data.Info.Key.Id, cancellationToken).ConfigureAwait(false);
                             if (info != null)

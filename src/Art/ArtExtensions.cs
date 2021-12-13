@@ -199,4 +199,122 @@ public static class ArtExtensions
     /// <param name="value">Value.</param>
     /// <returns>JSON element.</returns>
     public static JsonElement J<T>(this T value) => JsonSerializer.SerializeToElement(value);
+
+    /// <summary>
+    /// Produces task returning true if any elements are contained in this enumerable.
+    /// </summary>
+    /// <param name="enumerable">Enumerable.</param>
+    /// <typeparam name="T">Value type.</typeparam>
+    /// <returns>Task returning true if any elements are contained.</returns>
+    public static async ValueTask<bool> AnyAsync<T>(this IAsyncEnumerable<T> enumerable)
+    {
+        await foreach (var _ in enumerable.ConfigureAwait(false))
+            return true;
+        return false;
+    }
+
+    /// <summary>
+    /// Produces task returning count of elements.
+    /// </summary>
+    /// <param name="enumerable">Enumerable.</param>
+    /// <typeparam name="T">Value type.</typeparam>
+    /// <returns>Task returning count of elements.</returns>
+    public static async ValueTask<int> CountAsync<T>(this IAsyncEnumerable<T> enumerable)
+    {
+        int sum = 0;
+        await foreach (var _ in enumerable.ConfigureAwait(false)) sum++;
+        return sum;
+    }
+
+    /// <summary>
+    /// Produces enumerable filtering elements.
+    /// </summary>
+    /// <param name="enumerable">Enumerable.</param>
+    /// <param name="predicate">Predicate.</param>
+    /// <typeparam name="T">Value type.</typeparam>
+    /// <returns>Task returning count of elements.</returns>
+    public static async IAsyncEnumerable<T> WhereAsync<T>(this IAsyncEnumerable<T> enumerable, Predicate<T> predicate)
+    {
+        await foreach (T v in enumerable)
+            if (predicate(v))
+                yield return v;
+    }
+
+    /// <summary>
+    /// Produces enumerable transforming elements.
+    /// </summary>
+    /// <param name="enumerable">Enumerable.</param>
+    /// <param name="func">Transform.</param>
+    /// <typeparam name="TFrom">Source value type.</typeparam>
+    /// <typeparam name="TTo">Target type.</typeparam>
+    /// <returns>Task returning count of elements.</returns>
+    public static async IAsyncEnumerable<TTo> SelectAsync<TFrom, TTo>(this IAsyncEnumerable<TFrom> enumerable, Func<TFrom, TTo> func)
+    {
+        await foreach (TFrom from in enumerable)
+            yield return func(from);
+    }
+
+    /// <summary>
+    /// Gets only element or default value.
+    /// </summary>
+    /// <param name="enumerable">Enumerable.</param>
+    /// <typeparam name="T">Value type.</typeparam>
+    /// <returns>Task returning only element or default.</returns>
+    public static async ValueTask<T?> SingleOrDefaultAsync<T>(this IAsyncEnumerable<T> enumerable)
+    {
+        await using ConfiguredCancelableAsyncEnumerable<T>.Enumerator enumerator = enumerable.ConfigureAwait(false).GetAsyncEnumerator();
+        if (await enumerator.MoveNextAsync())
+        {
+            T value = enumerator.Current;
+            if (await enumerator.MoveNextAsync()) throw new InvalidOperationException("More than one element contained in sequence");
+            return value;
+        }
+        return default;
+    }
+
+    /// <summary>
+    /// Gets only element or default value.
+    /// </summary>
+    /// <param name="enumerable">Enumerable.</param>
+    /// <param name="default">Default value.</param>
+    /// <typeparam name="T">Value type.</typeparam>
+    /// <returns>Task returning only element or default.</returns>
+    public static async ValueTask<T?> SingleOrDefaultAsync<T>(this IAsyncEnumerable<T> enumerable, T @default)
+    {
+        await using ConfiguredCancelableAsyncEnumerable<T>.Enumerator enumerator = enumerable.ConfigureAwait(false).GetAsyncEnumerator();
+        if (await enumerator.MoveNextAsync())
+        {
+            T value = enumerator.Current;
+            if (await enumerator.MoveNextAsync()) throw new InvalidOperationException("More than one element contained in sequence");
+            return value;
+        }
+        return @default;
+    }
+
+    /// <summary>
+    /// Gets first element or default value.
+    /// </summary>
+    /// <param name="enumerable">Enumerable.</param>
+    /// <typeparam name="T">Value type.</typeparam>
+    /// <returns>Task returning first element or default.</returns>
+    public static async ValueTask<T?> FirstOrDefaultAsync<T>(this IAsyncEnumerable<T> enumerable)
+    {
+        await foreach (T v in enumerable.ConfigureAwait(false))
+            return v;
+        return default;
+    }
+
+    /// <summary>
+    /// Gets first element or default value.
+    /// </summary>
+    /// <param name="enumerable">Enumerable.</param>
+    /// <param name="default">Default value.</param>
+    /// <typeparam name="T">Value type.</typeparam>
+    /// <returns>Task returning first element or default.</returns>
+    public static async ValueTask<T?> FirstOrDefaultAsync<T>(this IAsyncEnumerable<T> enumerable, T @default)
+    {
+        await foreach (T v in enumerable.ConfigureAwait(false))
+            return v;
+        return @default;
+    }
 }

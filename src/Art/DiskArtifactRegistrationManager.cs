@@ -1,4 +1,5 @@
 ﻿using System.Globalization;
+using System.Runtime.CompilerServices;
 
 namespace Art;
 
@@ -9,8 +10,10 @@ public class DiskArtifactRegistrationManager : ArtifactRegistrationManager
 {
     private const string ArtifactDir = ".artifacts";
     private const string ArtifactFileName = "{0}.json";
-    private const string ResourceDir = ".resources";
+    private const string ArtifactFileNameEnd = ".json";
+    internal const string ResourceDir = ".resources";
     private const string ResourceFileName = "{0}.RTFTRSRC.json";
+    private const string ResourceFileNameEnd = ".RTFTRSRC.json";
 
     /// <summary>
     /// Base directory.
@@ -27,12 +30,61 @@ public class DiskArtifactRegistrationManager : ArtifactRegistrationManager
     }
 
     /// <inheritdoc/>
+    public override async IAsyncEnumerable<ArtifactInfo> ListArtifactsAsync([EnumeratorCancellation] CancellationToken cancellationToken = default)
+    {
+        string dir = GetArtifactInfoDir();
+        if (!Directory.Exists(dir)) yield break;
+        foreach (string toolDir in Directory.EnumerateDirectories(dir))
+        foreach (string groupDir in Directory.EnumerateDirectories(toolDir))
+        foreach (string file in Directory.EnumerateFiles(groupDir).Where(v => v.EndsWith(ArtifactFileNameEnd)))
+            if (await ArtExtensions.LoadFromFileAsync<ArtifactInfo>(file, cancellationToken).ConfigureAwait(false) is { } v)
+                yield return v;
+    }
+
+    /// <inheritdoc/>
+    public override async IAsyncEnumerable<ArtifactInfo> ListArtifactsAsync(string tool, [EnumeratorCancellation] CancellationToken cancellationToken = default)
+    {
+        string toolDir = GetArtifactInfoDir(tool);
+        if (!Directory.Exists(toolDir)) yield break;
+        foreach (string groupDir in Directory.EnumerateDirectories(toolDir))
+        foreach (string file in Directory.EnumerateFiles(groupDir).Where(v => v.EndsWith(ArtifactFileNameEnd)))
+            if (await ArtExtensions.LoadFromFileAsync<ArtifactInfo>(file, cancellationToken).ConfigureAwait(false) is { } v)
+                yield return v;
+    }
+
+    /// <inheritdoc/>
+    public override async IAsyncEnumerable<ArtifactInfo> ListArtifactsAsync(string tool, string group, [EnumeratorCancellation] CancellationToken cancellationToken = default)
+    {
+        string groupDir = GetArtifactInfoDir(tool, group);
+        if (!Directory.Exists(groupDir)) yield break;
+        foreach (string file in Directory.EnumerateFiles(groupDir).Where(v => v.EndsWith(ArtifactFileNameEnd)))
+            if (await ArtExtensions.LoadFromFileAsync<ArtifactInfo>(file, cancellationToken).ConfigureAwait(false) is { } v)
+                yield return v;
+    }
+
+    /// <inheritdoc/>
+    public override async IAsyncEnumerable<ArtifactResourceInfo> ListResourcesAsync(ArtifactKey key, [EnumeratorCancellation] CancellationToken cancellationToken = default)
+    {
+        string dir = GetResourceInfoDir(key);
+        Queue<string> dQueue = new();
+        dQueue.Enqueue(dir);
+        while (dQueue.TryDequeue(out string? dd))
+        {
+            foreach (string f in Directory.EnumerateFiles(dd).Where(v => v.EndsWith(ResourceFileNameEnd)))
+                if (await ArtExtensions.LoadFromFileAsync<ArtifactResourceInfo>(f, cancellationToken).ConfigureAwait(false) is { } v)
+                    yield return v;
+            foreach (string d in Directory.EnumerateDirectories(dd))
+                dQueue.Enqueue(d);
+        }
+    }
+
+    /// <inheritdoc/>
     public override async ValueTask AddArtifactAsync(ArtifactInfo artifactInfo, CancellationToken cancellationToken = default)
     {
         string dir = GetArtifactInfoDir(artifactInfo.Key);
         if (!Directory.Exists(dir)) Directory.CreateDirectory(dir);
         string path = GetArtifactInfoFilePath(dir, artifactInfo.Key);
-        await artifactInfo.WriteToFileAsync(path, cancellationToken: cancellationToken).ConfigureAwait(false);
+        await artifactInfo.WriteToFileAsync(path, cancellationToken).ConfigureAwait(false);
     }
 
     /// <inheritdoc/>
@@ -80,35 +132,47 @@ public class DiskArtifactRegistrationManager : ArtifactRegistrationManager
         return ValueTask.CompletedTask;
     }
 
-    private string GetBasePath(ArtifactKey key)
+    private string GetSubPath(string sub)
     {
-        return DiskPaths.GetBasePath(BaseDirectory, key.Tool, key.Group);
+        return DiskPaths.GetSubPath(BaseDirectory, sub);
     }
 
-    private string GetBasePath(ArtifactResourceKey key)
+    private string GetSubPath(string sub, string tool)
     {
-        return DiskPaths.GetBasePath(BaseDirectory, key.Artifact.Tool, key.Artifact.Group);
+        return DiskPaths.GetSubPath(BaseDirectory, sub, tool);
+    }
+
+    private string GetSubPath(string sub, string tool, string group)
+    {
+        return DiskPaths.GetSubPath(BaseDirectory, sub, tool, group);
+    }
+
+    private string GetSubPath(string sub, ArtifactKey key)
+    {
+        return DiskPaths.GetSubPath(BaseDirectory, sub, key.Tool, key.Group, key.Id);
     }
 
     private string GetArtifactInfoDir(ArtifactKey key)
-    {
-        return Path.Combine(GetBasePath(key), ArtifactDir);
-    }
+        => GetArtifactInfoDir(key.Tool, key.Group);
+
+    private string GetArtifactInfoDir()
+        => GetSubPath(ArtifactDir);
+
+    private string GetArtifactInfoDir(string tool)
+        => GetSubPath(ArtifactDir, tool);
+
+    private string GetArtifactInfoDir(string tool, string group)
+        => GetSubPath(ArtifactDir, tool, group);
 
     private static string GetArtifactInfoFilePath(string dir, ArtifactKey key)
-    {
-        return Path.Combine(dir, string.Format(CultureInfo.InvariantCulture, ArtifactFileName, key.Id));
-    }
+        => Path.Combine(dir, string.Format(CultureInfo.InvariantCulture, ArtifactFileName, key.Id));
+
+    private string GetResourceInfoDir(ArtifactKey key)
+        => GetSubPath(ResourceDir, key);
 
     private string GetResourceInfoDir(ArtifactResourceKey key)
-    {
-        string dir = Path.Combine(GetBasePath(key), ResourceDir);
-        dir = DiskPaths.GetResourceDir(dir, key.Path);
-        return dir;
-    }
+        => Path.Combine(GetSubPath(ResourceDir, key.Artifact), key.Path);
 
     private static string GetResourceInfoFilePath(string dir, ArtifactResourceKey key)
-    {
-        return Path.Combine(dir, string.Format(CultureInfo.InvariantCulture, ResourceFileName, key.File.SafeifyFileName()));
-    }
+        => Path.Combine(dir, string.Format(CultureInfo.InvariantCulture, ResourceFileName, key.File.SafeifyFileName()));
 }

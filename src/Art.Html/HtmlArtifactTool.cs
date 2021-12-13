@@ -79,7 +79,7 @@ public abstract class HtmlArtifactTool : HttpArtifactTool
     public async Task<IDocument> OpenAsync(string address, CancellationToken cancellationToken = default)
     {
         NotDisposed();
-        return Document = await Browser.OpenAsync(address, cancellation: cancellationToken).ConfigureAwait(false);
+        return Document = await Browser.OpenAsync(address, cancellationToken).ConfigureAwait(false);
     }
 
     /// <summary>
@@ -91,7 +91,7 @@ public abstract class HtmlArtifactTool : HttpArtifactTool
     public async Task<IDocument> OpenAsync(Url address, CancellationToken cancellationToken = default)
     {
         NotDisposed();
-        return Document = await Browser.OpenAsync(address, cancel: cancellationToken).ConfigureAwait(false);
+        return Document = await Browser.OpenAsync(address, cancellationToken).ConfigureAwait(false);
     }
 
     /// <summary>
@@ -103,7 +103,7 @@ public abstract class HtmlArtifactTool : HttpArtifactTool
     public async Task<IDocument> OpenAsync(DocumentRequest request, CancellationToken cancellationToken = default)
     {
         NotDisposed();
-        return Document = await Browser.OpenAsync(request, cancel: cancellationToken).ConfigureAwait(false);
+        return Document = await Browser.OpenAsync(request, cancellationToken).ConfigureAwait(false);
     }
 
     /// <summary>

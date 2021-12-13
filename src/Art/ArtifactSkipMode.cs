@@ -8,13 +8,13 @@ public enum ArtifactSkipMode
     /// <summary>
     /// Never skip.
     /// </summary>
-    NoSkip,
+    None,
     /// <summary>
     /// Skip all artifacts starting from first known artifact.
     /// </summary>
-    SkipAllFromFirstKnown,
+    FastExit,
     /// <summary>
     /// Skip only known artifacts.
     /// </summary>
-    SkipKnown
+    Known
 }

@@ -14,13 +14,31 @@ public class SqliteTests
         string tempFile = Path.GetTempFileName();
         try
         {
-            using SqliteArtifactRegistrationManager r = new SqliteArtifactRegistrationManager(tempFile);
+            using SqliteArtifactRegistrationManager r = new(tempFile);
             await TestSqliteDatabase(r);
         }
-        finally
+        catch
         {
-            File.Delete(tempFile);
+            try
+            {
+                File.Delete(tempFile);
+            }
+            catch
+            {
+                // ignored
+            }
+            throw;
         }
+        for (int i = 10; --i >= 0;)
+            try
+            {
+                File.Delete(tempFile);
+            }
+            catch
+            {
+                if (i == 0) throw;
+                await Task.Delay(TimeSpan.FromSeconds(0.5));
+            }
     }
 
     [Test]
@@ -72,5 +90,10 @@ public class SqliteTests
         Assert.That(await r.TryGetResourceAsync(i2_k1), Is.EqualTo(i2_r1));
         Assert.That(await r.TryGetResourceAsync(i2_k2), Is.EqualTo(i2_r2));
         Assert.That(await r.TryGetResourceAsync(i2_k3), Is.Null);
+        Assert.That(await r.ListArtifactsAsync("abec").CountAsync(), Is.EqualTo(1));
+        Assert.That(await r.ListArtifactsAsync("abec", "group1").CountAsync(), Is.EqualTo(1));
+        Assert.That(await r.ListArtifactsAsync("abec2", "group1").CountAsync(), Is.EqualTo(0));
+        Assert.That(await r.ListResourcesAsync(k2).CountAsync(), Is.EqualTo(2));
+        Assert.That(await r.ListResourcesAsync(k1).CountAsync(), Is.EqualTo(0));
     }
 }

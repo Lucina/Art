@@ -9,7 +9,7 @@
 public record ArtifactToolDumpOptions(
     ResourceUpdateMode ResourceUpdate = ResourceUpdateMode.ArtifactHard,
     bool IncludeNonFull = true,
-    ArtifactSkipMode SkipMode = ArtifactSkipMode.NoSkip)
+    ArtifactSkipMode SkipMode = ArtifactSkipMode.None)
 {
     /// <summary>
     /// Default options.
