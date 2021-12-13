@@ -39,24 +39,26 @@ public class ArtifactData : IReadOnlyDictionary<ArtifactResourceKey, ArtifactRes
     /// <param name="tool">Tool id.</param>
     /// <param name="group">Group.</param>
     /// <param name="id">Artifact ID.</param>
+    /// <param name="name">Name.</param>
     /// <param name="date">Artifact creation date.</param>
     /// <param name="updateDate">Artifact update date.</param>
     /// <param name="full">True if this is a full artifact.</param>
-    public ArtifactData(string tool, string group, string id, DateTimeOffset? date = null, DateTimeOffset? updateDate = null, bool full = true)
+    public ArtifactData(string tool, string group, string id, string? name = null, DateTimeOffset? date = null, DateTimeOffset? updateDate = null, bool full = true)
     {
-        Info = new ArtifactInfo(new ArtifactKey(tool, group, id), date, updateDate, full);
+        Info = new ArtifactInfo(new ArtifactKey(tool, group, id), name, date, updateDate, full);
     }
 
     /// <summary>
     /// Creates a new instance of <see cref="ArtifactData"/>.
     /// </summary>
     /// <param name="key">Artifact key.</param>
+    /// <param name="name">Name.</param>
     /// <param name="date">Artifact creation date.</param>
     /// <param name="updateDate">Artifact update date.</param>
     /// <param name="full">True if this is a full artifact.</param>
-    public ArtifactData(ArtifactKey key, DateTimeOffset? date = null, DateTimeOffset? updateDate = null, bool full = true)
+    public ArtifactData(ArtifactKey key, string? name = null, DateTimeOffset? date = null, DateTimeOffset? updateDate = null, bool full = true)
     {
-        Info = new ArtifactInfo(key, date, updateDate, full);
+        Info = new ArtifactInfo(key, name, date, updateDate, full);
     }
 
     /// <summary>
@@ -66,12 +68,13 @@ public class ArtifactData : IReadOnlyDictionary<ArtifactResourceKey, ArtifactRes
     /// <param name="tool">Tool id.</param>
     /// <param name="group">Group.</param>
     /// <param name="id">Artifact ID.</param>
+    /// <param name="name">Name.</param>
     /// <param name="date">Artifact creation date.</param>
     /// <param name="updateDate">Artifact update date.</param>
     /// <param name="full">True if this is a full artifact.</param>
-    public ArtifactData(ArtifactTool artifactTool, string tool, string group, string id, DateTimeOffset? date = null, DateTimeOffset? updateDate = null, bool full = true)
+    public ArtifactData(ArtifactTool artifactTool, string tool, string group, string id, string? name = null, DateTimeOffset? date = null, DateTimeOffset? updateDate = null, bool full = true)
     {
-        Info = new ArtifactInfo(new ArtifactKey(tool, group, id), date, updateDate, full);
+        Info = new ArtifactInfo(new ArtifactKey(tool, group, id), name, date, updateDate, full);
         _tool = artifactTool;
     }
 
@@ -80,12 +83,13 @@ public class ArtifactData : IReadOnlyDictionary<ArtifactResourceKey, ArtifactRes
     /// </summary>
     /// <param name="artifactTool">Artifact tool.</param>
     /// <param name="key">Artifact key.</param>
+    /// <param name="name">Name.</param>
     /// <param name="date">Artifact creation date.</param>
     /// <param name="updateDate">Artifact update date.</param>
     /// <param name="full">True if this is a full artifact.</param>
-    public ArtifactData(ArtifactTool artifactTool, ArtifactKey key, DateTimeOffset? date = null, DateTimeOffset? updateDate = null, bool full = true)
+    public ArtifactData(ArtifactTool artifactTool, ArtifactKey key, string? name = null, DateTimeOffset? date = null, DateTimeOffset? updateDate = null, bool full = true)
     {
-        Info = new ArtifactInfo(key, date, updateDate, full);
+        Info = new ArtifactInfo(key, name, date, updateDate, full);
         _tool = artifactTool;
     }
 
@@ -324,8 +328,8 @@ public class ArtifactData : IReadOnlyDictionary<ArtifactResourceKey, ArtifactRes
 
     private T GetArtifactTool<T>() where T : ArtifactTool
         => (_tool
-        ?? throw new InvalidOperationException("Data object was not initialized with an artifact tool")) as T
-        ?? throw new InvalidCastException("Tool type for this data object is not compatible with needed type");
+            ?? throw new InvalidOperationException("Data object was not initialized with an artifact tool")) as T
+           ?? throw new InvalidCastException("Tool type for this data object is not compatible with needed type");
 
     /// <inheritdoc/>
     public bool ContainsKey(ArtifactResourceKey key) => Resources.ContainsKey(key);

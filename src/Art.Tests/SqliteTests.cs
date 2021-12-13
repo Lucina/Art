@@ -54,14 +54,14 @@ public class SqliteTests
     {
         // 1
         ArtifactKey k1 = new("abec", "group1", "kraft1");
-        ArtifactInfo i1 = new(k1, DateTimeOffset.FromUnixTimeSeconds(1636785227L));
+        ArtifactInfo i1 = new(k1, "name here", DateTimeOffset.FromUnixTimeSeconds(1636785227L));
         ArtifactResourceKey i1_k1 = new(k1, "file1");
         ArtifactResourceInfo i1_r1 = new(i1_k1, "v0");
         ArtifactResourceKey i1_k2 = new(k1, "file2", "somepath");
         ArtifactResourceInfo i1_r2 = new(i1_k2);
         // 2
         ArtifactKey k2 = new("abec", "group1", "kraft2");
-        ArtifactInfo i2 = new(k2, DateTimeOffset.FromUnixTimeSeconds(1636785227L));
+        ArtifactInfo i2 = new(k2, "some name here", DateTimeOffset.FromUnixTimeSeconds(1636785227L));
         ArtifactResourceKey i2_k1 = new(k2, "file1");
         ArtifactResourceInfo i2_r1 = new(i2_k1, "v0");
         ArtifactResourceKey i2_k2 = new(k2, "file2", "somepath");

@@ -34,6 +34,9 @@ namespace Art.EF.Sqlite.Migrations
                     b.Property<bool>("Full")
                         .HasColumnType("INTEGER");
 
+                    b.Property<string>("Name")
+                        .HasColumnType("TEXT");
+
                     b.Property<DateTimeOffset?>("UpdateDate")
                         .HasColumnType("TEXT");
 

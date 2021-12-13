@@ -23,6 +23,11 @@ public class ArtifactInfoModel
     public virtual string Id { get; set; } = null!;
 
     /// <summary>
+    /// Name.
+    /// </summary>
+    public virtual string? Name { get; set; } = null!;
+
+    /// <summary>
     /// Artifact creation date.
     /// </summary>
     public virtual DateTimeOffset? Date { get; set; }

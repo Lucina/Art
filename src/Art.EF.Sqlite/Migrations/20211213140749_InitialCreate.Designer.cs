@@ -11,7 +11,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Art.EF.Sqlite.Migrations
 {
     [DbContext(typeof(ArtifactContext))]
-    [Migration("20211213094026_InitialCreate")]
+    [Migration("20211213140749_InitialCreate")]
     partial class InitialCreate
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -35,6 +35,9 @@ namespace Art.EF.Sqlite.Migrations
 
                     b.Property<bool>("Full")
                         .HasColumnType("INTEGER");
+
+                    b.Property<string>("Name")
+                        .HasColumnType("TEXT");
 
                     b.Property<DateTimeOffset?>("UpdateDate")
                         .HasColumnType("TEXT");

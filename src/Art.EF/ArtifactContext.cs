@@ -39,7 +39,7 @@ public class ArtifactContext : DbContext
     /// <returns>Task.</returns>
     public async ValueTask AddArtifactAsync(ArtifactInfo artifactInfo, CancellationToken cancellationToken = default)
     {
-        ((string tool, string group, string id), DateTimeOffset? date, DateTimeOffset? updateDate, bool full) = artifactInfo;
+        ((string tool, string group, string id), string? name, DateTimeOffset? date, DateTimeOffset? updateDate, bool full) = artifactInfo;
         ArtifactInfoModel? model = await ArtifactInfoModels.FindAsync(new object?[] { tool, group, id }, cancellationToken);
         if (model == null)
         {
@@ -48,6 +48,7 @@ public class ArtifactContext : DbContext
                 Tool = tool,
                 Group = group,
                 Id = id,
+                Name = name,
                 Date = date,
                 UpdateDate = updateDate,
                 Full = full
@@ -109,7 +110,7 @@ public class ArtifactContext : DbContext
     {
         (string tool, string group, string id) = key;
         ArtifactInfoModel? model = await ArtifactInfoModels.FindAsync(new object?[] { tool, group, id }, cancellationToken);
-        return model != null ? new ArtifactInfo(key, model.Date, model.UpdateDate, model.Full) : null;
+        return model != null ? new ArtifactInfo(key, model.Name, model.Date, model.UpdateDate, model.Full) : null;
     }
 
     /// <summary>

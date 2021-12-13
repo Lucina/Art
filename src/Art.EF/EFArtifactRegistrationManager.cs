@@ -22,19 +22,19 @@ public class EFArtifactRegistrationManager : ArtifactRegistrationManager, IDispo
     /// <inheritdoc />
     public override IAsyncEnumerable<ArtifactInfo> ListArtifactsAsync(CancellationToken cancellationToken = default)
         => Context.ArtifactInfoModels.AsAsyncEnumerable()
-            .SelectAsync(v => new ArtifactInfo(new ArtifactKey(v.Tool, v.Group, v.Id)));
+            .SelectAsync(v => new ArtifactInfo(new ArtifactKey(v.Tool, v.Group, v.Id), v.Name, v.Date, v.UpdateDate, v.Full));
 
     /// <inheritdoc />
     public override IAsyncEnumerable<ArtifactInfo> ListArtifactsAsync(string tool, CancellationToken cancellationToken = default)
         => Context.ArtifactInfoModels.AsAsyncEnumerable()
             .WhereAsync(v => v.Tool == tool)
-            .SelectAsync(v => new ArtifactInfo(new ArtifactKey(v.Tool, v.Group, v.Id)));
+            .SelectAsync(v => new ArtifactInfo(new ArtifactKey(v.Tool, v.Group, v.Id), v.Name, v.Date, v.UpdateDate, v.Full));
 
     /// <inheritdoc />
     public override IAsyncEnumerable<ArtifactInfo> ListArtifactsAsync(string tool, string group, CancellationToken cancellationToken = default)
         => Context.ArtifactInfoModels.AsAsyncEnumerable()
             .WhereAsync(v => v.Tool == tool && v.Group == group)
-            .SelectAsync(v => new ArtifactInfo(new ArtifactKey(v.Tool, v.Group, v.Id)));
+            .SelectAsync(v => new ArtifactInfo(new ArtifactKey(v.Tool, v.Group, v.Id), v.Name, v.Date, v.UpdateDate, v.Full));
 
     /// <inheritdoc />
     public override IAsyncEnumerable<ArtifactResourceInfo> ListResourcesAsync(ArtifactKey key, CancellationToken cancellationToken = default)

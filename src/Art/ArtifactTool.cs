@@ -287,11 +287,12 @@ public abstract partial class ArtifactTool : IDisposable
     /// Creates a new instance of <see cref="ArtifactData"/>.
     /// </summary>
     /// <param name="id">Artifact ID.</param>
+    /// <param name="name">Name.</param>
     /// <param name="date">Artifact creation date.</param>
     /// <param name="updateDate">Artifact update date.</param>
     /// <param name="full">True if this is a full artifact.</param>
-    public ArtifactData CreateData(string id, DateTimeOffset? date = null, DateTimeOffset? updateDate = null, bool full = true)
-        => new(this, Profile.Tool, Profile.Group, id, date, updateDate, full);
+    public ArtifactData CreateData(string id, string? name = null, DateTimeOffset? date = null, DateTimeOffset? updateDate = null, bool full = true)
+        => new(this, Profile.Tool, Profile.Group, id, name, date, updateDate, full);
 
     /// <summary>
     /// Registers artifact as known.

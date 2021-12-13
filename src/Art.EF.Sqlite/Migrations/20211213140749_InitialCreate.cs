@@ -16,6 +16,7 @@ namespace Art.EF.Sqlite.Migrations
                     Tool = table.Column<string>(type: "TEXT", nullable: false),
                     Group = table.Column<string>(type: "TEXT", nullable: false),
                     Id = table.Column<string>(type: "TEXT", nullable: false),
+                    Name = table.Column<string>(type: "TEXT", nullable: true),
                     Date = table.Column<DateTimeOffset>(type: "TEXT", nullable: true),
                     UpdateDate = table.Column<DateTimeOffset>(type: "TEXT", nullable: true),
                     Full = table.Column<bool>(type: "INTEGER", nullable: false)
