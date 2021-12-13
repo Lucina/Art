@@ -43,7 +43,7 @@ public class SqliteArtifactContextFactory : ArtifactContextFactoryBase
 
     internal bool UsingInMemory;
 
-    private const string Memory = ":memory:?cache=shared";
+    private const string Memory = "file::memory:?cache=shared";
 
     /// <summary>
     /// Environment variable for path to sqlite storage file.

@@ -184,7 +184,6 @@ public abstract partial class ArtifactTool : IDisposable
     /// <summary>
     /// Attempt to get option.
     /// </summary>
-    /// <typeparam name="T">Value type.</typeparam>
     /// <param name="optKey">Key to search.</param>
     /// <param name="value">Value, if located and nonnull.</param>
     /// <param name="throwIfIncorrectType">If true, throw a <see cref="JsonException"/> if type is wrong.</param>

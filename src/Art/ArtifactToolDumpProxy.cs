@@ -46,6 +46,8 @@ public record ArtifactToolDumpProxy(ArtifactTool ArtifactTool, ArtifactToolDumpO
                 }
                 if (!data.Info.Full && !Options.IncludeNonFull) continue;
                 bool isNewArtifact = await ArtifactTool.IsNewArtifactAsync(data.Info, cancellationToken).ConfigureAwait(false);
+                if (isNewArtifact)
+                    await ArtifactTool.AddArtifactAsync(data.Info with { Full = false }, cancellationToken).ConfigureAwait(false);
                 foreach (ArtifactResourceInfo resource in data.Values)
                 {
                     switch (Options.ResourceUpdate)

@@ -87,7 +87,7 @@ public static class ArtExtensions
         await fr.Content.CopyToAsync(fs, cancellationToken);
     }
 
-    private static readonly char[] s_invalid = Path.GetInvalidFileNameChars();
+    private static readonly char[] s_invalid = Path.GetInvalidFileNameChars().Append(':').ToArray();
 
     /// <summary>
     /// Remove invalid filename characters, based on <see cref="Path.GetInvalidFileNameChars()"/>.
