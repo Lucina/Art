@@ -19,7 +19,7 @@ public static class CookieFile
         while (tr.ReadLine() is { } line)
         {
             i++;
-            string[]? elem = line.Split(new char[] { ' ', '\t' }, options: StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+            string[] elem = line.Split(new char[] { ' ', '\t' }, options: StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
             if (elem.Length == 0 || elem[0].StartsWith('#')) continue;
             if (elem.Length < 6 || elem.Length > 7) throw new InvalidDataException($"Line {i} had invalid number of elements {elem.Length}");
             string domain = elem[0];

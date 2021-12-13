@@ -1,5 +1,4 @@
 ﻿using System.Runtime.CompilerServices;
-using System.Text.Json;
 
 namespace Art;
 
@@ -68,14 +67,14 @@ public record ArtifactToolListProxy(ArtifactTool ArtifactTool)
             ArtifactKey ak = key.Artifact;
             if (!_artifacts.TryGetValue(ak, out List<ArtifactResourceInfo>? list))
                 _artifacts.Add(ak, list = new List<ArtifactResourceInfo>());
-            list.Add(new ResultStreamArtifactResourceInfo(stream, key, null, ArtifactResourceInfo.EmptyProperties));
+            list.Add(new ResultStreamArtifactResourceInfo(stream, key, null));
             _entries.Add(key, stream);
             return new(stream);
         }
     }
 
-    private record ResultStreamArtifactResourceInfo(Stream Resource, ArtifactResourceKey Key, string? Version, IReadOnlyDictionary<string, JsonElement> Properties)
-        : StreamArtifactResourceInfo(Resource, Key, Version, Properties)
+    private record ResultStreamArtifactResourceInfo(Stream Resource, ArtifactResourceKey Key, string? Version)
+        : StreamArtifactResourceInfo(Resource, Key, Version)
     {
         public override async ValueTask ExportAsync(Stream stream, CancellationToken cancellationToken = default)
         {

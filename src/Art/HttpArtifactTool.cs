@@ -10,6 +10,7 @@ namespace Art;
 public abstract class HttpArtifactTool : ArtifactTool
 {
     #region Fields
+
     /// <summary>
     /// Option used to specify path to http client cookie file.
     /// </summary>
@@ -69,14 +70,15 @@ public abstract class HttpArtifactTool : ArtifactTool
     #region Configuration
 
     /// <inheritdoc/>
-    public override async Task ConfigureAsync(ArtifactToolRuntimeConfig runtimeConfig, CancellationToken cancellationToken = default)
+    public override Task ConfigureAsync(CancellationToken cancellationToken = default)
     {
-        await base.ConfigureAsync(runtimeConfig, cancellationToken);
         CookieContainer cookies = CreateCookieContainer();
         _httpClientHandler = CreateHttpClientHandler(cookies);
         _httpClient = CreateHttpClient(_httpClientHandler);
         _httpClient.DefaultRequestHeaders.UserAgent.TryParseAdd(DefaultUserAgent);
+        return Task.CompletedTask;
     }
+
     #endregion
 
     #region Http client configuraiton
@@ -89,7 +91,7 @@ public abstract class HttpArtifactTool : ArtifactTool
     {
         CookieContainer cookies = new();
         if (TryGetOption(OptCookieFile, out string? cookieFile))
-            using (StreamReader? f = File.OpenText(cookieFile))
+            using (StreamReader f = File.OpenText(cookieFile))
                 cookies.LoadCookieFile(f);
         return cookies;
     }
@@ -99,11 +101,7 @@ public abstract class HttpArtifactTool : ArtifactTool
     /// </summary>
     /// <param name="cookies"></param>
     /// <returns></returns>
-    public virtual HttpClientHandler CreateHttpClientHandler(CookieContainer cookies) => new()
-    {
-        AutomaticDecompression = DecompressionMethods.All,
-        CookieContainer = cookies
-    };
+    public virtual HttpClientHandler CreateHttpClientHandler(CookieContainer cookies) => new() { AutomaticDecompression = DecompressionMethods.All, CookieContainer = cookies };
 
     /// <summary>
     /// Creates an <see cref="System.Net.Http.HttpClient"/> instance configured to use the specified client handler.
@@ -547,7 +545,7 @@ public abstract class HttpArtifactTool : ArtifactTool
         HttpRequestMessage req = new(HttpMethod.Get, requestUri);
         SetOriginAndReferrer(req, origin, referrer);
         ConfigureHttpRequest(req);
-        using HttpResponseMessage? fr = await HttpClient.SendAsync(req, cancellationToken).ConfigureAwait(false);
+        using HttpResponseMessage fr = await HttpClient.SendAsync(req, cancellationToken).ConfigureAwait(false);
         fr.EnsureSuccessStatusCode();
         await fr.Content.CopyToAsync(stream, cancellationToken).ConfigureAwait(false);
     }
@@ -567,7 +565,7 @@ public abstract class HttpArtifactTool : ArtifactTool
         HttpRequestMessage req = new(HttpMethod.Get, requestUri);
         SetOriginAndReferrer(req, origin, referrer);
         ConfigureHttpRequest(req);
-        using HttpResponseMessage? fr = await HttpClient.SendAsync(req, cancellationToken).ConfigureAwait(false);
+        using HttpResponseMessage fr = await HttpClient.SendAsync(req, cancellationToken).ConfigureAwait(false);
         fr.EnsureSuccessStatusCode();
         await using Stream stream = await CreateOutputStreamAsync(key, cancellationToken).ConfigureAwait(false);
         await fr.Content.CopyToAsync(stream, cancellationToken).ConfigureAwait(false);
@@ -580,13 +578,12 @@ public abstract class HttpArtifactTool : ArtifactTool
     /// <param name="file">Target filename.</param>
     /// <param name="key">Artifact key.</param>
     /// <param name="path">File path to prepend.</param>
-    /// <param name="inArtifactFolder">If false, place artifact under common root.</param>
     /// <param name="origin">Request origin.</param>
     /// <param name="referrer">Request referrer.</param>
     /// <param name="cancellationToken">Cancellation token.</param>
     /// <returns>Task.</returns>
-    public Task DownloadResourceAsync(string requestUri, string file, ArtifactKey key, string? path = null, bool inArtifactFolder = true, string? origin = null, string? referrer = null, CancellationToken cancellationToken = default)
-        => DownloadResourceAsync(requestUri, ArtifactResourceKey.Create(key, file, path, inArtifactFolder), cancellationToken: cancellationToken);
+    public Task DownloadResourceAsync(string requestUri, string file, ArtifactKey key, string? path = null, string? origin = null, string? referrer = null, CancellationToken cancellationToken = default)
+        => DownloadResourceAsync(requestUri, new ArtifactResourceKey(key, file, path), origin, referrer, cancellationToken);
 
     /// <summary>
     /// Downloads a resource.
@@ -603,7 +600,7 @@ public abstract class HttpArtifactTool : ArtifactTool
         HttpRequestMessage req = new(HttpMethod.Get, requestUri);
         SetOriginAndReferrer(req, origin, referrer);
         ConfigureHttpRequest(req);
-        using HttpResponseMessage? fr = await HttpClient.SendAsync(req, cancellationToken).ConfigureAwait(false);
+        using HttpResponseMessage fr = await HttpClient.SendAsync(req, cancellationToken).ConfigureAwait(false);
         fr.EnsureSuccessStatusCode();
         await fr.Content.CopyToAsync(stream, cancellationToken).ConfigureAwait(false);
     }
@@ -623,7 +620,7 @@ public abstract class HttpArtifactTool : ArtifactTool
         HttpRequestMessage req = new(HttpMethod.Get, requestUri);
         SetOriginAndReferrer(req, origin, referrer);
         ConfigureHttpRequest(req);
-        using HttpResponseMessage? fr = await HttpClient.SendAsync(req, cancellationToken).ConfigureAwait(false);
+        using HttpResponseMessage fr = await HttpClient.SendAsync(req, cancellationToken).ConfigureAwait(false);
         fr.EnsureSuccessStatusCode();
         await using Stream stream = await CreateOutputStreamAsync(key, cancellationToken).ConfigureAwait(false);
         await fr.Content.CopyToAsync(stream, cancellationToken).ConfigureAwait(false);
@@ -636,13 +633,12 @@ public abstract class HttpArtifactTool : ArtifactTool
     /// <param name="file">Target filename.</param>
     /// <param name="key">Artifact key.</param>
     /// <param name="path">File path to prepend.</param>
-    /// <param name="inArtifactFolder">If false, place artifact under common root.</param>
     /// <param name="origin">Request origin.</param>
     /// <param name="referrer">Request referrer.</param>
     /// <param name="cancellationToken">Cancellation token.</param>
     /// <returns>Task.</returns>
-    public Task DownloadResourceAsync(Uri requestUri, string file, ArtifactKey key, string? path = null, bool inArtifactFolder = true, string? origin = null, string? referrer = null, CancellationToken cancellationToken = default)
-        => DownloadResourceAsync(requestUri, ArtifactResourceKey.Create(key, file, path, inArtifactFolder), origin, referrer, cancellationToken);
+    public Task DownloadResourceAsync(Uri requestUri, string file, ArtifactKey key, string? path = null, string? origin = null, string? referrer = null, CancellationToken cancellationToken = default)
+        => DownloadResourceAsync(requestUri, new ArtifactResourceKey(key, file, path), origin, referrer, cancellationToken);
 
     /// <summary>
     /// Downloads a resource.
@@ -654,7 +650,7 @@ public abstract class HttpArtifactTool : ArtifactTool
     public async Task DownloadResourceAsync(HttpRequestMessage requestMessage, Stream stream, CancellationToken cancellationToken = default)
     {
         NotDisposed();
-        using HttpResponseMessage? fr = await HttpClient.SendAsync(requestMessage, cancellationToken).ConfigureAwait(false);
+        using HttpResponseMessage fr = await HttpClient.SendAsync(requestMessage, cancellationToken).ConfigureAwait(false);
         fr.EnsureSuccessStatusCode();
         await fr.Content.CopyToAsync(stream, cancellationToken).ConfigureAwait(false);
     }
@@ -669,7 +665,7 @@ public abstract class HttpArtifactTool : ArtifactTool
     public async Task DownloadResourceAsync(HttpRequestMessage requestMessage, ArtifactResourceKey key, CancellationToken cancellationToken = default)
     {
         NotDisposed();
-        using HttpResponseMessage? fr = await HttpClient.SendAsync(requestMessage, cancellationToken).ConfigureAwait(false);
+        using HttpResponseMessage fr = await HttpClient.SendAsync(requestMessage, cancellationToken).ConfigureAwait(false);
         fr.EnsureSuccessStatusCode();
         await using Stream stream = await CreateOutputStreamAsync(key, cancellationToken).ConfigureAwait(false);
         await fr.Content.CopyToAsync(stream, cancellationToken).ConfigureAwait(false);
@@ -682,11 +678,10 @@ public abstract class HttpArtifactTool : ArtifactTool
     /// <param name="file">Target filename.</param>
     /// <param name="key">Artifact key.</param>
     /// <param name="path">File path to prepend.</param>
-    /// <param name="inArtifactFolder">If false, place artifact under common root.</param>
     /// <param name="cancellationToken">Cancellation token.</param>
     /// <returns>Task.</returns>
-    public Task DownloadResourceAsync(HttpRequestMessage requestMessage, string file, ArtifactKey key, string? path = null, bool inArtifactFolder = true, CancellationToken cancellationToken = default)
-        => DownloadResourceAsync(requestMessage, ArtifactResourceKey.Create(key, file, path, inArtifactFolder), cancellationToken);
+    public Task DownloadResourceAsync(HttpRequestMessage requestMessage, string file, ArtifactKey key, string? path = null, CancellationToken cancellationToken = default)
+        => DownloadResourceAsync(requestMessage, new ArtifactResourceKey(key, file, path), cancellationToken);
 
     #endregion
 
@@ -701,8 +696,22 @@ public abstract class HttpArtifactTool : ArtifactTool
             if (disposing)
             {
                 // dispose managed state (managed objects)
-                _httpClient?.Dispose();
-                _httpClientHandler?.Dispose();
+                try
+                {
+                    _httpClient.Dispose();
+                }
+                catch
+                {
+                    // ignored
+                }
+                try
+                {
+                    _httpClientHandler.Dispose();
+                }
+                catch
+                {
+                    // ignored
+                }
             }
 
             // free unmanaged resources (unmanaged objects) and override finalizer

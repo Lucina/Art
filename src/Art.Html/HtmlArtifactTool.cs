@@ -2,7 +2,6 @@
 using AngleSharp;
 using AngleSharp.Dom;
 using AngleSharp.Io;
-using AngleSharp.Text;
 
 namespace Art.Html;
 
@@ -48,9 +47,9 @@ public abstract class HtmlArtifactTool : HttpArtifactTool
     #region Configuration
 
     /// <inheritdoc/>
-    public override async Task ConfigureAsync(ArtifactToolRuntimeConfig runtimeConfig, CancellationToken cancellationToken = default)
+    public override async Task ConfigureAsync(CancellationToken cancellationToken = default)
     {
-        await base.ConfigureAsync(runtimeConfig, cancellationToken);
+        await base.ConfigureAsync(cancellationToken);
         IConfiguration configuration = Configuration.Default.WithDefaultLoader().WithOnly<ICookieProvider>(new OpenMemoryCookieProvider(HttpClientHandler.CookieContainer));
         _browser = BrowsingContext.New(configuration);
     }

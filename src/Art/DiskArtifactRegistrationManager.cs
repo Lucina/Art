@@ -41,7 +41,7 @@ public class DiskArtifactRegistrationManager : ArtifactRegistrationManager
         string dir = GetResourceInfoDir(artifactResourceInfo.Key);
         if (!Directory.Exists(dir)) Directory.CreateDirectory(dir);
         string path = GetResourceInfoFilePath(dir, artifactResourceInfo.Key);
-        await artifactResourceInfo.WriteToFileAsync(path, cancellationToken: cancellationToken).ConfigureAwait(false);
+        await artifactResourceInfo.WriteToFileAsync(path, cancellationToken).ConfigureAwait(false);
     }
 
     /// <inheritdoc/>
@@ -58,6 +58,26 @@ public class DiskArtifactRegistrationManager : ArtifactRegistrationManager
         string dir = GetResourceInfoDir(key);
         string path = GetResourceInfoFilePath(dir, key);
         return File.Exists(path) ? await ArtExtensions.LoadFromFileAsync<ArtifactResourceInfo>(path, cancellationToken).ConfigureAwait(false) : null;
+    }
+
+    /// <inheritdoc/>
+    public override ValueTask RemoveArtifactAsync(ArtifactKey key, CancellationToken cancellationToken = default)
+    {
+        string dir = GetArtifactInfoDir(key);
+        string path = GetArtifactInfoFilePath(dir, key);
+        if (File.Exists(path))
+            File.Delete(path);
+        return ValueTask.CompletedTask;
+    }
+
+    /// <inheritdoc/>
+    public override ValueTask RemoveResourceAsync(ArtifactResourceKey key, CancellationToken cancellationToken = default)
+    {
+        string dir = GetResourceInfoDir(key);
+        string path = GetResourceInfoFilePath(dir, key);
+        if (File.Exists(path))
+            File.Delete(path);
+        return ValueTask.CompletedTask;
     }
 
     private string GetBasePath(ArtifactKey key)
@@ -83,7 +103,7 @@ public class DiskArtifactRegistrationManager : ArtifactRegistrationManager
     private string GetResourceInfoDir(ArtifactResourceKey key)
     {
         string dir = Path.Combine(GetBasePath(key), ResourceDir);
-        dir = DiskPaths.GetResourceDir(dir, key.Artifact.Id, key.Path, key.InArtifactFolder);
+        dir = DiskPaths.GetResourceDir(dir, key.Path);
         return dir;
     }
 

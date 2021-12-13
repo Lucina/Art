@@ -4,7 +4,8 @@
 /// Proxy to run artifact tool as a dump tool.
 /// </summary>
 /// <param name="ArtifactTool">Artifact tool.</param>
-public record ArtifactToolDumpProxy(ArtifactTool ArtifactTool)
+/// <param name="Options">Dump options.</param>
+public record ArtifactToolDumpProxy(ArtifactTool ArtifactTool, ArtifactToolDumpOptions Options)
 {
     /// <summary>
     /// Dumps artifacts.
@@ -22,16 +23,37 @@ public record ArtifactToolDumpProxy(ArtifactTool ArtifactTool)
         {
             await foreach (ArtifactData data in listTool.ListAsync(cancellationToken).ConfigureAwait(false))
             {
-                if (!data.Info.Full && !ArtifactTool.Config.Options.IncludeNonFull) continue;
+                switch (Options.SkipMode)
+                {
+                    case ArtifactSkipMode.NoSkip:
+                        break;
+                    case ArtifactSkipMode.SkipAllFromFirstKnown:
+                        {
+                            ArtifactInfo? info = await ArtifactTool.TryGetArtifactAsync(data.Info.Key.Id, cancellationToken).ConfigureAwait(false);
+                            if (info != null)
+                                return;
+                            break;
+                        }
+                    case ArtifactSkipMode.SkipKnown:
+                        {
+                            ArtifactInfo? info = await ArtifactTool.TryGetArtifactAsync(data.Info.Key.Id, cancellationToken).ConfigureAwait(false);
+                            if (info != null)
+                                continue;
+                            break;
+                        }
+                    default:
+                        throw new IndexOutOfRangeException($"Invalid {nameof(ArtifactSkipMode)}");
+                }
+                if (!data.Info.Full && !Options.IncludeNonFull) continue;
                 bool isNewArtifact = await ArtifactTool.IsNewArtifactAsync(data.Info, cancellationToken).ConfigureAwait(false);
                 foreach (ArtifactResourceInfo resource in data.Values)
                 {
-                    switch (ArtifactTool.Config.Options.ResourceUpdate)
+                    switch (Options.ResourceUpdate)
                     {
                         case ResourceUpdateMode.ArtifactSoft:
                             {
                                 if (!isNewArtifact) continue;
-                                (ArtifactResourceInfo versionedResource, bool isNewResource) = await ArtifactTool.DetermineUpdatedResourceAsync(resource, ArtifactTool.Config.Options.ResourceUpdate, cancellationToken).ConfigureAwait(false);
+                                (ArtifactResourceInfo versionedResource, bool isNewResource) = await ArtifactTool.DetermineUpdatedResourceAsync(resource, Options.ResourceUpdate, cancellationToken).ConfigureAwait(false);
                                 if (!isNewResource) continue;
                                 if (versionedResource.Exportable)
                                 {
@@ -44,7 +66,7 @@ public record ArtifactToolDumpProxy(ArtifactTool ArtifactTool)
                         case ResourceUpdateMode.ArtifactHard:
                             {
                                 if (!isNewArtifact) continue;
-                                (ArtifactResourceInfo versionedResource, _) = await ArtifactTool.DetermineUpdatedResourceAsync(resource, ArtifactTool.Config.Options.ResourceUpdate, cancellationToken).ConfigureAwait(false);
+                                (ArtifactResourceInfo versionedResource, _) = await ArtifactTool.DetermineUpdatedResourceAsync(resource, Options.ResourceUpdate, cancellationToken).ConfigureAwait(false);
                                 if (versionedResource.Exportable)
                                 {
                                     await using Stream stream = await ArtifactTool.CreateOutputStreamAsync(versionedResource.Key, cancellationToken).ConfigureAwait(false);
@@ -55,13 +77,13 @@ public record ArtifactToolDumpProxy(ArtifactTool ArtifactTool)
                             }
                         case ResourceUpdateMode.Populate:
                             {
-                                (ArtifactResourceInfo versionedResource, _) = await ArtifactTool.DetermineUpdatedResourceAsync(resource, ArtifactTool.Config.Options.ResourceUpdate, cancellationToken).ConfigureAwait(false);
+                                (ArtifactResourceInfo versionedResource, _) = await ArtifactTool.DetermineUpdatedResourceAsync(resource, Options.ResourceUpdate, cancellationToken).ConfigureAwait(false);
                                 await ArtifactTool.AddResourceAsync(resource, cancellationToken).ConfigureAwait(false);
                                 break;
                             }
                         case ResourceUpdateMode.Soft:
                             {
-                                (ArtifactResourceInfo versionedResource, bool isNewResource) = await ArtifactTool.DetermineUpdatedResourceAsync(resource, ArtifactTool.Config.Options.ResourceUpdate, cancellationToken).ConfigureAwait(false);
+                                (ArtifactResourceInfo versionedResource, bool isNewResource) = await ArtifactTool.DetermineUpdatedResourceAsync(resource, Options.ResourceUpdate, cancellationToken).ConfigureAwait(false);
                                 if (!isNewResource) continue;
                                 if (versionedResource.Exportable)
                                 {
@@ -73,7 +95,7 @@ public record ArtifactToolDumpProxy(ArtifactTool ArtifactTool)
                             }
                         case ResourceUpdateMode.Hard:
                             {
-                                (ArtifactResourceInfo versionedResource, _) = await ArtifactTool.DetermineUpdatedResourceAsync(resource, ArtifactTool.Config.Options.ResourceUpdate, cancellationToken).ConfigureAwait(false);
+                                (ArtifactResourceInfo versionedResource, _) = await ArtifactTool.DetermineUpdatedResourceAsync(resource, Options.ResourceUpdate, cancellationToken).ConfigureAwait(false);
                                 if (versionedResource.Exportable)
                                 {
                                     await using Stream stream = await ArtifactTool.CreateOutputStreamAsync(versionedResource.Key, cancellationToken).ConfigureAwait(false);
@@ -89,5 +111,6 @@ public record ArtifactToolDumpProxy(ArtifactTool ArtifactTool)
             }
             return;
         }
+        throw new NotSupportedException("Artifact tool is not a supported type");
     }
 }

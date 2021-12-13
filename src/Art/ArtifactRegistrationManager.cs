@@ -38,6 +38,22 @@ public abstract class ArtifactRegistrationManager
     public abstract ValueTask<ArtifactResourceInfo?> TryGetResourceAsync(ArtifactResourceKey key, CancellationToken cancellationToken = default);
 
     /// <summary>
+    /// Removes artifact with the specified key.
+    /// </summary>
+    /// <param name="key">Artifact key.</param>
+    /// <param name="cancellationToken">Cancellation token.</param>
+    /// <returns>Task.</returns>
+    public abstract ValueTask RemoveArtifactAsync(ArtifactKey key, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Removes resource with the specified key.
+    /// </summary>
+    /// <param name="key">Resource key.</param>
+    /// <param name="cancellationToken">Cancellation token.</param>
+    /// <returns>Task.</returns>
+    public abstract ValueTask RemoveResourceAsync(ArtifactResourceKey key, CancellationToken cancellationToken = default);
+
+    /// <summary>
     /// Tests if artifact is recognizably new.
     /// </summary>
     /// <param name="artifactInfo">Artifact to check.</param>

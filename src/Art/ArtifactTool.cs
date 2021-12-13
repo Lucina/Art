@@ -1,4 +1,6 @@
 ﻿using System.Diagnostics.CodeAnalysis;
+using System.Globalization;
+using System.Reflection;
 using System.Text.Json;
 
 namespace Art;
@@ -28,7 +30,11 @@ public abstract partial class ArtifactTool : IDisposable
     /// <summary>
     /// JSON serialization defaults.
     /// </summary>
-    public JsonSerializerOptions JsonOptions { get => _jsonOptions ??= new JsonSerializerOptions(); set => _jsonOptions = value; }
+    public JsonSerializerOptions JsonOptions
+    {
+        get => _jsonOptions ??= new JsonSerializerOptions();
+        set => _jsonOptions = value;
+    }
 
     /// <summary>
     /// Origin tool profile.
@@ -48,7 +54,7 @@ public abstract partial class ArtifactTool : IDisposable
     /// <summary>
     /// Configuration
     /// </summary>
-    public ArtifactToolRuntimeConfig Config { get; private set; }
+    public ArtifactToolConfig Config { get; private set; }
 
     /// <summary>
     /// Default delay time in seconds.
@@ -69,7 +75,7 @@ public abstract partial class ArtifactTool : IDisposable
     /// </summary>
     public ArtifactDataManager DataManager;
 
-    private JsonSerializerOptions _jsonOptions = new();
+    private JsonSerializerOptions? _jsonOptions;
 
     private bool _configured;
 
@@ -97,25 +103,36 @@ public abstract partial class ArtifactTool : IDisposable
     #region Setup
 
     /// <summary>
-    /// Initializes this tool with the specified runtime configuration.
+    /// Initializes and configures this tool with the specified runtime configuration.
     /// </summary>
-    /// <param name="runtimeConfig">Runtime configuration.</param>
+    /// <param name="config">Configuration.</param>
+    /// <param name="profile">Profile.</param>
     /// <param name="cancellationToken">Cancellation token.</param>
     /// <returns>Task.</returns>
-    public virtual Task ConfigureAsync(ArtifactToolRuntimeConfig runtimeConfig, CancellationToken cancellationToken = default)
+    public Task InitializeAsync(ArtifactToolConfig config, ArtifactToolProfile profile, CancellationToken cancellationToken = default)
     {
         EnsureNotDisposed();
-        if (runtimeConfig == null) throw new ArgumentNullException(nameof(runtimeConfig));
-        if (runtimeConfig.RegistrationManager == null) throw new ArgumentException("Cannot configure with null registration manager");
-        if (runtimeConfig.DataManager == null) throw new ArgumentException("Cannot configure with null data manager");
-        if (runtimeConfig.Profile == null) throw new ArgumentException("Cannot configure with null profile");
-        Config = runtimeConfig;
-        RegistrationManager = runtimeConfig.RegistrationManager;
-        DataManager = runtimeConfig.DataManager;
-        Profile = runtimeConfig.Profile;
+        if (config == null) throw new ArgumentNullException(nameof(config));
+        if (config.RegistrationManager == null) throw new ArgumentException("Cannot configure with null registration manager");
+        if (config.DataManager == null) throw new ArgumentException("Cannot configure with null data manager");
+        if (profile == null) throw new ArgumentException("Cannot configure with null profile");
+        Config = config;
+        RegistrationManager = config.RegistrationManager;
+        DataManager = config.DataManager;
+        Profile = profile;
         DebugMode = GetFlagTrue(OptDebugMode);
         Force = GetFlagTrue(OptForce);
         _configured = true;
+        return ConfigureAsync(cancellationToken);
+    }
+
+    /// <summary>
+    /// Initializes this tool.
+    /// </summary>
+    /// <param name="cancellationToken">Cancellation token.</param>
+    /// <returns>Task.</returns>
+    public virtual Task ConfigureAsync(CancellationToken cancellationToken = default)
+    {
         return Task.CompletedTask;
     }
 
@@ -165,6 +182,32 @@ public abstract partial class ArtifactTool : IDisposable
     }
 
     /// <summary>
+    /// Attempt to get option.
+    /// </summary>
+    /// <typeparam name="T">Value type.</typeparam>
+    /// <param name="optKey">Key to search.</param>
+    /// <param name="value">Value, if located and nonnull.</param>
+    /// <param name="throwIfIncorrectType">If true, throw a <see cref="JsonException"/> if type is wrong.</param>
+    /// <returns>True if value is located and of the right type.</returns>
+    public bool TryGetStringOption(string optKey, [NotNullWhen(true)] out string? value, bool throwIfIncorrectType = false)
+    {
+        if (Profile.Options?.TryGetValue(optKey, out JsonElement vv) ?? false)
+        {
+            try
+            {
+                value = vv.ToString();
+                return true;
+            }
+            catch (JsonException)
+            {
+                if (throwIfIncorrectType) throw;
+            }
+        }
+        value = default;
+        return false;
+    }
+
+    /// <summary>
     /// Checks if a flag is true.
     /// </summary>
     /// <param name="optKey">Key to search.</param>
@@ -180,7 +223,7 @@ public abstract partial class ArtifactTool : IDisposable
     /// <returns>Option value.</returns>
     public string GetStringOptionOrGroup(string optKey)
     {
-        return TryGetOption(optKey, out string? optValue) ? optValue : Profile.Group;
+        return TryGetStringOption(optKey, out string? optValue) ? optValue : Profile.Group;
     }
 
     /// <summary>
@@ -190,7 +233,7 @@ public abstract partial class ArtifactTool : IDisposable
     /// <returns>Option value.</returns>
     public long GetInt64OptionOrGroup(string optKey)
     {
-        return TryGetInt64Option(optKey, out long? optValue) ? optValue.Value : long.Parse(Profile.Group);
+        return TryGetInt64Option(optKey, out long? optValue) ? optValue.Value : long.Parse(Profile.Group, CultureInfo.InvariantCulture);
     }
 
     /// <summary>
@@ -200,7 +243,7 @@ public abstract partial class ArtifactTool : IDisposable
     /// <returns>Option value.</returns>
     public ulong GetUInt64OptionOrGroup(string optKey)
     {
-        return TryGetUInt64Option(optKey, out ulong? optValue) ? optValue.Value : ulong.Parse(Profile.Group);
+        return TryGetUInt64Option(optKey, out ulong? optValue) ? optValue.Value : ulong.Parse(Profile.Group, CultureInfo.InvariantCulture);
     }
 
     /// <summary>
@@ -247,10 +290,9 @@ public abstract partial class ArtifactTool : IDisposable
     /// <param name="id">Artifact ID.</param>
     /// <param name="date">Artifact creation date.</param>
     /// <param name="updateDate">Artifact update date.</param>
-    /// <param name="properties">Artifact properties.</param>
     /// <param name="full">True if this is a full artifact.</param>
-    public ArtifactData CreateData(string id, DateTimeOffset? date = null, DateTimeOffset? updateDate = null, IReadOnlyDictionary<string, JsonElement>? properties = null, bool full = true)
-        => new(this, Profile.Tool, Profile.Group, id, date, updateDate, properties, full);
+    public ArtifactData CreateData(string id, DateTimeOffset? date = null, DateTimeOffset? updateDate = null, bool full = true)
+        => new(this, Profile.Tool, Profile.Group, id, date, updateDate, full);
 
     /// <summary>
     /// Registers artifact as known.
@@ -335,20 +377,6 @@ public abstract partial class ArtifactTool : IDisposable
         }
     }
 
-    /// <summary>
-    /// Returns true if item should be skipped druing listing.
-    /// </summary>
-    /// <param name="id">ID.</param>
-    /// <param name="cancellationToken">Cancellation token.</param>
-    /// <returns>True if item should be skipped for list output.</returns>
-    /// <remarks>Default implementation checks existence and <see cref="ArtifactToolRuntimeOptions.SkipKnown"/>.</remarks>
-    public async Task<bool> ShouldSkipAsync(string id, CancellationToken cancellationToken = default)
-    {
-        if (!Config.Options.SkipKnown) return false;
-        ArtifactInfo? info = await TryGetArtifactAsync(id, cancellationToken).ConfigureAwait(false);
-        return info != null;
-    }
-
     #endregion
 
     #region Outputs
@@ -361,7 +389,7 @@ public abstract partial class ArtifactTool : IDisposable
     /// <param name="cancellationToken">Cancellation token.</param>
     /// <returns>Task.</returns>
     public async Task OutputTextAsync(string text, ArtifactResourceKey key, CancellationToken cancellationToken = default)
-    => await DataManager.OutputTextAsync(text, key, cancellationToken).ConfigureAwait(false);
+        => await DataManager.OutputTextAsync(text, key, cancellationToken).ConfigureAwait(false);
 
     /// <summary>
     /// Outputs a text file for the specified artifact.
@@ -370,11 +398,10 @@ public abstract partial class ArtifactTool : IDisposable
     /// <param name="key">Artifact key.</param>
     /// <param name="file">Target filename.</param>
     /// <param name="path">File path to prepend.</param>
-    /// <param name="inArtifactFolder">If false, place artifact under common root.</param>
     /// <param name="cancellationToken">Cancellation token.</param>
     /// <returns>Task.</returns>
-    public async Task OutputTextAsync(string text, ArtifactKey key, string file, string? path = null, bool inArtifactFolder = true, CancellationToken cancellationToken = default)
-    => await OutputTextAsync(text, ArtifactResourceKey.Create(key, file, path, inArtifactFolder), cancellationToken).ConfigureAwait(false);
+    public async Task OutputTextAsync(string text, ArtifactKey key, string file, string? path = null, CancellationToken cancellationToken = default)
+        => await OutputTextAsync(text, new ArtifactResourceKey(key, file, path), cancellationToken).ConfigureAwait(false);
 
     /// <summary>
     /// Outputs a JSON-serialized file for the specified artifact.
@@ -384,7 +411,7 @@ public abstract partial class ArtifactTool : IDisposable
     /// <param name="cancellationToken">Cancellation token.</param>
     /// <returns>Task.</returns>
     public async Task OutputJsonAsync<T>(T data, ArtifactResourceKey key, CancellationToken cancellationToken = default)
-        => await DataManager.OutputJsonAsync<T>(data, JsonOptions, key, cancellationToken).ConfigureAwait(false);
+        => await DataManager.OutputJsonAsync(data, JsonOptions, key, cancellationToken).ConfigureAwait(false);
 
     /// <summary>
     /// Outputs a JSON-serialized file for the specified artifact.
@@ -393,11 +420,10 @@ public abstract partial class ArtifactTool : IDisposable
     /// <param name="key">Artifact key.</param>
     /// <param name="file">Target filename.</param>
     /// <param name="path">File path to prepend.</param>
-    /// <param name="inArtifactFolder">If false, place artifact under common root.</param>
     /// <param name="cancellationToken">Cancellation token.</param>
     /// <returns>Task.</returns>
-    public async Task OutputJsonAsync<T>(T data, ArtifactKey key, string file, string? path = null, bool inArtifactFolder = true, CancellationToken cancellationToken = default)
-        => await OutputJsonAsync<T>(data, JsonOptions, ArtifactResourceKey.Create(key, file, path, inArtifactFolder), cancellationToken).ConfigureAwait(false);
+    public async Task OutputJsonAsync<T>(T data, ArtifactKey key, string file, string? path = null, CancellationToken cancellationToken = default)
+        => await OutputJsonAsync(data, JsonOptions, new ArtifactResourceKey(key, file, path), cancellationToken).ConfigureAwait(false);
 
     /// <summary>
     /// Outputs a JSON-serialized file for the specified artifact.
@@ -408,7 +434,7 @@ public abstract partial class ArtifactTool : IDisposable
     /// <param name="cancellationToken">Cancellation token.</param>
     /// <returns>Task.</returns>
     public async Task OutputJsonAsync<T>(T data, JsonSerializerOptions jsonSerializerOptions, ArtifactResourceKey key, CancellationToken cancellationToken = default)
-        => await DataManager.OutputJsonAsync<T>(data, jsonSerializerOptions, key, cancellationToken).ConfigureAwait(false);
+        => await DataManager.OutputJsonAsync(data, jsonSerializerOptions, key, cancellationToken).ConfigureAwait(false);
 
     /// <summary>
     /// Outputs a JSON-serialized file for the specified artifact.
@@ -418,11 +444,10 @@ public abstract partial class ArtifactTool : IDisposable
     /// <param name="key">Artifact key.</param>
     /// <param name="file">Target filename.</param>
     /// <param name="path">File path to prepend.</param>
-    /// <param name="inArtifactFolder">If false, place artifact under common root.</param>
     /// <param name="cancellationToken">Cancellation token.</param>
     /// <returns>Task.</returns>
-    public async Task OutputJsonAsync<T>(T data, JsonSerializerOptions jsonSerializerOptions, ArtifactKey key, string file, string? path = null, bool inArtifactFolder = true, CancellationToken cancellationToken = default)
-        => await OutputJsonAsync<T>(data, jsonSerializerOptions, ArtifactResourceKey.Create(key, file, path, inArtifactFolder), cancellationToken).ConfigureAwait(false);
+    public async Task OutputJsonAsync<T>(T data, JsonSerializerOptions jsonSerializerOptions, ArtifactKey key, string file, string? path = null, CancellationToken cancellationToken = default)
+        => await OutputJsonAsync(data, jsonSerializerOptions, new ArtifactResourceKey(key, file, path), cancellationToken).ConfigureAwait(false);
 
     /// <summary>
     /// Creates an output stream for a file for the specified artifact.
@@ -439,11 +464,10 @@ public abstract partial class ArtifactTool : IDisposable
     /// <param name="key">Artifact key.</param>
     /// <param name="file">Target filename.</param>
     /// <param name="path">File path to prepend.</param>
-    /// <param name="inArtifactFolder">If false, place artifact under common root.</param>
     /// <param name="cancellationToken">Cancellation token.</param>
     /// <returns>Task returning a writeable stream to write an output to.</returns>
-    public Task<Stream> CreateOutputStreamAsync(ArtifactKey key, string file, string? path = null, bool inArtifactFolder = true, CancellationToken cancellationToken = default)
-        => CreateOutputStreamAsync(ArtifactResourceKey.Create(key, file, path, inArtifactFolder), cancellationToken);
+    public Task<Stream> CreateOutputStreamAsync(ArtifactKey key, string file, string? path = null, CancellationToken cancellationToken = default)
+        => CreateOutputStreamAsync(new ArtifactResourceKey(key, file, path), cancellationToken);
 
     #endregion
 
@@ -658,6 +682,26 @@ public abstract partial class ArtifactTool : IDisposable
     #endregion
 
     #region Utility
+
+    /// <summary>
+    /// Creates a tool string for the specified tool.
+    /// </summary>
+    /// <param name="type">Tool type.</param>
+    /// <returns>Tool string.</returns>
+    public static string CreateCoreToolString(Type type)
+    {
+        Type? coreType = type;
+        while (coreType != null && coreType.GetCustomAttribute<CoreAttribute>() == null) coreType = coreType.BaseType;
+        return CreateToolString(coreType ?? type);
+    }
+
+    /// <summary>
+    /// Creates a tool string for the specified tool.
+    /// </summary>
+    /// <typeparam name="TTool">Tool type.</typeparam>
+    /// <returns>Tool string.</returns>
+    public static string CreateCoreToolString<TTool>() where TTool : ArtifactTool
+        => CreateCoreToolString(typeof(TTool));
 
     /// <summary>
     /// Creates a tool string for the specified tool.

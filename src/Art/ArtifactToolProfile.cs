@@ -73,4 +73,24 @@ public record ArtifactToolProfile(
         else
             return element.Deserialize<ArtifactToolProfile[]>(ArtJsonOptions.s_jsonOptions) ?? throw new InvalidDataException();
     }
+
+    /// <summary>
+    /// Creates a tool profile for the specified tool.
+    /// </summary>
+    /// <param name="tool">Target tool string.</param>
+    /// <param name="group">Target group.</param>
+    /// <param name="options">Options.</param>
+    /// <returns>Profile.</returns>
+    public static ArtifactToolProfile Create(string tool, string group, params (string, JsonElement)[] options)
+        => new(tool, group, options.ToDictionary(v => v.Item1, v => v.Item2));
+
+    /// <summary>
+    /// Creates a tool profile for the specified tool.
+    /// </summary>
+    /// <typeparam name="TTool">Tool type.</typeparam>
+    /// <param name="group">Target group.</param>
+    /// <param name="options">Options.</param>
+    /// <returns>Profile.</returns>
+    public static ArtifactToolProfile Create<TTool>(string group, params (string, JsonElement)[] options) where TTool : ArtifactTool
+        => new(ArtifactTool.CreateToolString<TTool>(), group, options.ToDictionary(v => v.Item1, v => v.Item2));
 }

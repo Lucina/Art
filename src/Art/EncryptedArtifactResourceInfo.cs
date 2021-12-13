@@ -6,17 +6,8 @@
 /// <param name="EncryptionInfo">Encryption information.</param>
 /// <param name="BaseArtifactResourceInfo">Base resource.</param>
 public record EncryptedArtifactResourceInfo(EncryptionInfo EncryptionInfo, ArtifactResourceInfo BaseArtifactResourceInfo)
-    : ArtifactResourceInfo(BaseArtifactResourceInfo.Key, BaseArtifactResourceInfo.Version, BaseArtifactResourceInfo.Properties)
+    : ArtifactResourceInfo(BaseArtifactResourceInfo.Key, BaseArtifactResourceInfo.Version)
 {
-    /// <summary>
-    /// Creates a new instance of <see cref="EncryptedArtifactResourceInfo"/>.
-    /// </summary>
-    /// <param name="encryptionInfo">Encryption information.</param>
-    /// <param name="baseArtifactResourceInfo">Base resource.</param>
-    /// <returns>Value.</returns>
-    public static EncryptedArtifactResourceInfo Create(EncryptionInfo encryptionInfo, ArtifactResourceInfo baseArtifactResourceInfo)
-        => new(encryptionInfo, baseArtifactResourceInfo);
-
     /// <inheritdoc/>
     public override bool Exportable => BaseArtifactResourceInfo.Exportable;
 
@@ -30,7 +21,7 @@ public record EncryptedArtifactResourceInfo(EncryptionInfo EncryptionInfo, Artif
     }
 
     /// <inheritdoc/>
-    public override bool Queryable => BaseArtifactResourceInfo.Queryable;
+    public override bool VersionQueryable => BaseArtifactResourceInfo.VersionQueryable;
 
     /// <inheritdoc/>
     public override ValueTask<string?> QueryVersionAsync(CancellationToken cancellationToken = default) => BaseArtifactResourceInfo.QueryVersionAsync(cancellationToken);

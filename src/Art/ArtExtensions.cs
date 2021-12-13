@@ -83,9 +83,9 @@ public static class ArtExtensions
     public static async ValueTask DownloadResourceToFileAsync(this HttpClient client, string url, string file, long? lengthCheck = null, CancellationToken cancellationToken = default)
     {
         if (lengthCheck != null && File.Exists(file) && new FileInfo(file).Length == lengthCheck) return;
-        using HttpResponseMessage? fr = await client.GetAsync(url, cancellationToken);
+        using HttpResponseMessage fr = await client.GetAsync(url, cancellationToken);
         fr.EnsureSuccessStatusCode();
-        using FileStream? fs = File.Create(file);
+        using FileStream fs = File.Create(file);
         await fr.Content.CopyToAsync(fs, cancellationToken);
     }
 
@@ -193,4 +193,12 @@ public static class ArtExtensions
     /// <returns>Wrapped task.</returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static ConfiguredValueTaskAwaitable<T> Caf<T>(this ValueTask<T> task) => task.ConfigureAwait(false);
+
+    /// <summary>
+    /// Creates a <see cref="JsonElement"/> from this value.
+    /// </summary>
+    /// <typeparam name="T">Value type.</typeparam>
+    /// <param name="value">Value.</param>
+    /// <returns>JSON element.</returns>
+    public static JsonElement J<T>(this T value) => JsonSerializer.SerializeToElement(value);
 }

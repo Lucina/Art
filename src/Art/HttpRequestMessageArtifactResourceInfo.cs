@@ -1,6 +1,4 @@
-﻿using System.Text.Json;
-
-namespace Art;
+﻿namespace Art;
 
 /// <summary>
 /// Provides artifact information.
@@ -9,22 +7,9 @@ namespace Art;
 /// <param name="Request">Request.</param>
 /// <param name="Key">Resource key.</param>
 /// <param name="Version">Version.</param>
-/// <param name="Properties">Resource properties.</param>
-public record HttpRequestMessageArtifactResourceInfo(HttpArtifactTool ArtifactTool, HttpRequestMessage Request, ArtifactResourceKey Key, string? Version, IReadOnlyDictionary<string, JsonElement> Properties)
-    : ArtifactResourceInfo(Key, Version, Properties)
+public record HttpRequestMessageArtifactResourceInfo(HttpArtifactTool ArtifactTool, HttpRequestMessage Request, ArtifactResourceKey Key, string? Version = null)
+    : ArtifactResourceInfo(Key, Version)
 {
-    /// <summary>
-    /// Creates a new instance of <see cref="HttpRequestMessageArtifactResourceInfo"/>.
-    /// </summary>
-    /// <param name="artifactTool">Artifact tool.</param>
-    /// <param name="request">Request.</param>
-    /// <param name="key">Resource key.</param>
-    /// <param name="version">Version.</param>
-    /// <param name="properties">Resource properties.</param>
-    /// <returns>Value.</returns>
-    public static HttpRequestMessageArtifactResourceInfo Create(HttpArtifactTool artifactTool, HttpRequestMessage request, ArtifactResourceKey key, string? version = null, IReadOnlyDictionary<string, JsonElement>? properties = null)
-        => new(artifactTool, request, key, version, properties ?? EmptyProperties);
-
     /// <inheritdoc/>
     public override bool Exportable => true;
 

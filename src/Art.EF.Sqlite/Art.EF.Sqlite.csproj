@@ -6,12 +6,12 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <!--<PackageReference Include="Art" Version="0.27.0" />-->
-    <ProjectReference Include="..\Art\Art.csproj" />
+    <!--<PackageReference Include="Art.EF" Version="0.27.0" />-->
+    <ProjectReference Include="..\Art.EF\Art.EF.csproj" />
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="AngleSharp" Version="0.16.1" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" Version="6.0.0" />
   </ItemGroup>
 
   <PropertyGroup>
@@ -32,7 +32,7 @@
   <PropertyGroup>
     <Authors>Lucina</Authors>
     <Owners>Lucina</Owners>
-    <Description>Artifact retrieval toolkit (HTML variants)</Description>
+    <Description>Artifact retrieval toolkit (EF Core Sqlite)</Description>
     <Copyright>Copyright ©2021 Lucina</Copyright>
     <PackageProjectUrl>https://github.com/Lucina/Art</PackageProjectUrl>
     <RepositoryUrl>https://github.com/Lucina/Art</RepositoryUrl>

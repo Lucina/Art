@@ -11,7 +11,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="AngleSharp" Version="0.16.1" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Proxies" Version="6.0.0" />
   </ItemGroup>
 
   <PropertyGroup>
@@ -32,7 +32,7 @@
   <PropertyGroup>
     <Authors>Lucina</Authors>
     <Owners>Lucina</Owners>
-    <Description>Artifact retrieval toolkit (HTML variants)</Description>
+    <Description>Artifact retrieval toolkit (EF Core)</Description>
     <Copyright>Copyright ©2021 Lucina</Copyright>
     <PackageProjectUrl>https://github.com/Lucina/Art</PackageProjectUrl>
     <RepositoryUrl>https://github.com/Lucina/Art</RepositoryUrl>
