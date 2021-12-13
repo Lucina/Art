@@ -23,36 +23,12 @@ public class ArtifactContext : DbContext
     /// Creates an instance of <see cref="ArtifactContext"/> with the specified options.
     /// </summary>
     /// <param name="options">Options.</param>
-    private ArtifactContext(DbContextOptions<ArtifactContext> options) : base(options)
+    public ArtifactContext(DbContextOptions<ArtifactContext> options) : base(options)
     {
         /*MethodInfo baseMethod = typeof(DbContext).GetMethod(nameof(Set), 1, Array.Empty<Type>()) ??
                                 throw new ApplicationException();
         object[] args = Array.Empty<object>();
         foreach (Type type in s_types) baseMethod.MakeGenericMethod(type).Invoke(this, args);*/
-    }
-
-    /// <summary>
-    /// Creates an instance of <see cref="ArtifactContext"/>.
-    /// </summary>
-    /// <param name="options">Options.</param>
-    /// <returns>Instance.</returns>
-    public static ArtifactContext Create(DbContextOptions<ArtifactContext> options)
-    {
-        ArtifactContext result = new(options);
-        result.Database.EnsureCreated();
-        return result;
-    }
-
-    /// <summary>
-    /// Creates an instance of <see cref="ArtifactContext"/> asynchronously.
-    /// </summary>
-    /// <param name="options">Options.</param>
-    /// <returns>Task returning instance.</returns>
-    public static async Task<ArtifactContext> CreateAsync(DbContextOptions<ArtifactContext> options)
-    {
-        ArtifactContext result = new(options);
-        await result.Database.EnsureCreatedAsync();
-        return result;
     }
 
     /// <summary>

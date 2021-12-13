@@ -53,7 +53,6 @@ public static class ArtExtensions
     {
         using FileStream fs = File.Create(file);
         JsonSerializer.Serialize(fs, value);
-        return;
     }
 
     /// <summary>
@@ -68,7 +67,6 @@ public static class ArtExtensions
     {
         using FileStream fs = File.Create(file);
         await JsonSerializer.SerializeAsync(fs, value, cancellationToken: cancellationToken).ConfigureAwait(false);
-        return;
     }
 
     /// <summary>

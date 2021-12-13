@@ -1,4 +1,5 @@
-﻿using System.Text;
+﻿using System.Globalization;
+using System.Text;
 
 namespace Art;
 
@@ -97,7 +98,7 @@ public static class DataSizes
     public static StringBuilder AppendSize(this StringBuilder sb, long size)
     {
         GetSize(size, out double sizeValue, out string sizeUnits);
-        sb.Append($"{sizeValue:F3}").Append(' ').Append(sizeUnits);
+        sb.Append(CultureInfo.InvariantCulture, $"{sizeValue:F3}").Append(' ').Append(sizeUnits);
         return sb;
     }
 

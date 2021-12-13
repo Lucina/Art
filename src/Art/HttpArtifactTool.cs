@@ -582,7 +582,7 @@ public abstract class HttpArtifactTool : ArtifactTool
     /// <param name="referrer">Request referrer.</param>
     /// <param name="cancellationToken">Cancellation token.</param>
     /// <returns>Task.</returns>
-    public Task DownloadResourceAsync(string requestUri, string file, ArtifactKey key, string? path = null, string? origin = null, string? referrer = null, CancellationToken cancellationToken = default)
+    public Task DownloadResourceAsync(string requestUri, string file, ArtifactKey key, string path = "", string? origin = null, string? referrer = null, CancellationToken cancellationToken = default)
         => DownloadResourceAsync(requestUri, new ArtifactResourceKey(key, file, path), origin, referrer, cancellationToken);
 
     /// <summary>
@@ -637,7 +637,7 @@ public abstract class HttpArtifactTool : ArtifactTool
     /// <param name="referrer">Request referrer.</param>
     /// <param name="cancellationToken">Cancellation token.</param>
     /// <returns>Task.</returns>
-    public Task DownloadResourceAsync(Uri requestUri, string file, ArtifactKey key, string? path = null, string? origin = null, string? referrer = null, CancellationToken cancellationToken = default)
+    public Task DownloadResourceAsync(Uri requestUri, string file, ArtifactKey key, string path = "", string? origin = null, string? referrer = null, CancellationToken cancellationToken = default)
         => DownloadResourceAsync(requestUri, new ArtifactResourceKey(key, file, path), origin, referrer, cancellationToken);
 
     /// <summary>
@@ -680,7 +680,7 @@ public abstract class HttpArtifactTool : ArtifactTool
     /// <param name="path">File path to prepend.</param>
     /// <param name="cancellationToken">Cancellation token.</param>
     /// <returns>Task.</returns>
-    public Task DownloadResourceAsync(HttpRequestMessage requestMessage, string file, ArtifactKey key, string? path = null, CancellationToken cancellationToken = default)
+    public Task DownloadResourceAsync(HttpRequestMessage requestMessage, string file, ArtifactKey key, string path = "", CancellationToken cancellationToken = default)
         => DownloadResourceAsync(requestMessage, new ArtifactResourceKey(key, file, path), cancellationToken);
 
     #endregion

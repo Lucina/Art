@@ -400,7 +400,7 @@ public abstract partial class ArtifactTool : IDisposable
     /// <param name="path">File path to prepend.</param>
     /// <param name="cancellationToken">Cancellation token.</param>
     /// <returns>Task.</returns>
-    public async Task OutputTextAsync(string text, ArtifactKey key, string file, string? path = null, CancellationToken cancellationToken = default)
+    public async Task OutputTextAsync(string text, ArtifactKey key, string file, string path = "", CancellationToken cancellationToken = default)
         => await OutputTextAsync(text, new ArtifactResourceKey(key, file, path), cancellationToken).ConfigureAwait(false);
 
     /// <summary>
@@ -422,7 +422,7 @@ public abstract partial class ArtifactTool : IDisposable
     /// <param name="path">File path to prepend.</param>
     /// <param name="cancellationToken">Cancellation token.</param>
     /// <returns>Task.</returns>
-    public async Task OutputJsonAsync<T>(T data, ArtifactKey key, string file, string? path = null, CancellationToken cancellationToken = default)
+    public async Task OutputJsonAsync<T>(T data, ArtifactKey key, string file, string path = "", CancellationToken cancellationToken = default)
         => await OutputJsonAsync(data, JsonOptions, new ArtifactResourceKey(key, file, path), cancellationToken).ConfigureAwait(false);
 
     /// <summary>
@@ -446,7 +446,7 @@ public abstract partial class ArtifactTool : IDisposable
     /// <param name="path">File path to prepend.</param>
     /// <param name="cancellationToken">Cancellation token.</param>
     /// <returns>Task.</returns>
-    public async Task OutputJsonAsync<T>(T data, JsonSerializerOptions jsonSerializerOptions, ArtifactKey key, string file, string? path = null, CancellationToken cancellationToken = default)
+    public async Task OutputJsonAsync<T>(T data, JsonSerializerOptions jsonSerializerOptions, ArtifactKey key, string file, string path = "", CancellationToken cancellationToken = default)
         => await OutputJsonAsync(data, jsonSerializerOptions, new ArtifactResourceKey(key, file, path), cancellationToken).ConfigureAwait(false);
 
     /// <summary>
@@ -466,7 +466,7 @@ public abstract partial class ArtifactTool : IDisposable
     /// <param name="path">File path to prepend.</param>
     /// <param name="cancellationToken">Cancellation token.</param>
     /// <returns>Task returning a writeable stream to write an output to.</returns>
-    public Task<Stream> CreateOutputStreamAsync(ArtifactKey key, string file, string? path = null, CancellationToken cancellationToken = default)
+    public Task<Stream> CreateOutputStreamAsync(ArtifactKey key, string file, string path = "", CancellationToken cancellationToken = default)
         => CreateOutputStreamAsync(new ArtifactResourceKey(key, file, path), cancellationToken);
 
     #endregion

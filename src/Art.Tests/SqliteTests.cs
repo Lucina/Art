@@ -8,31 +8,29 @@ namespace Art.Tests;
 
 public class SqliteTests
 {
-    private string _tempFile = null!;
-    private SqliteArtifactRegistrationManager _r = null!;
-
-    [SetUp]
-    public void Setup()
+    [Test]
+    public async Task TestSqliteDatabaseFile()
     {
-        _tempFile = Path.GetTempFileName();
-        _r = new SqliteArtifactRegistrationManager(_tempFile);
-    }
-
-    [TearDown]
-    public void Teardown()
-    {
+        string tempFile = Path.GetTempFileName();
         try
         {
-            _r.Dispose();
+            using SqliteArtifactRegistrationManager r = new SqliteArtifactRegistrationManager(tempFile);
+            await TestSqliteDatabase(r);
         }
         finally
         {
-            File.Delete(_tempFile);
+            File.Delete(tempFile);
         }
     }
 
     [Test]
-    public async Task TestDatabaseWorks()
+    public async Task TestSqliteDatabaseMemory()
+    {
+        using SqliteArtifactRegistrationManager r = new();
+        await TestSqliteDatabase(r);
+    }
+
+    private async Task TestSqliteDatabase(SqliteArtifactRegistrationManager r)
     {
         // 1
         ArtifactKey k1 = new("abec", "group1", "kraft1");
@@ -51,29 +49,28 @@ public class SqliteTests
         ArtifactResourceKey i2_k3 = new(k2, "DUM");
         ArtifactResourceInfo i2_r3 = new(i2_k3);
 
-        await _r.AddArtifactAsync(i1);
+        await r.AddArtifactAsync(i1);
 
-        await _r.AddResourceAsync(i1_r1);
-        await _r.AddResourceAsync(i1_r2);
+        await r.AddResourceAsync(i1_r1);
+        await r.AddResourceAsync(i1_r2);
 
-        await _r.AddArtifactAsync(i1); // dupe
+        await r.AddArtifactAsync(i1); // dupe
 
-        await _r.AddArtifactAsync(i2);
+        await r.AddArtifactAsync(i2);
 
-        await _r.AddResourceAsync(i2_r1);
-        await _r.AddResourceAsync(i2_r2);
-        await _r.AddResourceAsync(i2_r3);
+        await r.AddResourceAsync(i2_r1);
+        await r.AddResourceAsync(i2_r2);
+        await r.AddResourceAsync(i2_r3);
 
-        await _r.RemoveArtifactAsync(k1);
-        await _r.RemoveResourceAsync(i2_k3);
+        await r.RemoveArtifactAsync(k1);
+        await r.RemoveResourceAsync(i2_k3);
 
-        Assert.That(await _r.TryGetArtifactAsync(k1), Is.Null);
-        Assert.That(await _r.TryGetResourceAsync(i1_k1), Is.Null);
-        Assert.That(await _r.TryGetResourceAsync(i1_k2), Is.Null);
-        Assert.That(await _r.TryGetArtifactAsync(k2), Is.EqualTo(i2));
-        Assert.That(await _r.TryGetResourceAsync(i2_k1), Is.EqualTo(i2_r1));
-        Assert.That(await _r.TryGetResourceAsync(i2_k2), Is.EqualTo(i2_r2));
-        Assert.That(await _r.TryGetResourceAsync(i2_k3), Is.Null);
-        Assert.Pass();
+        Assert.That(await r.TryGetArtifactAsync(k1), Is.Null);
+        Assert.That(await r.TryGetResourceAsync(i1_k1), Is.Null);
+        Assert.That(await r.TryGetResourceAsync(i1_k2), Is.Null);
+        Assert.That(await r.TryGetArtifactAsync(k2), Is.EqualTo(i2));
+        Assert.That(await r.TryGetResourceAsync(i2_k1), Is.EqualTo(i2_r1));
+        Assert.That(await r.TryGetResourceAsync(i2_k2), Is.EqualTo(i2_r2));
+        Assert.That(await r.TryGetResourceAsync(i2_k3), Is.Null);
     }
 }

@@ -52,7 +52,6 @@ namespace Art.Xs
                 ct.ThrowIfCancellationRequested();
                 await Task.Delay(_msDelay, ct);
                 await _client.ExecuteJsAsync("window.scrollTo(0, document.body.scrollHeight);");
-
             }
         };
 
@@ -84,7 +83,6 @@ namespace Art.Xs
         {
             // Do not change this code. Put cleanup code in 'Dispose(bool disposing)' method
             Dispose(disposing: true);
-            GC.SuppressFinalize(this);
         }
 
         private void NotDisposed()

@@ -57,10 +57,11 @@ public record EncryptionInfo(CryptoAlgorithm Algorithm, ReadOnlyMemory<byte> Enc
 internal class XorSymmetricAlgorithm : SymmetricAlgorithm
 {
     public const int DefaultKeySize = 16 * 8;
+
     public XorSymmetricAlgorithm(int keySizeValue = DefaultKeySize)
     {
-        LegalKeySizesValue = new KeySizes[] { new KeySizes(8, int.MaxValue, 8) };
-        LegalBlockSizesValue = new KeySizes[] { new KeySizes(8, int.MaxValue, 8) };
+        LegalKeySizesValue = new KeySizes[] { new(8, int.MaxValue, 8) };
+        LegalBlockSizesValue = new KeySizes[] { new(8, int.MaxValue, 8) };
         KeySizeValue = keySizeValue;
     }
 
@@ -68,7 +69,9 @@ internal class XorSymmetricAlgorithm : SymmetricAlgorithm
 
     public override ICryptoTransform CreateEncryptor(byte[] rgbKey, byte[]? rgbIV) => new XorCryptoTransform(rgbKey);
 
-    public override void GenerateIV() { }
+    public override void GenerateIV()
+    {
+    }
 
     public override void GenerateKey()
     {

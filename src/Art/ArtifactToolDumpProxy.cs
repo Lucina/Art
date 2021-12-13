@@ -78,7 +78,7 @@ public record ArtifactToolDumpProxy(ArtifactTool ArtifactTool, ArtifactToolDumpO
                         case ResourceUpdateMode.Populate:
                             {
                                 (ArtifactResourceInfo versionedResource, _) = await ArtifactTool.DetermineUpdatedResourceAsync(resource, Options.ResourceUpdate, cancellationToken).ConfigureAwait(false);
-                                await ArtifactTool.AddResourceAsync(resource, cancellationToken).ConfigureAwait(false);
+                                await ArtifactTool.AddResourceAsync(versionedResource, cancellationToken).ConfigureAwait(false);
                                 break;
                             }
                         case ResourceUpdateMode.Soft:

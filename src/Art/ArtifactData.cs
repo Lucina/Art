@@ -143,7 +143,7 @@ public class ArtifactData : IReadOnlyDictionary<ArtifactResourceKey, ArtifactRes
     /// <param name="file">Filename.</param>
     /// <param name="path">Path.</param>
     /// <param name="version">Version.</param>
-    public ArtifactDataResource String(string resource, string file, string? path = null, string? version = null)
+    public ArtifactDataResource String(string resource, string file, string path = "", string? version = null)
         => new(this, new StringArtifactResourceInfo(resource, new ArtifactResourceKey(Info.Key, file, path), version));
 
     /// <summary>
@@ -164,7 +164,7 @@ public class ArtifactData : IReadOnlyDictionary<ArtifactResourceKey, ArtifactRes
     /// <param name="file">Filename.</param>
     /// <param name="path">Path.</param>
     /// <param name="version">Version.</param>
-    public ArtifactDataResource Json<T>(T resource, JsonSerializerOptions? serializerOptions, string file, string? path = null, string? version = null)
+    public ArtifactDataResource Json<T>(T resource, JsonSerializerOptions? serializerOptions, string file, string path = "", string? version = null)
         => new(this, new JsonArtifactResourceInfo<T>(resource, serializerOptions, new ArtifactResourceKey(Info.Key, file, path), version));
 
     /// <summary>
@@ -183,7 +183,7 @@ public class ArtifactData : IReadOnlyDictionary<ArtifactResourceKey, ArtifactRes
     /// <param name="file">Filename.</param>
     /// <param name="path">Path.</param>
     /// <param name="version">Version.</param>
-    public ArtifactDataResource Json<T>(T resource, string file, string? path = null, string? version = null)
+    public ArtifactDataResource Json<T>(T resource, string file, string path = "", string? version = null)
         => new(this, new JsonArtifactResourceInfo<T>(resource, _tool?.JsonOptions, new ArtifactResourceKey(Info.Key, file, path), version));
 
     /// <summary>
@@ -208,7 +208,7 @@ public class ArtifactData : IReadOnlyDictionary<ArtifactResourceKey, ArtifactRes
     /// <param name="version">Version.</param>
     /// <param name="origin">Request origin.</param>
     /// <param name="referrer">Request referrer.</param>
-    public ArtifactDataResource Uri(HttpArtifactTool artifactTool, Uri uri, string file, string? path = null, string? version = null, string? origin = null, string? referrer = null)
+    public ArtifactDataResource Uri(HttpArtifactTool artifactTool, Uri uri, string file, string path = "", string? version = null, string? origin = null, string? referrer = null)
         => new(this, new UriArtifactResourceInfo(artifactTool, uri, origin, referrer, new ArtifactResourceKey(Info.Key, file, path), version));
 
     /// <summary>
@@ -231,7 +231,7 @@ public class ArtifactData : IReadOnlyDictionary<ArtifactResourceKey, ArtifactRes
     /// <param name="version">Version.</param>
     /// <param name="origin">Request origin.</param>
     /// <param name="referrer">Request referrer.</param>
-    public ArtifactDataResource Uri(Uri uri, string file, string? path = null, string? version = null, string? origin = null, string? referrer = null)
+    public ArtifactDataResource Uri(Uri uri, string file, string path = "", string? version = null, string? origin = null, string? referrer = null)
         => Uri(GetArtifactTool<HttpArtifactTool>(), uri, file, path, version, origin, referrer);
 
     /// <summary>
@@ -256,7 +256,7 @@ public class ArtifactData : IReadOnlyDictionary<ArtifactResourceKey, ArtifactRes
     /// <param name="version">Version.</param>
     /// <param name="origin">Request origin.</param>
     /// <param name="referrer">Request referrer.</param>
-    public ArtifactDataResource UriString(HttpArtifactTool artifactTool, string uri, string file, string? path = null, string? version = null, string? origin = null, string? referrer = null)
+    public ArtifactDataResource UriString(HttpArtifactTool artifactTool, string uri, string file, string path = "", string? version = null, string? origin = null, string? referrer = null)
         => new(this, new UriStringArtifactResourceInfo(artifactTool, uri, origin, referrer, new ArtifactResourceKey(Info.Key, file, path), version));
 
     /// <summary>
@@ -279,7 +279,7 @@ public class ArtifactData : IReadOnlyDictionary<ArtifactResourceKey, ArtifactRes
     /// <param name="version">Version.</param>
     /// <param name="origin">Request origin.</param>
     /// <param name="referrer">Request referrer.</param>
-    public ArtifactDataResource UriString(string uri, string file, string? path = null, string? version = null, string? origin = null, string? referrer = null)
+    public ArtifactDataResource UriString(string uri, string file, string path = "", string? version = null, string? origin = null, string? referrer = null)
         => UriString(GetArtifactTool<HttpArtifactTool>(), uri, file, path, version, origin, referrer);
 
     /// <summary>
@@ -300,7 +300,7 @@ public class ArtifactData : IReadOnlyDictionary<ArtifactResourceKey, ArtifactRes
     /// <param name="file">Filename.</param>
     /// <param name="path">Path.</param>
     /// <param name="version">Version.</param>
-    public ArtifactDataResource HttpRequestMessage(HttpArtifactTool artifactTool, HttpRequestMessage request, string file, string? path = null, string? version = null)
+    public ArtifactDataResource HttpRequestMessage(HttpArtifactTool artifactTool, HttpRequestMessage request, string file, string path = "", string? version = null)
         => new(this, new HttpRequestMessageArtifactResourceInfo(artifactTool, request, new ArtifactResourceKey(Info.Key, file, path), version));
 
     /// <summary>
@@ -319,7 +319,7 @@ public class ArtifactData : IReadOnlyDictionary<ArtifactResourceKey, ArtifactRes
     /// <param name="file">Filename.</param>
     /// <param name="path">Path.</param>
     /// <param name="version">Version.</param>
-    public ArtifactDataResource HttpRequestMessage(HttpRequestMessage request, string file, string? path = null, string? version = null)
+    public ArtifactDataResource HttpRequestMessage(HttpRequestMessage request, string file, string path = "", string? version = null)
         => HttpRequestMessage(GetArtifactTool<HttpArtifactTool>(), request, file, path, version);
 
     private T GetArtifactTool<T>() where T : ArtifactTool

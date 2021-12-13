@@ -25,15 +25,19 @@ public static class ArtifactToolLoader
     /// <returns>True if successfully located and created a tool.</returns>
     public static bool TryLoad(string assemblyName, string toolTypeName, [NotNullWhen(true)] out ArtifactTool? tool)
     {
-        Assembly? assembly = Assembly.Load(assemblyName);
-        if (assembly == null) goto fail;
-        Type? type = assembly.GetType(toolTypeName);
-        object? obj = type == null ? null : Activator.CreateInstance(type);
-        tool = obj is ArtifactTool at ? at : null;
-        return tool != null;
-    fail:
-        tool = null;
-        return false;
+        try
+        {
+            Assembly assembly = Assembly.Load(assemblyName);
+            Type? type = assembly.GetType(toolTypeName);
+            object? obj = type == null ? null : Activator.CreateInstance(type);
+            tool = obj is ArtifactTool at ? at : null;
+            return tool != null;
+        }
+        catch
+        {
+            tool = null;
+            return false;
+        }
     }
 
     /// <summary>

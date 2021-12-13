@@ -5,7 +5,10 @@ namespace Art.EF;
 /// </summary>
 public class EFArtifactRegistrationManager : ArtifactRegistrationManager, IDisposable
 {
-    private ArtifactContext _context;
+    /// <summary>
+    /// Database context.
+    /// </summary>
+    public readonly ArtifactContext Context;
 
     /// <summary>
     /// Creates a new instance of <see cref="EFArtifactRegistrationManager"/> using the specified factory.
@@ -13,32 +16,32 @@ public class EFArtifactRegistrationManager : ArtifactRegistrationManager, IDispo
     /// <param name="factory">Context factory.</param>
     public EFArtifactRegistrationManager(ArtifactContextFactoryBase factory)
     {
-        _context = factory.CreateDbContext(Array.Empty<string>());
+        Context = factory.CreateDbContext(Array.Empty<string>());
     }
 
     /// <inheritdoc />
     public override ValueTask AddArtifactAsync(ArtifactInfo artifactInfo, CancellationToken cancellationToken = default)
-        => _context.AddArtifactAsync(artifactInfo, cancellationToken);
+        => Context.AddArtifactAsync(artifactInfo, cancellationToken);
 
     /// <inheritdoc />
     public override ValueTask AddResourceAsync(ArtifactResourceInfo artifactResourceInfo, CancellationToken cancellationToken = default)
-        => _context.AddResourceAsync(artifactResourceInfo, cancellationToken);
+        => Context.AddResourceAsync(artifactResourceInfo, cancellationToken);
 
     /// <inheritdoc />
     public override ValueTask<ArtifactInfo?> TryGetArtifactAsync(ArtifactKey key, CancellationToken cancellationToken = default)
-        => _context.TryGetArtifactAsync(key, cancellationToken);
+        => Context.TryGetArtifactAsync(key, cancellationToken);
 
     /// <inheritdoc />
     public override ValueTask<ArtifactResourceInfo?> TryGetResourceAsync(ArtifactResourceKey key, CancellationToken cancellationToken = default)
-        => _context.TryGetResourceAsync(key, cancellationToken);
+        => Context.TryGetResourceAsync(key, cancellationToken);
 
     /// <inheritdoc />
     public override ValueTask RemoveArtifactAsync(ArtifactKey key, CancellationToken cancellationToken = default)
-        => _context.RemoveArtifactAsync(key, cancellationToken);
+        => Context.RemoveArtifactAsync(key, cancellationToken);
 
     /// <inheritdoc />
     public override ValueTask RemoveResourceAsync(ArtifactResourceKey key, CancellationToken cancellationToken = default)
-        => _context.RemoveResourceAsync(key, cancellationToken);
+        => Context.RemoveResourceAsync(key, cancellationToken);
 
     /// <summary>
     /// Saves changes.
@@ -46,12 +49,12 @@ public class EFArtifactRegistrationManager : ArtifactRegistrationManager, IDispo
     /// <param name="cancellationToken">Cancellation token.</param>
     /// <returns>Task.</returns>
     public Task SaveChangesAsync(CancellationToken cancellationToken = default)
-        => _context.SaveChangesAsync(cancellationToken);
+        => Context.SaveChangesAsync(cancellationToken);
 
     /// <inheritdoc />
     public void Dispose()
     {
         GC.SuppressFinalize(this);
-        _context.Dispose();
+        Context.Dispose();
     }
 }

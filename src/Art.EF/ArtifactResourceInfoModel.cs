@@ -35,7 +35,7 @@ public class ArtifactResourceInfoModel
     /// <summary>
     /// Path.
     /// </summary>
-    public virtual string Path { get; set; }
+    public virtual string Path { get; set; } = null!;
 
     /// <summary>
     /// Version.

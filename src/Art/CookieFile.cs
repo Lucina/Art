@@ -1,4 +1,5 @@
-﻿using System.Net;
+﻿using System.Globalization;
+using System.Net;
 
 namespace Art;
 
@@ -19,14 +20,14 @@ public static class CookieFile
         while (tr.ReadLine() is { } line)
         {
             i++;
-            string[] elem = line.Split(new char[] { ' ', '\t' }, options: StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+            string[] elem = line.Split(new[] { ' ', '\t' }, StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
             if (elem.Length == 0 || elem[0].StartsWith('#')) continue;
             if (elem.Length < 6 || elem.Length > 7) throw new InvalidDataException($"Line {i} had invalid number of elements {elem.Length}");
             string domain = elem[0];
             //bool access = elem[1].Equals("true", StringComparison.InvariantCultureIgnoreCase);
             string path = elem[2];
             bool secure = elem[3].Equals("true", StringComparison.InvariantCultureIgnoreCase);
-            long expiration = long.Parse(elem[4]);
+            long expiration = long.Parse(elem[4], CultureInfo.InvariantCulture);
             string name = elem[5];
             string? value = elem.Length < 7 ? null : elem[6];
             cc.Add(new Cookie()
