@@ -14,7 +14,7 @@ public enum ResourceUpdateMode
     /// </summary>
     ArtifactHard,
     /// <summary>
-    /// Always update resource information but do not retrieve resource itself.
+    /// Always update resource information but do not retrieve resource itself (unless new artifact).
     /// </summary>
     Populate,
     /// <summary>

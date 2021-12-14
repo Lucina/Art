@@ -18,11 +18,7 @@ public record QueryBaseArtifactResourceInfo(ArtifactResourceKey Key, DateTimeOff
     {
         response.EnsureSuccessStatusCode();
         string? version = response.Headers.ETag?.Tag;
-        DateTimeOffset? updated = null;
-        if (response.Headers.TryGetValues("last-modified", out IEnumerable<string>? seq) && seq.SingleOrDefault() is { } lmStr && DateTimeOffset.TryParse(lmStr, out DateTimeOffset dto))
-        {
-            updated = dto;
-        }
+        DateTimeOffset? updated = response.Content.Headers.LastModified;
         return this with { Version = version ?? Version, Updated = updated ?? Updated };
     }
 }

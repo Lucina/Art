@@ -54,7 +54,6 @@ public record ArtifactToolDumpProxy(ArtifactTool ArtifactTool, ArtifactToolDumpO
                     await ArtifactTool.AddArtifactAsync(data.Info with { Full = false }, cancellationToken).ConfigureAwait(false);
                 foreach (ArtifactResourceInfo resource in data.Values)
                 {
-                    LogHandler.Log(i.Key.Tool, i.Key.Tool, i.GetInfoString(), null, LogLevel.Title);
                     switch (Options.ResourceUpdate)
                     {
                         case ResourceUpdateMode.ArtifactSoft:
@@ -91,6 +90,12 @@ public record ArtifactToolDumpProxy(ArtifactTool ArtifactTool, ArtifactToolDumpO
                                 (ArtifactResourceInfo versionedResource, _) = await ArtifactTool.DetermineUpdatedResourceAsync(resource, Options.ResourceUpdate, cancellationToken).ConfigureAwait(false);
                                 LogHandler.Log(i.Key.Tool, i.Key.Tool, $"-- {versionedResource.GetInfoString()}", null, LogLevel.Title);
                                 await ArtifactTool.AddResourceAsync(versionedResource, cancellationToken).ConfigureAwait(false);
+                                if (isNewArtifact && versionedResource.Exportable)
+                                {
+                                    await using Stream stream = await ArtifactTool.CreateOutputStreamAsync(versionedResource.Key, cancellationToken).ConfigureAwait(false);
+                                    await using Stream dataStream = await versionedResource.ExportStreamAsync(cancellationToken).ConfigureAwait(false);
+                                    await dataStream.CopyToAsync(stream, cancellationToken).ConfigureAwait(false);
+                                }
                                 break;
                             }
                         case ResourceUpdateMode.Soft:
