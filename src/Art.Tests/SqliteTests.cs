@@ -11,36 +11,10 @@ public class SqliteTests
     [Test]
     public async Task TestSqliteDatabaseFile()
     {
-        string tempFile = Path.GetTempFileName();
-        SqliteArtifactRegistrationManager r = new(tempFile);
-        try
-        {
-            await TestSqliteDatabase(r);
-        }
-        catch
-        {
-            r.Dispose();
-            try
-            {
-                File.Delete(tempFile);
-            }
-            catch
-            {
-                // ignored
-            }
-            throw;
-        }
-        r.Dispose();
-        for (int i = 10; --i >= 0;)
-            try
-            {
-                File.Delete(tempFile);
-            }
-            catch
-            {
-                if (i == 0) throw;
-                await Task.Delay(TimeSpan.FromSeconds(0.5));
-            }
+        string tempDir = Path.GetTempPath();
+        string tempFile = Path.Combine(tempDir, "art_ef_sqlite_test_database.db");
+        using SqliteArtifactRegistrationManager r = new(tempFile);
+        await TestSqliteDatabase(r);
     }
 
     [Test]
