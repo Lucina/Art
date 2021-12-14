@@ -6,9 +6,10 @@
 /// <param name="ArtifactTool">Artifact tool.</param>
 /// <param name="Request">Request.</param>
 /// <param name="Key">Resource key.</param>
+/// <param name="Updated">Updated date.</param>
 /// <param name="Version">Version.</param>
-public record HttpRequestMessageArtifactResourceInfo(HttpArtifactTool ArtifactTool, HttpRequestMessage Request, ArtifactResourceKey Key, string? Version = null)
-    : ArtifactResourceInfo(Key, Version)
+public record HttpRequestMessageArtifactResourceInfo(HttpArtifactTool ArtifactTool, HttpRequestMessage Request, ArtifactResourceKey Key, DateTimeOffset? Updated = null, string? Version = null)
+    : ArtifactResourceInfo(Key, Updated, Version)
 {
     /// <inheritdoc/>
     public override bool Exportable => true;

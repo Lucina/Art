@@ -38,6 +38,11 @@ public class ArtifactResourceInfoModel
     public virtual string Path { get; set; } = null!;
 
     /// <summary>
+    /// Updated date.
+    /// </summary>
+    public virtual DateTimeOffset? Updated { get; set; }
+
+    /// <summary>
     /// Version.
     /// </summary>
     public virtual string? Version { get; set; }

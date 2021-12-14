@@ -18,7 +18,7 @@ public abstract class HtmlArtifactTool : HttpArtifactTool
         get
         {
             NotDisposed();
-            return _browser;
+            return _browser ?? throw new InvalidOperationException("Browser is not currently set.");
         }
         set
         {
@@ -27,7 +27,7 @@ public abstract class HtmlArtifactTool : HttpArtifactTool
         }
     }
 
-    private IBrowsingContext _browser = null!;
+    private IBrowsingContext? _browser;
 
     /// <summary>
     /// Current document, if one is loaded.

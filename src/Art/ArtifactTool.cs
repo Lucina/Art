@@ -77,7 +77,7 @@ public abstract partial class ArtifactTool : IDisposable
 
     private JsonSerializerOptions? _jsonOptions;
 
-    private bool _configured;
+    //private bool _configured;
 
     private bool _disposed;
 
@@ -122,7 +122,7 @@ public abstract partial class ArtifactTool : IDisposable
         Profile = profile;
         DebugMode = GetFlagTrue(OptDebugMode);
         Force = GetFlagTrue(OptForce);
-        _configured = true;
+        //_configured = true;
         return ConfigureAsync(cancellationToken);
     }
 
@@ -357,14 +357,14 @@ public abstract partial class ArtifactTool : IDisposable
     /// <returns>Task returning instance for the resource with populated version (if available), and whether that instance is new.</returns>
     public async Task<(ArtifactResourceInfo latest, bool isNew)> DetermineUpdatedResourceAsync(ArtifactResourceInfo resource, ResourceUpdateMode resourceUpdate, CancellationToken cancellationToken = default)
     {
-        resource = await resource.GetVersionedAsync(cancellationToken).ConfigureAwait(false);
+        resource = await resource.WithMetadataAsync(cancellationToken).ConfigureAwait(false);
         switch (resourceUpdate)
         {
             case ResourceUpdateMode.ArtifactSoft:
             case ResourceUpdateMode.Populate:
             case ResourceUpdateMode.Soft:
                 {
-                    if (resource.Version == null || (await TryGetResourceAsync(resource.Key, cancellationToken).ConfigureAwait(false)) is not { } prev) return (resource, true);
+                    if (resource.Version == null || await TryGetResourceAsync(resource.Key, cancellationToken).ConfigureAwait(false) is not { } prev) return (resource, true);
                     bool isNew = resource.Version != prev.Version;
                     return (resource, isNew);
                 }
@@ -484,7 +484,7 @@ public abstract partial class ArtifactTool : IDisposable
     /// This overload uses <see cref="JsonOptions"/> member automatically.
     /// </remarks>
     public async Task<T?> DeserializeJsonAsync<T>(Stream utf8Stream, CancellationToken cancellationToken = default)
-        => (await JsonSerializer.DeserializeAsync<T>(utf8Stream, JsonOptions, cancellationToken).ConfigureAwait(false));
+        => await JsonSerializer.DeserializeAsync<T>(utf8Stream, JsonOptions, cancellationToken).ConfigureAwait(false);
 
     /// <summary>
     /// Deserializes JSON from a UTF-8 stream.
@@ -497,7 +497,7 @@ public abstract partial class ArtifactTool : IDisposable
     /// This overload uses <see cref="JsonOptions"/> member automatically.
     /// </remarks>
     public async Task<T> DeserializeRequiredJsonAsync<T>(Stream utf8Stream, CancellationToken cancellationToken = default)
-        => (await JsonSerializer.DeserializeAsync<T>(utf8Stream, JsonOptions, cancellationToken).ConfigureAwait(false)) ?? throw new NullJsonDataException();
+        => await JsonSerializer.DeserializeAsync<T>(utf8Stream, JsonOptions, cancellationToken).ConfigureAwait(false) ?? throw new NullJsonDataException();
 
     /// <summary>
     /// Deserializes JSON from a UTF-8 stream.
@@ -508,7 +508,7 @@ public abstract partial class ArtifactTool : IDisposable
     /// <param name="cancellationToken">Cancellation token.</param>
     /// <returns>Value returning deserialized data.</returns>
     public static async Task<T?> DeserializeJsonAsync<T>(Stream utf8Stream, JsonSerializerOptions? jsonSerializerOptions, CancellationToken cancellationToken = default)
-        => (await JsonSerializer.DeserializeAsync<T>(utf8Stream, jsonSerializerOptions, cancellationToken).ConfigureAwait(false));
+        => await JsonSerializer.DeserializeAsync<T>(utf8Stream, jsonSerializerOptions, cancellationToken).ConfigureAwait(false);
 
     /// <summary>
     /// Deserializes JSON from a UTF-8 stream.
@@ -519,7 +519,7 @@ public abstract partial class ArtifactTool : IDisposable
     /// <param name="cancellationToken">Cancellation token.</param>
     /// <returns>Value returning deserialized data.</returns>
     public static async Task<T> DeserializeRequiredJsonAsync<T>(Stream utf8Stream, JsonSerializerOptions? jsonSerializerOptions, CancellationToken cancellationToken = default)
-        => (await JsonSerializer.DeserializeAsync<T>(utf8Stream, jsonSerializerOptions, cancellationToken).ConfigureAwait(false)) ?? throw new NullJsonDataException();
+        => await JsonSerializer.DeserializeAsync<T>(utf8Stream, jsonSerializerOptions, cancellationToken).ConfigureAwait(false) ?? throw new NullJsonDataException();
 
     /// <summary>
     /// Deserializes JSON from a string.
@@ -668,11 +668,11 @@ public abstract partial class ArtifactTool : IDisposable
         GC.SuppressFinalize(this);
     }
 
-    private void EnsureState()
+    /*private void EnsureState()
     {
         EnsureNotDisposed();
         if (!_configured) throw new InvalidOperationException("Tool has not been initialized");
-    }
+    }*/
 
     private void EnsureNotDisposed()
     {

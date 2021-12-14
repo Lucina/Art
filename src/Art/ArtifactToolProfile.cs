@@ -13,9 +13,8 @@ public record ArtifactToolProfile(
     string Tool,
     string Group,
     Dictionary<string, JsonElement>? Options
-    )
+)
 {
-
     private static readonly Regex s_toolRegex = new(@"^([\S\s]+)::([\S\s]+)$");
 
     /// <summary>
@@ -93,4 +92,18 @@ public record ArtifactToolProfile(
     /// <returns>Profile.</returns>
     public static ArtifactToolProfile Create<TTool>(string group, params (string, JsonElement)[] options) where TTool : ArtifactTool
         => new(ArtifactTool.CreateToolString<TTool>(), group, options.ToDictionary(v => v.Item1, v => v.Item2));
+
+    /// <summary>
+    /// Creates an instance of this profile with most derived core type of instance or instance's type.
+    /// </summary>
+    /// <param name="instance">Instance to derive tool type from.</param>
+    /// <returns>Profile.</returns>
+    public ArtifactToolProfile WithCoreTool(object instance) => WithCoreTool(instance.GetType());
+
+    /// <summary>
+    /// Creates an instance of this profile with most derived core type or given type.
+    /// </summary>
+    /// <param name="type">Tool type.</param>
+    /// <returns>Profile.</returns>
+    public ArtifactToolProfile WithCoreTool(Type type) => this with { Tool = ArtifactTool.CreateCoreToolString(type) };
 }

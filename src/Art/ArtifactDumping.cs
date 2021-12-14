@@ -40,9 +40,8 @@ public static class ArtifactDumping
             throw new ArtifactToolNotFoundException(artifactToolProfile.Tool);
         ArtifactToolConfig config = new(artifactRegistrationManager, artifactDataManager);
         using ArtifactTool tool = t;
-        tool.LogHandler = ConsoleLogHandler.Default;
-        artifactToolProfile = artifactToolProfile with { Tool = ArtifactTool.CreateCoreToolString(t.GetType()) };
+        artifactToolProfile = artifactToolProfile.WithCoreTool(t);
         await tool.InitializeAsync(config, artifactToolProfile, cancellationToken).ConfigureAwait(false);
-        await new ArtifactToolDumpProxy(tool, dumpOptions ?? new ArtifactToolDumpOptions()).DumpAsync(cancellationToken);
+        await new ArtifactToolDumpProxy(tool, dumpOptions ?? new ArtifactToolDumpOptions(), ConsoleLogHandler.Default).DumpAsync(cancellationToken);
     }
 }

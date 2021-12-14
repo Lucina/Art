@@ -6,7 +6,7 @@
 /// <param name="EncryptionInfo">Encryption information.</param>
 /// <param name="BaseArtifactResourceInfo">Base resource.</param>
 public record EncryptedArtifactResourceInfo(EncryptionInfo EncryptionInfo, ArtifactResourceInfo BaseArtifactResourceInfo)
-    : ArtifactResourceInfo(BaseArtifactResourceInfo.Key, BaseArtifactResourceInfo.Version)
+    : ArtifactResourceInfo(BaseArtifactResourceInfo.Key, BaseArtifactResourceInfo.Updated, BaseArtifactResourceInfo.Version)
 {
     /// <inheritdoc/>
     public override bool Exportable => BaseArtifactResourceInfo.Exportable;
@@ -21,8 +21,8 @@ public record EncryptedArtifactResourceInfo(EncryptionInfo EncryptionInfo, Artif
     }
 
     /// <inheritdoc/>
-    public override bool VersionQueryable => BaseArtifactResourceInfo.VersionQueryable;
+    public override bool MetadataQueryable => BaseArtifactResourceInfo.MetadataQueryable;
 
     /// <inheritdoc/>
-    public override ValueTask<string?> QueryVersionAsync(CancellationToken cancellationToken = default) => BaseArtifactResourceInfo.QueryVersionAsync(cancellationToken);
+    public override ValueTask<ArtifactResourceInfo> WithMetadataAsync(CancellationToken cancellationToken = default) => BaseArtifactResourceInfo.WithMetadataAsync(cancellationToken);
 }

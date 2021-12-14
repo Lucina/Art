@@ -74,7 +74,7 @@ public class ArtifactContext : DbContext
     /// <returns>Task.</returns>
     public async ValueTask AddResourceAsync(ArtifactResourceInfo artifactResourceInfo, CancellationToken cancellationToken = default)
     {
-        (((string tool, string group, string id), string file, string? path), string? version) = artifactResourceInfo;
+        (((string tool, string group, string id), string file, string? path), DateTimeOffset? updated, string? version) = artifactResourceInfo;
         ArtifactInfoModel? model = await ArtifactInfoModels.FindAsync(new object?[] { tool, group, id }, cancellationToken);
         if (model == null) throw new InvalidOperationException("Can't add resource for missing artifact");
         ArtifactResourceInfoModel? model2 = await ArtifactResourceInfoModels.FindAsync(new object?[] { tool, group, id, file, path }, cancellationToken);
@@ -87,6 +87,7 @@ public class ArtifactContext : DbContext
                 ArtifactId = id,
                 File = file,
                 Path = path,
+                Updated = updated,
                 Version = version
             };
             ArtifactResourceInfoModels.Add(model2);
@@ -123,7 +124,7 @@ public class ArtifactContext : DbContext
     {
         ((string tool, string group, string id), string file, string? path) = key;
         ArtifactResourceInfoModel? model = await ArtifactResourceInfoModels.FindAsync(new object?[] { tool, group, id, file, path }, cancellationToken);
-        return model != null ? new ArtifactResourceInfo(key, model.Version) : null;
+        return model != null ? new ArtifactResourceInfo(key, model.Updated, model.Version) : null;
     }
 
     /// <summary>

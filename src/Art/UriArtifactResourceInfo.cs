@@ -8,9 +8,10 @@
 /// <param name="Origin">Request origin.</param>
 /// <param name="Referrer">Request referrer.</param>
 /// <param name="Key">Resource key.</param>
+/// <param name="Updated">Updated date.</param>
 /// <param name="Version">Version.</param>
-public record UriArtifactResourceInfo(HttpArtifactTool ArtifactTool, Uri Uri, string? Origin, string? Referrer, ArtifactResourceKey Key, string? Version = null)
-    : ArtifactResourceInfo(Key, Version)
+public record UriArtifactResourceInfo(HttpArtifactTool ArtifactTool, Uri Uri, string? Origin, string? Referrer, ArtifactResourceKey Key, DateTimeOffset? Updated = null, string? Version = null)
+    : QueryBaseArtifactResourceInfo(Key, Updated, Version)
 {
     /// <inheritdoc/>
     public override bool Exportable => true;
@@ -20,13 +21,13 @@ public record UriArtifactResourceInfo(HttpArtifactTool ArtifactTool, Uri Uri, st
         => await ArtifactTool.DownloadResourceAsync(Uri, stream, Origin, Referrer, cancellationToken);
 
     /// <inheritdoc/>
-    public override bool VersionQueryable => true;
+    public override bool MetadataQueryable => true;
 
     /// <inheritdoc/>
-    public override async ValueTask<string?> QueryVersionAsync(CancellationToken cancellationToken = default)
+    public override async ValueTask<ArtifactResourceInfo> WithMetadataAsync(CancellationToken cancellationToken = default)
     {
         HttpResponseMessage rsp = await ArtifactTool.HeadAsync(Uri, Origin, Referrer, cancellationToken).ConfigureAwait(false);
         rsp.EnsureSuccessStatusCode();
-        return rsp.Headers.ETag?.Tag;
+        return WithMetadata(rsp);
     }
 }

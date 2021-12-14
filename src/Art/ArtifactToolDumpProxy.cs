@@ -5,7 +5,8 @@
 /// </summary>
 /// <param name="ArtifactTool">Artifact tool.</param>
 /// <param name="Options">Dump options.</param>
-public record ArtifactToolDumpProxy(ArtifactTool ArtifactTool, ArtifactToolDumpOptions Options)
+/// <param name="LogHandler">Log handler.</param>
+public record ArtifactToolDumpProxy(ArtifactTool ArtifactTool, ArtifactToolDumpOptions Options, IToolLogHandler LogHandler)
 {
     /// <summary>
     /// Dumps artifacts.
@@ -14,6 +15,7 @@ public record ArtifactToolDumpProxy(ArtifactTool ArtifactTool, ArtifactToolDumpO
     /// <returns>Task.</returns>
     public async ValueTask DumpAsync(CancellationToken cancellationToken = default)
     {
+        ArtifactTool.LogHandler = LogHandler;
         if (ArtifactTool is IArtifactToolDump dumpTool)
         {
             await dumpTool.DumpAsync(cancellationToken).ConfigureAwait(false);
@@ -45,6 +47,8 @@ public record ArtifactToolDumpProxy(ArtifactTool ArtifactTool, ArtifactToolDumpO
                         throw new IndexOutOfRangeException($"Invalid {nameof(ArtifactSkipMode)}");
                 }
                 if (!data.Info.Full && !Options.IncludeNonFull) continue;
+                ArtifactInfo i = data.Info;
+                LogHandler.Log(i.Key.Tool, i.Key.Tool, $"{(!i.Full ? "[partial] " : "")}{i.Key.Id}{(i.Name != null ? $" - {i.Name}" : "")}", null, LogLevel.Title);
                 bool isNewArtifact = await ArtifactTool.IsNewArtifactAsync(data.Info, cancellationToken).ConfigureAwait(false);
                 if (isNewArtifact)
                     await ArtifactTool.AddArtifactAsync(data.Info with { Full = false }, cancellationToken).ConfigureAwait(false);
