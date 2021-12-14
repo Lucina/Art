@@ -12,12 +12,12 @@ public record EncryptedArtifactResourceInfo(EncryptionInfo EncryptionInfo, Artif
     public override bool Exportable => BaseArtifactResourceInfo.Exportable;
 
     /// <inheritdoc/>
-    public override async ValueTask ExportAsync(Stream stream, CancellationToken cancellationToken = default)
+    public override async ValueTask<Stream> ExportStreamAsync(CancellationToken cancellationToken = default)
     {
-        using MemoryStream ms = new();
-        await BaseArtifactResourceInfo.ExportAsync(ms, cancellationToken);
-        ms.Position = 0;
-        await EncryptionInfo.DecryptStreamAsync(ms, stream, cancellationToken);
+        await using Stream baseStream = await BaseArtifactResourceInfo.ExportStreamAsync(cancellationToken).ConfigureAwait(false);
+        Stream stream = new MemoryStream();
+        await EncryptionInfo.DecryptStreamAsync(baseStream, stream, cancellationToken).ConfigureAwait(false);
+        return stream;
     }
 
     /// <inheritdoc/>

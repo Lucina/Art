@@ -364,8 +364,9 @@ public abstract partial class ArtifactTool : IDisposable
             case ResourceUpdateMode.Populate:
             case ResourceUpdateMode.Soft:
                 {
-                    if (resource.Version == null || await TryGetResourceAsync(resource.Key, cancellationToken).ConfigureAwait(false) is not { } prev) return (resource, true);
-                    bool isNew = resource.Version != prev.Version;
+                    // don't say null new version corresponds to updating
+                    if (await TryGetResourceAsync(resource.Key, cancellationToken).ConfigureAwait(false) is not { } prev) return (resource, true);
+                    bool isNew = resource.Version != prev.Version || resource.Updated > prev.Updated;
                     return (resource, isNew);
                 }
             case ResourceUpdateMode.ArtifactHard:

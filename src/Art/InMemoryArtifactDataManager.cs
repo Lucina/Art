@@ -39,10 +39,10 @@ public class InMemoryArtifactDataManager : ArtifactDataManager
     private record ResultStreamArtifactResourceInfo(Stream Resource, ArtifactResourceKey Key, DateTimeOffset? Updated, string? Version)
         : StreamArtifactResourceInfo(Resource, Key, Updated, Version)
     {
-        public override async ValueTask ExportAsync(Stream stream, CancellationToken cancellationToken = default)
+        public override ValueTask<Stream> ExportStreamAsync(CancellationToken cancellationToken = default)
         {
-            stream.Seek(0, SeekOrigin.Begin);
-            await base.ExportAsync(stream, cancellationToken).ConfigureAwait(false);
+            Resource.Seek(0, SeekOrigin.Begin);
+            return new ValueTask<Stream>(Resource);
         }
     }
 

@@ -13,6 +13,7 @@ public class SqliteTests
     {
         string tempDir = Path.GetTempPath();
         string tempFile = Path.Combine(tempDir, "art_ef_sqlite_test_database.db");
+        File.Delete(tempFile);
         using SqliteArtifactRegistrationManager r = new(tempFile);
         await TestSqliteDatabase(r);
     }

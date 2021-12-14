@@ -25,11 +25,10 @@ public record ArtifactResourceInfo(ArtifactResourceKey Key, DateTimeOffset? Upda
     /// <summary>
     /// Exports a resource.
     /// </summary>
-    /// <param name="stream">Stream to export to.</param>
     /// <param name="cancellationToken">Cancellation token.</param>
-    /// <returns>Task.</returns>
+    /// <returns>Task returning stream.</returns>
     /// <exception cref="NotSupportedException">Thrown if this instance cannot be exported.</exception>
-    public virtual ValueTask ExportAsync(Stream stream, CancellationToken cancellationToken = default)
+    public virtual ValueTask<Stream> ExportStreamAsync(CancellationToken cancellationToken = default)
         => throw new NotSupportedException($"This is a raw instance of {nameof(ArtifactResourceInfo)} that is not exportable");
 
     /// <summary>
@@ -44,5 +43,5 @@ public record ArtifactResourceInfo(ArtifactResourceKey Key, DateTimeOffset? Upda
     /// Gets informational string.
     /// </summary>
     /// <returns>Info string.</returns>
-    public virtual string GetInfoString() => $"{ArtifactTool.Combine("/", Key.Path, Key.File)}{(Version != null ? $" [{Version}]" : "")}";
+    public virtual string GetInfoString() => $"{ArtifactTool.Combine("/", Key.Path, Key.File)}{(Updated != null ? $" [{Updated}]" : "")}{(Version != null ? $" [{Version}]" : "")}";
 }

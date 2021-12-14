@@ -249,7 +249,7 @@ public class ArtifactData : IReadOnlyDictionary<ArtifactResourceKey, ArtifactRes
         => Uri(GetArtifactTool<HttpArtifactTool>(), uri, file, path, updated, version, origin, referrer);
 
     /// <summary>
-    /// Creates a <see cref="UriStringArtifactResourceInfo"/> resource.
+    /// Creates a <see cref="UriArtifactResourceInfo"/> resource.
     /// </summary>
     /// <param name="artifactTool">Artifact tool.</param>
     /// <param name="uri">URI.</param>
@@ -258,11 +258,11 @@ public class ArtifactData : IReadOnlyDictionary<ArtifactResourceKey, ArtifactRes
     /// <param name="version">Version.</param>
     /// <param name="origin">Request origin.</param>
     /// <param name="referrer">Request referrer.</param>
-    public ArtifactDataResource UriString(HttpArtifactTool artifactTool, string uri, ArtifactResourceKey key, DateTimeOffset? updated = null, string? version = null, string? origin = null, string? referrer = null)
-        => new(this, new UriStringArtifactResourceInfo(artifactTool, uri, origin, referrer, key, updated, version));
+    public ArtifactDataResource Uri(HttpArtifactTool artifactTool, string uri, ArtifactResourceKey key, DateTimeOffset? updated = null, string? version = null, string? origin = null, string? referrer = null)
+        => new(this, new UriArtifactResourceInfo(artifactTool, new Uri(uri), origin, referrer, key, updated, version));
 
     /// <summary>
-    /// Creates a <see cref="UriStringArtifactResourceInfo"/> resource.
+    /// Creates a <see cref="UriArtifactResourceInfo"/> resource.
     /// </summary>
     /// <param name="artifactTool">Artifact tool.</param>
     /// <param name="uri">URI.</param>
@@ -272,11 +272,11 @@ public class ArtifactData : IReadOnlyDictionary<ArtifactResourceKey, ArtifactRes
     /// <param name="version">Version.</param>
     /// <param name="origin">Request origin.</param>
     /// <param name="referrer">Request referrer.</param>
-    public ArtifactDataResource UriString(HttpArtifactTool artifactTool, string uri, string file, string path = "", DateTimeOffset? updated = null, string? version = null, string? origin = null, string? referrer = null)
-        => new(this, new UriStringArtifactResourceInfo(artifactTool, uri, origin, referrer, new ArtifactResourceKey(Info.Key, file, path), updated, version));
+    public ArtifactDataResource Uri(HttpArtifactTool artifactTool, string uri, string file, string path = "", DateTimeOffset? updated = null, string? version = null, string? origin = null, string? referrer = null)
+        => new(this, new UriArtifactResourceInfo(artifactTool, new Uri(uri), origin, referrer, new ArtifactResourceKey(Info.Key, file, path), updated, version));
 
     /// <summary>
-    /// Creates a <see cref="UriStringArtifactResourceInfo"/> resource.
+    /// Creates a <see cref="UriArtifactResourceInfo"/> resource.
     /// </summary>
     /// <param name="uri">URI.</param>
     /// <param name="key">Resource key.</param>
@@ -284,11 +284,11 @@ public class ArtifactData : IReadOnlyDictionary<ArtifactResourceKey, ArtifactRes
     /// <param name="version">Version.</param>
     /// <param name="origin">Request origin.</param>
     /// <param name="referrer">Request referrer.</param>
-    public ArtifactDataResource UriString(string uri, ArtifactResourceKey key, DateTimeOffset? updated = null, string? version = null, string? origin = null, string? referrer = null)
-        => UriString(GetArtifactTool<HttpArtifactTool>(), uri, key, updated, version, origin, referrer);
+    public ArtifactDataResource Uri(string uri, ArtifactResourceKey key, DateTimeOffset? updated = null, string? version = null, string? origin = null, string? referrer = null)
+        => Uri(GetArtifactTool<HttpArtifactTool>(), uri, key, updated, version, origin, referrer);
 
     /// <summary>
-    /// Creates a <see cref="UriStringArtifactResourceInfo"/> resource.
+    /// Creates a <see cref="UriArtifactResourceInfo"/> resource.
     /// </summary>
     /// <param name="uri">URI.</param>
     /// <param name="file">Filename.</param>
@@ -297,8 +297,8 @@ public class ArtifactData : IReadOnlyDictionary<ArtifactResourceKey, ArtifactRes
     /// <param name="version">Version.</param>
     /// <param name="origin">Request origin.</param>
     /// <param name="referrer">Request referrer.</param>
-    public ArtifactDataResource UriString(string uri, string file, string path = "", DateTimeOffset? updated = null, string? version = null, string? origin = null, string? referrer = null)
-        => UriString(GetArtifactTool<HttpArtifactTool>(), uri, file, path, updated, version, origin, referrer);
+    public ArtifactDataResource Uri(string uri, string file, string path = "", DateTimeOffset? updated = null, string? version = null, string? origin = null, string? referrer = null)
+        => Uri(GetArtifactTool<HttpArtifactTool>(), uri, file, path, updated, version, origin, referrer);
 
     /// <summary>
     /// Creates a <see cref="HttpRequestMessageArtifactResourceInfo"/> resource.
