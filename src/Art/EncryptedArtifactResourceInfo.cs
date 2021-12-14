@@ -21,7 +21,7 @@ public record EncryptedArtifactResourceInfo(EncryptionInfo EncryptionInfo, Artif
     }
 
     /// <inheritdoc/>
-    public override bool MetadataQueryable => BaseArtifactResourceInfo.MetadataQueryable;
+    public override bool UsesMetadata => BaseArtifactResourceInfo.UsesMetadata;
 
     /// <inheritdoc/>
     public override ValueTask<ArtifactResourceInfo> WithMetadataAsync(CancellationToken cancellationToken = default) => BaseArtifactResourceInfo.WithMetadataAsync(cancellationToken);

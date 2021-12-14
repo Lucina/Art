@@ -26,7 +26,7 @@ public record UriArtifactResourceInfo(HttpArtifactTool ArtifactTool, Uri Uri, st
     }
 
     /// <inheritdoc/>
-    public override bool MetadataQueryable => true;
+    public override bool UsesMetadata => true;
 
     /// <inheritdoc/>
     public override async ValueTask<ArtifactResourceInfo> WithMetadataAsync(CancellationToken cancellationToken = default)

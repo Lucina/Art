@@ -20,7 +20,7 @@ public record ArtifactResourceInfo(ArtifactResourceKey Key, DateTimeOffset? Upda
     /// If true, this resource can be queried for additional metadata.
     /// </summary>
     [JsonIgnore]
-    public virtual bool MetadataQueryable => false;
+    public virtual bool UsesMetadata => false;
 
     /// <summary>
     /// Exports a resource.
