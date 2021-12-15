@@ -17,6 +17,7 @@ public record EncryptedArtifactResourceInfo(EncryptionInfo EncryptionInfo, Artif
         await using Stream baseStream = await BaseArtifactResourceInfo.ExportStreamAsync(cancellationToken).ConfigureAwait(false);
         Stream stream = new MemoryStream();
         await EncryptionInfo.DecryptStreamAsync(baseStream, stream, cancellationToken).ConfigureAwait(false);
+        stream.Position = 0;
         return stream;
     }
 
