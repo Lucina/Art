@@ -7,6 +7,9 @@ namespace Art.EF;
 /// </summary>
 public class ArtifactContext : DbContext
 {
+    private readonly AutoResetEvent _wh;
+    private bool _disposed;
+
     /*private static readonly Type[] s_types = { typeof(ArtifactInfoModel), typeof(ArtifactResourceInfoModel) };*/
 
     /// <summary>
@@ -25,6 +28,7 @@ public class ArtifactContext : DbContext
     /// <param name="options">Options.</param>
     public ArtifactContext(DbContextOptions<ArtifactContext> options) : base(options)
     {
+        _wh = new AutoResetEvent(true);
         /*MethodInfo baseMethod = typeof(DbContext).GetMethod(nameof(Set), 1, Array.Empty<Type>()) ??
                                 throw new ApplicationException();
         object[] args = Array.Empty<object>();
@@ -39,30 +43,39 @@ public class ArtifactContext : DbContext
     /// <returns>Task.</returns>
     public async ValueTask AddArtifactAsync(ArtifactInfo artifactInfo, CancellationToken cancellationToken = default)
     {
-        ((string tool, string group, string id), string? name, DateTimeOffset? date, DateTimeOffset? updateDate, bool full) = artifactInfo;
-        ArtifactInfoModel? model = await ArtifactInfoModels.FindAsync(new object?[] { tool, group, id }, cancellationToken);
-        if (model == null)
+        EnsureNotDisposed();
+        _wh.WaitOne();
+        try
         {
-            model = new ArtifactInfoModel
+            ((string tool, string group, string id), string? name, DateTimeOffset? date, DateTimeOffset? updateDate, bool full) = artifactInfo;
+            ArtifactInfoModel? model = await ArtifactInfoModels.FindAsync(new object?[] { tool, group, id }, cancellationToken);
+            if (model == null)
             {
-                Tool = tool,
-                Group = group,
-                Id = id,
-                Name = name,
-                Date = date,
-                UpdateDate = updateDate,
-                Full = full
-            };
-            ArtifactInfoModels.Add(model);
-            await SaveChangesAsync(cancellationToken);
+                model = new ArtifactInfoModel
+                {
+                    Tool = tool,
+                    Group = group,
+                    Id = id,
+                    Name = name,
+                    Date = date,
+                    UpdateDate = updateDate,
+                    Full = full
+                };
+                ArtifactInfoModels.Add(model);
+                await SaveChangesAsync(cancellationToken);
+            }
+            else
+            {
+                model.Date = date;
+                model.UpdateDate = updateDate;
+                model.Full = full;
+                ArtifactInfoModels.Update(model);
+                await SaveChangesAsync(cancellationToken);
+            }
         }
-        else
+        finally
         {
-            model.Date = date;
-            model.UpdateDate = updateDate;
-            model.Full = full;
-            ArtifactInfoModels.Update(model);
-            await SaveChangesAsync(cancellationToken);
+            _wh.Set();
         }
     }
 
@@ -74,31 +87,40 @@ public class ArtifactContext : DbContext
     /// <returns>Task.</returns>
     public async ValueTask AddResourceAsync(ArtifactResourceInfo artifactResourceInfo, CancellationToken cancellationToken = default)
     {
-        (((string tool, string group, string id), string file, string? path), string? contentType, DateTimeOffset? updated, string? version) = artifactResourceInfo;
-        ArtifactInfoModel? model = await ArtifactInfoModels.FindAsync(new object?[] { tool, group, id }, cancellationToken);
-        if (model == null) throw new InvalidOperationException("Can't add resource for missing artifact");
-        ArtifactResourceInfoModel? model2 = await ArtifactResourceInfoModels.FindAsync(new object?[] { tool, group, id, file, path }, cancellationToken);
-        if (model2 == null)
+        EnsureNotDisposed();
+        _wh.WaitOne();
+        try
         {
-            model2 = new ArtifactResourceInfoModel
+            (((string tool, string group, string id), string file, string? path), string? contentType, DateTimeOffset? updated, string? version) = artifactResourceInfo;
+            ArtifactInfoModel? model = await ArtifactInfoModels.FindAsync(new object?[] { tool, group, id }, cancellationToken);
+            if (model == null) throw new InvalidOperationException("Can't add resource for missing artifact");
+            ArtifactResourceInfoModel? model2 = await ArtifactResourceInfoModels.FindAsync(new object?[] { tool, group, id, file, path }, cancellationToken);
+            if (model2 == null)
             {
-                ArtifactTool = tool,
-                ArtifactGroup = group,
-                ArtifactId = id,
-                File = file,
-                Path = path,
-                ContentType = contentType,
-                Updated = updated,
-                Version = version
-            };
-            ArtifactResourceInfoModels.Add(model2);
-            await SaveChangesAsync(cancellationToken);
+                model2 = new ArtifactResourceInfoModel
+                {
+                    ArtifactTool = tool,
+                    ArtifactGroup = group,
+                    ArtifactId = id,
+                    File = file,
+                    Path = path,
+                    ContentType = contentType,
+                    Updated = updated,
+                    Version = version
+                };
+                ArtifactResourceInfoModels.Add(model2);
+                await SaveChangesAsync(cancellationToken);
+            }
+            else
+            {
+                model2.Version = version;
+                ArtifactResourceInfoModels.Update(model2);
+                await SaveChangesAsync(cancellationToken);
+            }
         }
-        else
+        finally
         {
-            model2.Version = version;
-            ArtifactResourceInfoModels.Update(model2);
-            await SaveChangesAsync(cancellationToken);
+            _wh.Set();
         }
     }
 
@@ -110,9 +132,18 @@ public class ArtifactContext : DbContext
     /// <returns>Task returning retrieved artifact, if it exists.</returns>
     public async ValueTask<ArtifactInfo?> TryGetArtifactAsync(ArtifactKey key, CancellationToken cancellationToken = default)
     {
-        (string tool, string group, string id) = key;
-        ArtifactInfoModel? model = await ArtifactInfoModels.FindAsync(new object?[] { tool, group, id }, cancellationToken);
-        return model != null ? new ArtifactInfo(key, model.Name, model.Date, model.UpdateDate, model.Full) : null;
+        EnsureNotDisposed();
+        _wh.WaitOne();
+        try
+        {
+            (string tool, string group, string id) = key;
+            ArtifactInfoModel? model = await ArtifactInfoModels.FindAsync(new object?[] { tool, group, id }, cancellationToken);
+            return model != null ? new ArtifactInfo(key, model.Name, model.Date, model.UpdateDate, model.Full) : null;
+        }
+        finally
+        {
+            _wh.Set();
+        }
     }
 
     /// <summary>
@@ -123,9 +154,18 @@ public class ArtifactContext : DbContext
     /// <returns>Task returning retrieved resource, if it exists.</returns>
     public async ValueTask<ArtifactResourceInfo?> TryGetResourceAsync(ArtifactResourceKey key, CancellationToken cancellationToken = default)
     {
-        ((string tool, string group, string id), string file, string? path) = key;
-        ArtifactResourceInfoModel? model = await ArtifactResourceInfoModels.FindAsync(new object?[] { tool, group, id, file, path }, cancellationToken);
-        return model != null ? new ArtifactResourceInfo(key, model.ContentType, model.Updated, model.Version) : null;
+        EnsureNotDisposed();
+        _wh.WaitOne();
+        try
+        {
+            ((string tool, string group, string id), string file, string? path) = key;
+            ArtifactResourceInfoModel? model = await ArtifactResourceInfoModels.FindAsync(new object?[] { tool, group, id, file, path }, cancellationToken);
+            return model != null ? new ArtifactResourceInfo(key, model.ContentType, model.Updated, model.Version) : null;
+        }
+        finally
+        {
+            _wh.Set();
+        }
     }
 
     /// <summary>
@@ -136,12 +176,21 @@ public class ArtifactContext : DbContext
     /// <returns>Task.</returns>
     public async ValueTask RemoveArtifactAsync(ArtifactKey key, CancellationToken cancellationToken = default)
     {
-        (string tool, string group, string id) = key;
-        ArtifactInfoModel? model = await ArtifactInfoModels.FindAsync(new object?[] { tool, group, id }, cancellationToken);
-        if (model != null)
+        EnsureNotDisposed();
+        _wh.WaitOne();
+        try
         {
-            ArtifactInfoModels.Remove(model);
-            await SaveChangesAsync(cancellationToken);
+            (string tool, string group, string id) = key;
+            ArtifactInfoModel? model = await ArtifactInfoModels.FindAsync(new object?[] { tool, group, id }, cancellationToken);
+            if (model != null)
+            {
+                ArtifactInfoModels.Remove(model);
+                await SaveChangesAsync(cancellationToken);
+            }
+        }
+        finally
+        {
+            _wh.Set();
         }
     }
 
@@ -153,24 +202,35 @@ public class ArtifactContext : DbContext
     /// <returns>Task.</returns>
     public async ValueTask RemoveResourceAsync(ArtifactResourceKey key, CancellationToken cancellationToken = default)
     {
-        ((string tool, string group, string id), string file, string? path) = key;
-        ArtifactResourceInfoModel? model = await ArtifactResourceInfoModels.FindAsync(new object?[] { tool, group, id, file, path }, cancellationToken);
-        if (model != null)
+        EnsureNotDisposed();
+        _wh.WaitOne();
+        try
         {
-            ArtifactResourceInfoModels.Remove(model);
-            await SaveChangesAsync(cancellationToken);
+            ((string tool, string group, string id), string file, string? path) = key;
+            ArtifactResourceInfoModel? model = await ArtifactResourceInfoModels.FindAsync(new object?[] { tool, group, id, file, path }, cancellationToken);
+            if (model != null)
+            {
+                ArtifactResourceInfoModels.Remove(model);
+                await SaveChangesAsync(cancellationToken);
+            }
+        }
+        finally
+        {
+            _wh.Set();
         }
     }
 
     /// <inheritdoc />
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
     {
+        EnsureNotDisposed();
         optionsBuilder.UseLazyLoadingProxies();
     }
 
     /// <inheritdoc />
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
+        EnsureNotDisposed();
         /*object[] args = { modelBuilder };
         foreach (Type type in s_types)
         foreach (MethodInfo method in type.GetMethods(BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic)
@@ -178,5 +238,28 @@ public class ArtifactContext : DbContext
             method.Invoke(null, args);*/
         ArtifactInfoModel.OnModelCreating(modelBuilder);
         ArtifactResourceInfoModel.OnModelCreating(modelBuilder);
+    }
+
+    /// <inheritdoc />
+    public override void Dispose()
+    {
+        base.Dispose();
+        if (_disposed) return;
+        _disposed = true;
+        _wh.Dispose();
+    }
+
+    /// <inheritdoc />
+    public override async ValueTask DisposeAsync()
+    {
+        await base.DisposeAsync();
+        if (_disposed) return;
+        _disposed = true;
+        _wh.Dispose();
+    }
+
+    private void EnsureNotDisposed()
+    {
+        if (_disposed) throw new ObjectDisposedException(nameof(ArtifactContext));
     }
 }

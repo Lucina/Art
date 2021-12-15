@@ -3,11 +3,34 @@
 /// <summary>
 /// Proxy to run artifact tool as a dump tool.
 /// </summary>
-/// <param name="ArtifactTool">Artifact tool.</param>
-/// <param name="Options">Dump options.</param>
-/// <param name="LogHandler">Log handler.</param>
-public record ArtifactToolDumpProxy(ArtifactTool ArtifactTool, ArtifactToolDumpOptions Options, IToolLogHandler LogHandler)
+public record ArtifactToolDumpProxy
 {
+    /// <summary>Artifact tool.</summary>
+    public ArtifactTool ArtifactTool { get; init; }
+
+    /// <summary>Dump options.</summary>
+    public ArtifactToolDumpOptions Options { get; init; }
+
+    /// <summary>Log handler.</summary>
+    public IToolLogHandler? LogHandler { get; init; }
+
+    /// <summary>
+    /// Proxy to run artifact tool as a dump tool.
+    /// </summary>
+    /// <param name="artifactTool">Artifact tool.</param>
+    /// <param name="options">Dump options.</param>
+    /// <param name="logHandler">Log handler.</param>
+    public ArtifactToolDumpProxy(ArtifactTool artifactTool, ArtifactToolDumpOptions options, IToolLogHandler? logHandler)
+    {
+        if (artifactTool == null) throw new ArgumentNullException(nameof(artifactTool));
+        if (options == null) throw new ArgumentNullException(nameof(options));
+        ArtifactToolDumpOptions.Validate(options, true);
+        ArtifactTool = artifactTool;
+        Options = options;
+        LogHandler = logHandler;
+    }
+
+
     /// <summary>
     /// Dumps artifacts.
     /// </summary>
@@ -15,7 +38,8 @@ public record ArtifactToolDumpProxy(ArtifactTool ArtifactTool, ArtifactToolDumpO
     /// <returns>Task.</returns>
     public async ValueTask DumpAsync(CancellationToken cancellationToken = default)
     {
-        ArtifactTool.LogHandler = LogHandler;
+        ArtifactToolDumpOptions.Validate(Options, false);
+        if (LogHandler != null) ArtifactTool.LogHandler = LogHandler;
         if (ArtifactTool is IArtifactToolDump dumpTool)
         {
             await dumpTool.DumpAsync(cancellationToken).ConfigureAwait(false);
@@ -23,7 +47,9 @@ public record ArtifactToolDumpProxy(ArtifactTool ArtifactTool, ArtifactToolDumpO
         }
         if (ArtifactTool is IArtifactToolList listTool)
         {
-            await foreach (ArtifactData data in listTool.ListAsync(cancellationToken).ConfigureAwait(false))
+            IAsyncEnumerable<ArtifactData> enumerable = listTool.ListAsync(cancellationToken);
+            if ((Options.EagerFlags & ArtifactTool.AllowedEagerModes & EagerFlags.ArtifactList) != 0) enumerable = enumerable.EagerAsync();
+            await foreach (ArtifactData data in enumerable.ConfigureAwait(false))
             {
                 switch (Options.SkipMode)
                 {
@@ -43,42 +69,9 @@ public record ArtifactToolDumpProxy(ArtifactTool ArtifactTool, ArtifactToolDumpO
                                 continue;
                             break;
                         }
-                    default:
-                        throw new IndexOutOfRangeException($"Invalid {nameof(ArtifactSkipMode)}");
                 }
                 if (!data.Info.Full && !Options.IncludeNonFull) continue;
-                ArtifactInfo i = data.Info;
-                ItemStateFlags iF = await ArtifactTool.CompareArtifactAsync(data.Info, cancellationToken).ConfigureAwait(false);
-                LogHandler.Log(i.Key.Tool, i.Key.Group, $"{((iF & ItemStateFlags.NewerIdentityMask) != 0 ? "[NEW] " : "")}{i.GetInfoString()}", null, LogLevel.Entry);
-                if ((iF & ItemStateFlags.NewerIdentityMask) != 0)
-                    await ArtifactTool.AddArtifactAsync(data.Info with { Full = false }, cancellationToken).ConfigureAwait(false);
-                foreach (ArtifactResourceInfo resource in data.Values)
-                {
-                    switch (Options.ResourceUpdate)
-                    {
-                        case ResourceUpdateMode.ArtifactSoft:
-                        case ResourceUpdateMode.ArtifactHard:
-                            if ((iF & ItemStateFlags.NewerIdentityMask) == 0) continue;
-                            break;
-                        case ResourceUpdateMode.Soft:
-                        case ResourceUpdateMode.Hard:
-                            break;
-                        default:
-                            throw new IndexOutOfRangeException();
-                    }
-                    (ArtifactResourceInfo versionedResource, ItemStateFlags rF) = await ArtifactTool.DetermineUpdatedResourceAsync(resource, Options.ResourceUpdate, cancellationToken).ConfigureAwait(false);
-                    LogHandler.Log(i.Key.Tool, i.Key.Group, $"-- {((rF & ItemStateFlags.NewerIdentityMask) != 0 ? "[NEW] " : "")}{versionedResource.GetInfoString()}", null, LogLevel.Entry);
-                    if ((rF & ItemStateFlags.NewerIdentityMask) != 0 && versionedResource.Exportable)
-                    {
-                        await using Stream stream = await ArtifactTool.CreateOutputStreamAsync(versionedResource.Key, cancellationToken).ConfigureAwait(false);
-                        await using Stream dataStream = await versionedResource.ExportStreamAsync(cancellationToken).ConfigureAwait(false);
-                        await dataStream.CopyToAsync(stream, cancellationToken).ConfigureAwait(false);
-                    }
-                    if ((rF & ItemStateFlags.DifferentMask) != 0)
-                        await ArtifactTool.AddResourceAsync(versionedResource, cancellationToken).ConfigureAwait(false);
-                }
-                if ((iF & ItemStateFlags.NewerIdentityMask) != 0)
-                    await ArtifactTool.AddArtifactAsync(data.Info, cancellationToken).ConfigureAwait(false);
+                await ArtifactTool.DumpArtifactAsync(data, LogHandler, Options.ResourceUpdate, Options.EagerFlags, cancellationToken);
             }
             return;
         }

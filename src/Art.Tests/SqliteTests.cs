@@ -25,7 +25,7 @@ public class SqliteTests
         await TestSqliteDatabase(r);
     }
 
-    private async Task TestSqliteDatabase(SqliteArtifactRegistrationManager r)
+    private static async Task TestSqliteDatabase(SqliteArtifactRegistrationManager r)
     {
         // 1
         ArtifactKey k1 = new("abec", "group1", "kraft1");

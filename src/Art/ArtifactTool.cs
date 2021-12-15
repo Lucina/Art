@@ -56,9 +56,10 @@ public abstract partial class ArtifactTool : IDisposable
     /// </summary>
     public virtual double DelaySeconds => 0.25;
 
-    #endregion
-
-    #region Private fields
+    /// <summary>
+    /// Allowed eager evaluation modes for this tool.
+    /// </summary>
+    public virtual EagerFlags AllowedEagerModes => EagerFlags.None;
 
     /// <summary>
     /// Registration manager used by this instance.
@@ -69,6 +70,10 @@ public abstract partial class ArtifactTool : IDisposable
     /// Data manager used by this instance.
     /// </summary>
     public ArtifactDataManager DataManager;
+
+    #endregion
+
+    #region Private fields
 
     private JsonSerializerOptions? _jsonOptions;
 
@@ -384,7 +389,7 @@ public abstract partial class ArtifactTool : IDisposable
     /// <param name="resourceUpdate">Resource update mode.</param>
     /// <param name="cancellationToken">Cancellation token.</param>
     /// <returns>Task returning instance for the resource with populated version (if available), and additional state information.</returns>
-    public async Task<(ArtifactResourceInfo latest, ItemStateFlags state)> DetermineUpdatedResourceAsync(ArtifactResourceInfo resource, ResourceUpdateMode resourceUpdate, CancellationToken cancellationToken = default)
+    public async Task<ArtifactResourceInfoWithState> DetermineUpdatedResourceAsync(ArtifactResourceInfo resource, ResourceUpdateMode resourceUpdate, CancellationToken cancellationToken = default)
     {
         ItemStateFlags state = resourceUpdate switch
         {
@@ -414,7 +419,7 @@ public abstract partial class ArtifactTool : IDisposable
             if (resource.IsMetadataDifferent(prev))
                 state |= ItemStateFlags.ChangedMetadata;
         }
-        return (resource, state);
+        return new ArtifactResourceInfoWithState(resource, state);
     }
 
     #endregion

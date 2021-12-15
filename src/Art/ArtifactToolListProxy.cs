@@ -5,9 +5,34 @@ namespace Art;
 /// <summary>
 /// Proxy to run artifact tool as a list tool.
 /// </summary>
-/// <param name="ArtifactTool">Artifact tool.</param>
-public record ArtifactToolListProxy(ArtifactTool ArtifactTool)
+public record ArtifactToolListProxy
 {
+    /// <summary>Artifact tool.</summary>
+    public ArtifactTool ArtifactTool { get; init; }
+
+    /// <summary>List options.</summary>
+    public ArtifactToolListOptions Options { get; init; }
+
+    /// <summary>Log handler.</summary>
+    public IToolLogHandler? LogHandler { get; init; }
+
+    /// <summary>
+    /// Proxy to run artifact tool as a list tool.
+    /// </summary>
+    /// <param name="artifactTool">Artifact tool.</param>
+    /// <param name="options">List options.</param>
+    /// <param name="logHandler">Log handler.</param>
+    /// <exception cref="ArgumentException">Thrown when invalid options are specified.</exception>
+    public ArtifactToolListProxy(ArtifactTool artifactTool, ArtifactToolListOptions options, IToolLogHandler? logHandler)
+    {
+        if (artifactTool == null) throw new ArgumentNullException(nameof(artifactTool));
+        if (options == null) throw new ArgumentNullException(nameof(options));
+        ArtifactToolListOptions.Validate(options, false);
+        ArtifactTool = artifactTool;
+        Options = options;
+        LogHandler = logHandler;
+    }
+
     #region API
 
     /// <summary>
@@ -17,10 +42,36 @@ public record ArtifactToolListProxy(ArtifactTool ArtifactTool)
     /// <returns>Async-enumerable artifacts.</returns>
     public async IAsyncEnumerable<ArtifactData> ListAsync([EnumeratorCancellation] CancellationToken cancellationToken = default)
     {
+        ArtifactToolListOptions.Validate(Options, false);
+        if (LogHandler != null) ArtifactTool.LogHandler = LogHandler;
         if (ArtifactTool is IArtifactToolList listTool)
         {
-            await foreach (ArtifactData res in listTool.ListAsync(cancellationToken).ConfigureAwait(false))
-                yield return res;
+            IAsyncEnumerable<ArtifactData> enumerable = listTool.ListAsync(cancellationToken);
+            if ((Options.EagerFlags & ArtifactTool.AllowedEagerModes & EagerFlags.ArtifactList) != 0) enumerable = enumerable.EagerAsync();
+            await foreach (ArtifactData data in enumerable.ConfigureAwait(false))
+            {
+                switch (Options.SkipMode)
+                {
+                    case ArtifactSkipMode.None:
+                        break;
+                    case ArtifactSkipMode.FastExit:
+                        {
+                            ArtifactInfo? info = await ArtifactTool.TryGetArtifactAsync(data.Info.Key.Id, cancellationToken).ConfigureAwait(false);
+                            if (info != null)
+                                yield break;
+                            break;
+                        }
+                    case ArtifactSkipMode.Known:
+                        {
+                            ArtifactInfo? info = await ArtifactTool.TryGetArtifactAsync(data.Info.Key.Id, cancellationToken).ConfigureAwait(false);
+                            if (info != null)
+                                continue;
+                            break;
+                        }
+                }
+                if (!data.Info.Full && !Options.IncludeNonFull) continue;
+                yield return data;
+            }
             yield break;
         }
         if (ArtifactTool is IArtifactToolDump dumpTool)
