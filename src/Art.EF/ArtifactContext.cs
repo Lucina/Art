@@ -15,12 +15,12 @@ public class ArtifactContext : DbContext
     /// <summary>
     /// Artifact info.
     /// </summary>
-    public DbSet<ArtifactInfoModel> ArtifactInfoModels { get; set; } = null!;
+    private DbSet<ArtifactInfoModel> ArtifactInfoModels { get; set; } = null!;
 
     /// <summary>
     /// Artifact resource info.
     /// </summary>
-    public DbSet<ArtifactResourceInfoModel> ArtifactResourceInfoModels { get; set; } = null!;
+    private DbSet<ArtifactResourceInfoModel> ArtifactResourceInfoModels { get; set; } = null!;
 
     /// <summary>
     /// Creates an instance of <see cref="ArtifactContext"/> with the specified options.
@@ -72,6 +72,87 @@ public class ArtifactContext : DbContext
                 ArtifactInfoModels.Update(model);
                 await SaveChangesAsync(cancellationToken);
             }
+        }
+        finally
+        {
+            _wh.Set();
+        }
+    }
+
+    /// <summary>
+    /// Lists all artifacts.
+    /// </summary>
+    /// <param name="cancellationToken">Cancellation token.</param>
+    /// <returns>Task returning artifacts.</returns>
+    public async Task<List<ArtifactInfo>> ListArtifactsAsync(CancellationToken cancellationToken = default)
+    {
+        _wh.WaitOne();
+        try
+        {
+            List<ArtifactInfoModel> results = await ArtifactInfoModels.ToListAsync(cancellationToken);
+            return results.Select(v => new ArtifactInfo(new ArtifactKey(v.Tool, v.Group, v.Id), v.Name, v.Date, v.UpdateDate, v.Full)).ToList();
+        }
+        finally
+        {
+            _wh.Set();
+        }
+    }
+
+    /// <summary>
+    /// Lists all artifacts for the specified tool.
+    /// </summary>
+    /// <param name="tool">Tool.</param>
+    /// <param name="cancellationToken">Cancellation token.</param>
+    /// <returns>Task returning artifacts.</returns>
+    public async Task<List<ArtifactInfo>> ListArtifactsAsync(string tool, CancellationToken cancellationToken = default)
+    {
+        _wh.WaitOne();
+        try
+        {
+            List<ArtifactInfoModel> results = await ArtifactInfoModels.Where(v => v.Tool == tool).ToListAsync(cancellationToken);
+            return results.Select(v => new ArtifactInfo(new ArtifactKey(v.Tool, v.Group, v.Id), v.Name, v.Date, v.UpdateDate, v.Full)).ToList();
+        }
+        finally
+        {
+            _wh.Set();
+        }
+    }
+
+    /// <summary>
+    /// Lists all artifacts for the specified tool and group.
+    /// </summary>
+    /// <param name="tool">Tool.</param>
+    /// <param name="group">Group.</param>
+    /// <param name="cancellationToken">Cancellation token.</param>
+    /// <returns>Task returning artifacts.</returns>
+    public async Task<List<ArtifactInfo>> ListArtifactsAsync(string tool, string group, CancellationToken cancellationToken = default)
+    {
+        _wh.WaitOne();
+        try
+        {
+            List<ArtifactInfoModel> results = await ArtifactInfoModels.Where(v => v.Tool == tool && v.Group == group).ToListAsync(cancellationToken);
+            return results.Select(v => new ArtifactInfo(new ArtifactKey(v.Tool, v.Group, v.Id), v.Name, v.Date, v.UpdateDate, v.Full)).ToList();
+        }
+        finally
+        {
+            _wh.Set();
+        }
+    }
+
+    /// <summary>
+    /// Lists all resources for the specified artifact key.
+    /// </summary>
+    /// <param name="key">Artifact key.</param>
+    /// <param name="cancellationToken">Cancellation token.</param>
+    /// <returns>Task returning resources.</returns>
+    public async Task<List<ArtifactResourceInfo>> ListResourcesAsync(ArtifactKey key, CancellationToken cancellationToken = default)
+    {
+        _wh.WaitOne();
+        (string? tool, string? group, string? id) = key;
+        try
+        {
+            List<ArtifactResourceInfoModel> results = await ArtifactResourceInfoModels.Where(v => v.ArtifactTool == tool && v.ArtifactGroup == group && v.ArtifactId == id).ToListAsync(cancellationToken);
+            return results.Select(v => new ArtifactResourceInfo(new ArtifactResourceKey(new ArtifactKey(v.ArtifactTool, v.ArtifactGroup, v.ArtifactId), v.File, v.Path), v.ContentType, v.Updated, v.Version)).ToList();
         }
         finally
         {

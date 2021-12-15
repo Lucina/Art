@@ -20,27 +20,20 @@ public class EFArtifactRegistrationManager : ArtifactRegistrationManager, IDispo
     }
 
     /// <inheritdoc />
-    public override IAsyncEnumerable<ArtifactInfo> ListArtifactsAsync(CancellationToken cancellationToken = default)
-        => Context.ArtifactInfoModels.AsAsyncEnumerable()
-            .SelectAsync(v => new ArtifactInfo(new ArtifactKey(v.Tool, v.Group, v.Id), v.Name, v.Date, v.UpdateDate, v.Full));
+    public override Task<List<ArtifactInfo>> ListArtifactsAsync(CancellationToken cancellationToken = default)
+        => Context.ListArtifactsAsync(cancellationToken);
 
     /// <inheritdoc />
-    public override IAsyncEnumerable<ArtifactInfo> ListArtifactsAsync(string tool, CancellationToken cancellationToken = default)
-        => Context.ArtifactInfoModels.AsAsyncEnumerable()
-            .WhereAsync(v => v.Tool == tool)
-            .SelectAsync(v => new ArtifactInfo(new ArtifactKey(v.Tool, v.Group, v.Id), v.Name, v.Date, v.UpdateDate, v.Full));
+    public override Task<List<ArtifactInfo>> ListArtifactsAsync(string tool, CancellationToken cancellationToken = default)
+        => Context.ListArtifactsAsync(tool, cancellationToken);
 
     /// <inheritdoc />
-    public override IAsyncEnumerable<ArtifactInfo> ListArtifactsAsync(string tool, string group, CancellationToken cancellationToken = default)
-        => Context.ArtifactInfoModels.AsAsyncEnumerable()
-            .WhereAsync(v => v.Tool == tool && v.Group == group)
-            .SelectAsync(v => new ArtifactInfo(new ArtifactKey(v.Tool, v.Group, v.Id), v.Name, v.Date, v.UpdateDate, v.Full));
+    public override Task<List<ArtifactInfo>> ListArtifactsAsync(string tool, string group, CancellationToken cancellationToken = default)
+        => Context.ListArtifactsAsync(tool, group, cancellationToken);
 
     /// <inheritdoc />
-    public override IAsyncEnumerable<ArtifactResourceInfo> ListResourcesAsync(ArtifactKey key, CancellationToken cancellationToken = default)
-        => Context.ArtifactResourceInfoModels.AsAsyncEnumerable()
-            .WhereAsync(v => v.ArtifactTool == key.Tool && v.ArtifactGroup == key.Group && v.ArtifactId == key.Id)
-            .SelectAsync(v => new ArtifactResourceInfo(new ArtifactResourceKey(new ArtifactKey(v.ArtifactTool, v.ArtifactGroup, v.ArtifactId), v.File, v.Path), v.ContentType, v.Updated, v.Version));
+    public override Task<List<ArtifactResourceInfo>> ListResourcesAsync(ArtifactKey key, CancellationToken cancellationToken = default)
+        => Context.ListResourcesAsync(key, cancellationToken);
 
     /// <inheritdoc />
     public override ValueTask AddArtifactAsync(ArtifactInfo artifactInfo, CancellationToken cancellationToken = default)

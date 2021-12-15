@@ -65,6 +65,7 @@ public class ArtifactResourceInfoModel
                 x.File,
                 x.Path
             });
+            b.HasIndex(x => new { x.ArtifactTool, x.ArtifactGroup, x.ArtifactId });
         });
     }
 }

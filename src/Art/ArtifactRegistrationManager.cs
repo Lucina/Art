@@ -9,16 +9,16 @@ public abstract class ArtifactRegistrationManager
     /// Lists all artifacts.
     /// </summary>
     /// <param name="cancellationToken">Cancellation token.</param>
-    /// <returns>Artifact.</returns>
-    public abstract IAsyncEnumerable<ArtifactInfo> ListArtifactsAsync(CancellationToken cancellationToken = default);
+    /// <returns>Task returning artifacts.</returns>
+    public abstract Task<List<ArtifactInfo>> ListArtifactsAsync(CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Lists all artifacts for the specified tool.
     /// </summary>
     /// <param name="tool">Tool.</param>
     /// <param name="cancellationToken">Cancellation token.</param>
-    /// <returns>Artifact.</returns>
-    public abstract IAsyncEnumerable<ArtifactInfo> ListArtifactsAsync(string tool, CancellationToken cancellationToken = default);
+    /// <returns>Task returning artifacts.</returns>
+    public abstract Task<List<ArtifactInfo>> ListArtifactsAsync(string tool, CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Lists all artifacts for the specified tool and group.
@@ -26,16 +26,16 @@ public abstract class ArtifactRegistrationManager
     /// <param name="tool">Tool.</param>
     /// <param name="group">Group.</param>
     /// <param name="cancellationToken">Cancellation token.</param>
-    /// <returns>Artifact.</returns>
-    public abstract IAsyncEnumerable<ArtifactInfo> ListArtifactsAsync(string tool, string group, CancellationToken cancellationToken = default);
+    /// <returns>Task returning artifacts.</returns>
+    public abstract Task<List<ArtifactInfo>> ListArtifactsAsync(string tool, string group, CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Lists all resources for the specified artifact key.
     /// </summary>
     /// <param name="key">Artifact key.</param>
     /// <param name="cancellationToken">Cancellation token.</param>
-    /// <returns>Resources.</returns>
-    public abstract IAsyncEnumerable<ArtifactResourceInfo> ListResourcesAsync(ArtifactKey key, CancellationToken cancellationToken = default);
+    /// <returns>Task returning resources.</returns>
+    public abstract Task<List<ArtifactResourceInfo>> ListResourcesAsync(ArtifactKey key, CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Registers artifact as known.

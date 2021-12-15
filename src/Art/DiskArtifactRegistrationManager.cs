@@ -1,5 +1,4 @@
 ﻿using System.Globalization;
-using System.Runtime.CompilerServices;
 
 namespace Art;
 
@@ -30,52 +29,60 @@ public class DiskArtifactRegistrationManager : ArtifactRegistrationManager
     }
 
     /// <inheritdoc/>
-    public override async IAsyncEnumerable<ArtifactInfo> ListArtifactsAsync([EnumeratorCancellation] CancellationToken cancellationToken = default)
+    public override async Task<List<ArtifactInfo>> ListArtifactsAsync(CancellationToken cancellationToken = default)
     {
         string dir = GetArtifactInfoDir();
-        if (!Directory.Exists(dir)) yield break;
+        List<ArtifactInfo> results = new();
+        if (!Directory.Exists(dir)) return results;
         foreach (string toolDir in Directory.EnumerateDirectories(dir))
         foreach (string groupDir in Directory.EnumerateDirectories(toolDir))
         foreach (string file in Directory.EnumerateFiles(groupDir).Where(v => v.EndsWith(ArtifactFileNameEnd)))
             if (await ArtExtensions.LoadFromFileAsync<ArtifactInfo>(file, cancellationToken).ConfigureAwait(false) is { } v)
-                yield return v;
+                results.Add(v);
+        return results;
     }
 
     /// <inheritdoc/>
-    public override async IAsyncEnumerable<ArtifactInfo> ListArtifactsAsync(string tool, [EnumeratorCancellation] CancellationToken cancellationToken = default)
+    public override async Task<List<ArtifactInfo>> ListArtifactsAsync(string tool, CancellationToken cancellationToken = default)
     {
         string toolDir = GetArtifactInfoDir(tool);
-        if (!Directory.Exists(toolDir)) yield break;
+        List<ArtifactInfo> results = new();
+        if (!Directory.Exists(toolDir)) return results;
         foreach (string groupDir in Directory.EnumerateDirectories(toolDir))
         foreach (string file in Directory.EnumerateFiles(groupDir).Where(v => v.EndsWith(ArtifactFileNameEnd)))
             if (await ArtExtensions.LoadFromFileAsync<ArtifactInfo>(file, cancellationToken).ConfigureAwait(false) is { } v)
-                yield return v;
+                results.Add(v);
+        return results;
     }
 
     /// <inheritdoc/>
-    public override async IAsyncEnumerable<ArtifactInfo> ListArtifactsAsync(string tool, string group, [EnumeratorCancellation] CancellationToken cancellationToken = default)
+    public override async Task<List<ArtifactInfo>> ListArtifactsAsync(string tool, string group, CancellationToken cancellationToken = default)
     {
         string groupDir = GetArtifactInfoDir(tool, group);
-        if (!Directory.Exists(groupDir)) yield break;
+        List<ArtifactInfo> results = new();
+        if (!Directory.Exists(groupDir)) return results;
         foreach (string file in Directory.EnumerateFiles(groupDir).Where(v => v.EndsWith(ArtifactFileNameEnd)))
             if (await ArtExtensions.LoadFromFileAsync<ArtifactInfo>(file, cancellationToken).ConfigureAwait(false) is { } v)
-                yield return v;
+                results.Add(v);
+        return results;
     }
 
     /// <inheritdoc/>
-    public override async IAsyncEnumerable<ArtifactResourceInfo> ListResourcesAsync(ArtifactKey key, [EnumeratorCancellation] CancellationToken cancellationToken = default)
+    public override async Task<List<ArtifactResourceInfo>> ListResourcesAsync(ArtifactKey key, CancellationToken cancellationToken = default)
     {
         string dir = GetResourceInfoDir(key);
+        List<ArtifactResourceInfo> results = new();
         Queue<string> dQueue = new();
         dQueue.Enqueue(dir);
         while (dQueue.TryDequeue(out string? dd))
         {
             foreach (string f in Directory.EnumerateFiles(dd).Where(v => v.EndsWith(ResourceFileNameEnd)))
                 if (await ArtExtensions.LoadFromFileAsync<ArtifactResourceInfo>(f, cancellationToken).ConfigureAwait(false) is { } v)
-                    yield return v;
+                    results.Add(v);
             foreach (string d in Directory.EnumerateDirectories(dd))
                 dQueue.Enqueue(d);
         }
+        return results;
     }
 
     /// <inheritdoc/>
