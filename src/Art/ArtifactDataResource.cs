@@ -8,6 +8,30 @@ namespace Art;
 public record struct ArtifactDataResource(ArtifactData Data, ArtifactResourceInfo Info)
 {
     /// <summary>
+    /// Creates an instance of this resource with a specific content type.
+    /// </summary>
+    /// <param name="contentType">Content type.</param>
+    /// <returns>Resource with specific content type.</returns>
+    public ArtifactDataResource WithContentType(string? contentType = null)
+        => this with { Info = new WithContentTypeArtifactResourceInfo(contentType, Info) };
+
+    /// <summary>
+    /// Creates an instance of this resource with a specific updated date.
+    /// </summary>
+    /// <param name="updated">Updated date.</param>
+    /// <returns>Resource with specific updated date.</returns>
+    public ArtifactDataResource WithUpdated(DateTimeOffset? updated = null)
+        => this with { Info = new WithUpdatedArtifactResourceInfo(updated, Info) };
+
+    /// <summary>
+    /// Creates an instance of this resource with a specific version.
+    /// </summary>
+    /// <param name="version">Version.</param>
+    /// <returns>Resource with specific version.</returns>
+    public ArtifactDataResource WithVersion(string? version = null)
+        => this with { Info = new WithVersionArtifactResourceInfo(version, Info) };
+
+    /// <summary>
     /// Creates an instance of this resource with an added decryption layer.
     /// </summary>
     /// <param name="encryptionInfo">Encryption information.</param>
@@ -31,7 +55,7 @@ public record struct ArtifactDataResource(ArtifactData Data, ArtifactResourceInf
     /// Creates an instance of this resource with an added depadding layer.
     /// </summary>
     /// <param name="paddingMode">Padding mode.</param>
-    /// <returns>Decrypting resource.</returns>
+    /// <returns>Depadded resource.</returns>
     public ArtifactDataResource WithPadding(PaddingMode paddingMode)
         => this with { Info = new PaddedArtifactResourceInfo(paddingMode, Info) };
 
