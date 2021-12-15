@@ -20,7 +20,7 @@ public class ConsoleLogHandler : IToolLogHandler
     {
         { LogLevel.Information, "⚪" },
         { LogLevel.Title, "⚪" },
-        { LogLevel.Entry, "--" },
+        { LogLevel.Entry, "::" },
         { LogLevel.Warning, "❗" },
         { LogLevel.Error, "⛔" }
     };
@@ -30,6 +30,11 @@ public class ConsoleLogHandler : IToolLogHandler
     /// </summary>
     public static readonly ConsoleLogHandler Default = new();
 
+    /// <summary>
+    /// Fancy instance.
+    /// </summary>
+    public static readonly ConsoleLogHandler Fancy = new(true);
+
     private readonly Dictionary<LogLevel, string> _pre;
 
     /// <summary>
@@ -37,7 +42,18 @@ public class ConsoleLogHandler : IToolLogHandler
     /// </summary>
     public ConsoleLogHandler()
     {
-        _pre = OperatingSystem.IsMacOS() ? s_preOsx : s_preDefault;
+        //_pre = OperatingSystem.IsMacOS() ? s_preOsx : s_preDefault;
+        _pre = s_preDefault;
+        _wh = new AutoResetEvent(true);
+    }
+
+    /// <summary>
+    /// Creates a new instance of <see cref="ConsoleLogHandler"/>.
+    /// </summary>
+    /// <param name="enableFancy">Enable fancy output.</param>
+    public ConsoleLogHandler(bool enableFancy)
+    {
+        _pre = enableFancy ? s_preOsx : s_preDefault;
         _wh = new AutoResetEvent(true);
     }
 

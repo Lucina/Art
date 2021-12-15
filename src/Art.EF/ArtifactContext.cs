@@ -194,6 +194,8 @@ public class ArtifactContext : DbContext
             }
             else
             {
+                model2.ContentType = contentType;
+                model2.Updated = updated;
                 model2.Version = version;
                 ArtifactResourceInfoModels.Update(model2);
                 await SaveChangesAsync(cancellationToken);

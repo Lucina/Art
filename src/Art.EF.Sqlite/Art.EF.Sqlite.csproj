@@ -1,12 +1,12 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <PackageVersion>0.37.1</PackageVersion>
+    <PackageVersion>0.37.2</PackageVersion>
     <AssemblyVersion>1.0.0</AssemblyVersion>
   </PropertyGroup>
 
   <ItemGroup>
-    <!--<PackageReference Include="Art.EF" Version="0.37.1" />-->
+    <!--<PackageReference Include="Art.EF" Version="0.37.2" />-->
     <ProjectReference Include="..\Art.EF\Art.EF.csproj" />
   </ItemGroup>
 
