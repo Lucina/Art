@@ -48,8 +48,8 @@ public abstract class ArtifactDataManager
     /// <returns>Task.</returns>
     public virtual async ValueTask OutputTextAsync(string text, ArtifactResourceKey key, CancellationToken cancellationToken = default)
     {
-        using Stream stream = await CreateOutputStreamAsync(key, cancellationToken).ConfigureAwait(false);
-        using var sw = new StreamWriter(stream);
+        await using Stream stream = await CreateOutputStreamAsync(key, cancellationToken).ConfigureAwait(false);
+        await using var sw = new StreamWriter(stream);
         await sw.WriteAsync(text).ConfigureAwait(false);
     }
 
@@ -62,7 +62,7 @@ public abstract class ArtifactDataManager
     /// <returns>Task.</returns>
     public virtual async ValueTask OutputJsonAsync<T>(T data, ArtifactResourceKey key, CancellationToken cancellationToken = default)
     {
-        using Stream stream = await CreateOutputStreamAsync(key, cancellationToken).ConfigureAwait(false);
+        await using Stream stream = await CreateOutputStreamAsync(key, cancellationToken).ConfigureAwait(false);
         await JsonSerializer.SerializeAsync(stream, data, cancellationToken: cancellationToken).ConfigureAwait(false);
     }
 
@@ -76,7 +76,7 @@ public abstract class ArtifactDataManager
     /// <returns>Task.</returns>
     public virtual async ValueTask OutputJsonAsync<T>(T data, JsonSerializerOptions jsonSerializerOptions, ArtifactResourceKey key, CancellationToken cancellationToken = default)
     {
-        using Stream stream = await CreateOutputStreamAsync(key, cancellationToken).ConfigureAwait(false);
+        await using Stream stream = await CreateOutputStreamAsync(key, cancellationToken).ConfigureAwait(false);
         await JsonSerializer.SerializeAsync(stream, data, jsonSerializerOptions, cancellationToken).ConfigureAwait(false);
     }
 }

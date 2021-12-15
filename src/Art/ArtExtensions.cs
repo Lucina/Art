@@ -65,7 +65,7 @@ public static class ArtExtensions
     /// <returns>Task.</returns>
     public static async ValueTask WriteToFileAsync<T>(this T value, string file, CancellationToken cancellationToken = default)
     {
-        using FileStream fs = File.Create(file);
+        await using FileStream fs = File.Create(file);
         await JsonSerializer.SerializeAsync(fs, value, cancellationToken: cancellationToken).ConfigureAwait(false);
     }
 
@@ -83,7 +83,7 @@ public static class ArtExtensions
         if (lengthCheck != null && File.Exists(file) && new FileInfo(file).Length == lengthCheck) return;
         using HttpResponseMessage fr = await client.GetAsync(url, cancellationToken);
         fr.EnsureSuccessStatusCode();
-        using FileStream fs = File.Create(file);
+        await using FileStream fs = File.Create(file);
         await fr.Content.CopyToAsync(fs, cancellationToken);
     }
 

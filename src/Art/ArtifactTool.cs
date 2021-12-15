@@ -361,7 +361,6 @@ public abstract partial class ArtifactTool : IDisposable
         switch (resourceUpdate)
         {
             case ResourceUpdateMode.ArtifactSoft:
-            case ResourceUpdateMode.Populate:
             case ResourceUpdateMode.Soft:
                 {
                     // don't say null new version corresponds to updating

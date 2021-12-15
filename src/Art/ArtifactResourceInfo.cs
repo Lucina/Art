@@ -44,5 +44,5 @@ public record ArtifactResourceInfo(ArtifactResourceKey Key, string? ContentType 
     /// Gets informational string.
     /// </summary>
     /// <returns>Info string.</returns>
-    public virtual string GetInfoString() => $"{ArtifactTool.Combine("/", Key.Path, Key.File)}{(Updated != null ? $" [{Updated}]" : "")}{(Version != null ? $" [{Version}]" : "")}";
+    public virtual string GetInfoString() => $"{ArtifactTool.Combine("/", Key.Path, Key.File)}{(ContentType != null ? $" [{ContentType}]" : "")}{(Updated != null ? $" [{Updated}]" : "")}{(Version != null ? $" [{Version}]" : "")}";
 }
