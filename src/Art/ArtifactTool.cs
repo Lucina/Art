@@ -23,11 +23,6 @@ public abstract partial class ArtifactTool : IDisposable
     public const string OptDebugMode = "debugMode";
 
     /// <summary>
-    /// Option used to check if currently using force (invalidating previous artifacts).
-    /// </summary>
-    public const string OptForce = "force";
-
-    /// <summary>
     /// JSON serialization defaults.
     /// </summary>
     public JsonSerializerOptions JsonOptions
@@ -45,11 +40,6 @@ public abstract partial class ArtifactTool : IDisposable
     /// True if this tool is in debug mode.
     /// </summary>
     public bool DebugMode { get; set; }
-
-    /// <summary>
-    /// True if all previous artifacts should be ignored (e.g. modifies <see cref="IsNewArtifactAsync(ArtifactInfo, CancellationToken)"/>).
-    /// </summary>
-    public bool Force { get; set; }
 
     /// <summary>
     /// Configuration
@@ -121,7 +111,6 @@ public abstract partial class ArtifactTool : IDisposable
         DataManager = config.DataManager;
         Profile = profile;
         DebugMode = GetFlagTrue(OptDebugMode);
-        Force = GetFlagTrue(OptForce);
         //_configured = true;
         return ConfigureAsync(cancellationToken);
     }
@@ -340,13 +329,48 @@ public abstract partial class ArtifactTool : IDisposable
         => await RegistrationManager.TryGetResourceAsync(key, cancellationToken).ConfigureAwait(false);
 
     /// <summary>
-    /// Tests if artifact is recognizably new.
+    /// Tests artifact state against existing.
     /// </summary>
     /// <param name="artifactInfo">Artifact to check.</param>
     /// <param name="cancellationToken">Cancellation token.</param>
-    /// <returns>Task returning true if this is a new artifact (newer than whatever exists with the same ID).</returns>
-    public async Task<bool> IsNewArtifactAsync(ArtifactInfo artifactInfo, CancellationToken cancellationToken = default)
-        => await RegistrationManager.IsNewArtifactAsync(artifactInfo, cancellationToken).ConfigureAwait(false) || Force; // Forward to RegistrationManager even if forcing
+    /// <returns>Task returning comparison against whatever exists with the same ID.</returns>
+    public async ValueTask<ItemStateFlags> CompareArtifactAsync(ArtifactInfo artifactInfo, CancellationToken cancellationToken = default)
+    {
+        ItemStateFlags state = ItemStateFlags.None;
+        if (await TryGetArtifactAsync(artifactInfo.Key, cancellationToken).ConfigureAwait(false) is not { } oldArtifact)
+        {
+            state |= ItemStateFlags.New;
+            if (artifactInfo.Date != null || artifactInfo.UpdateDate != null)
+                state |= ItemStateFlags.NewerDate;
+        }
+        else
+        {
+            if (artifactInfo.UpdateDate != null && oldArtifact.UpdateDate != null)
+            {
+                if (artifactInfo.UpdateDate > oldArtifact.UpdateDate)
+                    state |= ItemStateFlags.NewerDate;
+                else if (artifactInfo.UpdateDate < oldArtifact.UpdateDate)
+                    state |= ItemStateFlags.OlderDate;
+            }
+            else if (artifactInfo.UpdateDate != null && oldArtifact.UpdateDate == null)
+                state |= ItemStateFlags.NewerDate;
+            else if (artifactInfo.UpdateDate == null && oldArtifact.UpdateDate == null)
+            {
+                if (artifactInfo.Date != null && oldArtifact.Date != null)
+                {
+                    if (artifactInfo.Date > oldArtifact.Date)
+                        state |= ItemStateFlags.NewerDate;
+                    else if (artifactInfo.Date < oldArtifact.Date)
+                        state |= ItemStateFlags.OlderDate;
+                }
+                else if (artifactInfo.Date != null && oldArtifact.Date == null)
+                    state |= ItemStateFlags.NewerDate;
+            }
+            if (artifactInfo.Full && !oldArtifact.Full)
+                state |= ItemStateFlags.New;
+        }
+        return state;
+    }
 
     /// <summary>
     /// Attempts to get resource with populated version (if available) based on provided resource.
@@ -354,7 +378,7 @@ public abstract partial class ArtifactTool : IDisposable
     /// <param name="resource">Resource to check.</param>
     /// <param name="resourceUpdate">Resource update mode.</param>
     /// <param name="cancellationToken">Cancellation token.</param>
-    /// <returns>Task returning instance for the resource with populated version (if available), and additional staet information.</returns>
+    /// <returns>Task returning instance for the resource with populated version (if available), and additional state information.</returns>
     public async Task<(ArtifactResourceInfo latest, ItemStateFlags state)> DetermineUpdatedResourceAsync(ArtifactResourceInfo resource, ResourceUpdateMode resourceUpdate, CancellationToken cancellationToken = default)
     {
         ItemStateFlags state = resourceUpdate switch

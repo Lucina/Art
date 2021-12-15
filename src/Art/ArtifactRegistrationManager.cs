@@ -84,17 +84,4 @@ public abstract class ArtifactRegistrationManager
     /// <param name="cancellationToken">Cancellation token.</param>
     /// <returns>Task.</returns>
     public abstract ValueTask RemoveResourceAsync(ArtifactResourceKey key, CancellationToken cancellationToken = default);
-
-    /// <summary>
-    /// Tests if artifact is recognizably new.
-    /// </summary>
-    /// <param name="artifactInfo">Artifact to check.</param>
-    /// <param name="cancellationToken">Cancellation token.</param>
-    /// <returns>True if this is a new artifact (newer than whatever exists with the same ID).</returns>
-    public virtual async ValueTask<bool> IsNewArtifactAsync(ArtifactInfo artifactInfo, CancellationToken cancellationToken = default)
-    {
-        return (await TryGetArtifactAsync(artifactInfo.Key, cancellationToken).ConfigureAwait(false)) is not { } oldArtifact
-            || oldArtifact.UpdateDate == null
-            || artifactInfo.UpdateDate != null && oldArtifact.UpdateDate.Value < artifactInfo.UpdateDate.Value;
-    }
 }
