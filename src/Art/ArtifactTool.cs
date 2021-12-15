@@ -13,6 +13,11 @@ public abstract partial class ArtifactTool : IDisposable
     #region Fields
 
     /// <summary>
+    /// Invariant culture.
+    /// </summary>
+    public static readonly CultureInfo IC = CultureInfo.InvariantCulture;
+
+    /// <summary>
     /// Log handler for this tool.
     /// </summary>
     public IToolLogHandler? LogHandler;
