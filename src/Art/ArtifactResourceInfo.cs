@@ -12,6 +12,17 @@ namespace Art;
 public record ArtifactResourceInfo(ArtifactResourceKey Key, string? ContentType = "application/octet-stream", DateTimeOffset? Updated = null, string? Version = null)
 {
     /// <summary>
+    /// Checks if non-identifying metadata (i.e. everything but key, updated date, version) is different.
+    /// </summary>
+    /// <param name="other">Resource to compare to.</param>
+    /// <returns>True if any metadata is different or if other is null.</returns>
+    public bool IsMetadataDifferent(ArtifactResourceInfo? other)
+    {
+        if (other == null) return true;
+        return ContentType != other.ContentType;
+    }
+
+    /// <summary>
     /// If true, this resource is a file-exportable reference.
     /// </summary>
     [JsonIgnore]

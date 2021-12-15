@@ -354,27 +354,38 @@ public abstract partial class ArtifactTool : IDisposable
     /// <param name="resource">Resource to check.</param>
     /// <param name="resourceUpdate">Resource update mode.</param>
     /// <param name="cancellationToken">Cancellation token.</param>
-    /// <returns>Task returning instance for the resource with populated version (if available), and whether that instance is new.</returns>
-    public async Task<(ArtifactResourceInfo latest, bool isNew)> DetermineUpdatedResourceAsync(ArtifactResourceInfo resource, ResourceUpdateMode resourceUpdate, CancellationToken cancellationToken = default)
+    /// <returns>Task returning instance for the resource with populated version (if available), and additional staet information.</returns>
+    public async Task<(ArtifactResourceInfo latest, ItemStateFlags state)> DetermineUpdatedResourceAsync(ArtifactResourceInfo resource, ResourceUpdateMode resourceUpdate, CancellationToken cancellationToken = default)
     {
-        resource = await resource.WithMetadataAsync(cancellationToken).ConfigureAwait(false);
-        switch (resourceUpdate)
+        ItemStateFlags state = resourceUpdate switch
         {
-            case ResourceUpdateMode.ArtifactSoft:
-            case ResourceUpdateMode.Soft:
-                {
-                    // don't say null new version corresponds to updating
-                    if (await TryGetResourceAsync(resource.Key, cancellationToken).ConfigureAwait(false) is not { } prev) return (resource, true);
-                    bool isNew = resource.Version != prev.Version || resource.Updated > prev.Updated;
-                    return (resource, isNew);
-                }
-            case ResourceUpdateMode.ArtifactHard:
-            case ResourceUpdateMode.Hard:
-                {
-                    return (resource, true);
-                }
-            default: throw new ArgumentOutOfRangeException(nameof(resourceUpdate));
+            ResourceUpdateMode.ArtifactSoft => ItemStateFlags.None,
+            ResourceUpdateMode.ArtifactHard => ItemStateFlags.EnforceNew,
+            ResourceUpdateMode.Soft => ItemStateFlags.None,
+            ResourceUpdateMode.Hard => ItemStateFlags.EnforceNew,
+            _ => throw new ArgumentOutOfRangeException(nameof(resourceUpdate), resourceUpdate, null)
+        };
+        resource = await resource.WithMetadataAsync(cancellationToken).ConfigureAwait(false);
+        if (await TryGetResourceAsync(resource.Key, cancellationToken).ConfigureAwait(false) is not { } prev)
+        {
+            state |= ItemStateFlags.ChangedMetadata | ItemStateFlags.New;
+            if (resource.Updated != null)
+                state |= ItemStateFlags.NewerDate;
+            if (resource.Version != null)
+                state |= ItemStateFlags.ChangedVersion;
         }
+        else
+        {
+            if (resource.Version != prev.Version)
+                state |= ItemStateFlags.ChangedVersion;
+            if (resource.Updated > prev.Updated)
+                state |= ItemStateFlags.NewerDate;
+            else if (resource.Updated < prev.Updated)
+                state |= ItemStateFlags.OlderDate;
+            if (resource.IsMetadataDifferent(prev))
+                state |= ItemStateFlags.ChangedMetadata;
+        }
+        return (resource, state);
     }
 
     #endregion

@@ -57,64 +57,25 @@ public record ArtifactToolDumpProxy(ArtifactTool ArtifactTool, ArtifactToolDumpO
                     switch (Options.ResourceUpdate)
                     {
                         case ResourceUpdateMode.ArtifactSoft:
-                            {
-                                if (!isNewArtifact) continue;
-                                (ArtifactResourceInfo versionedResource, bool isNewResource) = await ArtifactTool.DetermineUpdatedResourceAsync(resource, Options.ResourceUpdate, cancellationToken).ConfigureAwait(false);
-                                LogHandler.Log(i.Key.Tool, i.Key.Group, $"-- {(isNewResource ? "[NEW] " : "")}{versionedResource.GetInfoString()}", null, LogLevel.Title);
-                                if (isNewResource && versionedResource.Exportable)
-                                {
-                                    await using Stream stream = await ArtifactTool.CreateOutputStreamAsync(versionedResource.Key, cancellationToken).ConfigureAwait(false);
-                                    await using Stream dataStream = await versionedResource.ExportStreamAsync(cancellationToken).ConfigureAwait(false);
-                                    await dataStream.CopyToAsync(stream, cancellationToken).ConfigureAwait(false);
-                                }
-                                if (versionedResource != resource)
-                                    await ArtifactTool.AddResourceAsync(versionedResource, cancellationToken).ConfigureAwait(false);
-                                break;
-                            }
                         case ResourceUpdateMode.ArtifactHard:
-                            {
-                                if (!isNewArtifact) continue;
-                                (ArtifactResourceInfo versionedResource, _) = await ArtifactTool.DetermineUpdatedResourceAsync(resource, Options.ResourceUpdate, cancellationToken).ConfigureAwait(false);
-                                LogHandler.Log(i.Key.Tool, i.Key.Group, $"-- {versionedResource.GetInfoString()}", null, LogLevel.Title);
-                                if (versionedResource.Exportable)
-                                {
-                                    await using Stream stream = await ArtifactTool.CreateOutputStreamAsync(versionedResource.Key, cancellationToken).ConfigureAwait(false);
-                                    await using Stream dataStream = await versionedResource.ExportStreamAsync(cancellationToken).ConfigureAwait(false);
-                                    await dataStream.CopyToAsync(stream, cancellationToken).ConfigureAwait(false);
-                                }
-                                if (versionedResource != resource)
-                                    await ArtifactTool.AddResourceAsync(versionedResource, cancellationToken).ConfigureAwait(false);
-                                break;
-                            }
+                            if (!isNewArtifact) continue;
+                            break;
                         case ResourceUpdateMode.Soft:
-                            {
-                                (ArtifactResourceInfo versionedResource, bool isNewResource) = await ArtifactTool.DetermineUpdatedResourceAsync(resource, Options.ResourceUpdate, cancellationToken).ConfigureAwait(false);
-                                LogHandler.Log(i.Key.Tool, i.Key.Group, $"-- {(isNewResource ? "[NEW] " : "")}{versionedResource.GetInfoString()}", null, LogLevel.Title);
-                                if (isNewResource && versionedResource.Exportable)
-                                {
-                                    await using Stream stream = await ArtifactTool.CreateOutputStreamAsync(versionedResource.Key, cancellationToken).ConfigureAwait(false);
-                                    await using Stream dataStream = await versionedResource.ExportStreamAsync(cancellationToken).ConfigureAwait(false);
-                                    await dataStream.CopyToAsync(stream, cancellationToken).ConfigureAwait(false);
-                                }
-                                if (versionedResource != resource)
-                                    await ArtifactTool.AddResourceAsync(versionedResource, cancellationToken).ConfigureAwait(false);
-                                break;
-                            }
                         case ResourceUpdateMode.Hard:
-                            {
-                                (ArtifactResourceInfo versionedResource, _) = await ArtifactTool.DetermineUpdatedResourceAsync(resource, Options.ResourceUpdate, cancellationToken).ConfigureAwait(false);
-                                LogHandler.Log(i.Key.Tool, i.Key.Group, $"-- {versionedResource.GetInfoString()}", null, LogLevel.Title);
-                                if (versionedResource.Exportable)
-                                {
-                                    await using Stream stream = await ArtifactTool.CreateOutputStreamAsync(versionedResource.Key, cancellationToken).ConfigureAwait(false);
-                                    await using Stream dataStream = await versionedResource.ExportStreamAsync(cancellationToken).ConfigureAwait(false);
-                                    await dataStream.CopyToAsync(stream, cancellationToken).ConfigureAwait(false);
-                                }
-                                if (versionedResource != resource)
-                                    await ArtifactTool.AddResourceAsync(versionedResource, cancellationToken).ConfigureAwait(false);
-                                break;
-                            }
+                            break;
+                        default:
+                            throw new IndexOutOfRangeException();
                     }
+                    (ArtifactResourceInfo versionedResource, ItemStateFlags flags) = await ArtifactTool.DetermineUpdatedResourceAsync(resource, Options.ResourceUpdate, cancellationToken).ConfigureAwait(false);
+                    LogHandler.Log(i.Key.Tool, i.Key.Group, $"-- {((flags & ItemStateFlags.NewerIdentityMask) != 0 ? "[NEW] " : "")}{versionedResource.GetInfoString()}", null, LogLevel.Title);
+                    if ((flags & ItemStateFlags.NewerIdentityMask) != 0 && versionedResource.Exportable)
+                    {
+                        await using Stream stream = await ArtifactTool.CreateOutputStreamAsync(versionedResource.Key, cancellationToken).ConfigureAwait(false);
+                        await using Stream dataStream = await versionedResource.ExportStreamAsync(cancellationToken).ConfigureAwait(false);
+                        await dataStream.CopyToAsync(stream, cancellationToken).ConfigureAwait(false);
+                    }
+                    if ((flags & ItemStateFlags.DifferentMask) != 0)
+                        await ArtifactTool.AddResourceAsync(versionedResource, cancellationToken).ConfigureAwait(false);
                 }
                 if (isNewArtifact)
                     await ArtifactTool.AddArtifactAsync(data.Info, cancellationToken).ConfigureAwait(false);
