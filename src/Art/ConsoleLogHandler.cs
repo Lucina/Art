@@ -9,7 +9,7 @@ public class ConsoleLogHandler : IToolLogHandler
     {
         { LogLevel.Information, ">>" },
         { LogLevel.Title, ">>" },
-        { LogLevel.Title, "--" },
+        { LogLevel.Entry, "--" },
         { LogLevel.Warning, "??" },
         { LogLevel.Error, "!!" }
     };
