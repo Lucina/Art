@@ -49,7 +49,7 @@ public record ArtifactToolDumpProxy(ArtifactTool ArtifactTool, ArtifactToolDumpO
                 if (!data.Info.Full && !Options.IncludeNonFull) continue;
                 ArtifactInfo i = data.Info;
                 ItemStateFlags iF = await ArtifactTool.CompareArtifactAsync(data.Info, cancellationToken).ConfigureAwait(false);
-                LogHandler.Log(i.Key.Tool, i.Key.Group, $"{((iF & ItemStateFlags.NewerIdentityMask) != 0 ? "[NEW] " : "")}{i.GetInfoString()}", null, LogLevel.Title);
+                LogHandler.Log(i.Key.Tool, i.Key.Group, $"{((iF & ItemStateFlags.NewerIdentityMask) != 0 ? "[NEW] " : "")}{i.GetInfoString()}", null, LogLevel.Entry);
                 if ((iF & ItemStateFlags.NewerIdentityMask) != 0)
                     await ArtifactTool.AddArtifactAsync(data.Info with { Full = false }, cancellationToken).ConfigureAwait(false);
                 foreach (ArtifactResourceInfo resource in data.Values)
@@ -67,7 +67,7 @@ public record ArtifactToolDumpProxy(ArtifactTool ArtifactTool, ArtifactToolDumpO
                             throw new IndexOutOfRangeException();
                     }
                     (ArtifactResourceInfo versionedResource, ItemStateFlags rF) = await ArtifactTool.DetermineUpdatedResourceAsync(resource, Options.ResourceUpdate, cancellationToken).ConfigureAwait(false);
-                    LogHandler.Log(i.Key.Tool, i.Key.Group, $"-- {((rF & ItemStateFlags.NewerIdentityMask) != 0 ? "[NEW] " : "")}{versionedResource.GetInfoString()}", null, LogLevel.Title);
+                    LogHandler.Log(i.Key.Tool, i.Key.Group, $"-- {((rF & ItemStateFlags.NewerIdentityMask) != 0 ? "[NEW] " : "")}{versionedResource.GetInfoString()}", null, LogLevel.Entry);
                     if ((rF & ItemStateFlags.NewerIdentityMask) != 0 && versionedResource.Exportable)
                     {
                         await using Stream stream = await ArtifactTool.CreateOutputStreamAsync(versionedResource.Key, cancellationToken).ConfigureAwait(false);

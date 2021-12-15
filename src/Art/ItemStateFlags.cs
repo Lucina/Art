@@ -13,27 +13,27 @@ public enum ItemStateFlags
     /// <summary>
     /// Treat this item as different even if existing data is the same.
     /// </summary>
-    EnforceNew = 1 << 1,
+    EnforceNew = 1 << 0,
     /// <summary>
     /// Completely new item.
     /// </summary>
-    New = 1 << 2,
+    New = 1 << 1,
     /// <summary>
     /// Older date than other.
     /// </summary>
-    OlderDate = 1 << 3,
+    OlderDate = 1 << 2,
     /// <summary>
     /// Newer date than other.
     /// </summary>
-    NewerDate = 1 << 4,
+    NewerDate = 1 << 3,
     /// <summary>
     /// Changed version marker.
     /// </summary>
-    ChangedVersion = 1 << 5,
+    ChangedVersion = 1 << 4,
     /// <summary>
     /// Changed non-identifying metadata (e.g. content-type).
     /// </summary>
-    ChangedMetadata = 1 << 6,
+    ChangedMetadata = 1 << 5,
     /// <summary>
     /// Mask for different item identity (date, version).
     /// </summary>

@@ -656,6 +656,14 @@ public abstract partial class ArtifactTool : IDisposable
         => LogHandler?.Log(Profile.Tool, Profile.Group, title, body, LogLevel.Information);
 
     /// <summary>
+    /// Logs entry log to logger.
+    /// </summary>
+    /// <param name="title">Title.</param>
+    /// <param name="body">Body.</param>
+    public void LogEntry(string? title, string? body = null)
+        => LogHandler?.Log(Profile.Tool, Profile.Group, title, body, LogLevel.Entry);
+
+    /// <summary>
     /// Logs title log to logger.
     /// </summary>
     /// <param name="title">Title.</param>

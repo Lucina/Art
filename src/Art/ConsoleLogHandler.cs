@@ -5,10 +5,38 @@
 /// </summary>
 public class ConsoleLogHandler : IToolLogHandler
 {
+    private static readonly Dictionary<LogLevel, string> s_preDefault = new()
+    {
+        { LogLevel.Information, ">>" },
+        { LogLevel.Title, ">>" },
+        { LogLevel.Title, "--" },
+        { LogLevel.Warning, "??" },
+        { LogLevel.Error, "!!" }
+    };
+
+    private static readonly Dictionary<LogLevel, string> s_preOsx = new()
+    {
+        { LogLevel.Information, "⚪" },
+        { LogLevel.Title, "⚪" },
+        { LogLevel.Entry, "--" },
+        { LogLevel.Warning, "❗" },
+        { LogLevel.Error, "⛔" }
+    };
+
     /// <summary>
     /// Default instance.
     /// </summary>
     public static readonly ConsoleLogHandler Default = new();
+
+    private readonly Dictionary<LogLevel, string> _pre;
+
+    /// <summary>
+    /// Creates a new instance of <see cref="ConsoleLogHandler"/>.
+    /// </summary>
+    public ConsoleLogHandler()
+    {
+        _pre = OperatingSystem.IsMacOS() ? s_preOsx : s_preDefault;
+    }
 
     /// <inheritdoc/>
     public void Log(string tool, string group, string? title, string? body, LogLevel level)
@@ -24,13 +52,6 @@ public class ConsoleLogHandler : IToolLogHandler
         if (body != null) Console.WriteLine(body);
     }
 
-    private static void WriteTitle(LogLevel level, string title, string? group = null)
-        => Console.WriteLine(level switch
-        {
-            LogLevel.Information => group != null ? $"-- {group} -- {title}" : $"-- {title}",
-            LogLevel.Title => group != null ? $">> {group} -- {title}" : $">> {title}",
-            LogLevel.Warning => group != null ? $"?? {group} ?? {title}" : $"?? {title}",
-            LogLevel.Error => group != null ? $"!! {group} !! {title}" : $"!! {title}",
-            _ => throw new ArgumentOutOfRangeException(nameof(level)),
-        });
+    private void WriteTitle(LogLevel level, string title, string? group = null)
+        => Console.WriteLine(group != null ? $"{_pre[level]} {group} {_pre[level]} {title}" : $"{_pre[level]} {title}");
 }
