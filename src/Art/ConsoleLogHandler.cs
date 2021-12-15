@@ -5,6 +5,8 @@
 /// </summary>
 public class ConsoleLogHandler : IToolLogHandler
 {
+    private readonly AutoResetEvent _wh;
+
     private static readonly Dictionary<LogLevel, string> s_preDefault = new()
     {
         { LogLevel.Information, ">>" },
@@ -36,20 +38,37 @@ public class ConsoleLogHandler : IToolLogHandler
     public ConsoleLogHandler()
     {
         _pre = OperatingSystem.IsMacOS() ? s_preOsx : s_preDefault;
+        _wh = new AutoResetEvent(true);
     }
 
     /// <inheritdoc/>
     public void Log(string tool, string group, string? title, string? body, LogLevel level)
     {
-        if (title != null) WriteTitle(level, title, group);
-        if (body != null) Console.WriteLine(body);
+        _wh.WaitOne();
+        try
+        {
+            if (title != null) WriteTitle(level, title, group);
+            if (body != null) Console.WriteLine(body);
+        }
+        finally
+        {
+            _wh.Set();
+        }
     }
 
     /// <inheritdoc/>
     public void Log(string? title, string? body, LogLevel level)
     {
-        if (title != null) WriteTitle(level, title);
-        if (body != null) Console.WriteLine(body);
+        _wh.WaitOne();
+        try
+        {
+            if (title != null) WriteTitle(level, title);
+            if (body != null) Console.WriteLine(body);
+        }
+        finally
+        {
+            _wh.Set();
+        }
     }
 
     private void WriteTitle(LogLevel level, string title, string? group = null)

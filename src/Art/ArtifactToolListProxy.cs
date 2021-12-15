@@ -40,6 +40,7 @@ public record ArtifactToolListProxy
     /// </summary>
     /// <param name="cancellationToken">Cancellation token.</param>
     /// <returns>Async-enumerable artifacts.</returns>
+    /// <exception cref="InvalidOperationException">Thrown when an invalid configuration is detected.</exception>
     public async IAsyncEnumerable<ArtifactData> ListAsync([EnumeratorCancellation] CancellationToken cancellationToken = default)
     {
         ArtifactToolListOptions.Validate(Options, false);

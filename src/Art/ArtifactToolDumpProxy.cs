@@ -24,21 +24,33 @@ public record ArtifactToolDumpProxy
     {
         if (artifactTool == null) throw new ArgumentNullException(nameof(artifactTool));
         if (options == null) throw new ArgumentNullException(nameof(options));
-        ArtifactToolDumpOptions.Validate(options, true);
+        Validate(options, true);
         ArtifactTool = artifactTool;
         Options = options;
         LogHandler = logHandler;
     }
 
+    private static void Validate(ArtifactToolDumpOptions options, bool constructor)
+    {
+        ArtifactToolDumpOptions.Validate(options, constructor);
+        if (options.SkipMode == ArtifactSkipMode.FastExit && (options.EagerFlags & EagerFlags.ArtifactDump) != 0)
+        {
+            if (constructor)
+                throw new ArgumentException($"Cannot pair {nameof(ArtifactSkipMode)}.{nameof(ArtifactSkipMode.FastExit)} with {nameof(EagerFlags)}.{nameof(EagerFlags.ArtifactDump)}");
+            else
+                throw new InvalidOperationException($"Cannot pair {nameof(ArtifactSkipMode)}.{nameof(ArtifactSkipMode.FastExit)} with {nameof(EagerFlags)}.{nameof(EagerFlags.ArtifactDump)}");
+        }
+    }
 
     /// <summary>
     /// Dumps artifacts.
     /// </summary>
     /// <param name="cancellationToken">Cancellation token.</param>
     /// <returns>Task.</returns>
+    /// <exception cref="InvalidOperationException">Thrown when an invalid configuration is detected.</exception>
     public async ValueTask DumpAsync(CancellationToken cancellationToken = default)
     {
-        ArtifactToolDumpOptions.Validate(Options, false);
+        Validate(Options, false);
         if (LogHandler != null) ArtifactTool.LogHandler = LogHandler;
         if (ArtifactTool is IArtifactToolDump dumpTool)
         {
@@ -71,7 +83,7 @@ public record ArtifactToolDumpProxy
                         }
                 }
                 if (!data.Info.Full && !Options.IncludeNonFull) continue;
-                await ArtifactTool.DumpArtifactAsync(data, LogHandler, Options.ResourceUpdate, Options.EagerFlags, cancellationToken);
+                await ArtifactTool.DumpArtifactAsync(data, Options.ResourceUpdate, Options.EagerFlags, LogHandler, cancellationToken);
             }
             return;
         }

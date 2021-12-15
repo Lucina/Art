@@ -15,15 +15,19 @@ public enum EagerFlags
     /// </summary>
     ArtifactList = 1 << 0,
     /// <summary>
+    /// Eager artifact dumping.
+    /// </summary>
+    ArtifactDump = 1 << 1,
+    /// <summary>
     /// Eager resource metadata querying.
     /// </summary>
-    ResourceMetadata = 1 << 1,
+    ResourceMetadata = 1 << 2,
     /// <summary>
     /// Eager resource obtain.
     /// </summary>
-    ResourceObtain = 1 << 2,
+    ResourceObtain = 1 << 3,
     /// <summary>
     /// All eager evaluations on.
     /// </summary>
-    All = ArtifactList | ResourceMetadata | ResourceObtain
+    All = ArtifactList | ArtifactDump | ResourceMetadata | ResourceObtain
 }

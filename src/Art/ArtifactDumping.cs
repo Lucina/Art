@@ -53,12 +53,12 @@ public static class ArtifactDumping
     /// </summary>
     /// <param name="artifactTool">Origin artifact tool.</param>
     /// <param name="artifactData">Artifact data to dump.</param>
-    /// <param name="logHandler">Log handler.</param>
     /// <param name="resourceUpdateMode">Resource update mode.</param>
     /// <param name="eagerFlags">Eager flags.</param>
+    /// <param name="logHandler">Log handler.</param>
     /// <param name="cancellationToken">Cancellation token.</param>
     /// <exception cref="ArgumentOutOfRangeException">Thrown if <paramref name="resourceUpdateMode"/> is invalid.</exception>
-    public static async Task DumpArtifactAsync(this ArtifactTool artifactTool, ArtifactData artifactData, IToolLogHandler logHandler, ResourceUpdateMode resourceUpdateMode, EagerFlags eagerFlags, CancellationToken cancellationToken = default)
+    public static async Task DumpArtifactAsync(this ArtifactTool artifactTool, ArtifactData artifactData, ResourceUpdateMode resourceUpdateMode = ResourceUpdateMode.Soft, EagerFlags eagerFlags = EagerFlags.None, IToolLogHandler? logHandler = null, CancellationToken cancellationToken = default)
     {
         switch (resourceUpdateMode)
         {
@@ -71,7 +71,7 @@ public static class ArtifactDumping
                 throw new ArgumentOutOfRangeException(nameof(resourceUpdateMode));
         }
         ItemStateFlags iF = await artifactTool.CompareArtifactAsync(artifactData.Info, cancellationToken).ConfigureAwait(false);
-        logHandler.Log(artifactTool.Profile.Tool, artifactTool.Profile.Group, $"{((iF & ItemStateFlags.NewerIdentityMask) != 0 ? "[NEW] " : "")}{artifactData.Info.GetInfoString()}", null, LogLevel.Entry);
+        logHandler?.Log(artifactTool.Profile.Tool, artifactTool.Profile.Group, $"{((iF & ItemStateFlags.NewerIdentityMask) != 0 ? "[NEW] " : "")}{artifactData.Info.GetInfoString()}", null, LogLevel.Entry);
         if ((iF & ItemStateFlags.NewerIdentityMask) != 0)
             await artifactTool.AddArtifactAsync(artifactData.Info with { Full = false }, cancellationToken).ConfigureAwait(false);
         switch (resourceUpdateMode)
@@ -120,10 +120,10 @@ public static class ArtifactDumping
             await artifactTool.AddArtifactAsync(artifactData.Info, cancellationToken).ConfigureAwait(false);
     }
 
-    private static async Task UpdateResourceAsync(ArtifactTool artifactTool, ArtifactResourceInfoWithState aris, IToolLogHandler logHandler, CancellationToken cancellationToken)
+    private static async Task UpdateResourceAsync(ArtifactTool artifactTool, ArtifactResourceInfoWithState aris, IToolLogHandler? logHandler, CancellationToken cancellationToken)
     {
         (ArtifactResourceInfo versionedResource, ItemStateFlags rF) = aris;
-        logHandler.Log(artifactTool.Profile.Tool, artifactTool.Profile.Group, $"-- {((rF & ItemStateFlags.NewerIdentityMask) != 0 ? "[NEW] " : "")}{versionedResource.GetInfoString()}", null, LogLevel.Entry);
+        logHandler?.Log(artifactTool.Profile.Tool, artifactTool.Profile.Group, $"-- {((rF & ItemStateFlags.NewerIdentityMask) != 0 ? "[NEW] " : "")}{versionedResource.GetInfoString()}", null, LogLevel.Entry);
         if ((rF & ItemStateFlags.NewerIdentityMask) != 0 && versionedResource.Exportable)
         {
             await using Stream stream = await artifactTool.CreateOutputStreamAsync(versionedResource.Key, cancellationToken).ConfigureAwait(false);
