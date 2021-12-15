@@ -4,10 +4,11 @@
 /// Provides artifact information.
 /// </summary>
 /// <param name="Key">Resource key.</param>
+/// <param name="ContentType">MIME content type.</param>
 /// <param name="Updated">Updated date.</param>
 /// <param name="Version">Version.</param>
-public record QueryBaseArtifactResourceInfo(ArtifactResourceKey Key, DateTimeOffset? Updated = null, string? Version = null)
-    : ArtifactResourceInfo(Key, Updated, Version)
+public record QueryBaseArtifactResourceInfo(ArtifactResourceKey Key, string? ContentType = "application/octet-stream", DateTimeOffset? Updated = null, string? Version = null)
+    : ArtifactResourceInfo(Key, ContentType, Updated, Version)
 {
     /// <summary>
     /// Gets this instance modified with metadata from specified response.
@@ -17,8 +18,9 @@ public record QueryBaseArtifactResourceInfo(ArtifactResourceKey Key, DateTimeOff
     protected ArtifactResourceInfo WithMetadata(HttpResponseMessage response)
     {
         response.EnsureSuccessStatusCode();
-        string? version = response.Headers.ETag?.Tag;
+        string? contentType = response.Content.Headers.ContentType?.MediaType;
         DateTimeOffset? updated = response.Content.Headers.LastModified;
-        return this with { Version = version ?? Version, Updated = updated ?? Updated };
+        string? version = response.Headers.ETag?.Tag;
+        return this with { ContentType = contentType ?? ContentType, Updated = updated ?? Updated, Version = version ?? Version };
     }
 }

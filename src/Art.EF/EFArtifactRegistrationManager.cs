@@ -40,7 +40,7 @@ public class EFArtifactRegistrationManager : ArtifactRegistrationManager, IDispo
     public override IAsyncEnumerable<ArtifactResourceInfo> ListResourcesAsync(ArtifactKey key, CancellationToken cancellationToken = default)
         => Context.ArtifactResourceInfoModels.AsAsyncEnumerable()
             .WhereAsync(v => v.ArtifactTool == key.Tool && v.ArtifactGroup == key.Group && v.ArtifactId == key.Id)
-            .SelectAsync(v => new ArtifactResourceInfo(new ArtifactResourceKey(new ArtifactKey(v.ArtifactTool, v.ArtifactGroup, v.ArtifactId), v.File, v.Path), v.Updated, v.Version));
+            .SelectAsync(v => new ArtifactResourceInfo(new ArtifactResourceKey(new ArtifactKey(v.ArtifactTool, v.ArtifactGroup, v.ArtifactId), v.File, v.Path), v.ContentType, v.Updated, v.Version));
 
     /// <inheritdoc />
     public override ValueTask AddArtifactAsync(ArtifactInfo artifactInfo, CancellationToken cancellationToken = default)

@@ -6,9 +6,10 @@ namespace Art;
 /// Provides artifact information.
 /// </summary>
 /// <param name="Key">Resource key.</param>
+/// <param name="ContentType">MIME content type.</param>
 /// <param name="Updated">Updated date.</param>
 /// <param name="Version">Version.</param>
-public record ArtifactResourceInfo(ArtifactResourceKey Key, DateTimeOffset? Updated = null, string? Version = null)
+public record ArtifactResourceInfo(ArtifactResourceKey Key, string? ContentType = "application/octet-stream", DateTimeOffset? Updated = null, string? Version = null)
 {
     /// <summary>
     /// If true, this resource is a file-exportable reference.

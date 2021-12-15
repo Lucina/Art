@@ -8,10 +8,11 @@
 /// <param name="Origin">Request origin.</param>
 /// <param name="Referrer">Request referrer.</param>
 /// <param name="Key">Resource key.</param>
+/// <param name="ContentType">MIME content type.</param>
 /// <param name="Updated">Updated date.</param>
 /// <param name="Version">Version.</param>
-public record UriArtifactResourceInfo(HttpArtifactTool ArtifactTool, Uri Uri, string? Origin, string? Referrer, ArtifactResourceKey Key, DateTimeOffset? Updated = null, string? Version = null)
-    : QueryBaseArtifactResourceInfo(Key, Updated, Version)
+public record UriArtifactResourceInfo(HttpArtifactTool ArtifactTool, Uri Uri, string? Origin, string? Referrer, ArtifactResourceKey Key, string? ContentType = "application/octet-stream", DateTimeOffset? Updated = null, string? Version = null)
+    : QueryBaseArtifactResourceInfo(Key, ContentType, Updated, Version)
 {
     /// <inheritdoc/>
     public override bool Exportable => true;

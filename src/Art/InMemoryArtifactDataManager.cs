@@ -31,24 +31,62 @@ public class InMemoryArtifactDataManager : ArtifactDataManager
         ArtifactKey ak = key.Artifact;
         if (!_artifacts.TryGetValue(ak, out List<ArtifactResourceInfo>? list))
             _artifacts.Add(ak, list = new List<ArtifactResourceInfo>());
-        list.Add(new ResultStreamArtifactResourceInfo(stream, key, null, null));
+        list.Add(new ResultStreamArtifactResourceInfo(stream, key, null, null, null));
         _entries[key] = stream;
         return new ValueTask<Stream>(stream);
     }
 
-    private record ResultStreamArtifactResourceInfo(Stream Resource, ArtifactResourceKey Key, DateTimeOffset? Updated, string? Version)
-        : StreamArtifactResourceInfo(Resource, Key, Updated, Version)
+    /// <inheritdoc />
+    public override ValueTask<bool> ExistsAsync(ArtifactResourceKey key, CancellationToken cancellationToken = default)
     {
-        public override ValueTask<Stream> ExportStreamAsync(CancellationToken cancellationToken = default)
+        return ValueTask.FromResult(_entries.ContainsKey(key));
+    }
+
+    /// <inheritdoc />
+    public override ValueTask<bool> DeleteAsync(ArtifactResourceKey key, CancellationToken cancellationToken = default)
+    {
+        return ValueTask.FromResult(_entries.Remove(key));
+    }
+
+    /// <inheritdoc />
+    public override async ValueTask<Stream> OpenInputStreamAsync(ArtifactResourceKey key, CancellationToken cancellationToken = default)
+    {
+        if (!_entries.TryGetValue(key, out Stream? stream)) throw new KeyNotFoundException();
+        stream.Position = 0;
+        MemoryStream ms = new();
+        try
+        {
+            await stream.CopyToAsync(ms, cancellationToken);
+        }
+        finally
+        {
+            stream.Position = 0;
+        }
+        return ms;
+    }
+
+    private record ResultStreamArtifactResourceInfo(Stream Resource, ArtifactResourceKey Key, string? ContentType, DateTimeOffset? Updated, string? Version)
+        : StreamArtifactResourceInfo(Resource, Key, ContentType, Updated, Version)
+    {
+        public override async ValueTask<Stream> ExportStreamAsync(CancellationToken cancellationToken = default)
         {
             Resource.Seek(0, SeekOrigin.Begin);
-            return new ValueTask<Stream>(Resource);
+            MemoryStream ms = new();
+            try
+            {
+                await Resource.CopyToAsync(ms, cancellationToken);
+            }
+            finally
+            {
+                Resource.Seek(0, SeekOrigin.Begin);
+            }
+            return ms;
         }
     }
 
     private class ResultStream : Stream
     {
-        public readonly MemoryStream BaseStream = new();
+        private readonly MemoryStream _baseStream = new();
 
         public override bool CanRead => true;
 
@@ -56,18 +94,18 @@ public class InMemoryArtifactDataManager : ArtifactDataManager
 
         public override bool CanWrite => true;
 
-        public override long Length => BaseStream.Length;
+        public override long Length => _baseStream.Length;
 
         public override long Position
         {
-            get => BaseStream.Position;
-            set => BaseStream.Position = value;
+            get => _baseStream.Position;
+            set => _baseStream.Position = value;
         }
 
-        public override void Flush() => BaseStream.Flush();
-        public override int Read(byte[] buffer, int offset, int count) => BaseStream.Read(buffer, offset, count);
-        public override long Seek(long offset, SeekOrigin origin) => BaseStream.Seek(offset, origin);
-        public override void SetLength(long value) => BaseStream.SetLength(value);
-        public override void Write(byte[] buffer, int offset, int count) => BaseStream.Write(buffer, offset, count);
+        public override void Flush() => _baseStream.Flush();
+        public override int Read(byte[] buffer, int offset, int count) => _baseStream.Read(buffer, offset, count);
+        public override long Seek(long offset, SeekOrigin origin) => _baseStream.Seek(offset, origin);
+        public override void SetLength(long value) => _baseStream.SetLength(value);
+        public override void Write(byte[] buffer, int offset, int count) => _baseStream.Write(buffer, offset, count);
     }
 }

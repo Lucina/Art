@@ -8,12 +8,36 @@ namespace Art;
 public abstract class ArtifactDataManager
 {
     /// <summary>
-    /// Creates an output stream for a file for the specified artifact.
+    /// Creates an output stream for the specified resource.
     /// </summary>
     /// <param name="key">Resource key.</param>
     /// <param name="cancellationToken">Cancellation token.</param>
-    /// <returns>Task returning a writeable stream to write an output to.</returns>
+    /// <returns>Task returning a writeable stream to write output to.</returns>
     public abstract ValueTask<Stream> CreateOutputStreamAsync(ArtifactResourceKey key, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Checks if data for the specified resource exists.
+    /// </summary>
+    /// <param name="key">Resource key.</param>
+    /// <param name="cancellationToken">Cancellation token.</param>
+    /// <returns>Task returning true if resource exists.</returns>
+    public abstract ValueTask<bool> ExistsAsync(ArtifactResourceKey key, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Deletes data for the specified resource.
+    /// </summary>
+    /// <param name="key">Resource key.</param>
+    /// <param name="cancellationToken">Cancellation token.</param>
+    /// <returns>Task returning true if the resource was deleted.</returns>
+    public abstract ValueTask<bool> DeleteAsync(ArtifactResourceKey key, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Creates a read-only stream for the specified resource.
+    /// </summary>
+    /// <param name="key">Resource key.</param>
+    /// <param name="cancellationToken">Cancellation token.</param>
+    /// <returns>Task returning a read-only stream.</returns>
+    public abstract ValueTask<Stream> OpenInputStreamAsync(ArtifactResourceKey key, CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Outputs a text file for the specified artifact.
