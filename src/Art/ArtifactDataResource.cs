@@ -10,9 +10,9 @@ public record struct ArtifactDataResource(ArtifactData Data, ArtifactResourceInf
     /// <summary>
     /// Creates an instance of this resource with an added decryption layer.
     /// </summary>
-    /// <param name="EncryptionInfo">Encryption information.</param>
+    /// <param name="encryptionInfo">Encryption information.</param>
     /// <returns>Decrypting resource.</returns>
-    public ArtifactDataResource WithEncryption(EncryptionInfo EncryptionInfo) => this with { Info = new EncryptedArtifactResourceInfo(EncryptionInfo, Info) };
+    public ArtifactDataResource WithEncryption(EncryptionInfo encryptionInfo) => this with { Info = new EncryptedArtifactResourceInfo(encryptionInfo, Info) };
 
     /// <summary>
     /// Creates an instance of this resource with an added decryption layer.
@@ -20,11 +20,20 @@ public record struct ArtifactDataResource(ArtifactData Data, ArtifactResourceInf
     /// <param name="algorithm">Algorithm.</param>
     /// <param name="encKey">Key.</param>
     /// <param name="keySize">Key size.</param>
+    /// <param name="blockSize">Block size.</param>
     /// <param name="mode">Cipher mode.</param>
     /// <param name="encIv">IV.</param>
     /// <returns>Decrypting resource.</returns>
-    public ArtifactDataResource WithEncryption(CryptoAlgorithm algorithm, ReadOnlyMemory<byte> encKey, CipherMode? mode = null, int? keySize = null, ReadOnlyMemory<byte>? encIv = null)
-        => this with { Info = new EncryptedArtifactResourceInfo(new EncryptionInfo(algorithm, encKey, mode, keySize, encIv), Info) };
+    public ArtifactDataResource WithEncryption(CryptoAlgorithm algorithm, ReadOnlyMemory<byte> encKey, CipherMode? mode = null, int? keySize = null, int? blockSize = null, ReadOnlyMemory<byte>? encIv = null)
+        => this with { Info = new EncryptedArtifactResourceInfo(new EncryptionInfo(algorithm, encKey, mode, keySize, blockSize, encIv), Info) };
+
+    /// <summary>
+    /// Creates an instance of this resource with an added depadding layer.
+    /// </summary>
+    /// <param name="paddingMode">Padding mode.</param>
+    /// <returns>Decrypting resource.</returns>
+    public ArtifactDataResource WithPadding(PaddingMode paddingMode)
+        => this with { Info = new PaddedArtifactResourceInfo(paddingMode, Info) };
 
     /// <summary>
     /// Adds this resource.

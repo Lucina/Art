@@ -7,10 +7,11 @@ namespace Art;
 /// </summary>
 /// <param name="Algorithm">Algorithm.</param>
 /// <param name="EncKey">Key.</param>
-/// <param name="KeySize">Key size.</param>
+/// <param name="KeySize">Key size, in bits.</param>
+/// <param name="BlockSize">Block size, in bits.</param>
 /// <param name="Mode">Cipher mode.</param>
 /// <param name="EncIv">IV.</param>
-public record EncryptionInfo(CryptoAlgorithm Algorithm, ReadOnlyMemory<byte> EncKey, CipherMode? Mode = null, int? KeySize = null, ReadOnlyMemory<byte>? EncIv = null)
+public record EncryptionInfo(CryptoAlgorithm Algorithm, ReadOnlyMemory<byte> EncKey, CipherMode? Mode = null, int? KeySize = null, int? BlockSize = null, ReadOnlyMemory<byte>? EncIv = null)
 {
     /// <summary>
     /// Empty 128-bit buffer.
@@ -47,6 +48,8 @@ public record EncryptionInfo(CryptoAlgorithm Algorithm, ReadOnlyMemory<byte> Enc
         };
         if (KeySize is { } keySize)
             alg.KeySize = keySize;
+        if (BlockSize is { } blockSize)
+            alg.BlockSize = blockSize;
         if (Mode is { } mode)
             alg.Mode = mode;
         alg.Key = EncKey.ToArray();
