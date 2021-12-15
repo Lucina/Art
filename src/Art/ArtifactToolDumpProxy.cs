@@ -61,29 +61,62 @@ public record ArtifactToolDumpProxy
         {
             IAsyncEnumerable<ArtifactData> enumerable = listTool.ListAsync(cancellationToken);
             if ((Options.EagerFlags & ArtifactTool.AllowedEagerModes & EagerFlags.ArtifactList) != 0) enumerable = enumerable.EagerAsync();
-            await foreach (ArtifactData data in enumerable.ConfigureAwait(false))
+            if ((Options.EagerFlags & ArtifactTool.AllowedEagerModes & EagerFlags.ArtifactDump) != 0)
             {
-                switch (Options.SkipMode)
+                List<Task> tasks = new();
+                await foreach (ArtifactData data in enumerable.ConfigureAwait(false))
                 {
-                    case ArtifactSkipMode.None:
-                        break;
-                    case ArtifactSkipMode.FastExit:
-                        {
-                            ArtifactInfo? info = await ArtifactTool.TryGetArtifactAsync(data.Info.Key.Id, cancellationToken).ConfigureAwait(false);
-                            if (info != null)
-                                return;
+                    switch (Options.SkipMode)
+                    {
+                        case ArtifactSkipMode.None:
                             break;
-                        }
-                    case ArtifactSkipMode.Known:
-                        {
-                            ArtifactInfo? info = await ArtifactTool.TryGetArtifactAsync(data.Info.Key.Id, cancellationToken).ConfigureAwait(false);
-                            if (info != null)
-                                continue;
-                            break;
-                        }
+                        case ArtifactSkipMode.FastExit:
+                            {
+                                ArtifactInfo? info = await ArtifactTool.TryGetArtifactAsync(data.Info.Key.Id, cancellationToken).ConfigureAwait(false);
+                                if (info != null)
+                                    goto E_ArtifactDump_WaitForTasks;
+                                break;
+                            }
+                        case ArtifactSkipMode.Known:
+                            {
+                                ArtifactInfo? info = await ArtifactTool.TryGetArtifactAsync(data.Info.Key.Id, cancellationToken).ConfigureAwait(false);
+                                if (info != null)
+                                    continue;
+                                break;
+                            }
+                    }
+                    if (!data.Info.Full && !Options.IncludeNonFull) continue;
+                    tasks.Add(ArtifactTool.DumpArtifactAsync(data, Options.ResourceUpdate, Options.EagerFlags, LogHandler, cancellationToken));
                 }
-                if (!data.Info.Full && !Options.IncludeNonFull) continue;
-                await ArtifactTool.DumpArtifactAsync(data, Options.ResourceUpdate, Options.EagerFlags, LogHandler, cancellationToken);
+                E_ArtifactDump_WaitForTasks:
+                await Task.WhenAll(tasks);
+            }
+            else
+            {
+                await foreach (ArtifactData data in enumerable.ConfigureAwait(false))
+                {
+                    switch (Options.SkipMode)
+                    {
+                        case ArtifactSkipMode.None:
+                            break;
+                        case ArtifactSkipMode.FastExit:
+                            {
+                                ArtifactInfo? info = await ArtifactTool.TryGetArtifactAsync(data.Info.Key.Id, cancellationToken).ConfigureAwait(false);
+                                if (info != null)
+                                    return;
+                                break;
+                            }
+                        case ArtifactSkipMode.Known:
+                            {
+                                ArtifactInfo? info = await ArtifactTool.TryGetArtifactAsync(data.Info.Key.Id, cancellationToken).ConfigureAwait(false);
+                                if (info != null)
+                                    continue;
+                                break;
+                            }
+                    }
+                    if (!data.Info.Full && !Options.IncludeNonFull) continue;
+                    await ArtifactTool.DumpArtifactAsync(data, Options.ResourceUpdate, Options.EagerFlags, LogHandler, cancellationToken);
+                }
             }
             return;
         }
