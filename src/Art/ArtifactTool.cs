@@ -797,5 +797,26 @@ public abstract partial class ArtifactTool : IDisposable
     public static string CreateToolString<TTool>() where TTool : ArtifactTool
         => CreateToolString(typeof(TTool));
 
+    /// <summary>
+    /// Prepares a tool for the specified profile.
+    /// </summary>
+    /// <param name="artifactToolProfile">Tool profile.</param>
+    /// <param name="artifactRegistrationManager">Registration manager.</param>
+    /// <param name="artifactDataManager">Data manager.</param>
+    /// <param name="cancellationToken">Cancellation token.</param>
+    /// <returns>Task.</returns>
+    /// <exception cref="ArgumentException">Thrown when an invalid profile is provided.</exception>
+    /// <exception cref="ArtifactToolNotFoundException">Thrown when tool is not found.</exception>
+    public static async Task<ArtifactTool> PrepareTool(ArtifactToolProfile artifactToolProfile, ArtifactRegistrationManager artifactRegistrationManager, ArtifactDataManager artifactDataManager, CancellationToken cancellationToken = default)
+    {
+        if (artifactToolProfile.Group == null) throw new ArgumentException("Group not specified in profile");
+        if (!ArtifactToolLoader.TryLoad(artifactToolProfile, out ArtifactTool? t))
+            throw new ArtifactToolNotFoundException(artifactToolProfile.Tool);
+        ArtifactToolConfig config = new(artifactRegistrationManager, artifactDataManager, FailureBypassFlags.None);
+        using ArtifactTool tool = t;
+        artifactToolProfile = artifactToolProfile.WithCoreTool(t);
+        await tool.InitializeAsync(config, artifactToolProfile, cancellationToken).ConfigureAwait(false);
+        return tool;
+    }
     #endregion
 }

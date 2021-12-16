@@ -1,12 +1,12 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <PackageVersion>0.37.4</PackageVersion>
+    <PackageVersion>0.37.5</PackageVersion>
     <AssemblyVersion>1.0.0</AssemblyVersion>
   </PropertyGroup>
 
   <ItemGroup>
-    <!--<PackageReference Include="Art.Html" Version="0.37.4" />-->
+    <!--<PackageReference Include="Art.Html" Version="0.37.5" />-->
     <ProjectReference Include="..\Art.Html\Art.Html.csproj" />
   </ItemGroup>
 

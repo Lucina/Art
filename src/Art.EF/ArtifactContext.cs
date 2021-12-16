@@ -152,7 +152,8 @@ public class ArtifactContext : DbContext
         try
         {
             List<ArtifactResourceInfoModel> results = await ArtifactResourceInfoModels.Where(v => v.ArtifactTool == tool && v.ArtifactGroup == group && v.ArtifactId == id).ToListAsync(cancellationToken);
-            return results.Select(v => new ArtifactResourceInfo(new ArtifactResourceKey(new ArtifactKey(v.ArtifactTool, v.ArtifactGroup, v.ArtifactId), v.File, v.Path), v.ContentType, v.Updated, v.Version)).ToList();
+            return results.Select(v => new ArtifactResourceInfo(new ArtifactResourceKey(new ArtifactKey(v.ArtifactTool, v.ArtifactGroup, v.ArtifactId), v.File, v.Path), v.ContentType, v.Updated, v.Version,
+                v.ChecksumId != null && v.ChecksumValue != null ? new Checksum(v.ChecksumId, v.ChecksumValue) : null)).ToList();
         }
         finally
         {

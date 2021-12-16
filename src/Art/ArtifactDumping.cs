@@ -36,19 +36,14 @@ public static class ArtifactDumping
     /// <param name="toolLogHandler">Tool log handler.</param>
     /// <param name="cancellationToken">Cancellation token.</param>
     /// <returns>Task.</returns>
-    /// <exception cref="ArtifactToolNotFoundException"></exception>
+    /// <exception cref="ArgumentException">Thrown when an invalid profile is provided.</exception>
+    /// <exception cref="ArtifactToolNotFoundException">Thrown when tool is not found.</exception>
     public static async Task DumpAsync(ArtifactToolProfile artifactToolProfile, ArtifactRegistrationManager artifactRegistrationManager, ArtifactDataManager artifactDataManager, ArtifactToolDumpOptions? dumpOptions = null, IToolLogHandler? toolLogHandler = null, CancellationToken cancellationToken = default)
     {
-        if (artifactToolProfile.Group == null) throw new IOException("Group not specified in profile");
-        if (!ArtifactToolLoader.TryLoad(artifactToolProfile, out ArtifactTool? t))
-            throw new ArtifactToolNotFoundException(artifactToolProfile.Tool);
-        ArtifactToolConfig config = new(artifactRegistrationManager, artifactDataManager);
-        using ArtifactTool tool = t;
-        artifactToolProfile = artifactToolProfile.WithCoreTool(t);
-        await tool.InitializeAsync(config, artifactToolProfile, cancellationToken).ConfigureAwait(false);
+        if (artifactToolProfile.Group == null) throw new ArgumentException("Group not specified in profile");
+        using ArtifactTool tool = await ArtifactTool.PrepareTool(artifactToolProfile, artifactRegistrationManager, artifactDataManager, cancellationToken);
         await new ArtifactToolDumpProxy(tool, dumpOptions ?? new ArtifactToolDumpOptions(), toolLogHandler).DumpAsync(cancellationToken);
     }
-
 
     /// <summary>
     /// Dumps an artifact asynchronously.
