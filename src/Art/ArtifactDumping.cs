@@ -55,15 +55,15 @@ public static class ArtifactDumping
     /// </summary>
     /// <param name="artifactTool">Origin artifact tool.</param>
     /// <param name="artifactData">Artifact data to dump.</param>
-    /// <param name="resourceUpdateMode">Resource update mode.</param>
+    /// <param name="resourceUpdate">Resource update mode.</param>
     /// <param name="checksumId">Checksum algorithm ID.</param>
     /// <param name="eagerFlags">Eager flags.</param>
     /// <param name="logHandler">Log handler.</param>
     /// <param name="cancellationToken">Cancellation token.</param>
-    /// <exception cref="ArgumentOutOfRangeException">Thrown if <paramref name="resourceUpdateMode"/> is invalid.</exception>
-    public static async Task DumpArtifactAsync(this ArtifactTool artifactTool, ArtifactData artifactData, ResourceUpdateMode resourceUpdateMode = ResourceUpdateMode.Soft, string? checksumId = null, EagerFlags eagerFlags = EagerFlags.None, IToolLogHandler? logHandler = null, CancellationToken cancellationToken = default)
+    /// <exception cref="ArgumentOutOfRangeException">Thrown if <paramref name="resourceUpdate"/> is invalid.</exception>
+    public static async Task DumpArtifactAsync(this ArtifactTool artifactTool, ArtifactData artifactData, ResourceUpdateMode resourceUpdate = ResourceUpdateMode.Soft, string? checksumId = null, EagerFlags eagerFlags = EagerFlags.None, IToolLogHandler? logHandler = null, CancellationToken cancellationToken = default)
     {
-        switch (resourceUpdateMode)
+        switch (resourceUpdate)
         {
             case ResourceUpdateMode.ArtifactSoft:
             case ResourceUpdateMode.ArtifactHard:
@@ -71,13 +71,13 @@ public static class ArtifactDumping
             case ResourceUpdateMode.Hard:
                 break;
             default:
-                throw new ArgumentOutOfRangeException(nameof(resourceUpdateMode));
+                throw new ArgumentOutOfRangeException(nameof(resourceUpdate));
         }
         ItemStateFlags iF = await artifactTool.CompareArtifactAsync(artifactData.Info, cancellationToken).ConfigureAwait(false);
         logHandler?.Log(artifactTool.Profile.Tool, artifactTool.Profile.Group, $"{((iF & ItemStateFlags.NewerIdentityMask) != 0 ? "[NEW] " : "")}{artifactData.Info.GetInfoTitleString()}", artifactData.Info.GetInfoString(), LogLevel.Entry);
         if ((iF & ItemStateFlags.NewerIdentityMask) != 0)
             await artifactTool.AddArtifactAsync(artifactData.Info with { Full = false }, cancellationToken).ConfigureAwait(false);
-        switch (resourceUpdateMode)
+        switch (resourceUpdate)
         {
             case ResourceUpdateMode.ArtifactSoft:
             case ResourceUpdateMode.ArtifactHard:
@@ -92,12 +92,12 @@ public static class ArtifactDumping
             case EagerFlags.ResourceMetadata | EagerFlags.ResourceObtain:
                 {
                     Task[] tasks = artifactData.Values.Select(async v =>
-                        await UpdateResourceAsync(artifactTool, await artifactTool.DetermineUpdatedResourceAsync(v, resourceUpdateMode, cancellationToken), logHandler, checksumId, cancellationToken)).ToArray();
+                        await UpdateResourceAsync(artifactTool, await artifactTool.DetermineUpdatedResourceAsync(v, resourceUpdate, cancellationToken), logHandler, checksumId, cancellationToken)).ToArray();
                     await Task.WhenAll(tasks);
                     break;
                 }
             case EagerFlags.ResourceMetadata:
-                Task<ArtifactResourceInfoWithState>[] updateTasks = artifactData.Values.Select(v => artifactTool.DetermineUpdatedResourceAsync(v, resourceUpdateMode, cancellationToken)).ToArray();
+                Task<ArtifactResourceInfoWithState>[] updateTasks = artifactData.Values.Select(v => artifactTool.DetermineUpdatedResourceAsync(v, resourceUpdate, cancellationToken)).ToArray();
                 ArtifactResourceInfoWithState[] items = await Task.WhenAll(updateTasks);
                 foreach (ArtifactResourceInfoWithState aris in items)
                     await UpdateResourceAsync(artifactTool, aris, logHandler, checksumId, cancellationToken);
@@ -107,7 +107,7 @@ public static class ArtifactDumping
                     List<Task> tasks = new();
                     foreach (ArtifactResourceInfo resource in artifactData.Values)
                     {
-                        ArtifactResourceInfoWithState aris = await artifactTool.DetermineUpdatedResourceAsync(resource, resourceUpdateMode, cancellationToken).ConfigureAwait(false);
+                        ArtifactResourceInfoWithState aris = await artifactTool.DetermineUpdatedResourceAsync(resource, resourceUpdate, cancellationToken).ConfigureAwait(false);
                         tasks.Add(UpdateResourceAsync(artifactTool, aris, logHandler, checksumId, cancellationToken));
                     }
                     await Task.WhenAll(tasks);
@@ -116,13 +116,27 @@ public static class ArtifactDumping
             default:
                 {
                     foreach (ArtifactResourceInfo resource in artifactData.Values)
-                        await UpdateResourceAsync(artifactTool, await artifactTool.DetermineUpdatedResourceAsync(resource, resourceUpdateMode, cancellationToken).ConfigureAwait(false), logHandler, checksumId, cancellationToken);
+                        await UpdateResourceAsync(artifactTool, await artifactTool.DetermineUpdatedResourceAsync(resource, resourceUpdate, cancellationToken).ConfigureAwait(false), logHandler, checksumId, cancellationToken);
                     break;
                 }
         }
         SaveArtifact:
         if ((iF & ItemStateFlags.NewerIdentityMask) != 0)
             await artifactTool.AddArtifactAsync(artifactData.Info, cancellationToken).ConfigureAwait(false);
+    }
+
+    /// <summary>
+    /// Dumps a resource asynchronously.
+    /// </summary>
+    /// <param name="artifactTool">Artifact tool.</param>
+    /// <param name="resource">Resource to check.</param>
+    /// <param name="resourceUpdate">Resource update mode.</param>
+    /// <param name="logHandler">Log handler.</param>
+    /// <param name="checksumId">Checksum algorithm ID.</param>
+    /// <param name="cancellationToken">Cancellation token.</param>
+    public static async Task DumpResourceAsync(this ArtifactTool artifactTool, ArtifactResourceInfo resource, ResourceUpdateMode resourceUpdate, IToolLogHandler? logHandler, string? checksumId, CancellationToken cancellationToken = default)
+    {
+        await UpdateResourceAsync(artifactTool, await artifactTool.DetermineUpdatedResourceAsync(resource, resourceUpdate, cancellationToken).ConfigureAwait(false), logHandler, checksumId, cancellationToken);
     }
 
     private static async Task UpdateResourceAsync(ArtifactTool artifactTool, ArtifactResourceInfoWithState aris, IToolLogHandler? logHandler, string? checksumId, CancellationToken cancellationToken)
