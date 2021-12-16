@@ -75,6 +75,8 @@ public abstract partial class ArtifactTool : IDisposable
 
     #region Private fields
 
+    private static readonly HashSet<string> s_yesLower = new HashSet<string> { "y", "yes", "" };
+
     private JsonSerializerOptions? _jsonOptions;
 
     //private bool _configured;
@@ -140,18 +142,30 @@ public abstract partial class ArtifactTool : IDisposable
     #region Options
 
     /// <summary>
+    /// Attempt to get option or throw exception if not found.
+    /// </summary>
+    /// <param name="optKey">Key to search.</param>
+    /// <returns>Value, if located.</returns>
+    /// <exception cref="ArtifactToolOptionNotFoundException">Thrown when option is not found.</exception>
+    public string GetStringOptionOrExcept(string optKey)
+    {
+        if (!(Profile.Options?.TryGetValue(optKey, out JsonElement vv) ?? false)) throw new ArtifactToolOptionNotFoundException(optKey);
+        return vv.ToString();
+    }
+
+    /// <summary>
     /// Attempt to get option or throw exception if not found or if null.
     /// </summary>
     /// <typeparam name="T">Value type.</typeparam>
     /// <param name="optKey">Key to search.</param>
-    /// <param name="value">Value, if located and nonnull.</param>
+    /// <returns>Value, if located and nonnull.</returns>
     /// <exception cref="ArtifactToolOptionNotFoundException">Thrown when option is not found.</exception>
     /// <exception cref="JsonException">Thrown when conversion failed.</exception>
     /// <exception cref="NotSupportedException">Thrown when type not supported.</exception>
-    public void GetOptionOrExcept<T>(string optKey, out T value)
+    public T GetOptionOrExcept<T>(string optKey)
     {
         if (!(Profile.Options?.TryGetValue(optKey, out JsonElement vv) ?? false)) throw new ArtifactToolOptionNotFoundException(optKey);
-        value = vv.Deserialize<T>(ArtJsonOptions.s_jsonOptions) ?? throw new NullJsonDataException();
+        return vv.Deserialize<T>(ArtJsonOptions.s_jsonOptions) ?? throw new NullJsonDataException();
     }
 
     /// <summary>
@@ -212,7 +226,10 @@ public abstract partial class ArtifactTool : IDisposable
     /// <param name="throwIfIncorrectType">If true, throw a <see cref="JsonException"/> or <see cref="NotSupportedException"/> if type is wrong.</param>
     /// <returns>True if flag is set to true.</returns>
     public bool GetFlagTrue(string optKey, bool throwIfIncorrectType = false)
-        => TryGetOption(optKey, out bool? value, throwIfIncorrectType) && value.Value;
+    {
+        return TryGetOption(optKey, out bool? value, throwIfIncorrectType) && value.Value
+               || TryGetOption(optKey, out string? valueStr) && s_yesLower.Contains(valueStr.ToLowerInvariant());
+    }
 
     /// <summary>
     /// Gets an string option from a string value, or take value from <see cref="ArtifactToolProfile.Group"/>.
@@ -407,6 +424,8 @@ public abstract partial class ArtifactTool : IDisposable
                 state |= ItemStateFlags.NewerDate;
             if (resource.Version != null)
                 state |= ItemStateFlags.ChangedVersion;
+            if (resource.Checksum != null && !Checksum.DatawiseEquals(resource.Checksum, null))
+                state |= ItemStateFlags.NewChecksum;
         }
         else
         {
@@ -418,6 +437,8 @@ public abstract partial class ArtifactTool : IDisposable
                 state |= ItemStateFlags.OlderDate;
             if (resource.IsMetadataDifferent(prev))
                 state |= ItemStateFlags.ChangedMetadata;
+            if (resource.Checksum != null && !Checksum.DatawiseEquals(resource.Checksum, prev.Checksum))
+                state |= ItemStateFlags.NewChecksum;
         }
         return new ArtifactResourceInfoWithState(resource, state);
     }

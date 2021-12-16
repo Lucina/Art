@@ -5,7 +5,7 @@
 /// </summary>
 /// <param name="PaddingMode">Padding mode.</param>
 /// <param name="BaseArtifactResourceInfo">Base resource.</param>
-public record PaddedArtifactResourceInfo(PaddingMode PaddingMode, ArtifactResourceInfo BaseArtifactResourceInfo) : ArtifactResourceInfo(BaseArtifactResourceInfo.Key, BaseArtifactResourceInfo.ContentType, BaseArtifactResourceInfo.Updated, BaseArtifactResourceInfo.Version)
+public record PaddedArtifactResourceInfo(PaddingMode PaddingMode, ArtifactResourceInfo BaseArtifactResourceInfo) : ArtifactResourceInfo(BaseArtifactResourceInfo.Key, BaseArtifactResourceInfo.ContentType, BaseArtifactResourceInfo.Updated, BaseArtifactResourceInfo.Version,BaseArtifactResourceInfo.Checksum)
 {
     /// <inheritdoc/>
     public override bool Exportable => BaseArtifactResourceInfo.Exportable;

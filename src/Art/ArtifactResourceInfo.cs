@@ -9,7 +9,8 @@ namespace Art;
 /// <param name="ContentType">MIME content type.</param>
 /// <param name="Updated">Updated date.</param>
 /// <param name="Version">Version.</param>
-public record ArtifactResourceInfo(ArtifactResourceKey Key, string? ContentType = "application/octet-stream", DateTimeOffset? Updated = null, string? Version = null)
+/// <param name="Checksum">Checksum.</param>
+public record ArtifactResourceInfo(ArtifactResourceKey Key, string? ContentType = "application/octet-stream", DateTimeOffset? Updated = null, string? Version = null, Checksum? Checksum = null)
 {
     /// <summary>
     /// Checks if non-identifying metadata (i.e. everything but key, updated date, version) is different.
@@ -52,8 +53,14 @@ public record ArtifactResourceInfo(ArtifactResourceKey Key, string? ContentType 
         => ValueTask.FromResult(this);
 
     /// <summary>
+    /// Gets informational path string.
+    /// </summary>
+    /// <returns>Info path string.</returns>
+    public virtual string GetInfoPathString() => $"{ArtifactTool.Combine("/", Key.Path, Key.File)}";
+
+    /// <summary>
     /// Gets informational string.
     /// </summary>
     /// <returns>Info string.</returns>
-    public virtual string GetInfoString() => $"{ArtifactTool.Combine("/", Key.Path, Key.File)}{(ContentType != null ? $" [{ContentType}]" : "")}{(Updated != null ? $" [{Updated}]" : "")}{(Version != null ? $" [{Version}]" : "")}";
+    public virtual string GetInfoString() => $"Path: {ArtifactTool.Combine("/", Key.Path, Key.File)}{(ContentType != null ? $"\nContent type: {ContentType}" : "")}{(Updated != null ? $"\nUpdated: {Updated}" : "")}{(Version != null ? $"\nVersion: {Version}" : "")}{(Checksum != null ? $"\nChecksum: {Checksum.Id}:{Convert.ToHexString(Checksum.Value)}" : "")}";
 }

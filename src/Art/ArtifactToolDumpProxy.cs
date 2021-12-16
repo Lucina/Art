@@ -86,7 +86,7 @@ public record ArtifactToolDumpProxy
                             }
                     }
                     if (!data.Info.Full && !Options.IncludeNonFull) continue;
-                    tasks.Add(ArtifactTool.DumpArtifactAsync(data, Options.ResourceUpdate, Options.EagerFlags, LogHandler, cancellationToken));
+                    tasks.Add(ArtifactTool.DumpArtifactAsync(data, Options.ResourceUpdate, Options.ChecksumId, Options.EagerFlags, LogHandler, cancellationToken));
                 }
                 E_ArtifactDump_WaitForTasks:
                 await Task.WhenAll(tasks);
@@ -115,7 +115,7 @@ public record ArtifactToolDumpProxy
                             }
                     }
                     if (!data.Info.Full && !Options.IncludeNonFull) continue;
-                    await ArtifactTool.DumpArtifactAsync(data, Options.ResourceUpdate, Options.EagerFlags, LogHandler, cancellationToken);
+                    await ArtifactTool.DumpArtifactAsync(data, Options.ResourceUpdate, Options.ChecksumId, Options.EagerFlags, LogHandler, cancellationToken);
                 }
             }
             return;

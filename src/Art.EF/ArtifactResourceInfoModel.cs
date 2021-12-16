@@ -52,6 +52,16 @@ public class ArtifactResourceInfoModel
     /// </summary>
     public virtual string? Version { get; set; }
 
+    /// <summary>
+    /// Checksum algorithm ID.
+    /// </summary>
+    public virtual string? ChecksumId { get; set; }
+
+    /// <summary>
+    /// Checksum value.
+    /// </summary>
+    public virtual byte[]? ChecksumValue { get; set; }
+
     /*[ModelBuilderCallback]*/
     internal static void OnModelCreating(ModelBuilder m)
     {

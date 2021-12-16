@@ -172,7 +172,7 @@ public class ArtifactContext : DbContext
         _wh.WaitOne();
         try
         {
-            (((string tool, string group, string id), string file, string? path), string? contentType, DateTimeOffset? updated, string? version) = artifactResourceInfo;
+            (((string tool, string group, string id), string file, string? path), string? contentType, DateTimeOffset? updated, string? version, Checksum? checksum) = artifactResourceInfo;
             ArtifactInfoModel? model = await ArtifactInfoModels.FindAsync(new object?[] { tool, group, id }, cancellationToken);
             if (model == null) throw new InvalidOperationException("Can't add resource for missing artifact");
             ArtifactResourceInfoModel? model2 = await ArtifactResourceInfoModels.FindAsync(new object?[] { tool, group, id, file, path }, cancellationToken);
@@ -187,7 +187,9 @@ public class ArtifactContext : DbContext
                     Path = path,
                     ContentType = contentType,
                     Updated = updated,
-                    Version = version
+                    Version = version,
+                    ChecksumId = checksum?.Id,
+                    ChecksumValue = checksum?.Value
                 };
                 ArtifactResourceInfoModels.Add(model2);
                 await SaveChangesAsync(cancellationToken);
@@ -197,6 +199,8 @@ public class ArtifactContext : DbContext
                 model2.ContentType = contentType;
                 model2.Updated = updated;
                 model2.Version = version;
+                model2.ChecksumId = checksum?.Id;
+                model2.ChecksumValue = checksum?.Value;
                 ArtifactResourceInfoModels.Update(model2);
                 await SaveChangesAsync(cancellationToken);
             }
@@ -243,7 +247,10 @@ public class ArtifactContext : DbContext
         {
             ((string tool, string group, string id), string file, string? path) = key;
             ArtifactResourceInfoModel? model = await ArtifactResourceInfoModels.FindAsync(new object?[] { tool, group, id, file, path }, cancellationToken);
-            return model != null ? new ArtifactResourceInfo(key, model.ContentType, model.Updated, model.Version) : null;
+            return model != null
+                ? new ArtifactResourceInfo(key, model.ContentType, model.Updated, model.Version,
+                    model.ChecksumId != null && model.ChecksumValue != null ? new Checksum(model.ChecksumId, model.ChecksumValue) : null)
+                : null;
         }
         finally
         {

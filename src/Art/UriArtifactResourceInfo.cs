@@ -11,8 +11,9 @@
 /// <param name="ContentType">MIME content type.</param>
 /// <param name="Updated">Updated date.</param>
 /// <param name="Version">Version.</param>
-public record UriArtifactResourceInfo(HttpArtifactTool ArtifactTool, Uri Uri, string? Origin, string? Referrer, ArtifactResourceKey Key, string? ContentType = "application/octet-stream", DateTimeOffset? Updated = null, string? Version = null)
-    : QueryBaseArtifactResourceInfo(Key, ContentType, Updated, Version)
+/// <param name="Checksum">Checksum.</param>
+public record UriArtifactResourceInfo(HttpArtifactTool ArtifactTool, Uri Uri, string? Origin, string? Referrer, ArtifactResourceKey Key, string? ContentType = "application/octet-stream", DateTimeOffset? Updated = null, string? Version = null, Checksum? Checksum = null)
+    : QueryBaseArtifactResourceInfo(Key, ContentType, Updated, Version, Checksum)
 {
     /// <inheritdoc/>
     public override bool Exportable => true;

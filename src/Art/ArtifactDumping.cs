@@ -1,4 +1,6 @@
-﻿namespace Art;
+﻿using System.Security.Cryptography;
+
+namespace Art;
 
 /// <summary>
 /// Simple dumping process.
@@ -54,11 +56,12 @@ public static class ArtifactDumping
     /// <param name="artifactTool">Origin artifact tool.</param>
     /// <param name="artifactData">Artifact data to dump.</param>
     /// <param name="resourceUpdateMode">Resource update mode.</param>
+    /// <param name="checksumId">Checksum algorithm ID.</param>
     /// <param name="eagerFlags">Eager flags.</param>
     /// <param name="logHandler">Log handler.</param>
     /// <param name="cancellationToken">Cancellation token.</param>
     /// <exception cref="ArgumentOutOfRangeException">Thrown if <paramref name="resourceUpdateMode"/> is invalid.</exception>
-    public static async Task DumpArtifactAsync(this ArtifactTool artifactTool, ArtifactData artifactData, ResourceUpdateMode resourceUpdateMode = ResourceUpdateMode.Soft, EagerFlags eagerFlags = EagerFlags.None, IToolLogHandler? logHandler = null, CancellationToken cancellationToken = default)
+    public static async Task DumpArtifactAsync(this ArtifactTool artifactTool, ArtifactData artifactData, ResourceUpdateMode resourceUpdateMode = ResourceUpdateMode.Soft, string? checksumId = null, EagerFlags eagerFlags = EagerFlags.None, IToolLogHandler? logHandler = null, CancellationToken cancellationToken = default)
     {
         switch (resourceUpdateMode)
         {
@@ -71,7 +74,7 @@ public static class ArtifactDumping
                 throw new ArgumentOutOfRangeException(nameof(resourceUpdateMode));
         }
         ItemStateFlags iF = await artifactTool.CompareArtifactAsync(artifactData.Info, cancellationToken).ConfigureAwait(false);
-        logHandler?.Log(artifactTool.Profile.Tool, artifactTool.Profile.Group, $"{((iF & ItemStateFlags.NewerIdentityMask) != 0 ? "[NEW] " : "")}{artifactData.Info.GetInfoString()}", null, LogLevel.Entry);
+        logHandler?.Log(artifactTool.Profile.Tool, artifactTool.Profile.Group, $"{((iF & ItemStateFlags.NewerIdentityMask) != 0 ? "[NEW] " : "")}{artifactData.Info.GetInfoTitleString()}", artifactData.Info.GetInfoString(), LogLevel.Entry);
         if ((iF & ItemStateFlags.NewerIdentityMask) != 0)
             await artifactTool.AddArtifactAsync(artifactData.Info with { Full = false }, cancellationToken).ConfigureAwait(false);
         switch (resourceUpdateMode)
@@ -89,7 +92,7 @@ public static class ArtifactDumping
             case EagerFlags.ResourceMetadata | EagerFlags.ResourceObtain:
                 {
                     Task[] tasks = artifactData.Values.Select(async v =>
-                        await UpdateResourceAsync(artifactTool, await artifactTool.DetermineUpdatedResourceAsync(v, resourceUpdateMode, cancellationToken), logHandler, cancellationToken)).ToArray();
+                        await UpdateResourceAsync(artifactTool, await artifactTool.DetermineUpdatedResourceAsync(v, resourceUpdateMode, cancellationToken), logHandler, checksumId, cancellationToken)).ToArray();
                     await Task.WhenAll(tasks);
                     break;
                 }
@@ -97,7 +100,7 @@ public static class ArtifactDumping
                 Task<ArtifactResourceInfoWithState>[] updateTasks = artifactData.Values.Select(v => artifactTool.DetermineUpdatedResourceAsync(v, resourceUpdateMode, cancellationToken)).ToArray();
                 ArtifactResourceInfoWithState[] items = await Task.WhenAll(updateTasks);
                 foreach (ArtifactResourceInfoWithState aris in items)
-                    await UpdateResourceAsync(artifactTool, aris, logHandler, cancellationToken);
+                    await UpdateResourceAsync(artifactTool, aris, logHandler, checksumId, cancellationToken);
                 break;
             case EagerFlags.ResourceObtain:
                 {
@@ -105,7 +108,7 @@ public static class ArtifactDumping
                     foreach (ArtifactResourceInfo resource in artifactData.Values)
                     {
                         ArtifactResourceInfoWithState aris = await artifactTool.DetermineUpdatedResourceAsync(resource, resourceUpdateMode, cancellationToken).ConfigureAwait(false);
-                        tasks.Add(UpdateResourceAsync(artifactTool, aris, logHandler, cancellationToken));
+                        tasks.Add(UpdateResourceAsync(artifactTool, aris, logHandler, checksumId, cancellationToken));
                     }
                     await Task.WhenAll(tasks);
                     break;
@@ -113,7 +116,7 @@ public static class ArtifactDumping
             default:
                 {
                     foreach (ArtifactResourceInfo resource in artifactData.Values)
-                        await UpdateResourceAsync(artifactTool, await artifactTool.DetermineUpdatedResourceAsync(resource, resourceUpdateMode, cancellationToken).ConfigureAwait(false), logHandler, cancellationToken);
+                        await UpdateResourceAsync(artifactTool, await artifactTool.DetermineUpdatedResourceAsync(resource, resourceUpdateMode, cancellationToken).ConfigureAwait(false), logHandler, checksumId, cancellationToken);
                     break;
                 }
         }
@@ -122,16 +125,31 @@ public static class ArtifactDumping
             await artifactTool.AddArtifactAsync(artifactData.Info, cancellationToken).ConfigureAwait(false);
     }
 
-    private static async Task UpdateResourceAsync(ArtifactTool artifactTool, ArtifactResourceInfoWithState aris, IToolLogHandler? logHandler, CancellationToken cancellationToken)
+    private static async Task UpdateResourceAsync(ArtifactTool artifactTool, ArtifactResourceInfoWithState aris, IToolLogHandler? logHandler, string? checksumId, CancellationToken cancellationToken)
     {
         (ArtifactResourceInfo versionedResource, ItemStateFlags rF) = aris;
-        logHandler?.Log(artifactTool.Profile.Tool, artifactTool.Profile.Group, $"-- {((rF & ItemStateFlags.NewerIdentityMask) != 0 ? "[NEW] " : "")}{versionedResource.GetInfoString()}", null, LogLevel.Entry);
         if ((rF & ItemStateFlags.NewerIdentityMask) != 0 && versionedResource.Exportable)
         {
             await using Stream stream = await artifactTool.CreateOutputStreamAsync(versionedResource.Key, cancellationToken).ConfigureAwait(false);
             await using Stream dataStream = await versionedResource.ExportStreamAsync(cancellationToken).ConfigureAwait(false);
-            await dataStream.CopyToAsync(stream, cancellationToken).ConfigureAwait(false);
+            if (checksumId != null && ChecksumSource.TryGetHashAlgorithm(checksumId, out HashAlgorithm? algorithm))
+            {
+                // Take this opportunity to hash the resource.
+                await using HashProxyStream hps = new(dataStream, algorithm, true);
+                await hps.CopyToAsync(stream, cancellationToken).ConfigureAwait(false);
+                Checksum newChecksum = new(checksumId, hps.GetHash());
+                if (!Checksum.DatawiseEquals(newChecksum, versionedResource.Checksum))
+                {
+                    rF |= ItemStateFlags.NewChecksum;
+                    versionedResource = versionedResource with { Checksum = newChecksum };
+                }
+            }
+            else
+            {
+                await dataStream.CopyToAsync(stream, cancellationToken).ConfigureAwait(false);
+            }
         }
+        logHandler?.Log(artifactTool.Profile.Tool, artifactTool.Profile.Group, $"-- {((rF & ItemStateFlags.NewerIdentityMask) != 0 ? "[NEW] " : "")}{versionedResource.GetInfoPathString()}", versionedResource.GetInfoString(), LogLevel.Entry);
         if ((rF & ItemStateFlags.DifferentMask) != 0)
             await artifactTool.AddResourceAsync(versionedResource, cancellationToken).ConfigureAwait(false);
     }

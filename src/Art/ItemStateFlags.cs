@@ -35,15 +35,19 @@ public enum ItemStateFlags
     /// </summary>
     ChangedMetadata = 1 << 5,
     /// <summary>
+    /// New (nonnull) checksum detected.
+    /// </summary>
+    NewChecksum = 1 << 6,
+    /// <summary>
     /// Mask for different item identity (date, version).
     /// </summary>
-    DifferentIdentityMask = EnforceNew | New | OlderDate | NewerDate | ChangedVersion,
+    DifferentIdentityMask = EnforceNew | New | OlderDate | NewerDate | ChangedVersion | NewChecksum,
     /// <summary>
     /// Mask for newer item identity (date, version).
     /// </summary>
-    NewerIdentityMask = EnforceNew | New | NewerDate | ChangedVersion,
+    NewerIdentityMask = EnforceNew | New | NewerDate | ChangedVersion | NewChecksum,
     /// <summary>
     /// Mask for any difference at all.
     /// </summary>
-    DifferentMask = EnforceNew | New | OlderDate | NewerDate | ChangedVersion | ChangedMetadata
+    DifferentMask = EnforceNew | New | OlderDate | NewerDate | ChangedVersion | ChangedMetadata | NewChecksum
 }

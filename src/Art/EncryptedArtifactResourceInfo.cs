@@ -6,7 +6,7 @@
 /// <param name="EncryptionInfo">Encryption information.</param>
 /// <param name="BaseArtifactResourceInfo">Base resource.</param>
 public record EncryptedArtifactResourceInfo(EncryptionInfo EncryptionInfo, ArtifactResourceInfo BaseArtifactResourceInfo)
-    : ArtifactResourceInfo(BaseArtifactResourceInfo.Key, BaseArtifactResourceInfo.ContentType, BaseArtifactResourceInfo.Updated, BaseArtifactResourceInfo.Version)
+    : ArtifactResourceInfo(BaseArtifactResourceInfo.Key, BaseArtifactResourceInfo.ContentType, BaseArtifactResourceInfo.Updated, BaseArtifactResourceInfo.Version, BaseArtifactResourceInfo.Checksum)
 {
     /// <inheritdoc/>
     public override bool Exportable => BaseArtifactResourceInfo.Exportable;
@@ -28,6 +28,6 @@ public record EncryptedArtifactResourceInfo(EncryptionInfo EncryptionInfo, Artif
     public override async ValueTask<ArtifactResourceInfo> WithMetadataAsync(CancellationToken cancellationToken = default)
     {
         ArtifactResourceInfo b = await BaseArtifactResourceInfo.WithMetadataAsync(cancellationToken);
-        return this with { BaseArtifactResourceInfo = b, ContentType = b.ContentType, Updated = b.Updated, Version = b.Version };
+        return this with { BaseArtifactResourceInfo = b, ContentType = b.ContentType, Updated = b.Updated, Version = b.Version, Checksum = b.Checksum};
     }
 }

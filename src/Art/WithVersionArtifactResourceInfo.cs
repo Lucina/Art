@@ -21,6 +21,13 @@ public record WithVersionArtifactResourceInfo(string? VersionValue, ArtifactReso
     public override async ValueTask<ArtifactResourceInfo> WithMetadataAsync(CancellationToken cancellationToken = default)
     {
         ArtifactResourceInfo b = await BaseArtifactResourceInfo.WithMetadataAsync(cancellationToken);
-        return this with { BaseArtifactResourceInfo = b, ContentType = b.ContentType, Updated = b.Updated, Version = VersionValue };
+        return this with
+        {
+            BaseArtifactResourceInfo = b,
+            ContentType = b.ContentType,
+            Updated = b.Updated,
+            Version = VersionValue,
+            Checksum = b.Checksum
+        };
     }
 }

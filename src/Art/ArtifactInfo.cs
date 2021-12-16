@@ -11,8 +11,14 @@
 public record ArtifactInfo(ArtifactKey Key, string? Name = null, DateTimeOffset? Date = null, DateTimeOffset? UpdateDate = null, bool Full = true)
 {
     /// <summary>
+    /// Gets informational title string.
+    /// </summary>
+    /// <returns>Info title string.</returns>
+    public string GetInfoTitleString() => $"{(!Full ? "[partial] " : "")}{Key.Id}{(Name != null ? $" - {Name}" : "")}";
+
+    /// <summary>
     /// Gets informational string.
     /// </summary>
     /// <returns>Info string.</returns>
-    public string GetInfoString() => $"{(!Full ? "[partial] " : "")}{Key.Id}{(Name != null ? $" - {Name}" : "")}";
+    public string GetInfoString() => $"ID: {Key.Id}{(Name != null ? $"\nName: {Name}" : "")}{(Date != null ? $"\nDate: {Date}" : "")}{(UpdateDate != null ? $"\nUpdate Date: {UpdateDate}" : "")}\nFull: {Full}";
 }

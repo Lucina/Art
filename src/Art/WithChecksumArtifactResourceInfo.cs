@@ -1,11 +1,11 @@
 ﻿namespace Art;
 
 /// <summary>
-/// Represents a resource with version.
+/// Represents a resource with checksum.
 /// </summary>
-/// <param name="UpdatedValue">Updated date.</param>
+/// <param name="ChecksumValue">Checksum.</param>
 /// <param name="BaseArtifactResourceInfo">Base resource.</param>
-public record WithUpdatedArtifactResourceInfo(DateTimeOffset? UpdatedValue, ArtifactResourceInfo BaseArtifactResourceInfo) : ArtifactResourceInfo(BaseArtifactResourceInfo.Key, BaseArtifactResourceInfo.ContentType, UpdatedValue, BaseArtifactResourceInfo.Version)
+public record WithChecksumArtifactResourceInfo(Checksum? ChecksumValue, ArtifactResourceInfo BaseArtifactResourceInfo) : ArtifactResourceInfo(BaseArtifactResourceInfo.Key, BaseArtifactResourceInfo.ContentType, BaseArtifactResourceInfo.Updated, BaseArtifactResourceInfo.Version, ChecksumValue)
 {
     /// <inheritdoc/>
     public override bool Exportable => BaseArtifactResourceInfo.Exportable;
@@ -25,9 +25,9 @@ public record WithUpdatedArtifactResourceInfo(DateTimeOffset? UpdatedValue, Arti
         {
             BaseArtifactResourceInfo = b,
             ContentType = b.ContentType,
-            Updated = UpdatedValue,
+            Updated = b.Updated,
             Version = b.Version,
-            Checksum = b.Checksum
+            Checksum = ChecksumValue
         };
     }
 }

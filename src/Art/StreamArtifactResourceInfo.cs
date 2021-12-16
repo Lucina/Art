@@ -8,8 +8,9 @@
 /// <param name="ContentType">MIME content type.</param>
 /// <param name="Updated">Updated date.</param>
 /// <param name="Version">Version.</param>
-public record StreamArtifactResourceInfo(Stream Resource, ArtifactResourceKey Key, string? ContentType = "application/octet-stream", DateTimeOffset? Updated = null, string? Version = null)
-    : ArtifactResourceInfo(Key, ContentType, Updated, Version)
+/// <param name="Checksum">Checksum.</param>
+public record StreamArtifactResourceInfo(Stream Resource, ArtifactResourceKey Key, string? ContentType = "application/octet-stream", DateTimeOffset? Updated = null, string? Version = null, Checksum? Checksum = null)
+    : ArtifactResourceInfo(Key, ContentType, Updated, Version, Checksum)
 {
     /// <inheritdoc/>
     public override bool Exportable => true;
