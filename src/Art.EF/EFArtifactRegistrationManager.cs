@@ -1,3 +1,5 @@
+using System.Linq.Expressions;
+
 namespace Art.EF;
 
 /// <summary>
@@ -29,6 +31,13 @@ public class EFArtifactRegistrationManager : ArtifactRegistrationManager, IDispo
     }
 
     /// <inheritdoc />
+    public override Task<List<ArtifactInfo>> ListArtifactsAsync(Expression<Func<ArtifactInfoModel, bool>> predicate, CancellationToken cancellationToken = default)
+    {
+        EnsureNotDisposed();
+        return Context.ListArtifactsAsync(predicate, cancellationToken);
+    }
+
+    /// <inheritdoc />
     public override Task<List<ArtifactInfo>> ListArtifactsAsync(string tool, CancellationToken cancellationToken = default)
     {
         EnsureNotDisposed();
@@ -39,14 +48,7 @@ public class EFArtifactRegistrationManager : ArtifactRegistrationManager, IDispo
     public override Task<List<ArtifactInfo>> ListArtifactsAsync(string tool, string group, CancellationToken cancellationToken = default)
     {
         EnsureNotDisposed();
-        return Context.ListArtifactsAsync(tool, @group, cancellationToken);
-    }
-
-    /// <inheritdoc />
-    public override Task<List<ArtifactResourceInfo>> ListResourcesAsync(ArtifactKey key, CancellationToken cancellationToken = default)
-    {
-        EnsureNotDisposed();
-        return Context.ListResourcesAsync(key, cancellationToken);
+        return Context.ListArtifactsAsync(tool, group, cancellationToken);
     }
 
     /// <inheritdoc />
@@ -54,6 +56,13 @@ public class EFArtifactRegistrationManager : ArtifactRegistrationManager, IDispo
     {
         EnsureNotDisposed();
         return Context.AddArtifactAsync(artifactInfo, cancellationToken);
+    }
+
+    /// <inheritdoc />
+    public override Task<List<ArtifactResourceInfo>> ListResourcesAsync(ArtifactKey key, CancellationToken cancellationToken = default)
+    {
+        EnsureNotDisposed();
+        return Context.ListResourcesAsync(key, cancellationToken);
     }
 
     /// <inheritdoc />

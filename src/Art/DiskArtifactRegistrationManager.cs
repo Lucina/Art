@@ -1,4 +1,5 @@
 ﻿using System.Globalization;
+using System.Linq.Expressions;
 
 namespace Art;
 
@@ -29,6 +30,15 @@ public class DiskArtifactRegistrationManager : ArtifactRegistrationManager
     }
 
     /// <inheritdoc/>
+    public override async ValueTask AddArtifactAsync(ArtifactInfo artifactInfo, CancellationToken cancellationToken = default)
+    {
+        string dir = GetArtifactInfoDir(artifactInfo.Key);
+        if (!Directory.Exists(dir)) Directory.CreateDirectory(dir);
+        string path = GetArtifactInfoFilePath(dir, artifactInfo.Key);
+        await artifactInfo.WriteToFileAsync(path, cancellationToken).ConfigureAwait(false);
+    }
+
+    /// <inheritdoc/>
     public override async Task<List<ArtifactInfo>> ListArtifactsAsync(CancellationToken cancellationToken = default)
     {
         string dir = GetArtifactInfoDir();
@@ -38,6 +48,21 @@ public class DiskArtifactRegistrationManager : ArtifactRegistrationManager
         foreach (string groupDir in Directory.EnumerateDirectories(toolDir))
         foreach (string file in Directory.EnumerateFiles(groupDir).Where(v => v.EndsWith(ArtifactFileNameEnd)))
             if (await ArtExtensions.LoadFromFileAsync<ArtifactInfo>(file, cancellationToken).ConfigureAwait(false) is { } v)
+                results.Add(v);
+        return results;
+    }
+
+    /// <inheritdoc/>
+    public override async Task<List<ArtifactInfo>> ListArtifactsAsync(Expression<Func<ArtifactInfoModel, bool>> predicate, CancellationToken cancellationToken = default)
+    {
+        Func<ArtifactInfoModel, bool> compiled = predicate.Compile();
+        string dir = GetArtifactInfoDir();
+        List<ArtifactInfo> results = new();
+        if (!Directory.Exists(dir)) return results;
+        foreach (string toolDir in Directory.EnumerateDirectories(dir))
+        foreach (string groupDir in Directory.EnumerateDirectories(toolDir))
+        foreach (string file in Directory.EnumerateFiles(groupDir).Where(v => v.EndsWith(ArtifactFileNameEnd)))
+            if (await ArtExtensions.LoadFromFileAsync<ArtifactInfo>(file, cancellationToken).ConfigureAwait(false) is { } v && compiled(v))
                 results.Add(v);
         return results;
     }
@@ -68,6 +93,15 @@ public class DiskArtifactRegistrationManager : ArtifactRegistrationManager
     }
 
     /// <inheritdoc/>
+    public override async ValueTask AddResourceAsync(ArtifactResourceInfo artifactResourceInfo, CancellationToken cancellationToken = default)
+    {
+        string dir = GetResourceInfoDir(artifactResourceInfo.Key);
+        if (!Directory.Exists(dir)) Directory.CreateDirectory(dir);
+        string path = GetResourceInfoFilePath(dir, artifactResourceInfo.Key);
+        await artifactResourceInfo.WriteToFileAsync(path, cancellationToken).ConfigureAwait(false);
+    }
+
+    /// <inheritdoc/>
     public override async Task<List<ArtifactResourceInfo>> ListResourcesAsync(ArtifactKey key, CancellationToken cancellationToken = default)
     {
         string dir = GetResourceInfoDir(key);
@@ -83,24 +117,6 @@ public class DiskArtifactRegistrationManager : ArtifactRegistrationManager
                 dQueue.Enqueue(d);
         }
         return results;
-    }
-
-    /// <inheritdoc/>
-    public override async ValueTask AddArtifactAsync(ArtifactInfo artifactInfo, CancellationToken cancellationToken = default)
-    {
-        string dir = GetArtifactInfoDir(artifactInfo.Key);
-        if (!Directory.Exists(dir)) Directory.CreateDirectory(dir);
-        string path = GetArtifactInfoFilePath(dir, artifactInfo.Key);
-        await artifactInfo.WriteToFileAsync(path, cancellationToken).ConfigureAwait(false);
-    }
-
-    /// <inheritdoc/>
-    public override async ValueTask AddResourceAsync(ArtifactResourceInfo artifactResourceInfo, CancellationToken cancellationToken = default)
-    {
-        string dir = GetResourceInfoDir(artifactResourceInfo.Key);
-        if (!Directory.Exists(dir)) Directory.CreateDirectory(dir);
-        string path = GetResourceInfoFilePath(dir, artifactResourceInfo.Key);
-        await artifactResourceInfo.WriteToFileAsync(path, cancellationToken).ConfigureAwait(false);
     }
 
     /// <inheritdoc/>

@@ -1,4 +1,6 @@
-﻿namespace Art;
+﻿using System.Linq.Expressions;
+
+namespace Art;
 
 /// <summary>
 /// Represents a manager for artifact data.
@@ -11,6 +13,14 @@ public abstract class ArtifactRegistrationManager
     /// <param name="cancellationToken">Cancellation token.</param>
     /// <returns>Task returning artifacts.</returns>
     public abstract Task<List<ArtifactInfo>> ListArtifactsAsync(CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Lists all artifacts using the specified predicate.
+    /// </summary>
+    /// <param name="predicate">Predicate.</param>
+    /// <param name="cancellationToken">Cancellation token.</param>
+    /// <returns>Task returning artifacts.</returns>
+    public abstract Task<List<ArtifactInfo>> ListArtifactsAsync(Expression<Func<ArtifactInfoModel, bool>> predicate, CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Lists all artifacts for the specified tool.
@@ -30,20 +40,20 @@ public abstract class ArtifactRegistrationManager
     public abstract Task<List<ArtifactInfo>> ListArtifactsAsync(string tool, string group, CancellationToken cancellationToken = default);
 
     /// <summary>
-    /// Lists all resources for the specified artifact key.
-    /// </summary>
-    /// <param name="key">Artifact key.</param>
-    /// <param name="cancellationToken">Cancellation token.</param>
-    /// <returns>Task returning resources.</returns>
-    public abstract Task<List<ArtifactResourceInfo>> ListResourcesAsync(ArtifactKey key, CancellationToken cancellationToken = default);
-
-    /// <summary>
     /// Registers artifact as known.
     /// </summary>
     /// <param name="artifactInfo">Artifact to register.</param>
     /// <param name="cancellationToken">Cancellation token.</param>
     /// <returns>Task.</returns>
     public abstract ValueTask AddArtifactAsync(ArtifactInfo artifactInfo, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Lists all resources for the specified artifact key.
+    /// </summary>
+    /// <param name="key">Artifact key.</param>
+    /// <param name="cancellationToken">Cancellation token.</param>
+    /// <returns>Task returning resources.</returns>
+    public abstract Task<List<ArtifactResourceInfo>> ListResourcesAsync(ArtifactKey key, CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Registers artifact resource as known.
@@ -84,4 +94,22 @@ public abstract class ArtifactRegistrationManager
     /// <param name="cancellationToken">Cancellation token.</param>
     /// <returns>Task.</returns>
     public abstract ValueTask RemoveResourceAsync(ArtifactResourceKey key, CancellationToken cancellationToken = default);
+
+
+    /// <summary>
+    /// Lists all artifacts for the specified tool and group, where each is optional.
+    /// </summary>
+    /// <param name="tool">Tool (optional).</param>
+    /// <param name="group">Group (optional).</param>
+    /// <param name="cancellationToken">Cancellation token.</param>
+    /// <returns>Task returning artifacts.</returns>
+    public async Task<IEnumerable<ArtifactInfo>> ListArtifactsOptionalsAsync(string? tool, string? group, CancellationToken cancellationToken = default)
+    {
+        IEnumerable<ArtifactInfo> enumerable;
+        if (tool != null)
+            enumerable = group != null ? await ListArtifactsAsync(tool, group, cancellationToken) : await ListArtifactsAsync(tool, cancellationToken);
+        else
+            enumerable = group != null ? (await ListArtifactsAsync(cancellationToken)).Where(v => v.Key.Group == group) : await ListArtifactsAsync(cancellationToken);
+        return enumerable;
+    }
 }

@@ -1,3 +1,4 @@
+using System.Linq.Expressions;
 using Microsoft.EntityFrameworkCore;
 
 namespace Art.EF;
@@ -47,21 +48,11 @@ public class ArtifactContext : DbContext
         _wh.WaitOne();
         try
         {
-            ((string tool, string group, string id), string? name, DateTimeOffset? date, DateTimeOffset? updateDate, bool full) = artifactInfo;
+            ((string tool, string group, string id), string? _, DateTimeOffset? date, DateTimeOffset? updateDate, bool full) = artifactInfo;
             ArtifactInfoModel? model = await ArtifactInfoModels.FindAsync(new object?[] { tool, group, id }, cancellationToken);
             if (model == null)
             {
-                model = new ArtifactInfoModel
-                {
-                    Tool = tool,
-                    Group = group,
-                    Id = id,
-                    Name = name,
-                    Date = date,
-                    UpdateDate = updateDate,
-                    Full = full
-                };
-                ArtifactInfoModels.Add(model);
+                ArtifactInfoModels.Add(artifactInfo);
                 await SaveChangesAsync(cancellationToken);
             }
             else
@@ -90,7 +81,27 @@ public class ArtifactContext : DbContext
         try
         {
             List<ArtifactInfoModel> results = await ArtifactInfoModels.ToListAsync(cancellationToken);
-            return results.Select(v => new ArtifactInfo(new ArtifactKey(v.Tool, v.Group, v.Id), v.Name, v.Date, v.UpdateDate, v.Full)).ToList();
+            return results.Select(v => (ArtifactInfo)v).ToList();
+        }
+        finally
+        {
+            _wh.Set();
+        }
+    }
+
+    /// <summary>
+    /// Lists all artifacts using the specified predicate.
+    /// </summary>
+    /// <param name="predicate">Predicate.</param>
+    /// <param name="cancellationToken">Cancellation token.</param>
+    /// <returns>Task returning artifacts.</returns>
+    public async Task<List<ArtifactInfo>> ListArtifactsAsync(Expression<Func<ArtifactInfoModel, bool>> predicate, CancellationToken cancellationToken = default)
+    {
+        _wh.WaitOne();
+        try
+        {
+            List<ArtifactInfoModel> results = await ArtifactInfoModels.Where(predicate).ToListAsync(cancellationToken);
+            return results.Select(v => (ArtifactInfo)v).ToList();
         }
         finally
         {
@@ -110,7 +121,7 @@ public class ArtifactContext : DbContext
         try
         {
             List<ArtifactInfoModel> results = await ArtifactInfoModels.Where(v => v.Tool == tool).ToListAsync(cancellationToken);
-            return results.Select(v => new ArtifactInfo(new ArtifactKey(v.Tool, v.Group, v.Id), v.Name, v.Date, v.UpdateDate, v.Full)).ToList();
+            return results.Select(v => (ArtifactInfo)v).ToList();
         }
         finally
         {
@@ -131,29 +142,7 @@ public class ArtifactContext : DbContext
         try
         {
             List<ArtifactInfoModel> results = await ArtifactInfoModels.Where(v => v.Tool == tool && v.Group == group).ToListAsync(cancellationToken);
-            return results.Select(v => new ArtifactInfo(new ArtifactKey(v.Tool, v.Group, v.Id), v.Name, v.Date, v.UpdateDate, v.Full)).ToList();
-        }
-        finally
-        {
-            _wh.Set();
-        }
-    }
-
-    /// <summary>
-    /// Lists all resources for the specified artifact key.
-    /// </summary>
-    /// <param name="key">Artifact key.</param>
-    /// <param name="cancellationToken">Cancellation token.</param>
-    /// <returns>Task returning resources.</returns>
-    public async Task<List<ArtifactResourceInfo>> ListResourcesAsync(ArtifactKey key, CancellationToken cancellationToken = default)
-    {
-        _wh.WaitOne();
-        (string? tool, string? group, string? id) = key;
-        try
-        {
-            List<ArtifactResourceInfoModel> results = await ArtifactResourceInfoModels.Where(v => v.ArtifactTool == tool && v.ArtifactGroup == group && v.ArtifactId == id).ToListAsync(cancellationToken);
-            return results.Select(v => new ArtifactResourceInfo(new ArtifactResourceKey(new ArtifactKey(v.ArtifactTool, v.ArtifactGroup, v.ArtifactId), v.File, v.Path), v.ContentType, v.Updated, v.Version,
-                v.ChecksumId != null && v.ChecksumValue != null ? new Checksum(v.ChecksumId, v.ChecksumValue) : null)).ToList();
+            return results.Select(v => (ArtifactInfo)v).ToList();
         }
         finally
         {
@@ -179,20 +168,7 @@ public class ArtifactContext : DbContext
             ArtifactResourceInfoModel? model2 = await ArtifactResourceInfoModels.FindAsync(new object?[] { tool, group, id, file, path }, cancellationToken);
             if (model2 == null)
             {
-                model2 = new ArtifactResourceInfoModel
-                {
-                    ArtifactTool = tool,
-                    ArtifactGroup = group,
-                    ArtifactId = id,
-                    File = file,
-                    Path = path,
-                    ContentType = contentType,
-                    Updated = updated,
-                    Version = version,
-                    ChecksumId = checksum?.Id,
-                    ChecksumValue = checksum?.Value
-                };
-                ArtifactResourceInfoModels.Add(model2);
+                ArtifactResourceInfoModels.Add(artifactResourceInfo);
                 await SaveChangesAsync(cancellationToken);
             }
             else
@@ -205,6 +181,27 @@ public class ArtifactContext : DbContext
                 ArtifactResourceInfoModels.Update(model2);
                 await SaveChangesAsync(cancellationToken);
             }
+        }
+        finally
+        {
+            _wh.Set();
+        }
+    }
+
+    /// <summary>
+    /// Lists all resources for the specified artifact key.
+    /// </summary>
+    /// <param name="key">Artifact key.</param>
+    /// <param name="cancellationToken">Cancellation token.</param>
+    /// <returns>Task returning resources.</returns>
+    public async Task<List<ArtifactResourceInfo>> ListResourcesAsync(ArtifactKey key, CancellationToken cancellationToken = default)
+    {
+        _wh.WaitOne();
+        (string? tool, string? group, string? id) = key;
+        try
+        {
+            List<ArtifactResourceInfoModel> results = await ArtifactResourceInfoModels.Where(v => v.ArtifactTool == tool && v.ArtifactGroup == group && v.ArtifactId == id).ToListAsync(cancellationToken);
+            return results.Select(v => (ArtifactResourceInfo)v).ToList();
         }
         finally
         {
@@ -226,7 +223,7 @@ public class ArtifactContext : DbContext
         {
             (string tool, string group, string id) = key;
             ArtifactInfoModel? model = await ArtifactInfoModels.FindAsync(new object?[] { tool, group, id }, cancellationToken);
-            return model != null ? new ArtifactInfo(key, model.Name, model.Date, model.UpdateDate, model.Full) : null;
+            return model != null ? (ArtifactInfo)model : null;
         }
         finally
         {
@@ -248,10 +245,7 @@ public class ArtifactContext : DbContext
         {
             ((string tool, string group, string id), string file, string? path) = key;
             ArtifactResourceInfoModel? model = await ArtifactResourceInfoModels.FindAsync(new object?[] { tool, group, id, file, path }, cancellationToken);
-            return model != null
-                ? new ArtifactResourceInfo(key, model.ContentType, model.Updated, model.Version,
-                    model.ChecksumId != null && model.ChecksumValue != null ? new Checksum(model.ChecksumId, model.ChecksumValue) : null)
-                : null;
+            return model != null ? (ArtifactResourceInfo)model : null;
         }
         finally
         {
@@ -327,8 +321,27 @@ public class ArtifactContext : DbContext
         foreach (MethodInfo method in type.GetMethods(BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic)
                      .Where(m => m.GetCustomAttribute<ModelBuilderCallbackAttribute>() != null))
             method.Invoke(null, args);*/
-        ArtifactInfoModel.OnModelCreating(modelBuilder);
-        ArtifactResourceInfoModel.OnModelCreating(modelBuilder);
+        modelBuilder.Entity<ArtifactInfoModel>(b =>
+        {
+            b.HasKey(x => new { x.Tool, x.Group, x.Id });
+            b
+                .HasMany(x => x.Resources)
+                .WithOne(x => x.Artifact)
+                .HasForeignKey(x => new { x.ArtifactTool, x.ArtifactGroup, x.ArtifactId })
+                .OnDelete(DeleteBehavior.Cascade);
+        });
+        modelBuilder.Entity<ArtifactResourceInfoModel>(b =>
+        {
+            b.HasKey(x => new
+            {
+                x.ArtifactTool,
+                x.ArtifactGroup,
+                x.ArtifactId,
+                x.File,
+                x.Path
+            });
+            b.HasIndex(x => new { x.ArtifactTool, x.ArtifactGroup, x.ArtifactId });
+        });
     }
 
     /// <inheritdoc />

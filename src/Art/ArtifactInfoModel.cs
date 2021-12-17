@@ -1,9 +1,7 @@
-using Microsoft.EntityFrameworkCore;
-
-namespace Art.EF;
+namespace Art;
 
 /// <summary>
-/// EF model type for <see cref="ArtifactInfo"/>.
+/// Model type for <see cref="ArtifactInfo"/>.
 /// </summary>
 public class ArtifactInfoModel
 {
@@ -25,7 +23,7 @@ public class ArtifactInfoModel
     /// <summary>
     /// Name.
     /// </summary>
-    public virtual string? Name { get; set; } = null!;
+    public virtual string? Name { get; set; }
 
     /// <summary>
     /// Artifact creation date.
@@ -47,17 +45,11 @@ public class ArtifactInfoModel
     /// </summary>
     public virtual HashSet<ArtifactResourceInfoModel> Resources { get; set; } = null!;
 
-    /*[ModelBuilderCallback]*/
-    internal static void OnModelCreating(ModelBuilder m)
-    {
-        m.Entity<ArtifactInfoModel>(b =>
-        {
-            b.HasKey(x => new { x.Tool, x.Group, x.Id });
-            b
-                .HasMany(x => x.Resources)
-                .WithOne(x => x.Artifact)
-                .HasForeignKey(x => new { x.ArtifactTool, x.ArtifactGroup, x.ArtifactId })
-                .OnDelete(DeleteBehavior.Cascade);
-        });
-    }
+    /// <summary>
+    /// Converts model to info record.
+    /// </summary>
+    /// <param name="value">Model.</param>
+    /// <returns>Record.</returns>
+    public static implicit operator ArtifactInfo(ArtifactInfoModel value)
+        => new(new ArtifactKey(value.Tool, value.Group, value.Id), value.Name, value.Date, value.UpdateDate, value.Full);
 }

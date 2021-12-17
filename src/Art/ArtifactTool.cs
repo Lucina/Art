@@ -807,16 +807,15 @@ public abstract partial class ArtifactTool : IDisposable
     /// <returns>Task.</returns>
     /// <exception cref="ArgumentException">Thrown when an invalid profile is provided.</exception>
     /// <exception cref="ArtifactToolNotFoundException">Thrown when tool is not found.</exception>
-    public static async Task<ArtifactTool> PrepareTool(ArtifactToolProfile artifactToolProfile, ArtifactRegistrationManager artifactRegistrationManager, ArtifactDataManager artifactDataManager, CancellationToken cancellationToken = default)
+    public static async Task<ArtifactTool> PrepareToolAsync(ArtifactToolProfile artifactToolProfile, ArtifactRegistrationManager artifactRegistrationManager, ArtifactDataManager artifactDataManager, CancellationToken cancellationToken = default)
     {
         if (artifactToolProfile.Group == null) throw new ArgumentException("Group not specified in profile");
         if (!ArtifactToolLoader.TryLoad(artifactToolProfile, out ArtifactTool? t))
             throw new ArtifactToolNotFoundException(artifactToolProfile.Tool);
         ArtifactToolConfig config = new(artifactRegistrationManager, artifactDataManager, FailureBypassFlags.None);
-        using ArtifactTool tool = t;
         artifactToolProfile = artifactToolProfile.WithCoreTool(t);
-        await tool.InitializeAsync(config, artifactToolProfile, cancellationToken).ConfigureAwait(false);
-        return tool;
+        await t.InitializeAsync(config, artifactToolProfile, cancellationToken).ConfigureAwait(false);
+        return t;
     }
     #endregion
 }

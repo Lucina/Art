@@ -1,9 +1,7 @@
-using Microsoft.EntityFrameworkCore;
-
-namespace Art.EF;
+namespace Art;
 
 /// <summary>
-/// EF model type for <see cref="ArtifactResourceInfo"/>.
+/// Model type for <see cref="ArtifactResourceInfo"/>.
 /// </summary>
 public class ArtifactResourceInfoModel
 {
@@ -62,20 +60,12 @@ public class ArtifactResourceInfoModel
     /// </summary>
     public virtual byte[]? ChecksumValue { get; set; }
 
-    /*[ModelBuilderCallback]*/
-    internal static void OnModelCreating(ModelBuilder m)
-    {
-        m.Entity<ArtifactResourceInfoModel>(b =>
-        {
-            b.HasKey(x => new
-            {
-                x.ArtifactTool,
-                x.ArtifactGroup,
-                x.ArtifactId,
-                x.File,
-                x.Path
-            });
-            b.HasIndex(x => new { x.ArtifactTool, x.ArtifactGroup, x.ArtifactId });
-        });
-    }
+    /// <summary>
+    /// Converts model to info record.
+    /// </summary>
+    /// <param name="value">Model.</param>
+    /// <returns>Record.</returns>
+    public static implicit operator ArtifactResourceInfo(ArtifactResourceInfoModel value)
+        => new(new ArtifactResourceKey(new ArtifactKey(value.ArtifactTool, value.ArtifactGroup, value.ArtifactId), value.File, value.Path), value.ContentType, value.Updated, value.Version,
+            value.ChecksumId != null && value.ChecksumValue != null ? new Checksum(value.ChecksumId, value.ChecksumValue) : null);
 }
