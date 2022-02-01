@@ -1,12 +1,12 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <PackageVersion>0.37.6</PackageVersion>
+    <PackageVersion>0.37.7</PackageVersion>
     <AssemblyVersion>1.0.0</AssemblyVersion>
   </PropertyGroup>
 
   <ItemGroup>
-    <!--<PackageReference Include="Art.EF" Version="0.37.6" />-->
+    <!--<PackageReference Include="Art.EF" Version="0.37.7" />-->
     <ProjectReference Include="..\Art.EF\Art.EF.csproj" />
   </ItemGroup>
 
@@ -31,12 +31,12 @@
   </PropertyGroup>
 
   <PropertyGroup>
-    <Authors>Lucina</Authors>
-    <Owners>Lucina</Owners>
+    <Authors>Lucina,riina</Authors>
+    <Owners>Lucina,riina</Owners>
     <Description>Artifact retrieval toolkit (EF Core Sqlite)</Description>
     <Copyright>Copyright ©2021 Lucina</Copyright>
-    <PackageProjectUrl>https://github.com/Lucina/Art</PackageProjectUrl>
-    <RepositoryUrl>https://github.com/Lucina/Art</RepositoryUrl>
+    <PackageProjectUrl>https://github.com/collectioneering/Art</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/collectioneering/Art</RepositoryUrl>
     <Company>Lucina</Company>
   </PropertyGroup>
 
