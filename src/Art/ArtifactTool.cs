@@ -132,6 +132,7 @@ public abstract partial class ArtifactTool : IDisposable
     /// </summary>
     /// <param name="cancellationToken">Cancellation token.</param>
     /// <returns>Task.</returns>
+    /// <remarks>This is called implicitly by <see cref="InitializeAsync"/> which performs first initialization for a given profile / config set.</remarks>
     public virtual Task ConfigureAsync(CancellationToken cancellationToken = default)
     {
         return Task.CompletedTask;

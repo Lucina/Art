@@ -140,9 +140,9 @@ public static class ArtifactDumping
         if ((rF & ItemStateFlags.NewerIdentityMask) != 0 && versionedResource.Exportable)
         {
             await using Stream stream = await artifactTool.CreateOutputStreamAsync(versionedResource.Key, cancellationToken).ConfigureAwait(false);
-            await using Stream dataStream = await versionedResource.ExportStreamAsync(cancellationToken).ConfigureAwait(false);
             if (checksumId != null && ChecksumSource.TryGetHashAlgorithm(checksumId, out HashAlgorithm? algorithm))
             {
+                await using Stream dataStream = await versionedResource.ExportStreamAsync(cancellationToken).ConfigureAwait(false);
                 // Take this opportunity to hash the resource.
                 await using HashProxyStream hps = new(dataStream, algorithm, true);
                 await hps.CopyToAsync(stream, cancellationToken).ConfigureAwait(false);
@@ -153,8 +153,9 @@ public static class ArtifactDumping
                     versionedResource = versionedResource with { Checksum = newChecksum };
                 }
             }
-            else
+            else if (stream is not SinkStream) // if target output were a sink stream and hash isn't needed, then just don't bother exporting
             {
+                await using Stream dataStream = await versionedResource.ExportStreamAsync(cancellationToken).ConfigureAwait(false);
                 await dataStream.CopyToAsync(stream, cancellationToken).ConfigureAwait(false);
             }
         }
