@@ -166,7 +166,7 @@ public abstract partial class ArtifactTool : IDisposable
     public T GetOptionOrExcept<T>(string optKey)
     {
         if (!(Profile.Options?.TryGetValue(optKey, out JsonElement vv) ?? false)) throw new ArtifactToolOptionNotFoundException(optKey);
-        return vv.Deserialize<T>(ArtJsonOptions.s_jsonOptions) ?? throw new NullJsonDataException();
+        return vv.Deserialize<T>(ArtJsonSerializerOptions.s_jsonOptions) ?? throw new NullJsonDataException();
     }
 
     /// <summary>
@@ -183,7 +183,7 @@ public abstract partial class ArtifactTool : IDisposable
         {
             try
             {
-                value = vv.Deserialize<T>(ArtJsonOptions.s_jsonOptions);
+                value = vv.Deserialize<T>(ArtJsonSerializerOptions.s_jsonOptions);
                 return value != null;
             }
             catch (JsonException)
