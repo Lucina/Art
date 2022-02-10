@@ -220,4 +220,17 @@ public record ArtifactToolProfile(
     /// <param name="type">Tool type.</param>
     /// <returns>Profile.</returns>
     public ArtifactToolProfile WithCoreTool(Type type) => this with { Tool = ArtifactTool.CreateCoreToolString(type) };
+
+    /// <summary>
+    /// Creates an instance of this profile with specified comparer, or returns this profile for a matching comparer.
+    /// </summary>
+    /// <param name="comparer">Comparer to use.</param>
+    /// <returns>Profile</returns>
+    /// <exception cref="ArgumentNullException">Thrown if <paramref name="comparer"/> is null.</exception>
+    /// <exception cref="ArgumentException">Thrown if duplicate keys are encountered using the specified comparer.</exception>
+    public ArtifactToolProfile WithOptionsComparer(StringComparer comparer)
+    {
+        if (comparer == null) throw new ArgumentNullException(nameof(comparer));
+        return Options == null || comparer.Equals(Options.Comparer) ? this : this with { Options = new Dictionary<string, JsonElement>(Options, comparer) };
+    }
 }
