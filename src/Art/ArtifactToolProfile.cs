@@ -12,7 +12,7 @@ namespace Art;
 public record ArtifactToolProfile(
     string Tool,
     string Group,
-    Dictionary<string, JsonElement>? Options
+    IReadOnlyDictionary<string, JsonElement>? Options
 )
 {
     private static readonly Regex s_toolRegex = new(@"^([\S\s]+)::([\S\s]+)$");
@@ -222,7 +222,7 @@ public record ArtifactToolProfile(
     public ArtifactToolProfile WithCoreTool(Type type) => this with { Tool = ArtifactTool.CreateCoreToolString(type) };
 
     /// <summary>
-    /// Creates an instance of this profile with specified comparer, or returns this profile for a matching comparer.
+    /// Creates an instance of this profile with specified comparer.
     /// </summary>
     /// <param name="comparer">Comparer to use.</param>
     /// <returns>Profile</returns>
@@ -231,6 +231,19 @@ public record ArtifactToolProfile(
     public ArtifactToolProfile WithOptionsComparer(StringComparer comparer)
     {
         if (comparer == null) throw new ArgumentNullException(nameof(comparer));
-        return Options == null || comparer.Equals(Options.Comparer) ? this : this with { Options = new Dictionary<string, JsonElement>(Options, comparer) };
+        return Options == null ? new ArtifactToolProfile(this) : this with { Options = new Dictionary<string, JsonElement>(Options, comparer) };
+    }
+
+    /// <summary>
+    /// Creates a new options dictionary for this profile with the specified comparer.
+    /// </summary>
+    /// <param name="comparer">Comparer to use.</param>
+    /// <returns>Profile</returns>
+    /// <exception cref="ArgumentNullException">Thrown if <paramref name="comparer"/> is null.</exception>
+    /// <exception cref="ArgumentException">Thrown if duplicate keys are encountered using the specified comparer.</exception>
+    public Dictionary<string, JsonElement> GetOptionsWithOptionsComparer(StringComparer comparer)
+    {
+        if (comparer == null) throw new ArgumentNullException(nameof(comparer));
+        return Options == null ? new Dictionary<string, JsonElement>() : new Dictionary<string, JsonElement>(Options, comparer);
     }
 }

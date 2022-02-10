@@ -6,8 +6,8 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Art.Html" Version="0.37.8" />
-    <!--<ProjectReference Include="..\Art.Html\Art.Html.csproj" />-->
+    <!--<PackageReference Include="Art.Html" Version="0.37.8" />-->
+    <ProjectReference Include="..\Art.Html\Art.Html.csproj" />
   </ItemGroup>
 
   <ItemGroup>
