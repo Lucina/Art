@@ -1,0 +1,39 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <PackageVersion>0.37.8</PackageVersion>
+    <AssemblyVersion>1.0.0</AssemblyVersion>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <!--<PackageReference Include="Art" Version="0.37.8" />-->
+    <ProjectReference Include="..\Art\Art.csproj" />
+  </ItemGroup>
+
+  <PropertyGroup>
+    <TargetFramework>net6.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <LangVersion>10</LangVersion>
+    <NoWarn>NU5105,CA1050</NoWarn>
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <PackOnBuild>true</PackOnBuild>
+    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <PackageRequireLicenseAcceptance>true</PackageRequireLicenseAcceptance>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <Authors>Lucina,riina</Authors>
+    <Owners>Lucina,riina</Owners>
+    <Description>Artifact retrieval toolkit (M3U variants)</Description>
+    <Copyright>Copyright ©2022 Lucina</Copyright>
+    <PackageProjectUrl>https://github.com/collectioneering/Art</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/collectioneering/Art</RepositoryUrl>
+    <Company>Lucina</Company>
+  </PropertyGroup>
+
+</Project>
