@@ -66,23 +66,7 @@ public class InMemoryArtifactDataManager : ArtifactDataManager
     }
 
     private record ResultStreamArtifactResourceInfo(Stream Resource, ArtifactResourceKey Key, string? ContentType, DateTimeOffset? Updated, string? Version)
-        : StreamArtifactResourceInfo(Resource, Key, ContentType, Updated, Version)
-    {
-        public override async ValueTask<Stream> ExportStreamAsync(CancellationToken cancellationToken = default)
-        {
-            Resource.Seek(0, SeekOrigin.Begin);
-            MemoryStream ms = new();
-            try
-            {
-                await Resource.CopyToAsync(ms, cancellationToken);
-            }
-            finally
-            {
-                Resource.Seek(0, SeekOrigin.Begin);
-            }
-            return ms;
-        }
-    }
+        : StreamArtifactResourceInfo(Resource, Key, ContentType, Updated, Version);
 
     private class ResultStream : Stream
     {

@@ -38,10 +38,10 @@ public record ArtifactResourceInfo(ArtifactResourceKey Key, string? ContentType 
     /// <summary>
     /// Exports a resource.
     /// </summary>
+    /// <param name="targetStream">Stream to write resource contents to.</param>
     /// <param name="cancellationToken">Cancellation token.</param>
-    /// <returns>Task returning stream.</returns>
     /// <exception cref="NotSupportedException">Thrown if this instance cannot be exported.</exception>
-    public virtual ValueTask<Stream> ExportStreamAsync(CancellationToken cancellationToken = default)
+    public virtual ValueTask ExportStreamAsync(Stream targetStream, CancellationToken cancellationToken = default)
         => throw new NotSupportedException($"This is a raw instance of {nameof(ArtifactResourceInfo)} that is not exportable");
 
     /// <summary>

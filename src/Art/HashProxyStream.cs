@@ -3,7 +3,7 @@ using System.Security.Cryptography;
 namespace Art;
 
 /// <summary>
-/// Represents a read-only non-seekable proxy to another stream, sending data to a hash algorithm as data is read.
+/// Represents a non-seekable proxy to another stream, sending data to a hash algorithm as data is read or written.
 /// </summary>
 public sealed class HashProxyStream : Stream
 {
@@ -28,7 +28,6 @@ public sealed class HashProxyStream : Stream
     {
         _stream = stream ?? throw new ArgumentNullException(nameof(stream));
         _hashAlgorithm = hashAlgorithm ?? throw new ArgumentNullException(nameof(hashAlgorithm));
-        if (!_stream.CanRead) throw new ArgumentException("Stream must be readable", nameof(stream));
         if (_stream.CanSeek)
             try
             {
@@ -43,9 +42,10 @@ public sealed class HashProxyStream : Stream
     }
 
     /// <inheritdoc />
-    public override void Flush()
-    {
-    }
+    public override void Flush() => _stream.Flush();
+
+    /// <inheritdoc />
+    public override Task FlushAsync(CancellationToken cancellationToken) => _stream.FlushAsync(cancellationToken);
 
     private void UpdateHash(byte[] buffer, int offset, int count)
     {
@@ -73,22 +73,44 @@ public sealed class HashProxyStream : Stream
     }
 
     /// <inheritdoc />
+    public override async Task<int> ReadAsync(byte[] buffer, int offset, int count, CancellationToken cancellationToken)
+    {
+        int read = await _stream.ReadAsync(buffer, offset, count, cancellationToken);
+        _pos += read;
+        if (_hashComputed) return read;
+        if (read != 0) UpdateHash(buffer, offset, read);
+        else FinishHash();
+        return read;
+    }
+
+    /// <inheritdoc />
     public override long Seek(long offset, SeekOrigin origin) => throw new NotSupportedException();
 
     /// <inheritdoc />
     public override void SetLength(long value) => throw new NotSupportedException();
 
     /// <inheritdoc />
-    public override void Write(byte[] buffer, int offset, int count) => throw new NotSupportedException();
+    public override void Write(byte[] buffer, int offset, int count)
+    {
+        UpdateHash(buffer, offset, count);
+        _stream.Write(buffer, offset, count);
+    }
 
     /// <inheritdoc />
-    public override bool CanRead => true;
+    public override Task WriteAsync(byte[] buffer, int offset, int count, CancellationToken cancellationToken)
+    {
+        UpdateHash(buffer, offset, count);
+        return _stream.WriteAsync(buffer, offset, count, cancellationToken);
+    }
+
+    /// <inheritdoc />
+    public override bool CanRead => _stream.CanRead;
 
     /// <inheritdoc />
     public override bool CanSeek => false;
 
     /// <inheritdoc />
-    public override bool CanWrite => false;
+    public override bool CanWrite => _stream.CanWrite;
 
     /// <inheritdoc />
     public override long Length => _stream.CanSeek ? _stream.Length - _initPos : throw new NotSupportedException();

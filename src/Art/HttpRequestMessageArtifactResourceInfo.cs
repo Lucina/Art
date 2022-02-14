@@ -17,11 +17,8 @@ public record HttpRequestMessageArtifactResourceInfo(HttpArtifactTool ArtifactTo
     public override bool Exportable => true;
 
     /// <inheritdoc/>
-    public override async ValueTask<Stream> ExportStreamAsync(CancellationToken cancellationToken = default)
+    public override async ValueTask ExportStreamAsync(Stream targetStream, CancellationToken cancellationToken = default)
     {
-        Stream stream = new MemoryStream();
-        await ArtifactTool.DownloadResourceAsync(Request, stream, cancellationToken).ConfigureAwait(false);
-        stream.Position = 0;
-        return stream;
+        await ArtifactTool.DownloadResourceAsync(Request, targetStream, cancellationToken).ConfigureAwait(false);
     }
 }

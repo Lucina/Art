@@ -29,12 +29,10 @@ public record EncryptionInfo(CryptoAlgorithm Algorithm, ReadOnlyMemory<byte> Enc
     public static readonly ReadOnlyMemory<byte> Empty256 = new byte[256 / 8];
 
     /// <summary>
-    /// Decrypts a source stream.
+    /// Creates new instance of <see cref="SymmetricAlgorithm"/> configured for these encryption settings.
     /// </summary>
-    /// <param name="stream">Source stream.</param>
-    /// <param name="outStream">Output stream.</param>
-    /// <param name="cancellationToken">Cancellation token.</param>
-    public async Task DecryptStreamAsync(Stream stream, Stream outStream, CancellationToken cancellationToken = default)
+    /// <returns>Symmetric algorithm.</returns>
+    public SymmetricAlgorithm CreateSymmetricAlgorithm()
     {
         using SymmetricAlgorithm alg = Algorithm switch
         {
@@ -55,8 +53,6 @@ public record EncryptionInfo(CryptoAlgorithm Algorithm, ReadOnlyMemory<byte> Enc
         alg.Key = EncKey.ToArray();
         if (EncIv is { } encIv)
             alg.IV = encIv.ToArray();
-        using ICryptoTransform dec = alg.CreateDecryptor();
-        await using CryptoStream cryptoStream = new(stream, dec, CryptoStreamMode.Read, true);
-        await cryptoStream.CopyToAsync(outStream, cancellationToken).ConfigureAwait(false);
+        return alg;
     }
 }

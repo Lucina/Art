@@ -7,6 +7,7 @@ namespace Art;
 /// </summary>
 public abstract class ArtifactDataManager
 {
+    // TODO ADM output stream should be special stream type with IsWriteCompleted property (used in dispose to support file swapouts and less chance of losing old but good files)
     /// <summary>
     /// Creates an output stream for the specified resource.
     /// </summary>

@@ -5,21 +5,18 @@
 /// </summary>
 /// <param name="PaddingMode">Padding mode.</param>
 /// <param name="BaseArtifactResourceInfo">Base resource.</param>
-public record PaddedArtifactResourceInfo(PaddingMode PaddingMode, ArtifactResourceInfo BaseArtifactResourceInfo) : ArtifactResourceInfo(BaseArtifactResourceInfo.Key, BaseArtifactResourceInfo.ContentType, BaseArtifactResourceInfo.Updated, BaseArtifactResourceInfo.Version,BaseArtifactResourceInfo.Checksum)
+public record PaddedArtifactResourceInfo(PaddingMode PaddingMode, ArtifactResourceInfo BaseArtifactResourceInfo) : ArtifactResourceInfo(BaseArtifactResourceInfo.Key, BaseArtifactResourceInfo.ContentType, BaseArtifactResourceInfo.Updated, BaseArtifactResourceInfo.Version, BaseArtifactResourceInfo.Checksum)
 {
     /// <inheritdoc/>
     public override bool Exportable => BaseArtifactResourceInfo.Exportable;
 
     /// <inheritdoc/>
-    public override async ValueTask<Stream> ExportStreamAsync(CancellationToken cancellationToken = default)
+    public override async ValueTask ExportStreamAsync(Stream targetStream, CancellationToken cancellationToken = default)
     {
-        await using Stream baseStream = await BaseArtifactResourceInfo.ExportStreamAsync(cancellationToken).ConfigureAwait(false);
         MemoryStream stream = new();
-        await baseStream.CopyToAsync(stream, cancellationToken);
-        stream.Position = 0;
-        if (!stream.TryGetBuffer(out ArraySegment<byte> buf)) throw new InvalidOperationException("unpoggers");
-        stream.SetLength(Padding.GetDepaddedLength(buf, PaddingMode));
-        return stream;
+        await BaseArtifactResourceInfo.ExportStreamAsync(stream, cancellationToken).ConfigureAwait(false);
+        if (!stream.TryGetBuffer(out ArraySegment<byte> buf) || buf.Array == null) throw new InvalidOperationException("unpoggers");
+        await targetStream.WriteAsync(buf.Array, 0, Padding.GetDepaddedLength(buf, PaddingMode), cancellationToken).ConfigureAwait(false);
     }
 
     /// <inheritdoc/>

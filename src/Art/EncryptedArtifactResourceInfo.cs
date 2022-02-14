@@ -1,4 +1,6 @@
-﻿namespace Art;
+﻿using System.Security.Cryptography;
+
+namespace Art;
 
 /// <summary>
 /// Represents an encrypted resource.
@@ -12,13 +14,13 @@ public record EncryptedArtifactResourceInfo(EncryptionInfo EncryptionInfo, Artif
     public override bool Exportable => BaseArtifactResourceInfo.Exportable;
 
     /// <inheritdoc/>
-    public override async ValueTask<Stream> ExportStreamAsync(CancellationToken cancellationToken = default)
+    public override async ValueTask ExportStreamAsync(Stream targetStream, CancellationToken cancellationToken = default)
     {
-        await using Stream baseStream = await BaseArtifactResourceInfo.ExportStreamAsync(cancellationToken).ConfigureAwait(false);
-        Stream stream = new MemoryStream();
-        await EncryptionInfo.DecryptStreamAsync(baseStream, stream, cancellationToken).ConfigureAwait(false);
-        stream.Position = 0;
-        return stream;
+        using SymmetricAlgorithm algorithm = EncryptionInfo.CreateSymmetricAlgorithm();
+        await using CryptoStream cs = new(targetStream, algorithm.CreateDecryptor(), CryptoStreamMode.Write, true);
+        await BaseArtifactResourceInfo.ExportStreamAsync(cs, cancellationToken).ConfigureAwait(false);
+        // crypto stream flushes on dispose, but do this too to be like... more sure
+        if (!cs.HasFlushedFinalBlock) await cs.FlushFinalBlockAsync(cancellationToken).ConfigureAwait(false);
     }
 
     /// <inheritdoc/>
@@ -28,6 +30,13 @@ public record EncryptedArtifactResourceInfo(EncryptionInfo EncryptionInfo, Artif
     public override async ValueTask<ArtifactResourceInfo> WithMetadataAsync(CancellationToken cancellationToken = default)
     {
         ArtifactResourceInfo b = await BaseArtifactResourceInfo.WithMetadataAsync(cancellationToken);
-        return this with { BaseArtifactResourceInfo = b, ContentType = b.ContentType, Updated = b.Updated, Version = b.Version, Checksum = b.Checksum};
+        return this with
+        {
+            BaseArtifactResourceInfo = b,
+            ContentType = b.ContentType,
+            Updated = b.Updated,
+            Version = b.Version,
+            Checksum = b.Checksum
+        };
     }
 }

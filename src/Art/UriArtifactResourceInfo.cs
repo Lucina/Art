@@ -19,12 +19,9 @@ public record UriArtifactResourceInfo(HttpArtifactTool ArtifactTool, Uri Uri, st
     public override bool Exportable => true;
 
     /// <inheritdoc/>
-    public override async ValueTask<Stream> ExportStreamAsync(CancellationToken cancellationToken = default)
+    public override async ValueTask ExportStreamAsync(Stream targetStream, CancellationToken cancellationToken = default)
     {
-        Stream stream = new MemoryStream();
-        await ArtifactTool.DownloadResourceAsync(Uri, stream, Origin, Referrer, cancellationToken).ConfigureAwait(false);
-        stream.Position = 0;
-        return stream;
+        await ArtifactTool.DownloadResourceAsync(Uri, targetStream, Origin, Referrer, cancellationToken).ConfigureAwait(false);
     }
 
     /// <inheritdoc/>

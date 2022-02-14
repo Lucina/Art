@@ -16,6 +16,16 @@ public record StreamArtifactResourceInfo(Stream Resource, ArtifactResourceKey Ke
     public override bool Exportable => true;
 
     /// <inheritdoc/>
-    public override ValueTask<Stream> ExportStreamAsync(CancellationToken cancellationToken = default)
-        => ValueTask.FromResult(Resource);
+    public override async ValueTask ExportStreamAsync(Stream targetStream, CancellationToken cancellationToken = default)
+    {
+        long? position = Resource.CanSeek ? Resource.Position : null;
+        try
+        {
+            await Resource.CopyToAsync(targetStream, cancellationToken).ConfigureAwait(false);
+        }
+        finally
+        {
+            if (position is { } p) Resource.Position = p;
+        }
+    }
 }

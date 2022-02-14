@@ -155,9 +155,8 @@ public class M3UDownloaderContext
                 _ => throw new InvalidDataException()
             }, ari);
         }
-        await using (Stream iStream = await ari.ExportStreamAsync(cancellationToken))
         await using (Stream oStream = await Tool.DataManager.CreateOutputStreamAsync(ark, cancellationToken))
-            await iStream.CopyToAsync(oStream, cancellationToken);
+            await ari.ExportStreamAsync(oStream, cancellationToken).ConfigureAwait(false);
         await Tool.AddResourceAsync(ari, cancellationToken);
     }
 

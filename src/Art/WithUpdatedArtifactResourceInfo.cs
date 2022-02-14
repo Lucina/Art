@@ -11,8 +11,8 @@ public record WithUpdatedArtifactResourceInfo(DateTimeOffset? UpdatedValue, Arti
     public override bool Exportable => BaseArtifactResourceInfo.Exportable;
 
     /// <inheritdoc/>
-    public override ValueTask<Stream> ExportStreamAsync(CancellationToken cancellationToken = default)
-        => BaseArtifactResourceInfo.ExportStreamAsync(cancellationToken);
+    public override ValueTask ExportStreamAsync(Stream targetStream, CancellationToken cancellationToken = default)
+        => BaseArtifactResourceInfo.ExportStreamAsync(targetStream, cancellationToken);
 
     /// <inheritdoc/>
     public override bool UsesMetadata => BaseArtifactResourceInfo.UsesMetadata;

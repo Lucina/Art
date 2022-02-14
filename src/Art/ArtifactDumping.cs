@@ -142,9 +142,9 @@ public static class ArtifactDumping
             await using Stream stream = await artifactTool.CreateOutputStreamAsync(versionedResource.Key, cancellationToken).ConfigureAwait(false);
             if (checksumId != null && ChecksumSource.TryGetHashAlgorithm(checksumId, out HashAlgorithm? algorithm))
             {
-                await using Stream dataStream = await versionedResource.ExportStreamAsync(cancellationToken).ConfigureAwait(false);
                 // Take this opportunity to hash the resource.
-                await using HashProxyStream hps = new(dataStream, algorithm, true);
+                await using HashProxyStream hps = new(stream, algorithm, true);
+                await versionedResource.ExportStreamAsync(hps, cancellationToken).ConfigureAwait(false);
                 await hps.CopyToAsync(stream, cancellationToken).ConfigureAwait(false);
                 Checksum newChecksum = new(checksumId, hps.GetHash());
                 if (!Checksum.DatawiseEquals(newChecksum, versionedResource.Checksum))
@@ -155,8 +155,7 @@ public static class ArtifactDumping
             }
             else if (stream is not SinkStream) // if target output were a sink stream and hash isn't needed, then just don't bother exporting
             {
-                await using Stream dataStream = await versionedResource.ExportStreamAsync(cancellationToken).ConfigureAwait(false);
-                await dataStream.CopyToAsync(stream, cancellationToken).ConfigureAwait(false);
+                await versionedResource.ExportStreamAsync(stream, cancellationToken).ConfigureAwait(false);
             }
         }
         logHandler?.Log(artifactTool.Profile.Tool, artifactTool.Profile.Group, $"-- {((rF & ItemStateFlags.NewerIdentityMask) != 0 ? "[NEW] " : "")}{versionedResource.GetInfoPathString()}", versionedResource.GetInfoString(), LogLevel.Entry);
