@@ -17,6 +17,23 @@ public abstract class HttpArtifactTool : ArtifactTool
     public const string OptCookieFile = "cookieFile";
 
     /// <summary>
+    /// HTTP cookie container used by this instance.
+    /// </summary>
+    public CookieContainer CookieContainer
+    {
+        get
+        {
+            NotDisposed();
+            return _cookieContainer;
+        }
+        set
+        {
+            NotDisposed();
+            _cookieContainer = value;
+        }
+    }
+
+    /// <summary>
     /// HTTP client used by this instance.
     /// </summary>
     public HttpClient HttpClient
@@ -59,6 +76,8 @@ public abstract class HttpArtifactTool : ArtifactTool
 
     #region Private fields
 
+    private CookieContainer _cookieContainer = null!;
+
     private HttpClient _httpClient = null!;
 
     private HttpMessageHandler _httpMessageHandler = null!;
@@ -72,8 +91,8 @@ public abstract class HttpArtifactTool : ArtifactTool
     /// <inheritdoc/>
     public override Task ConfigureAsync(CancellationToken cancellationToken = default)
     {
-        CookieContainer cookies = CreateCookieContainer();
-        _httpMessageHandler = CreateHttpMessageHandler(cookies);
+        _cookieContainer = CreateCookieContainer();
+        _httpMessageHandler = CreateHttpMessageHandler();
         _httpClient = CreateHttpClient(_httpMessageHandler);
         _httpClient.DefaultRequestHeaders.UserAgent.TryParseAdd(DefaultUserAgent);
         return Task.CompletedTask;
@@ -97,11 +116,10 @@ public abstract class HttpArtifactTool : ArtifactTool
     }
 
     /// <summary>
-    /// Creates an <see cref="HttpMessageHandler"/> instance configured to use the specified cookies.
+    /// Creates an <see cref="HttpMessageHandler"/> instance.
     /// </summary>
-    /// <param name="cookies"></param>
     /// <returns>Cookie container.</returns>
-    public virtual HttpMessageHandler CreateHttpMessageHandler(CookieContainer cookies) => new HttpClientHandler { AutomaticDecompression = DecompressionMethods.All, CookieContainer = cookies };
+    public virtual HttpMessageHandler CreateHttpMessageHandler() => new HttpClientHandler { AutomaticDecompression = DecompressionMethods.All, CookieContainer = _cookieContainer };
 
     /// <summary>
     /// Creates an <see cref="System.Net.Http.HttpClient"/> instance configured to use the specified message handler.
