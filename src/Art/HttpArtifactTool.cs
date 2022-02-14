@@ -34,19 +34,19 @@ public abstract class HttpArtifactTool : ArtifactTool
     }
 
     /// <summary>
-    /// Http client handler for <see cref="HttpClient"/>.
+    /// Http message handler for <see cref="HttpClient"/>.
     /// </summary>
-    public HttpClientHandler HttpClientHandler
+    public HttpMessageHandler HttpMessageHandler
     {
         get
         {
             NotDisposed();
-            return _httpClientHandler;
+            return _httpMessageHandler;
         }
         set
         {
             NotDisposed();
-            _httpClientHandler = value;
+            _httpMessageHandler = value;
         }
     }
 
@@ -61,7 +61,7 @@ public abstract class HttpArtifactTool : ArtifactTool
 
     private HttpClient _httpClient = null!;
 
-    private HttpClientHandler _httpClientHandler = null!;
+    private HttpMessageHandler _httpMessageHandler = null!;
 
     private bool _disposed;
 
@@ -73,8 +73,8 @@ public abstract class HttpArtifactTool : ArtifactTool
     public override Task ConfigureAsync(CancellationToken cancellationToken = default)
     {
         CookieContainer cookies = CreateCookieContainer();
-        _httpClientHandler = CreateHttpClientHandler(cookies);
-        _httpClient = CreateHttpClient(_httpClientHandler);
+        _httpMessageHandler = CreateHttpMessageHandler(cookies);
+        _httpClient = CreateHttpClient(_httpMessageHandler);
         _httpClient.DefaultRequestHeaders.UserAgent.TryParseAdd(DefaultUserAgent);
         return Task.CompletedTask;
     }
@@ -97,19 +97,18 @@ public abstract class HttpArtifactTool : ArtifactTool
     }
 
     /// <summary>
-    /// Creates an <see cref="HttpClientHandler"/> instance configured to use the specified cookies.
+    /// Creates an <see cref="HttpMessageHandler"/> instance configured to use the specified cookies.
     /// </summary>
     /// <param name="cookies"></param>
-    /// <returns></returns>
-    public virtual HttpClientHandler CreateHttpClientHandler(CookieContainer cookies) => new() { AutomaticDecompression = DecompressionMethods.All, CookieContainer = cookies };
+    /// <returns>Cookie container.</returns>
+    public virtual HttpMessageHandler CreateHttpMessageHandler(CookieContainer cookies) => new HttpClientHandler { AutomaticDecompression = DecompressionMethods.All, CookieContainer = cookies };
 
     /// <summary>
-    /// Creates an <see cref="System.Net.Http.HttpClient"/> instance configured to use the specified client handler.
+    /// Creates an <see cref="System.Net.Http.HttpClient"/> instance configured to use the specified message handler.
     /// </summary>
-    /// <param name="httpClientHandler">Client handler.</param>
+    /// <param name="httpMessageHandler">HTTP message handler.</param>
     /// <returns>Configured HTTP client.</returns>
-    public virtual HttpClient CreateHttpClient(HttpClientHandler httpClientHandler)
-        => new(httpClientHandler);
+    public virtual HttpClient CreateHttpClient(HttpMessageHandler httpMessageHandler) => new(httpMessageHandler);
 
     #endregion
 
@@ -124,7 +123,7 @@ public abstract class HttpArtifactTool : ArtifactTool
     /// <param name="origin">Request origin.</param>
     /// <param name="referrer">Request referrer.</param>
     /// <param name="cancellationToken">Cancellation token.</param>
-    /// <returns>Task returning reponse (status left unchecked).</returns>
+    /// <returns>Task returning response (status left unchecked).</returns>
     public async Task<HttpResponseMessage> HeadAsync(string requestUri, string? origin = null, string? referrer = null, CancellationToken cancellationToken = default)
     {
         NotDisposed();
@@ -141,7 +140,7 @@ public abstract class HttpArtifactTool : ArtifactTool
     /// <param name="origin">Request origin.</param>
     /// <param name="referrer">Request referrer.</param>
     /// <param name="cancellationToken">Cancellation token.</param>
-    /// <returns>Task returning reponse (status left unchecked).</returns>
+    /// <returns>Task returning response (status left unchecked).</returns>
     public async Task<HttpResponseMessage> HeadAsync(Uri requestUri, string? origin = null, string? referrer = null, CancellationToken cancellationToken = default)
     {
         NotDisposed();
@@ -158,14 +157,14 @@ public abstract class HttpArtifactTool : ArtifactTool
     /// <param name="origin">Request origin.</param>
     /// <param name="referrer">Request referrer.</param>
     /// <param name="cancellationToken">Cancellation token.</param>
-    /// <returns>Task returning reponse (status left unchecked).</returns>
+    /// <returns>Task returning response (status left unchecked).</returns>
     public async Task<HttpResponseMessage> GetAsync(string requestUri, string? origin = null, string? referrer = null, CancellationToken cancellationToken = default)
     {
         NotDisposed();
         HttpRequestMessage req = new(HttpMethod.Get, requestUri);
         SetOriginAndReferrer(req, origin, referrer);
         ConfigureHttpRequest(req);
-        return await HttpClient.SendAsync(req, cancellationToken).ConfigureAwait(false);
+        return await HttpClient.SendAsync(req, GenericCompletionOption, cancellationToken).ConfigureAwait(false);
     }
 
     /// <summary>
@@ -175,14 +174,14 @@ public abstract class HttpArtifactTool : ArtifactTool
     /// <param name="origin">Request origin.</param>
     /// <param name="referrer">Request referrer.</param>
     /// <param name="cancellationToken">Cancellation token.</param>
-    /// <returns>Task returning reponse (status left unchecked).</returns>
+    /// <returns>Task returning response (status left unchecked).</returns>
     public async Task<HttpResponseMessage> GetAsync(Uri requestUri, string? origin = null, string? referrer = null, CancellationToken cancellationToken = default)
     {
         NotDisposed();
         HttpRequestMessage req = new(HttpMethod.Get, requestUri);
         SetOriginAndReferrer(req, origin, referrer);
         ConfigureHttpRequest(req);
-        return await HttpClient.SendAsync(req, cancellationToken).ConfigureAwait(false);
+        return await HttpClient.SendAsync(req, GenericCompletionOption, cancellationToken).ConfigureAwait(false);
     }
 
     /// <summary>
@@ -190,11 +189,11 @@ public abstract class HttpArtifactTool : ArtifactTool
     /// </summary>
     /// <param name="requestMessage">Request.</param>
     /// <param name="cancellationToken">Cancellation token.</param>
-    /// <returns>Task returning reponse (status left unchecked).</returns>
+    /// <returns>Task returning response (status left unchecked).</returns>
     public async Task<HttpResponseMessage> SendAsync(HttpRequestMessage requestMessage, CancellationToken cancellationToken = default)
     {
         NotDisposed();
-        return await HttpClient.SendAsync(requestMessage, cancellationToken).ConfigureAwait(false);
+        return await HttpClient.SendAsync(requestMessage, GenericCompletionOption, cancellationToken).ConfigureAwait(false);
     }
 
     /// <summary>
@@ -207,6 +206,29 @@ public abstract class HttpArtifactTool : ArtifactTool
         request.Headers.AcceptEncoding.Add(new StringWithQualityHeaderValue("deflate"));
         request.Headers.AcceptEncoding.Add(new StringWithQualityHeaderValue("br"));
     }
+
+    /// <summary>
+    /// Sets origin and referrer on a request.
+    /// </summary>
+    /// <param name="request">Request to configure.</param>
+    /// <param name="origin">Request origin.</param>
+    /// <param name="referrer">Request referrer.</param>
+    public static void SetOriginAndReferrer(HttpRequestMessage request, string? origin, string? referrer)
+    {
+        if (referrer != null) SetOriginAndReferrer(request, new Uri(referrer));
+        else if (origin != null) SetOriginAndReferrer(request, new Uri(origin));
+    }
+
+    private static void SetOriginAndReferrer(HttpRequestMessage request, Uri uri)
+    {
+        request.Headers.Add("origin", uri.GetComponents(UriComponents.SchemeAndServer, UriFormat.UriEscaped));
+        request.Headers.Referrer = uri;
+    }
+
+    /// <summary>
+    /// Default <see cref="HttpCompletionOption"/> for generic requests.
+    /// </summary>
+    public virtual HttpCompletionOption GenericCompletionOption => HttpCompletionOption.ResponseContentRead;
 
     #endregion
 
@@ -230,7 +252,7 @@ public abstract class HttpArtifactTool : ArtifactTool
         HttpRequestMessage req = new(HttpMethod.Get, requestUri);
         SetOriginAndReferrer(req, origin, referrer);
         ConfigureJsonRequest(req);
-        using HttpResponseMessage res = await HttpClient.SendAsync(req, cancellationToken).ConfigureAwait(false);
+        using HttpResponseMessage res = await HttpClient.SendAsync(req, JsonCompletionOption, cancellationToken).ConfigureAwait(false);
         res.EnsureSuccessStatusCode();
         return await DeserializeJsonWithDebugAsync<T>(res, cancellationToken).ConfigureAwait(false);
     }
@@ -249,7 +271,7 @@ public abstract class HttpArtifactTool : ArtifactTool
     /// </remarks>
     public async Task<T> GetDeserializedRequiredJsonAsync<T>(string requestUri, string? origin = null, string? referrer = null, CancellationToken cancellationToken = default)
     {
-        return (await GetDeserializedJsonAsync<T>(requestUri, origin, referrer, cancellationToken).ConfigureAwait(false)) ?? throw new NullJsonDataException();
+        return await GetDeserializedJsonAsync<T>(requestUri, origin, referrer, cancellationToken).ConfigureAwait(false) ?? throw new NullJsonDataException();
     }
 
     /// <summary>
@@ -268,9 +290,9 @@ public abstract class HttpArtifactTool : ArtifactTool
         HttpRequestMessage req = new(HttpMethod.Get, requestUri);
         SetOriginAndReferrer(req, origin, referrer);
         ConfigureJsonRequest(req);
-        using HttpResponseMessage res = await HttpClient.SendAsync(req, cancellationToken).ConfigureAwait(false);
+        using HttpResponseMessage res = await HttpClient.SendAsync(req, JsonCompletionOption, cancellationToken).ConfigureAwait(false);
         res.EnsureSuccessStatusCode();
-        return await DeserializeJsonWithDebugAsync<T>(res, cancellationToken).ConfigureAwait(false);
+        return await DeserializeJsonWithDebugAsync<T>(res, jsonSerializerOptions, cancellationToken).ConfigureAwait(false);
     }
 
     /// <summary>
@@ -285,7 +307,7 @@ public abstract class HttpArtifactTool : ArtifactTool
     /// <returns>Task returning deserialized data.</returns>
     public async Task<T> GetDeserializedRequiredJsonAsync<T>(string requestUri, JsonSerializerOptions? jsonSerializerOptions, string? origin = null, string? referrer = null, CancellationToken cancellationToken = default)
     {
-        return (await GetDeserializedJsonAsync<T>(requestUri, jsonSerializerOptions, origin, referrer, cancellationToken).ConfigureAwait(false)) ?? throw new NullJsonDataException();
+        return await GetDeserializedJsonAsync<T>(requestUri, jsonSerializerOptions, origin, referrer, cancellationToken).ConfigureAwait(false) ?? throw new NullJsonDataException();
     }
 
     /// <summary>
@@ -306,7 +328,7 @@ public abstract class HttpArtifactTool : ArtifactTool
         HttpRequestMessage req = new(HttpMethod.Get, requestUri);
         SetOriginAndReferrer(req, origin, referrer);
         ConfigureJsonRequest(req);
-        using HttpResponseMessage res = await HttpClient.SendAsync(req, cancellationToken).ConfigureAwait(false);
+        using HttpResponseMessage res = await HttpClient.SendAsync(req, JsonCompletionOption, cancellationToken).ConfigureAwait(false);
         res.EnsureSuccessStatusCode();
         return await DeserializeJsonWithDebugAsync<T>(res, cancellationToken).ConfigureAwait(false);
     }
@@ -325,7 +347,7 @@ public abstract class HttpArtifactTool : ArtifactTool
     /// </remarks>
     public async Task<T> GetDeserializedRequiredJsonAsync<T>(Uri requestUri, string? origin = null, string? referrer = null, CancellationToken cancellationToken = default)
     {
-        return (await GetDeserializedJsonAsync<T>(requestUri, origin, referrer, cancellationToken).ConfigureAwait(false)) ?? throw new NullJsonDataException();
+        return await GetDeserializedJsonAsync<T>(requestUri, origin, referrer, cancellationToken).ConfigureAwait(false) ?? throw new NullJsonDataException();
     }
 
     /// <summary>
@@ -344,7 +366,7 @@ public abstract class HttpArtifactTool : ArtifactTool
         HttpRequestMessage req = new(HttpMethod.Get, requestUri);
         SetOriginAndReferrer(req, origin, referrer);
         ConfigureJsonRequest(req);
-        using HttpResponseMessage res = await HttpClient.SendAsync(req, cancellationToken).ConfigureAwait(false);
+        using HttpResponseMessage res = await HttpClient.SendAsync(req, JsonCompletionOption, cancellationToken).ConfigureAwait(false);
         res.EnsureSuccessStatusCode();
         return await DeserializeJsonWithDebugAsync<T>(res, cancellationToken).ConfigureAwait(false);
     }
@@ -361,7 +383,7 @@ public abstract class HttpArtifactTool : ArtifactTool
     /// <returns>Task returning deserialized data.</returns>
     public async Task<T> GetDeserializedRequiredJsonAsync<T>(Uri requestUri, JsonSerializerOptions? jsonSerializerOptions, string? origin = null, string? referrer = null, CancellationToken cancellationToken = default)
     {
-        return (await GetDeserializedJsonAsync<T>(requestUri, jsonSerializerOptions, origin, referrer, cancellationToken).ConfigureAwait(false)) ?? throw new NullJsonDataException();
+        return await GetDeserializedJsonAsync<T>(requestUri, jsonSerializerOptions, origin, referrer, cancellationToken).ConfigureAwait(false) ?? throw new NullJsonDataException();
     }
 
     /// <summary>
@@ -377,9 +399,9 @@ public abstract class HttpArtifactTool : ArtifactTool
     public async Task<T?> RetrieveDeserializedJsonAsync<T>(HttpRequestMessage requestMessage, CancellationToken cancellationToken = default)
     {
         NotDisposed();
-        using HttpResponseMessage res = await HttpClient.SendAsync(requestMessage, cancellationToken).ConfigureAwait(false);
+        using HttpResponseMessage res = await HttpClient.SendAsync(requestMessage, JsonCompletionOption, cancellationToken).ConfigureAwait(false);
         res.EnsureSuccessStatusCode();
-        return (await DeserializeJsonAsync<T>(await res.Content.ReadAsStreamAsync(cancellationToken).ConfigureAwait(false), JsonOptions, cancellationToken).ConfigureAwait(false));
+        return await DeserializeJsonAsync<T>(await res.Content.ReadAsStreamAsync(cancellationToken).ConfigureAwait(false), JsonOptions, cancellationToken).ConfigureAwait(false);
     }
 
     /// <summary>
@@ -394,7 +416,7 @@ public abstract class HttpArtifactTool : ArtifactTool
     /// </remarks>
     public async Task<T> RetrieveDeserializedRequiredJsonAsync<T>(HttpRequestMessage requestMessage, CancellationToken cancellationToken = default)
     {
-        return (await RetrieveDeserializedJsonAsync<T>(requestMessage, cancellationToken).ConfigureAwait(false)) ?? throw new NullJsonDataException();
+        return await RetrieveDeserializedJsonAsync<T>(requestMessage, cancellationToken).ConfigureAwait(false) ?? throw new NullJsonDataException();
     }
 
     /// <summary>
@@ -408,9 +430,9 @@ public abstract class HttpArtifactTool : ArtifactTool
     public async Task<T?> RetrieveDeserializedJsonAsync<T>(HttpRequestMessage requestMessage, JsonSerializerOptions? jsonSerializerOptions, CancellationToken cancellationToken = default)
     {
         NotDisposed();
-        using HttpResponseMessage res = await HttpClient.SendAsync(requestMessage, cancellationToken).ConfigureAwait(false);
+        using HttpResponseMessage res = await HttpClient.SendAsync(requestMessage, JsonCompletionOption, cancellationToken).ConfigureAwait(false);
         res.EnsureSuccessStatusCode();
-        return (await DeserializeJsonAsync<T>(await res.Content.ReadAsStreamAsync(cancellationToken).ConfigureAwait(false), jsonSerializerOptions, cancellationToken).ConfigureAwait(false));
+        return await DeserializeJsonAsync<T>(await res.Content.ReadAsStreamAsync(cancellationToken).ConfigureAwait(false), jsonSerializerOptions, cancellationToken).ConfigureAwait(false);
     }
 
     /// <summary>
@@ -423,7 +445,7 @@ public abstract class HttpArtifactTool : ArtifactTool
     /// <returns>Task returning deserialized data.</returns>
     public async Task<T> RetrieveDeserializedRequiredJsonAsync<T>(HttpRequestMessage requestMessage, JsonSerializerOptions? jsonSerializerOptions, CancellationToken cancellationToken = default)
     {
-        return (await RetrieveDeserializedJsonAsync<T>(requestMessage, jsonSerializerOptions, cancellationToken).ConfigureAwait(false)) ?? throw new NullJsonDataException();
+        return await RetrieveDeserializedJsonAsync<T>(requestMessage, jsonSerializerOptions, cancellationToken).ConfigureAwait(false) ?? throw new NullJsonDataException();
     }
 
     /// <summary>
@@ -465,12 +487,9 @@ public abstract class HttpArtifactTool : ArtifactTool
         response.EnsureSuccessStatusCode();
         if (!DebugMode)
             return await DeserializeJsonAsync<T>(await response.Content.ReadAsStreamAsync(cancellationToken).ConfigureAwait(false), jsonSerializerOptions, cancellationToken).ConfigureAwait(false);
-        else
-        {
-            string text = await response.Content.ReadAsStringAsync(cancellationToken).ConfigureAwait(false);
-            LogInformation($"JSON from {response.RequestMessage?.RequestUri?.ToString() ?? "unknown request"}", text);
-            return DeserializeJson<T>(text, jsonSerializerOptions);
-        }
+        string text = await response.Content.ReadAsStringAsync(cancellationToken).ConfigureAwait(false);
+        LogInformation($"JSON from {response.RequestMessage?.RequestUri?.ToString() ?? "unknown request"}", text);
+        return DeserializeJson<T>(text, jsonSerializerOptions);
     }
 
     /// <summary>
@@ -486,28 +505,9 @@ public abstract class HttpArtifactTool : ArtifactTool
         response.EnsureSuccessStatusCode();
         if (!DebugMode)
             return await DeserializeRequiredJsonAsync<T>(await response.Content.ReadAsStreamAsync(cancellationToken).ConfigureAwait(false), jsonSerializerOptions, cancellationToken).ConfigureAwait(false);
-        else
-        {
-            string text = await response.Content.ReadAsStringAsync(cancellationToken).ConfigureAwait(false);
-            LogInformation($"JSON from {response.RequestMessage?.RequestUri?.ToString() ?? "unknown request"}", text);
-            return DeserializeRequiredJson<T>(text, jsonSerializerOptions);
-        }
-    }
-
-    /// <summary>
-    /// Sets origin and referrer on a request.
-    /// </summary>
-    /// <param name="request">Request to configure.</param>
-    /// <param name="origin">Request origin.</param>
-    /// <param name="referrer">Request referrer.</param>
-    public static void SetOriginAndReferrer(HttpRequestMessage request, string? origin, string? referrer)
-    {
-        if (origin != null)
-            request.Headers.Add("origin", referrer ?? origin);
-        if (referrer != null)
-            request.Headers.Referrer = new(referrer);
-        else if (origin != null)
-            request.Headers.Referrer = new(origin);
+        string text = await response.Content.ReadAsStringAsync(cancellationToken).ConfigureAwait(false);
+        LogInformation($"JSON from {response.RequestMessage?.RequestUri?.ToString() ?? "unknown request"}", text);
+        return DeserializeRequiredJson<T>(text, jsonSerializerOptions);
     }
 
     /// <summary>
@@ -523,6 +523,11 @@ public abstract class HttpArtifactTool : ArtifactTool
         request.Headers.AcceptLanguage.Add(new StringWithQualityHeaderValue("en-US"));
         request.Headers.AcceptLanguage.Add(new StringWithQualityHeaderValue("en", 0.9));
     }
+
+    /// <summary>
+    /// Default <see cref="HttpCompletionOption"/> for JSON requests.
+    /// </summary>
+    public virtual HttpCompletionOption JsonCompletionOption => HttpCompletionOption.ResponseContentRead;
 
     #endregion
 
@@ -545,7 +550,7 @@ public abstract class HttpArtifactTool : ArtifactTool
         HttpRequestMessage req = new(HttpMethod.Get, requestUri);
         SetOriginAndReferrer(req, origin, referrer);
         ConfigureHttpRequest(req);
-        using HttpResponseMessage fr = await HttpClient.SendAsync(req, cancellationToken).ConfigureAwait(false);
+        using HttpResponseMessage fr = await HttpClient.SendAsync(req, DownloadCompletionOption, cancellationToken).ConfigureAwait(false);
         fr.EnsureSuccessStatusCode();
         await fr.Content.CopyToAsync(stream, cancellationToken).ConfigureAwait(false);
     }
@@ -565,7 +570,7 @@ public abstract class HttpArtifactTool : ArtifactTool
         HttpRequestMessage req = new(HttpMethod.Get, requestUri);
         SetOriginAndReferrer(req, origin, referrer);
         ConfigureHttpRequest(req);
-        using HttpResponseMessage fr = await HttpClient.SendAsync(req, cancellationToken).ConfigureAwait(false);
+        using HttpResponseMessage fr = await HttpClient.SendAsync(req, DownloadCompletionOption, cancellationToken).ConfigureAwait(false);
         fr.EnsureSuccessStatusCode();
         await using Stream stream = await CreateOutputStreamAsync(key, cancellationToken).ConfigureAwait(false);
         await fr.Content.CopyToAsync(stream, cancellationToken).ConfigureAwait(false);
@@ -600,7 +605,7 @@ public abstract class HttpArtifactTool : ArtifactTool
         HttpRequestMessage req = new(HttpMethod.Get, requestUri);
         SetOriginAndReferrer(req, origin, referrer);
         ConfigureHttpRequest(req);
-        using HttpResponseMessage fr = await HttpClient.SendAsync(req, cancellationToken).ConfigureAwait(false);
+        using HttpResponseMessage fr = await HttpClient.SendAsync(req, DownloadCompletionOption, cancellationToken).ConfigureAwait(false);
         fr.EnsureSuccessStatusCode();
         await fr.Content.CopyToAsync(stream, cancellationToken).ConfigureAwait(false);
     }
@@ -620,7 +625,7 @@ public abstract class HttpArtifactTool : ArtifactTool
         HttpRequestMessage req = new(HttpMethod.Get, requestUri);
         SetOriginAndReferrer(req, origin, referrer);
         ConfigureHttpRequest(req);
-        using HttpResponseMessage fr = await HttpClient.SendAsync(req, cancellationToken).ConfigureAwait(false);
+        using HttpResponseMessage fr = await HttpClient.SendAsync(req, DownloadCompletionOption, cancellationToken).ConfigureAwait(false);
         fr.EnsureSuccessStatusCode();
         await using Stream stream = await CreateOutputStreamAsync(key, cancellationToken).ConfigureAwait(false);
         await fr.Content.CopyToAsync(stream, cancellationToken).ConfigureAwait(false);
@@ -650,7 +655,7 @@ public abstract class HttpArtifactTool : ArtifactTool
     public async Task DownloadResourceAsync(HttpRequestMessage requestMessage, Stream stream, CancellationToken cancellationToken = default)
     {
         NotDisposed();
-        using HttpResponseMessage fr = await HttpClient.SendAsync(requestMessage, cancellationToken).ConfigureAwait(false);
+        using HttpResponseMessage fr = await HttpClient.SendAsync(requestMessage, DownloadCompletionOption, cancellationToken).ConfigureAwait(false);
         fr.EnsureSuccessStatusCode();
         await fr.Content.CopyToAsync(stream, cancellationToken).ConfigureAwait(false);
     }
@@ -665,7 +670,7 @@ public abstract class HttpArtifactTool : ArtifactTool
     public async Task DownloadResourceAsync(HttpRequestMessage requestMessage, ArtifactResourceKey key, CancellationToken cancellationToken = default)
     {
         NotDisposed();
-        using HttpResponseMessage fr = await HttpClient.SendAsync(requestMessage, cancellationToken).ConfigureAwait(false);
+        using HttpResponseMessage fr = await HttpClient.SendAsync(requestMessage, DownloadCompletionOption, cancellationToken).ConfigureAwait(false);
         fr.EnsureSuccessStatusCode();
         await using Stream stream = await CreateOutputStreamAsync(key, cancellationToken).ConfigureAwait(false);
         await fr.Content.CopyToAsync(stream, cancellationToken).ConfigureAwait(false);
@@ -682,6 +687,11 @@ public abstract class HttpArtifactTool : ArtifactTool
     /// <returns>Task.</returns>
     public Task DownloadResourceAsync(HttpRequestMessage requestMessage, string file, ArtifactKey key, string path = "", CancellationToken cancellationToken = default)
         => DownloadResourceAsync(requestMessage, new ArtifactResourceKey(key, file, path), cancellationToken);
+
+    /// <summary>
+    /// Default <see cref="HttpCompletionOption"/> for download requests.
+    /// </summary>
+    public virtual HttpCompletionOption DownloadCompletionOption => HttpCompletionOption.ResponseHeadersRead;
 
     #endregion
 
@@ -706,7 +716,7 @@ public abstract class HttpArtifactTool : ArtifactTool
                 }
                 try
                 {
-                    _httpClientHandler.Dispose();
+                    _httpMessageHandler.Dispose();
                 }
                 catch
                 {
@@ -717,7 +727,7 @@ public abstract class HttpArtifactTool : ArtifactTool
             // free unmanaged resources (unmanaged objects) and override finalizer
             // set large fields to null
             _httpClient = null!;
-            _httpClientHandler = null!;
+            _httpMessageHandler = null!;
             _disposed = true;
         }
     }
