@@ -7,6 +7,11 @@ namespace Art;
 /// </summary>
 public sealed class HashProxyStream : Stream
 {
+    /// <summary>
+    /// If true, hash value has been computed.
+    /// </summary>
+    public bool HashComputed => _hashComputed;
+
     private readonly Stream _stream;
     private readonly HashAlgorithm _hashAlgorithm;
     private readonly long _initPos;
@@ -16,6 +21,7 @@ public sealed class HashProxyStream : Stream
     private bool _hashComputed;
     private long _pos;
     private bool _disposed;
+    private HashMode _mode = HashMode.Unassigned;
 
     /// <summary>
     /// Creates a new instance of <see cref="HashProxyStream"/>.
@@ -64,6 +70,7 @@ public sealed class HashProxyStream : Stream
     /// <inheritdoc />
     public override int Read(byte[] buffer, int offset, int count)
     {
+        AssignMode(HashMode.Read);
         int read = _stream.Read(buffer, offset, count);
         _pos += read;
         if (_hashComputed) return read;
@@ -75,6 +82,7 @@ public sealed class HashProxyStream : Stream
     /// <inheritdoc />
     public override async Task<int> ReadAsync(byte[] buffer, int offset, int count, CancellationToken cancellationToken)
     {
+        AssignMode(HashMode.Read);
         int read = await _stream.ReadAsync(buffer, offset, count, cancellationToken);
         _pos += read;
         if (_hashComputed) return read;
@@ -92,6 +100,7 @@ public sealed class HashProxyStream : Stream
     /// <inheritdoc />
     public override void Write(byte[] buffer, int offset, int count)
     {
+        AssignMode(HashMode.Write);
         UpdateHash(buffer, offset, count);
         _stream.Write(buffer, offset, count);
     }
@@ -99,6 +108,7 @@ public sealed class HashProxyStream : Stream
     /// <inheritdoc />
     public override Task WriteAsync(byte[] buffer, int offset, int count, CancellationToken cancellationToken)
     {
+        AssignMode(HashMode.Write);
         UpdateHash(buffer, offset, count);
         return _stream.WriteAsync(buffer, offset, count, cancellationToken);
     }
@@ -148,5 +158,23 @@ public sealed class HashProxyStream : Stream
     {
         FinishHash();
         return _hash!;
+    }
+
+    /// <summary>
+    /// Assigns hash mode.
+    /// </summary>
+    /// <param name="mode">Hash mode.</param>
+    /// <exception cref="InvalidOperationException">Thrown when mixing read/write operations, which is not supported.</exception>
+    private void AssignMode(HashMode mode)
+    {
+        if (_mode == HashMode.Unassigned) _mode = mode;
+        else if (_mode != mode) throw new InvalidOperationException("Cannot mix read and write operations on this stream.");
+    }
+
+    private enum HashMode
+    {
+        Unassigned,
+        Read,
+        Write
     }
 }
