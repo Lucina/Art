@@ -522,7 +522,7 @@ public abstract partial class ArtifactTool : IDisposable
     /// <param name="key">Resource key.</param>
     /// <param name="cancellationToken">Cancellation token.</param>
     /// <returns>Task returning a writeable stream to write an output to.</returns>
-    public async Task<Stream> CreateOutputStreamAsync(ArtifactResourceKey key, CancellationToken cancellationToken = default)
+    public async Task<CommittableStream> CreateOutputStreamAsync(ArtifactResourceKey key, CancellationToken cancellationToken = default)
         => await DataManager.CreateOutputStreamAsync(key, cancellationToken).ConfigureAwait(false);
 
     /// <summary>
@@ -533,7 +533,7 @@ public abstract partial class ArtifactTool : IDisposable
     /// <param name="path">File path to prepend.</param>
     /// <param name="cancellationToken">Cancellation token.</param>
     /// <returns>Task returning a writeable stream to write an output to.</returns>
-    public Task<Stream> CreateOutputStreamAsync(ArtifactKey key, string file, string path = "", CancellationToken cancellationToken = default)
+    public Task<CommittableStream> CreateOutputStreamAsync(ArtifactKey key, string file, string path = "", CancellationToken cancellationToken = default)
         => CreateOutputStreamAsync(new ArtifactResourceKey(key, file, path), cancellationToken);
 
     #endregion

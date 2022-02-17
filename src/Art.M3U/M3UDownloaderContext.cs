@@ -98,18 +98,24 @@ public class M3UDownloaderContext
     {
         if (StreamInfo.EncryptionInfo is not { } ei) return;
         ArtifactResourceKey methodArk = new(Config.ArtifactKey, "method.txt", Config.ArtifactKey.Id);
-        await using (Stream keyStream = await Tool.DataManager.CreateOutputStreamAsync(methodArk, cancellationToken)) keyStream.Write(Encoding.UTF8.GetBytes(ei.Method));
+        await using (CommittableStream methodStream = await Tool.DataManager.CreateOutputStreamAsync(methodArk, cancellationToken))
+        {
+            methodStream.Write(Encoding.UTF8.GetBytes(ei.Method));
+            methodStream.ShouldCommit = true;
+        }
         if (ei.Key is not null)
         {
             ArtifactResourceKey keyArk = new(Config.ArtifactKey, "key.bin", Config.ArtifactKey.Id);
-            await using Stream keyStream = await Tool.DataManager.CreateOutputStreamAsync(keyArk, cancellationToken);
+            await using CommittableStream keyStream = await Tool.DataManager.CreateOutputStreamAsync(keyArk, cancellationToken);
             keyStream.Write(ei.Key);
+            keyStream.ShouldCommit = true;
         }
         if (ei.Iv is not null)
         {
             ArtifactResourceKey ivArk = new(Config.ArtifactKey, "iv.bin", Config.ArtifactKey.Id);
-            await using Stream keyStream = await Tool.DataManager.CreateOutputStreamAsync(ivArk, cancellationToken);
-            keyStream.Write(ei.Iv);
+            await using CommittableStream ivStream = await Tool.DataManager.CreateOutputStreamAsync(ivArk, cancellationToken);
+            ivStream.Write(ei.Iv);
+            ivStream.ShouldCommit = true;
         }
     }
 
@@ -155,8 +161,11 @@ public class M3UDownloaderContext
                 _ => throw new InvalidDataException()
             }, ari);
         }
-        await using (Stream oStream = await Tool.DataManager.CreateOutputStreamAsync(ark, cancellationToken))
+        await using (CommittableStream oStream = await Tool.DataManager.CreateOutputStreamAsync(ark, cancellationToken))
+        {
             await ari.ExportStreamAsync(oStream, cancellationToken).ConfigureAwait(false);
+            oStream.ShouldCommit = true;
+        }
         await Tool.AddResourceAsync(ari, cancellationToken);
     }
 

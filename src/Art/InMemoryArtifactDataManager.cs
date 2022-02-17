@@ -20,20 +20,24 @@ public class InMemoryArtifactDataManager : ArtifactDataManager
     private readonly Dictionary<ArtifactResourceKey, Stream> _entries = new();
 
     /// <inheritdoc />
-    public override ValueTask<Stream> CreateOutputStreamAsync(ArtifactResourceKey key, CancellationToken cancellationToken = default)
+    public override ValueTask<CommittableStream> CreateOutputStreamAsync(ArtifactResourceKey key, CancellationToken cancellationToken = default)
     {
-        if (_entries.TryGetValue(key, out Stream? s) && s is ResultStream stream)
+        // Create a new output stream. If one already exists for mapping, get rid of it.
+        // Since everything uses CommittableMemoryStream, underlying memory stream isn't disposed, so
+        // previous buffer is still accessible. Doesn't need to be, but that's how it is right now.
+        if (_entries.TryGetValue(key, out Stream? s))
         {
-            stream.SetLength(0);
-            return new ValueTask<Stream>(stream);
+            // Invalidate existing.
+            s.Dispose();
+            _entries.Remove(key);
         }
-        stream = new ResultStream();
+        CommittableStream stream = new CommittableMemoryStream();
         ArtifactKey ak = key.Artifact;
         if (!_artifacts.TryGetValue(ak, out List<ArtifactResourceInfo>? list))
             _artifacts.Add(ak, list = new List<ArtifactResourceInfo>());
         list.Add(new ResultStreamArtifactResourceInfo(stream, key, null, null, null));
         _entries[key] = stream;
-        return new ValueTask<Stream>(stream);
+        return new ValueTask<CommittableStream>(stream);
     }
 
     /// <inheritdoc />
@@ -49,47 +53,16 @@ public class InMemoryArtifactDataManager : ArtifactDataManager
     }
 
     /// <inheritdoc />
-    public override async ValueTask<Stream> OpenInputStreamAsync(ArtifactResourceKey key, CancellationToken cancellationToken = default)
+    public override ValueTask<Stream> OpenInputStreamAsync(ArtifactResourceKey key, CancellationToken cancellationToken = default)
     {
+        // Use a stream wrapping original buffer, but hide away buffer and make stream read-only
         if (!_entries.TryGetValue(key, out Stream? stream)) throw new KeyNotFoundException();
-        stream.Position = 0;
-        MemoryStream ms = new();
-        try
-        {
-            await stream.CopyToAsync(ms, cancellationToken);
-        }
-        finally
-        {
-            stream.Position = 0;
-        }
-        return ms;
+        if (stream is not CommittableMemoryStream cms)
+            throw new InvalidOperationException($"Expected {nameof(CommittableMemoryStream)} but got unexpected stream type {stream.GetType()}");
+        MemoryStream oms = cms.MemoryStream;
+        return ValueTask.FromResult<Stream>(new MemoryStream(oms.GetBuffer(), 0, (int)oms.Length, false, false));
     }
 
     private record ResultStreamArtifactResourceInfo(Stream Resource, ArtifactResourceKey Key, string? ContentType, DateTimeOffset? Updated, string? Version)
         : StreamArtifactResourceInfo(Resource, Key, ContentType, Updated, Version);
-
-    private class ResultStream : Stream
-    {
-        private readonly MemoryStream _baseStream = new();
-
-        public override bool CanRead => true;
-
-        public override bool CanSeek => true;
-
-        public override bool CanWrite => true;
-
-        public override long Length => _baseStream.Length;
-
-        public override long Position
-        {
-            get => _baseStream.Position;
-            set => _baseStream.Position = value;
-        }
-
-        public override void Flush() => _baseStream.Flush();
-        public override int Read(byte[] buffer, int offset, int count) => _baseStream.Read(buffer, offset, count);
-        public override long Seek(long offset, SeekOrigin origin) => _baseStream.Seek(offset, origin);
-        public override void SetLength(long value) => _baseStream.SetLength(value);
-        public override void Write(byte[] buffer, int offset, int count) => _baseStream.Write(buffer, offset, count);
-    }
 }

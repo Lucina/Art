@@ -588,10 +588,7 @@ public abstract class HttpArtifactTool : ArtifactTool
         HttpRequestMessage req = new(HttpMethod.Get, requestUri);
         SetOriginAndReferrer(req, origin, referrer);
         ConfigureHttpRequest(req);
-        using HttpResponseMessage fr = await HttpClient.SendAsync(req, DownloadCompletionOption, cancellationToken).ConfigureAwait(false);
-        fr.EnsureSuccessStatusCode();
-        await using Stream stream = await CreateOutputStreamAsync(key, cancellationToken).ConfigureAwait(false);
-        await fr.Content.CopyToAsync(stream, cancellationToken).ConfigureAwait(false);
+        await DownloadResourceInternalAsync(req, key, cancellationToken);
     }
 
     /// <summary>
@@ -643,10 +640,7 @@ public abstract class HttpArtifactTool : ArtifactTool
         HttpRequestMessage req = new(HttpMethod.Get, requestUri);
         SetOriginAndReferrer(req, origin, referrer);
         ConfigureHttpRequest(req);
-        using HttpResponseMessage fr = await HttpClient.SendAsync(req, DownloadCompletionOption, cancellationToken).ConfigureAwait(false);
-        fr.EnsureSuccessStatusCode();
-        await using Stream stream = await CreateOutputStreamAsync(key, cancellationToken).ConfigureAwait(false);
-        await fr.Content.CopyToAsync(stream, cancellationToken).ConfigureAwait(false);
+        await DownloadResourceInternalAsync(req, key, cancellationToken);
     }
 
     /// <summary>
@@ -688,10 +682,7 @@ public abstract class HttpArtifactTool : ArtifactTool
     public async Task DownloadResourceAsync(HttpRequestMessage requestMessage, ArtifactResourceKey key, CancellationToken cancellationToken = default)
     {
         NotDisposed();
-        using HttpResponseMessage fr = await HttpClient.SendAsync(requestMessage, DownloadCompletionOption, cancellationToken).ConfigureAwait(false);
-        fr.EnsureSuccessStatusCode();
-        await using Stream stream = await CreateOutputStreamAsync(key, cancellationToken).ConfigureAwait(false);
-        await fr.Content.CopyToAsync(stream, cancellationToken).ConfigureAwait(false);
+        await DownloadResourceInternalAsync(requestMessage, key, cancellationToken);
     }
 
     /// <summary>
@@ -704,12 +695,29 @@ public abstract class HttpArtifactTool : ArtifactTool
     /// <param name="cancellationToken">Cancellation token.</param>
     /// <returns>Task.</returns>
     public Task DownloadResourceAsync(HttpRequestMessage requestMessage, string file, ArtifactKey key, string path = "", CancellationToken cancellationToken = default)
-        => DownloadResourceAsync(requestMessage, new ArtifactResourceKey(key, file, path), cancellationToken);
+    {
+        NotDisposed();
+        return DownloadResourceInternalAsync(requestMessage, new ArtifactResourceKey(key, file, path), cancellationToken);
+    }
 
     /// <summary>
     /// Default <see cref="HttpCompletionOption"/> for download requests.
     /// </summary>
     public virtual HttpCompletionOption DownloadCompletionOption => HttpCompletionOption.ResponseHeadersRead;
+
+    private async Task DownloadResourceInternalAsync(HttpRequestMessage requestMessage, ArtifactResourceKey key, CancellationToken cancellationToken = default)
+    {
+        using HttpResponseMessage fr = await HttpClient.SendAsync(requestMessage, DownloadCompletionOption, cancellationToken).ConfigureAwait(false);
+        fr.EnsureSuccessStatusCode();
+        await StreamDownloadAsync(fr, key, cancellationToken);
+    }
+
+    private async Task StreamDownloadAsync(HttpResponseMessage response, ArtifactResourceKey key, CancellationToken cancellationToken)
+    {
+        await using CommittableStream stream = await CreateOutputStreamAsync(key, cancellationToken).ConfigureAwait(false);
+        await response.Content.CopyToAsync(stream, cancellationToken).ConfigureAwait(false);
+        stream.ShouldCommit = true;
+    }
 
     #endregion
 

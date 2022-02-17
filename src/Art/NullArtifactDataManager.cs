@@ -6,7 +6,7 @@ namespace Art;
 public class NullArtifactDataManager : ArtifactDataManager
 {
     /// <inheritdoc />
-    public override ValueTask<Stream> CreateOutputStreamAsync(ArtifactResourceKey key, CancellationToken cancellationToken = default) => new(new SinkStream());
+    public override ValueTask<CommittableStream> CreateOutputStreamAsync(ArtifactResourceKey key, CancellationToken cancellationToken = default) => new(new CommittableSinkStream());
 
     /// <inheritdoc />
     public override ValueTask<bool> ExistsAsync(ArtifactResourceKey key, CancellationToken cancellationToken = default) => new(false);

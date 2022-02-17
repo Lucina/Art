@@ -7,14 +7,13 @@ namespace Art;
 /// </summary>
 public abstract class ArtifactDataManager
 {
-    // TODO ADM output stream should be special stream type with IsWriteCompleted property (used in dispose to support file swapouts and less chance of losing old but good files)
     /// <summary>
     /// Creates an output stream for the specified resource.
     /// </summary>
     /// <param name="key">Resource key.</param>
     /// <param name="cancellationToken">Cancellation token.</param>
     /// <returns>Task returning a writeable stream to write output to.</returns>
-    public abstract ValueTask<Stream> CreateOutputStreamAsync(ArtifactResourceKey key, CancellationToken cancellationToken = default);
+    public abstract ValueTask<CommittableStream> CreateOutputStreamAsync(ArtifactResourceKey key, CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Checks if data for the specified resource exists.
@@ -49,9 +48,10 @@ public abstract class ArtifactDataManager
     /// <returns>Task.</returns>
     public virtual async ValueTask OutputTextAsync(string text, ArtifactResourceKey key, CancellationToken cancellationToken = default)
     {
-        await using Stream stream = await CreateOutputStreamAsync(key, cancellationToken).ConfigureAwait(false);
+        await using CommittableStream stream = await CreateOutputStreamAsync(key, cancellationToken).ConfigureAwait(false);
         await using var sw = new StreamWriter(stream);
         await sw.WriteAsync(text).ConfigureAwait(false);
+        stream.ShouldCommit = true;
     }
 
     /// <summary>
@@ -63,8 +63,9 @@ public abstract class ArtifactDataManager
     /// <returns>Task.</returns>
     public virtual async ValueTask OutputJsonAsync<T>(T data, ArtifactResourceKey key, CancellationToken cancellationToken = default)
     {
-        await using Stream stream = await CreateOutputStreamAsync(key, cancellationToken).ConfigureAwait(false);
+        await using CommittableStream stream = await CreateOutputStreamAsync(key, cancellationToken).ConfigureAwait(false);
         await JsonSerializer.SerializeAsync(stream, data, cancellationToken: cancellationToken).ConfigureAwait(false);
+        stream.ShouldCommit = true;
     }
 
     /// <summary>
@@ -77,7 +78,8 @@ public abstract class ArtifactDataManager
     /// <returns>Task.</returns>
     public virtual async ValueTask OutputJsonAsync<T>(T data, JsonSerializerOptions jsonSerializerOptions, ArtifactResourceKey key, CancellationToken cancellationToken = default)
     {
-        await using Stream stream = await CreateOutputStreamAsync(key, cancellationToken).ConfigureAwait(false);
+        await using CommittableStream stream = await CreateOutputStreamAsync(key, cancellationToken).ConfigureAwait(false);
         await JsonSerializer.SerializeAsync(stream, data, jsonSerializerOptions, cancellationToken).ConfigureAwait(false);
+        stream.ShouldCommit = true;
     }
 }

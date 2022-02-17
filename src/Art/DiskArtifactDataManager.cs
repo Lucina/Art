@@ -41,10 +41,10 @@ public class DiskArtifactDataManager : ArtifactDataManager
     }
 
     /// <inheritdoc/>
-    public override ValueTask<Stream> CreateOutputStreamAsync(ArtifactResourceKey key, CancellationToken cancellationToken = default)
+    public override ValueTask<CommittableStream> CreateOutputStreamAsync(ArtifactResourceKey key, CancellationToken cancellationToken = default)
     {
         string dir = Path.Combine(DiskPaths.GetBasePath(BaseDirectory, key.Artifact.Tool, key.Artifact.Group), key.Path);
         if (!Directory.Exists(dir)) Directory.CreateDirectory(dir);
-        return ValueTask.FromResult((Stream)File.Create(Path.Combine(dir, key.File.SafeifyFileName())));
+        return new ValueTask<CommittableStream>(new CommittableFileStream(Path.Combine(dir, key.File.SafeifyFileName()), FileMode.Create));
     }
 }
