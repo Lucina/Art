@@ -22,15 +22,17 @@ public static class M3UReader
     private const string TAG_VERSION = "#EXT-X-VERSION:";
     private const string TAG_STREAM_INFO = "#EXT-X-STREAM-INF:";
     private const string TAG_KEY = "#EXT-X-KEY:";
+    private const string TAG_MEDIA_SEQUENCE = "#EXT-X-MEDIA-SEQUENCE:";
     private const string STREAM_INF_BANDWIDTH = "BANDWIDTH";
     private const string STREAM_INF_AVERAGE_BANDWIDTH = "AVERAGE-BANDWIDTH";
     private const string STREAM_INF_NAME = "NAME";
     private const string STREAM_INF_CODECS = "CODECS";
     private const string STREAM_INF_RESOLUTION = "RESOLUTION";
     private const string ENCRYPTION_INF_METHOD = "METHOD";
+    private const string ENCRYPTION_INF_KEYFORMAT = "KEYFORMAT";
     private const string ENCRYPTION_INF_URI = "URI";
     private const string ENCRYPTION_INF_IV = "IV";
-    private static readonly string[] Tags = { TAG_VERSION, TAG_STREAM_INFO, TAG_KEY };
+    private static readonly string[] Tags = { TAG_VERSION, TAG_STREAM_INFO, TAG_KEY, TAG_MEDIA_SEQUENCE };
 
     /// <summary>
     /// Parses M3U content.
@@ -99,12 +101,14 @@ public static class M3UReader
 
     private static void ParseKey(M3UFile file, string tag, string line)
     {
+        string? keyFormat = null;
         string? method = null;
         string? uri = null;
         byte[]? iv = null;
         try
         {
             ParseKvsToDictionary(tag, line, TmpDict);
+            if (TmpDict.TryGetValue(ENCRYPTION_INF_KEYFORMAT, out string? keyFormatT)) keyFormat = keyFormatT;
             if (TmpDict.TryGetValue(ENCRYPTION_INF_METHOD, out string? methodT)) method = methodT;
             if (TmpDict.TryGetValue(ENCRYPTION_INF_URI, out string? uriT)) uri = uriT;
             if (TmpDict.TryGetValue(ENCRYPTION_INF_IV, out string? ivT))
@@ -112,8 +116,9 @@ public static class M3UReader
                 if (ivT.StartsWith("0x", StringComparison.InvariantCultureIgnoreCase)) ivT = ivT[2..];
                 iv = Convert.FromHexString(ivT);
             }
+            keyFormat ??= "identity";
             if (method == null) throw new InvalidDataException("method not provided");
-            file.EncryptionInfo = new M3UEncryptionInfo(method, uri, null, iv);
+            file.EncryptionInfo = new M3UEncryptionInfo(keyFormat, method, uri, null, iv);
         }
         finally
         {
@@ -172,6 +177,9 @@ public static class M3UReader
                 break;
             case TAG_KEY:
                 ParseKey(file, tag, line);
+                break;
+            case TAG_MEDIA_SEQUENCE:
+                file.FirstMediaSequenceNumber = long.Parse(value, CultureInfo.InvariantCulture);
                 break;
         }
     }

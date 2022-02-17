@@ -51,10 +51,12 @@ public class M3UDownloaderContextSaver : ISaver
                     _context.Tool.LogInformation($"No new entries for timeout {_timeout}, stopping");
                     return;
                 }
+                int i = 0;
                 foreach (string entry in entries)
                 {
                     _context.Tool.LogInformation($"Downloading segment {entry}...");
-                    await _context.DownloadSegmentAsync(new Uri(_context.MainUri, entry), cancellationToken);
+                    await _context.DownloadSegmentAsync(new Uri(_context.MainUri, entry), m3, m3.FirstMediaSequenceNumber + i, cancellationToken);
+                    i++;
                 }
                 hs.UnionWith(entries);
                 if (_oneOff) break;

@@ -1,4 +1,4 @@
-using System.Security.Cryptography;
+using System.Globalization;
 using System.Text;
 
 namespace Art.M3U;
@@ -91,33 +91,40 @@ public class M3UDownloaderContext
     }
 
     /// <summary>
-    /// Writes encryption information to method.txt, key.bin, iv.bin according to <see cref="Tool"/>.
+    /// Writes encryption information to keyformat.txt, method.txt, key.bin, iv.bin according to <see cref="Tool"/>.
     /// </summary>
     /// <param name="cancellationToken">Cancellation token.</param>
     public async Task WriteKeyMaterialAsync(CancellationToken cancellationToken = default)
     {
         if (StreamInfo.EncryptionInfo is not { } ei) return;
-        ArtifactResourceKey methodArk = new(Config.ArtifactKey, "method.txt", Config.ArtifactKey.Id);
-        await using (CommittableStream methodStream = await Tool.DataManager.CreateOutputStreamAsync(methodArk, cancellationToken))
-        {
-            methodStream.Write(Encoding.UTF8.GetBytes(ei.Method));
-            methodStream.ShouldCommit = true;
-        }
-        if (ei.Key is not null)
-        {
-            ArtifactResourceKey keyArk = new(Config.ArtifactKey, "key.bin", Config.ArtifactKey.Id);
-            await using CommittableStream keyStream = await Tool.DataManager.CreateOutputStreamAsync(keyArk, cancellationToken);
-            keyStream.Write(ei.Key);
-            keyStream.ShouldCommit = true;
-        }
-        if (ei.Iv is not null)
-        {
-            ArtifactResourceKey ivArk = new(Config.ArtifactKey, "iv.bin", Config.ArtifactKey.Id);
-            await using CommittableStream ivStream = await Tool.DataManager.CreateOutputStreamAsync(ivArk, cancellationToken);
-            ivStream.Write(ei.Iv);
-            ivStream.ShouldCommit = true;
-        }
+        await WriteAncillaryFileAsync("keyformat.txt", Encoding.UTF8.GetBytes(ei.KeyFormat), cancellationToken);
+        await WriteAncillaryFileAsync("method.txt", Encoding.UTF8.GetBytes(ei.Method), cancellationToken);
+        if (ei.Key is not null) await WriteAncillaryFileAsync("key.bin", ei.Key, cancellationToken);
+        if (ei.Iv is not null) await WriteAncillaryFileAsync("iv.bin", ei.Iv, cancellationToken);
     }
+
+    private async Task WriteAncillaryFileAsync(string file, ReadOnlyMemory<byte> data, CancellationToken cancellationToken)
+    {
+        ArtifactResourceKey keyFormatArk = new(Config.ArtifactKey, file, Config.ArtifactKey.Id);
+        await using CommittableStream keyFormatStream = await Tool.DataManager.CreateOutputStreamAsync(keyFormatArk, cancellationToken);
+        await keyFormatStream.WriteAsync(data, cancellationToken);
+        keyFormatStream.ShouldCommit = true;
+    }
+
+    /// <summary>
+    /// Creates a top-down (ID-based) downloader with default name translation function.
+    /// </summary>
+    /// <param name="top">Top ID.</param>
+    /// <returns>Downloader.</returns>
+    public M3UDownloaderContextTopDownSaver CreateTopDownSaver(long top) => new(this, top);
+
+    /// <summary>
+    /// Creates a top-down (ID-based) downloader.
+    /// </summary>
+    /// <param name="top">Top ID.</param>
+    /// <param name="idFormatter">ID string formatter.</param>
+    /// <returns>Downloader.</returns>
+    public M3UDownloaderContextTopDownSaver CreateTopDownSaver(long top, Func<long, string> idFormatter) => new(this, top, idFormatter);
 
     /// <summary>
     /// Creates a top-down (ID-based) downloader.
@@ -136,38 +143,49 @@ public class M3UDownloaderContext
     public M3UDownloaderContextSaver CreateSaver(bool oneOff, TimeSpan timeout) => new(this, oneOff, timeout);
 
     /// <summary>
-    /// Downloads a segment.
+    /// Downloads a segment with an associated media sequence number.
     /// </summary>
     /// <param name="uri">URI to download.</param>
+    /// <param name="file">Optional specific file to use (defaults to <see cref="StreamInfo"/>).</param>
+    /// <param name="mediaSequenceNumber">Media sequence number, if available.</param>
     /// <param name="cancellationToken">Cancellation token.</param>
     /// <exception cref="InvalidDataException">Thrown for unexpected encryption algorithm when set to decrypt.</exception>
-    public async Task DownloadSegmentAsync(Uri uri, CancellationToken cancellationToken = default)
+    /// <remarks>
+    /// <paramref name="mediaSequenceNumber"/> is meant to support scenarios for decrypting media segments without an explicit IV,
+    /// as the media sequence number determines the IV instead.
+    /// </remarks>
+    public Task DownloadSegmentAsync(Uri uri, M3UFile? file, long? mediaSequenceNumber = null, CancellationToken cancellationToken = default)
+        => DownloadSegmentInternalAsync(uri, file ?? StreamInfo, mediaSequenceNumber, cancellationToken);
+
+    private async Task DownloadSegmentInternalAsync(Uri uri, M3UFile file, long? mediaSequenceNumber, CancellationToken cancellationToken)
     {
-        ArtifactResourceKey ark = new(Config.ArtifactKey, Path.GetFileName(uri.Segments[^1]), Config.ArtifactKey.Id);
+        string fn = GetFileName(uri);
+        ArtifactResourceKey ark = new(Config.ArtifactKey, fn, Config.ArtifactKey.Id);
         if (await Tool.TryGetResourceAsync(ark, cancellationToken) != null)
         {
             if (Config.SkipExistingSegments) return;
             await Tool.RegistrationManager.RemoveResourceAsync(ark, cancellationToken);
         }
         ArtifactResourceInfo ari = new UriArtifactResourceInfo(Tool, uri, null, Config.Referrer, ark);
-        if (StreamInfo.EncryptionInfo is { Key: { } } ei && Config.Decrypt)
+        if (file.EncryptionInfo is { Encrypted: true } ei)
         {
-            byte[] key = ei.Key;
-            ari = new EncryptedArtifactResourceInfo(ei.Method switch
-            {
-                "AES-128" => new EncryptionInfo(CryptoAlgorithm.Aes, key, CipherMode.CBC, EncIv: ei.Iv),
-                "AES-192" => new EncryptionInfo(CryptoAlgorithm.Aes, key, CipherMode.CBC, EncIv: ei.Iv),
-                "AES-256" => new EncryptionInfo(CryptoAlgorithm.Aes, key, CipherMode.CBC, EncIv: ei.Iv),
-                _ => throw new InvalidDataException()
-            }, ari);
+            if (mediaSequenceNumber is { } msn) await WriteAncillaryFileAsync($"{fn}.msn.txt", Encoding.UTF8.GetBytes(msn.ToString(CultureInfo.InvariantCulture)), cancellationToken);
+            if (Config.Decrypt) ari = new EncryptedArtifactResourceInfo(ei.ToEncryptionInfo(mediaSequenceNumber), ari);
         }
-        await using (CommittableStream oStream = await Tool.DataManager.CreateOutputStreamAsync(ark, cancellationToken))
+        await using (CommittableStream oStream = await Tool.DataManager.CreateOutputStreamAsync(ari.Key, cancellationToken))
         {
             await ari.ExportStreamAsync(oStream, cancellationToken).ConfigureAwait(false);
             oStream.ShouldCommit = true;
         }
         await Tool.AddResourceAsync(ari, cancellationToken);
     }
+
+    /// <summary>
+    /// Gets file name for URI.
+    /// </summary>
+    /// <param name="uri">URI.</param>
+    /// <returns>File name.</returns>
+    public static string GetFileName(Uri uri) => Path.GetFileName(uri.Segments[^1]);
 
     /// <summary>
     /// Retrieves current stream file (<see cref="MainUri"/>).

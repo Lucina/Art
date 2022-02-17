@@ -29,6 +29,12 @@ public class M3UFile
     public string? Version { get; internal set; }
 
     /// <summary>
+    /// First media sequence number.
+    /// </summary>
+    // It's OK if default is 0 because it's 0 implicitly by spec
+    public long FirstMediaSequenceNumber { get; set; }
+
+    /// <summary>
     /// Available streams.
     /// </summary>
     public IReadOnlyList<StreamInfo> Streams => _streams;
