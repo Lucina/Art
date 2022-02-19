@@ -1,12 +1,12 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <PackageVersion>0.38.0-preview.1</PackageVersion>
+    <PackageVersion>0.38.0-preview.2</PackageVersion>
     <AssemblyVersion>1.0.0</AssemblyVersion>
   </PropertyGroup>
 
   <ItemGroup>
-    <!--<PackageReference Include="Art.EF" Version="0.38.0-preview.1" />-->
+    <!--<PackageReference Include="Art.EF" Version="0.38.0-preview.2" />-->
     <ProjectReference Include="..\Art.EF\Art.EF.csproj" />
   </ItemGroup>
 

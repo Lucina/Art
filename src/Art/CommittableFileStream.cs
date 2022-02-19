@@ -135,7 +135,7 @@ public class CommittableFileStream : CommittableWrappingStream
         if (fi.Exists)
         {
             if (fi.IsReadOnly) throw new IOException("File exists and is read-only");
-            tempPath = Path.GetTempFileName();
+            tempPath = CreateRandomPath(path);
             pathForStream = tempPath;
         }
         else
@@ -179,5 +179,11 @@ public class CommittableFileStream : CommittableWrappingStream
         _committed = true;
         await DisposeStreamAsync();
         if (_tempPath != null) File.Replace(_tempPath, _path, null, true);
+    }
+
+    private static string CreateRandomPath(string sibling)
+    {
+        string dir = Path.GetDirectoryName(sibling) ?? throw new ArgumentException();
+        return Path.Combine(dir, $"{Guid.NewGuid():N}.tmp");
     }
 }
