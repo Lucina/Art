@@ -34,7 +34,7 @@ public record EncryptionInfo(CryptoAlgorithm Algorithm, ReadOnlyMemory<byte> Enc
     /// <returns>Symmetric algorithm.</returns>
     public SymmetricAlgorithm CreateSymmetricAlgorithm()
     {
-        using SymmetricAlgorithm alg = Algorithm switch
+        SymmetricAlgorithm alg = Algorithm switch
         {
             CryptoAlgorithm.Aes => Aes.Create(),
             CryptoAlgorithm.Blowfish => new BlowfishSymmetricAlgorithm(),
