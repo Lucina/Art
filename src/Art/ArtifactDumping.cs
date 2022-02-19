@@ -146,7 +146,6 @@ public static class ArtifactDumping
                 await using HashProxyStream hps = new(stream, algorithm, true);
                 await versionedResource.ExportStreamAsync(hps, cancellationToken).ConfigureAwait(false);
                 stream.ShouldCommit = true;
-                await hps.CopyToAsync(stream, cancellationToken).ConfigureAwait(false);
                 Checksum newChecksum = new(checksumId, hps.GetHash());
                 if (!Checksum.DatawiseEquals(newChecksum, versionedResource.Checksum))
                 {
