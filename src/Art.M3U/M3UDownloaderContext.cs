@@ -49,6 +49,8 @@ public class M3UDownloaderContext
     /// </summary>
     /// <param name="config">Configuration.</param>
     /// <param name="cancellationToken">Cancellation token.</param>
+    /// <exception cref="HttpRequestException">Thrown for issues with request excluding non-success server responses.</exception>
+    /// <exception cref="AggregateException">Thrown with <see cref="HttpRequestException"/> and <see cref="ExHttpResponseMessageException"/> on HTTP error.</exception>
     public async Task SetConfigAsync(M3UDownloaderConfig config, CancellationToken cancellationToken = default)
     {
         Uri mainUri = await SelectSubStreamAsync(Tool, config, cancellationToken);
@@ -63,6 +65,8 @@ public class M3UDownloaderContext
     /// <param name="config">Configuration.</param>
     /// <param name="cancellationToken">Cancellation token.</param>
     /// <returns>Task returning downloader context.</returns>
+    /// <exception cref="HttpRequestException">Thrown for issues with request excluding non-success server responses.</exception>
+    /// <exception cref="AggregateException">Thrown with <see cref="HttpRequestException"/> and <see cref="ExHttpResponseMessageException"/> on HTTP error.</exception>
     public static async Task<M3UDownloaderContext> OpenContextAsync(HttpArtifactTool tool, M3UDownloaderConfig config, CancellationToken cancellationToken = default)
     {
         string? referrer = config.Referrer;
@@ -73,7 +77,7 @@ public class M3UDownloaderContext
         M3UEncryptionInfo? ei;
         using (var res = await tool.GetAsync(mainUri, referrer: referrer, cancellationToken: cancellationToken))
         {
-            res.EnsureSuccessStatusCode();
+            ExHttpResponseMessageException.EnsureSuccessStatusCode(res);
             m3 = M3UReader.Parse(await res.Content.ReadAsStringAsync(cancellationToken));
             ei = m3.EncryptionInfo;
         }
@@ -83,7 +87,7 @@ public class M3UDownloaderContext
         {
             tool.LogInformation("Downloading enc key...");
             using var res = await tool.GetAsync(new Uri(mainUri, ei.Uri), referrer: referrer, cancellationToken: cancellationToken);
-            res.EnsureSuccessStatusCode();
+            ExHttpResponseMessageException.EnsureSuccessStatusCode(res);
             ei.Key = await res.Content.ReadAsByteArrayAsync(cancellationToken);
             tool.LogInformation($"KEY {Convert.ToHexString(ei.Key)}");
         }
@@ -149,6 +153,8 @@ public class M3UDownloaderContext
     /// <param name="file">Optional specific file to use (defaults to <see cref="StreamInfo"/>).</param>
     /// <param name="mediaSequenceNumber">Media sequence number, if available.</param>
     /// <param name="cancellationToken">Cancellation token.</param>
+    /// <exception cref="HttpRequestException">Thrown for issues with request excluding non-success server responses.</exception>
+    /// <exception cref="AggregateException">Thrown with <see cref="HttpRequestException"/> and <see cref="ExHttpResponseMessageException"/> on HTTP error.</exception>
     /// <exception cref="InvalidDataException">Thrown for unexpected encryption algorithm when set to decrypt.</exception>
     /// <remarks>
     /// <paramref name="mediaSequenceNumber"/> is meant to support scenarios for decrypting media segments without an explicit IV,
@@ -192,10 +198,12 @@ public class M3UDownloaderContext
     /// </summary>
     /// <param name="cancellationToken">Cancellation token.</param>
     /// <returns>Task returning stream file from <see cref="MainUri"/>.</returns>
+    /// <exception cref="HttpRequestException">Thrown for issues with request excluding non-success server responses.</exception>
+    /// <exception cref="AggregateException">Thrown with <see cref="HttpRequestException"/> and <see cref="ExHttpResponseMessageException"/> on HTTP error.</exception>
     public async Task<M3UFile> GetAsync(CancellationToken cancellationToken = default)
     {
         using var res = await Tool.GetAsync(MainUri, referrer: Config.Referrer, cancellationToken: cancellationToken);
-        res.EnsureSuccessStatusCode();
+        ExHttpResponseMessageException.EnsureSuccessStatusCode(res);
         return M3UReader.Parse(await res.Content.ReadAsStringAsync(cancellationToken));
     }
 
@@ -203,7 +211,7 @@ public class M3UDownloaderContext
     {
         Uri liveUrlUri = new(config.URL);
         using var res = await tool.GetAsync(liveUrlUri, referrer: config.Referrer, cancellationToken: cancellationToken);
-        res.EnsureSuccessStatusCode();
+        ExHttpResponseMessageException.EnsureSuccessStatusCode(res);
         var ff = M3UReader.Parse(await res.Content.ReadAsStringAsync(cancellationToken));
         if (ff.Streams.All(v => v.AverageBandwidth != 0))
             return config.PrioritizeResolution

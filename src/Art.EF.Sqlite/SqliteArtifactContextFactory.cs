@@ -39,7 +39,7 @@ public class SqliteArtifactContextFactory : ArtifactContextFactoryBase
         StorageFile = storageFile;
     }
 
-    private bool _inMemory;
+    private readonly bool _inMemory;
 
     internal bool UsingInMemory;
 

@@ -13,12 +13,14 @@ public interface ISaver
     /// <summary>
     /// Recovery callback for errors.
     /// </summary>
-    Func<HttpRequestException, Task>? RecoveryCallback { get; set; }
+    Func<Exception, Task>? RecoveryCallback { get; set; }
 
     /// <summary>
     /// Runs implementation.
     /// </summary>
     /// <param name="cancellationToken">Cancellation token.</param>
     /// <returns>Task.</returns>
+    /// <exception cref="HttpRequestException">Thrown for issues with request excluding non-success server responses.</exception>
+    /// <exception cref="AggregateException">Thrown with <see cref="HttpRequestException"/> and <see cref="ExHttpResponseMessageException"/> on HTTP error.</exception>
     Task RunAsync(CancellationToken cancellationToken = default);
 }

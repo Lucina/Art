@@ -78,11 +78,13 @@ public static class ArtExtensions
     /// <param name="lengthCheck">Optional length check to skip download.</param>
     /// <param name="cancellationToken">Cancellation token.</param>
     /// <returns>Task.</returns>
+    /// <exception cref="HttpRequestException">Thrown for issues with request excluding non-success server responses.</exception>
+    /// <exception cref="AggregateException">Thrown with <see cref="HttpRequestException"/> and <see cref="ExHttpResponseMessageException"/> on HTTP error.</exception>
     public static async ValueTask DownloadResourceToFileAsync(this HttpClient client, string url, string file, long? lengthCheck = null, CancellationToken cancellationToken = default)
     {
         if (lengthCheck != null && File.Exists(file) && new FileInfo(file).Length == lengthCheck) return;
         using HttpResponseMessage fr = await client.GetAsync(url, cancellationToken);
-        fr.EnsureSuccessStatusCode();
+        ExHttpResponseMessageException.EnsureSuccessStatusCode(fr);
         await using FileStream fs = File.Create(file);
         await fr.Content.CopyToAsync(fs, cancellationToken);
     }

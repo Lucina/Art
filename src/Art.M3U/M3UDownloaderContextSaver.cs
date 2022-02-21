@@ -1,34 +1,25 @@
 using System.Diagnostics;
-using System.Net;
 
 namespace Art.M3U;
 
 /// <summary>
 /// Represents a basic saver.
 /// </summary>
-public class M3UDownloaderContextSaver : ISaver
+public class M3UDownloaderContextSaver : M3UDownloaderContextSaverBase
 {
-    /// <inheritdoc />
-    public Func<Task>? HeartbeatCallback { get; set; }
-
-    /// <inheritdoc />
-    public Func<HttpRequestException, Task>? RecoveryCallback { get; set; }
-
-    private readonly M3UDownloaderContext _context;
     private readonly bool _oneOff;
     private readonly TimeSpan _timeout;
 
-    internal M3UDownloaderContextSaver(M3UDownloaderContext context, bool oneOff, TimeSpan timeout)
+    internal M3UDownloaderContextSaver(M3UDownloaderContext context, bool oneOff, TimeSpan timeout) : base(context)
     {
-        _context = context;
         _oneOff = oneOff;
         _timeout = timeout;
     }
 
     /// <inheritdoc />
-    public async Task RunAsync(CancellationToken cancellationToken = default)
+    public override async Task RunAsync(CancellationToken cancellationToken = default)
     {
-        int failCtr = 0;
+        FailCounter = 0;
         HashSet<string> hs = new();
         Stopwatch sw = new();
         while (true)
@@ -36,43 +27,42 @@ public class M3UDownloaderContextSaver : ISaver
             try
             {
                 if (HeartbeatCallback != null) await HeartbeatCallback();
-                _context.Tool.LogInformation("Reading main...");
+                Context.Tool.LogInformation("Reading main...");
                 HashSet<string> entries = new();
-                M3UFile m3 = await _context.GetAsync(cancellationToken);
+                M3UFile m3 = await Context.GetAsync(cancellationToken);
                 entries.UnionWith(m3.DataLines);
                 entries.ExceptWith(hs);
-                _context.Tool.LogInformation($"{entries.Count} new segments...");
+                Context.Tool.LogInformation($"{entries.Count} new segments...");
                 if (entries.Count != 0)
                 {
                     sw.Restart();
                 }
                 else if (sw.IsRunning && sw.Elapsed > _timeout)
                 {
-                    _context.Tool.LogInformation($"No new entries for timeout {_timeout}, stopping");
+                    Context.Tool.LogInformation($"No new entries for timeout {_timeout}, stopping");
                     return;
                 }
                 int i = 0;
                 foreach (string entry in entries)
                 {
-                    _context.Tool.LogInformation($"Downloading segment {entry}...");
-                    await _context.DownloadSegmentAsync(new Uri(_context.MainUri, entry), m3, m3.FirstMediaSequenceNumber + i, cancellationToken);
+                    Context.Tool.LogInformation($"Downloading segment {entry}...");
+                    await Context.DownloadSegmentAsync(new Uri(Context.MainUri, entry), m3, m3.FirstMediaSequenceNumber + i, cancellationToken);
                     i++;
                 }
                 hs.UnionWith(entries);
                 if (_oneOff) break;
                 await Task.Delay(1000, cancellationToken);
-                failCtr = 0;
+                FailCounter = 0;
             }
-            catch (HttpRequestException hre)
+            catch (HttpRequestException requestException)
             {
-                _context.Tool.LogInformation("HTTP error encountered", hre.ToString());
-                if (hre.StatusCode == HttpStatusCode.Forbidden)
-                {
-                    failCtr++;
-                    if (failCtr > _context.Config.MaxFails) throw new AggregateException($"Failed {failCtr} times in a row (exceeded threshold), aborting", hre);
-                    if (RecoveryCallback == null) throw new AggregateException($"Failed {failCtr} times in a row and no recovery callback implemented, aborting", hre);
-                    await RecoveryCallback(hre);
-                }
+                await HandleHttpRequestExceptionAsync(requestException, cancellationToken);
+            }
+            catch (AggregateException aggregateException)
+            {
+                if (TryGetHttpRequestException(aggregateException, out HttpRequestException? requestException, out ExHttpResponseMessageException? responseMessageException))
+                    await HandleHttpRequestExceptionAsync(aggregateException.InnerExceptions, requestException, responseMessageException, cancellationToken);
+                throw;
             }
         }
     }

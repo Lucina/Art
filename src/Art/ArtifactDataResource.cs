@@ -5,7 +5,7 @@ namespace Art;
 /// <summary>
 /// Pending <see cref="ArtifactResourceInfo"/> relative to a <see cref="ArtifactData"/>.
 /// </summary>
-public record struct ArtifactDataResource(ArtifactData Data, ArtifactResourceInfo Info)
+public readonly record struct ArtifactDataResource(ArtifactData Data, ArtifactResourceInfo Info)
 {
     /// <summary>
     /// Creates an instance of this resource with a specific content type.

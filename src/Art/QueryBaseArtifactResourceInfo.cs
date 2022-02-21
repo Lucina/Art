@@ -16,9 +16,10 @@ public record QueryBaseArtifactResourceInfo(ArtifactResourceKey Key, string? Con
     /// </summary>
     /// <param name="response">Response.</param>
     /// <returns>Instance.</returns>
+    /// <exception cref="AggregateException">Thrown with <see cref="HttpRequestException"/> and <see cref="ExHttpResponseMessageException"/> on HTTP error.</exception>
     protected ArtifactResourceInfo WithMetadata(HttpResponseMessage response)
     {
-        response.EnsureSuccessStatusCode();
+        ExHttpResponseMessageException.EnsureSuccessStatusCode(response);
         string? contentType = response.Content.Headers.ContentType?.MediaType;
         DateTimeOffset? updated = response.Content.Headers.LastModified;
         string? version = response.Headers.ETag?.Tag;

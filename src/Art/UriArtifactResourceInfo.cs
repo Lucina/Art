@@ -30,8 +30,8 @@ public record UriArtifactResourceInfo(HttpArtifactTool ArtifactTool, Uri Uri, st
     /// <inheritdoc/>
     public override async ValueTask<ArtifactResourceInfo> WithMetadataAsync(CancellationToken cancellationToken = default)
     {
-        HttpResponseMessage rsp = await ArtifactTool.HeadAsync(Uri, Origin, Referrer, cancellationToken).ConfigureAwait(false);
-        rsp.EnsureSuccessStatusCode();
-        return WithMetadata(rsp);
+        HttpResponseMessage res = await ArtifactTool.HeadAsync(Uri, Origin, Referrer, cancellationToken).ConfigureAwait(false);
+        ExHttpResponseMessageException.EnsureSuccessStatusCode(res);
+        return WithMetadata(res);
     }
 }

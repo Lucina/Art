@@ -142,6 +142,7 @@ public abstract class HttpArtifactTool : ArtifactTool
     /// <param name="referrer">Request referrer.</param>
     /// <param name="cancellationToken">Cancellation token.</param>
     /// <returns>Task returning response (status left unchecked).</returns>
+    /// <exception cref="HttpRequestException">Thrown for issues with request excluding non-success server responses.</exception>
     public async Task<HttpResponseMessage> HeadAsync(string requestUri, string? origin = null, string? referrer = null, CancellationToken cancellationToken = default)
     {
         NotDisposed();
@@ -159,6 +160,7 @@ public abstract class HttpArtifactTool : ArtifactTool
     /// <param name="referrer">Request referrer.</param>
     /// <param name="cancellationToken">Cancellation token.</param>
     /// <returns>Task returning response (status left unchecked).</returns>
+    /// <exception cref="HttpRequestException">Thrown for issues with request excluding non-success server responses.</exception>
     public async Task<HttpResponseMessage> HeadAsync(Uri requestUri, string? origin = null, string? referrer = null, CancellationToken cancellationToken = default)
     {
         NotDisposed();
@@ -176,6 +178,7 @@ public abstract class HttpArtifactTool : ArtifactTool
     /// <param name="referrer">Request referrer.</param>
     /// <param name="cancellationToken">Cancellation token.</param>
     /// <returns>Task returning response (status left unchecked).</returns>
+    /// <exception cref="HttpRequestException">Thrown for issues with request excluding non-success server responses.</exception>
     public async Task<HttpResponseMessage> GetAsync(string requestUri, string? origin = null, string? referrer = null, CancellationToken cancellationToken = default)
     {
         NotDisposed();
@@ -193,6 +196,7 @@ public abstract class HttpArtifactTool : ArtifactTool
     /// <param name="referrer">Request referrer.</param>
     /// <param name="cancellationToken">Cancellation token.</param>
     /// <returns>Task returning response (status left unchecked).</returns>
+    /// <exception cref="HttpRequestException">Thrown for issues with request excluding non-success server responses.</exception>
     public async Task<HttpResponseMessage> GetAsync(Uri requestUri, string? origin = null, string? referrer = null, CancellationToken cancellationToken = default)
     {
         NotDisposed();
@@ -208,6 +212,7 @@ public abstract class HttpArtifactTool : ArtifactTool
     /// <param name="requestMessage">Request.</param>
     /// <param name="cancellationToken">Cancellation token.</param>
     /// <returns>Task returning response (status left unchecked).</returns>
+    /// <exception cref="HttpRequestException">Thrown for issues with request excluding non-success server responses.</exception>
     public async Task<HttpResponseMessage> SendAsync(HttpRequestMessage requestMessage, CancellationToken cancellationToken = default)
     {
         NotDisposed();
@@ -261,6 +266,8 @@ public abstract class HttpArtifactTool : ArtifactTool
     /// <param name="referrer">Request referrer.</param>
     /// <param name="cancellationToken">Cancellation token.</param>
     /// <returns>Task returning deserialized data.</returns>
+    /// <exception cref="HttpRequestException">Thrown for issues with request excluding non-success server responses.</exception>
+    /// <exception cref="AggregateException">Thrown with <see cref="HttpRequestException"/> and <see cref="ExHttpResponseMessageException"/> on HTTP error.</exception>
     /// <remarks>
     /// This overload uses <see cref="ArtifactTool.JsonOptions"/> member automatically.
     /// </remarks>
@@ -271,7 +278,7 @@ public abstract class HttpArtifactTool : ArtifactTool
         SetOriginAndReferrer(req, origin, referrer);
         ConfigureJsonRequest(req);
         using HttpResponseMessage res = await HttpClient.SendAsync(req, JsonCompletionOption, cancellationToken).ConfigureAwait(false);
-        res.EnsureSuccessStatusCode();
+        ExHttpResponseMessageException.EnsureSuccessStatusCode(res);
         return await DeserializeJsonWithDebugAsync<T>(res, cancellationToken).ConfigureAwait(false);
     }
 
@@ -284,6 +291,8 @@ public abstract class HttpArtifactTool : ArtifactTool
     /// <param name="referrer">Request referrer.</param>
     /// <param name="cancellationToken">Cancellation token.</param>
     /// <returns>Task returning deserialized data.</returns>
+    /// <exception cref="HttpRequestException">Thrown for issues with request excluding non-success server responses.</exception>
+    /// <exception cref="AggregateException">Thrown with <see cref="HttpRequestException"/> and <see cref="ExHttpResponseMessageException"/> on HTTP error.</exception>
     /// <remarks>
     /// This overload uses <see cref="ArtifactTool.JsonOptions"/> member automatically.
     /// </remarks>
@@ -302,6 +311,8 @@ public abstract class HttpArtifactTool : ArtifactTool
     /// <param name="referrer">Request referrer.</param>
     /// <param name="cancellationToken">Cancellation token.</param>
     /// <returns>Task returning deserialized data.</returns>
+    /// <exception cref="HttpRequestException">Thrown for issues with request excluding non-success server responses.</exception>
+    /// <exception cref="AggregateException">Thrown with <see cref="HttpRequestException"/> and <see cref="ExHttpResponseMessageException"/> on HTTP error.</exception>
     public async Task<T?> GetDeserializedJsonAsync<T>(string requestUri, JsonSerializerOptions? jsonSerializerOptions, string? origin = null, string? referrer = null, CancellationToken cancellationToken = default)
     {
         NotDisposed();
@@ -309,7 +320,7 @@ public abstract class HttpArtifactTool : ArtifactTool
         SetOriginAndReferrer(req, origin, referrer);
         ConfigureJsonRequest(req);
         using HttpResponseMessage res = await HttpClient.SendAsync(req, JsonCompletionOption, cancellationToken).ConfigureAwait(false);
-        res.EnsureSuccessStatusCode();
+        ExHttpResponseMessageException.EnsureSuccessStatusCode(res);
         return await DeserializeJsonWithDebugAsync<T>(res, jsonSerializerOptions, cancellationToken).ConfigureAwait(false);
     }
 
@@ -323,6 +334,8 @@ public abstract class HttpArtifactTool : ArtifactTool
     /// <param name="referrer">Request referrer.</param>
     /// <param name="cancellationToken">Cancellation token.</param>
     /// <returns>Task returning deserialized data.</returns>
+    /// <exception cref="HttpRequestException">Thrown for issues with request excluding non-success server responses.</exception>
+    /// <exception cref="AggregateException">Thrown with <see cref="HttpRequestException"/> and <see cref="ExHttpResponseMessageException"/> on HTTP error.</exception>
     public async Task<T> GetDeserializedRequiredJsonAsync<T>(string requestUri, JsonSerializerOptions? jsonSerializerOptions, string? origin = null, string? referrer = null, CancellationToken cancellationToken = default)
     {
         return await GetDeserializedJsonAsync<T>(requestUri, jsonSerializerOptions, origin, referrer, cancellationToken).ConfigureAwait(false) ?? throw new NullJsonDataException();
@@ -337,6 +350,8 @@ public abstract class HttpArtifactTool : ArtifactTool
     /// <param name="referrer">Request referrer.</param>
     /// <param name="cancellationToken">Cancellation token.</param>
     /// <returns>Task returning deserialized data.</returns>
+    /// <exception cref="HttpRequestException">Thrown for issues with request excluding non-success server responses.</exception>
+    /// <exception cref="AggregateException">Thrown with <see cref="HttpRequestException"/> and <see cref="ExHttpResponseMessageException"/> on HTTP error.</exception>
     /// <remarks>
     /// This overload uses <see cref="ArtifactTool.JsonOptions"/> member automatically.
     /// </remarks>
@@ -347,7 +362,7 @@ public abstract class HttpArtifactTool : ArtifactTool
         SetOriginAndReferrer(req, origin, referrer);
         ConfigureJsonRequest(req);
         using HttpResponseMessage res = await HttpClient.SendAsync(req, JsonCompletionOption, cancellationToken).ConfigureAwait(false);
-        res.EnsureSuccessStatusCode();
+        ExHttpResponseMessageException.EnsureSuccessStatusCode(res);
         return await DeserializeJsonWithDebugAsync<T>(res, cancellationToken).ConfigureAwait(false);
     }
 
@@ -360,6 +375,8 @@ public abstract class HttpArtifactTool : ArtifactTool
     /// <param name="referrer">Request referrer.</param>
     /// <param name="cancellationToken">Cancellation token.</param>
     /// <returns>Task returning deserialized data.</returns>
+    /// <exception cref="HttpRequestException">Thrown for issues with request excluding non-success server responses.</exception>
+    /// <exception cref="AggregateException">Thrown with <see cref="HttpRequestException"/> and <see cref="ExHttpResponseMessageException"/> on HTTP error.</exception>
     /// <remarks>
     /// This overload uses <see cref="ArtifactTool.JsonOptions"/> member automatically.
     /// </remarks>
@@ -378,6 +395,8 @@ public abstract class HttpArtifactTool : ArtifactTool
     /// <param name="referrer">Request referrer.</param>
     /// <param name="cancellationToken">Cancellation token.</param>
     /// <returns>Task returning deserialized data.</returns>
+    /// <exception cref="HttpRequestException">Thrown for issues with request excluding non-success server responses.</exception>
+    /// <exception cref="AggregateException">Thrown with <see cref="HttpRequestException"/> and <see cref="ExHttpResponseMessageException"/> on HTTP error.</exception>
     public async Task<T?> GetDeserializedJsonAsync<T>(Uri requestUri, JsonSerializerOptions? jsonSerializerOptions, string? origin = null, string? referrer = null, CancellationToken cancellationToken = default)
     {
         NotDisposed();
@@ -385,7 +404,7 @@ public abstract class HttpArtifactTool : ArtifactTool
         SetOriginAndReferrer(req, origin, referrer);
         ConfigureJsonRequest(req);
         using HttpResponseMessage res = await HttpClient.SendAsync(req, JsonCompletionOption, cancellationToken).ConfigureAwait(false);
-        res.EnsureSuccessStatusCode();
+        ExHttpResponseMessageException.EnsureSuccessStatusCode(res);
         return await DeserializeJsonWithDebugAsync<T>(res, cancellationToken).ConfigureAwait(false);
     }
 
@@ -399,6 +418,8 @@ public abstract class HttpArtifactTool : ArtifactTool
     /// <param name="referrer">Request referrer.</param>
     /// <param name="cancellationToken">Cancellation token.</param>
     /// <returns>Task returning deserialized data.</returns>
+    /// <exception cref="HttpRequestException">Thrown for issues with request excluding non-success server responses.</exception>
+    /// <exception cref="AggregateException">Thrown with <see cref="HttpRequestException"/> and <see cref="ExHttpResponseMessageException"/> on HTTP error.</exception>
     public async Task<T> GetDeserializedRequiredJsonAsync<T>(Uri requestUri, JsonSerializerOptions? jsonSerializerOptions, string? origin = null, string? referrer = null, CancellationToken cancellationToken = default)
     {
         return await GetDeserializedJsonAsync<T>(requestUri, jsonSerializerOptions, origin, referrer, cancellationToken).ConfigureAwait(false) ?? throw new NullJsonDataException();
@@ -411,6 +432,8 @@ public abstract class HttpArtifactTool : ArtifactTool
     /// <param name="requestMessage">Request to send.</param>
     /// <param name="cancellationToken">Cancellation token.</param>
     /// <returns>Task returning deserialized data.</returns>
+    /// <exception cref="HttpRequestException">Thrown for issues with request excluding non-success server responses.</exception>
+    /// <exception cref="AggregateException">Thrown with <see cref="HttpRequestException"/> and <see cref="ExHttpResponseMessageException"/> on HTTP error.</exception>
     /// <remarks>
     /// This overload uses <see cref="ArtifactTool.JsonOptions"/> member automatically.
     /// </remarks>
@@ -418,7 +441,7 @@ public abstract class HttpArtifactTool : ArtifactTool
     {
         NotDisposed();
         using HttpResponseMessage res = await HttpClient.SendAsync(requestMessage, JsonCompletionOption, cancellationToken).ConfigureAwait(false);
-        res.EnsureSuccessStatusCode();
+        ExHttpResponseMessageException.EnsureSuccessStatusCode(res);
         return await DeserializeJsonAsync<T>(await res.Content.ReadAsStreamAsync(cancellationToken).ConfigureAwait(false), JsonOptions, cancellationToken).ConfigureAwait(false);
     }
 
@@ -429,6 +452,8 @@ public abstract class HttpArtifactTool : ArtifactTool
     /// <param name="requestMessage">Request to send.</param>
     /// <param name="cancellationToken">Cancellation token.</param>
     /// <returns>Task returning deserialized data.</returns>
+    /// <exception cref="HttpRequestException">Thrown for issues with request excluding non-success server responses.</exception>
+    /// <exception cref="AggregateException">Thrown with <see cref="HttpRequestException"/> and <see cref="ExHttpResponseMessageException"/> on HTTP error.</exception>
     /// <remarks>
     /// This overload uses <see cref="ArtifactTool.JsonOptions"/> member automatically.
     /// </remarks>
@@ -445,11 +470,13 @@ public abstract class HttpArtifactTool : ArtifactTool
     /// <param name="jsonSerializerOptions">Optional deserialization options.</param>
     /// <param name="cancellationToken">Cancellation token.</param>
     /// <returns>Task returning deserialized data.</returns>
+    /// <exception cref="HttpRequestException">Thrown for issues with request excluding non-success server responses.</exception>
+    /// <exception cref="AggregateException">Thrown with <see cref="HttpRequestException"/> and <see cref="ExHttpResponseMessageException"/> on HTTP error.</exception>
     public async Task<T?> RetrieveDeserializedJsonAsync<T>(HttpRequestMessage requestMessage, JsonSerializerOptions? jsonSerializerOptions, CancellationToken cancellationToken = default)
     {
         NotDisposed();
         using HttpResponseMessage res = await HttpClient.SendAsync(requestMessage, JsonCompletionOption, cancellationToken).ConfigureAwait(false);
-        res.EnsureSuccessStatusCode();
+        ExHttpResponseMessageException.EnsureSuccessStatusCode(res);
         return await DeserializeJsonAsync<T>(await res.Content.ReadAsStreamAsync(cancellationToken).ConfigureAwait(false), jsonSerializerOptions, cancellationToken).ConfigureAwait(false);
     }
 
@@ -461,6 +488,8 @@ public abstract class HttpArtifactTool : ArtifactTool
     /// <param name="jsonSerializerOptions">Optional deserialization options.</param>
     /// <param name="cancellationToken">Cancellation token.</param>
     /// <returns>Task returning deserialized data.</returns>
+    /// <exception cref="HttpRequestException">Thrown for issues with request excluding non-success server responses.</exception>
+    /// <exception cref="AggregateException">Thrown with <see cref="HttpRequestException"/> and <see cref="ExHttpResponseMessageException"/> on HTTP error.</exception>
     public async Task<T> RetrieveDeserializedRequiredJsonAsync<T>(HttpRequestMessage requestMessage, JsonSerializerOptions? jsonSerializerOptions, CancellationToken cancellationToken = default)
     {
         return await RetrieveDeserializedJsonAsync<T>(requestMessage, jsonSerializerOptions, cancellationToken).ConfigureAwait(false) ?? throw new NullJsonDataException();
@@ -473,6 +502,8 @@ public abstract class HttpArtifactTool : ArtifactTool
     /// <param name="response">Response to read from.</param>
     /// <param name="cancellationToken">Cancellation token.</param>
     /// <returns>Task returning value.</returns>
+    /// <exception cref="HttpRequestException">Thrown for issues with request excluding non-success server responses.</exception>
+    /// <exception cref="AggregateException">Thrown with <see cref="HttpRequestException"/> and <see cref="ExHttpResponseMessageException"/> on HTTP error.</exception>
     /// <remarks>
     /// This overload uses <see cref="ArtifactTool.JsonOptions"/> member automatically.
     /// </remarks>
@@ -486,6 +517,8 @@ public abstract class HttpArtifactTool : ArtifactTool
     /// <param name="response">Response to read from.</param>
     /// <param name="cancellationToken">Cancellation token.</param>
     /// <returns>Task returning value.</returns>
+    /// <exception cref="HttpRequestException">Thrown for issues with request excluding non-success server responses.</exception>
+    /// <exception cref="AggregateException">Thrown with <see cref="HttpRequestException"/> and <see cref="ExHttpResponseMessageException"/> on HTTP error.</exception>
     /// <remarks>
     /// This overload uses <see cref="ArtifactTool.JsonOptions"/> member automatically.
     /// </remarks>
@@ -500,9 +533,11 @@ public abstract class HttpArtifactTool : ArtifactTool
     /// <param name="jsonSerializerOptions">Optional deserialization options.</param>
     /// <param name="cancellationToken">Cancellation token.</param>
     /// <returns>Task returning value.</returns>
+    /// <exception cref="HttpRequestException">Thrown for issues with request excluding non-success server responses.</exception>
+    /// <exception cref="AggregateException">Thrown with <see cref="HttpRequestException"/> and <see cref="ExHttpResponseMessageException"/> on HTTP error.</exception>
     public async Task<T?> DeserializeJsonWithDebugAsync<T>(HttpResponseMessage response, JsonSerializerOptions? jsonSerializerOptions, CancellationToken cancellationToken = default)
     {
-        response.EnsureSuccessStatusCode();
+        ExHttpResponseMessageException.EnsureSuccessStatusCode(response);
         if (!DebugMode)
             return await DeserializeJsonAsync<T>(await response.Content.ReadAsStreamAsync(cancellationToken).ConfigureAwait(false), jsonSerializerOptions, cancellationToken).ConfigureAwait(false);
         string text = await response.Content.ReadAsStringAsync(cancellationToken).ConfigureAwait(false);
@@ -518,9 +553,11 @@ public abstract class HttpArtifactTool : ArtifactTool
     /// <param name="jsonSerializerOptions">Optional deserialization options.</param>
     /// <param name="cancellationToken">Cancellation token.</param>
     /// <returns>Task returning value.</returns>
+    /// <exception cref="HttpRequestException">Thrown for issues with request excluding non-success server responses.</exception>
+    /// <exception cref="AggregateException">Thrown with <see cref="HttpRequestException"/> and <see cref="ExHttpResponseMessageException"/> on HTTP error.</exception>
     public async Task<T> DeserializeRequiredJsonWithDebugAsync<T>(HttpResponseMessage response, JsonSerializerOptions? jsonSerializerOptions, CancellationToken cancellationToken = default)
     {
-        response.EnsureSuccessStatusCode();
+        ExHttpResponseMessageException.EnsureSuccessStatusCode(response);
         if (!DebugMode)
             return await DeserializeRequiredJsonAsync<T>(await response.Content.ReadAsStreamAsync(cancellationToken).ConfigureAwait(false), jsonSerializerOptions, cancellationToken).ConfigureAwait(false);
         string text = await response.Content.ReadAsStringAsync(cancellationToken).ConfigureAwait(false);
@@ -562,15 +599,17 @@ public abstract class HttpArtifactTool : ArtifactTool
     /// <param name="referrer">Request referrer.</param>
     /// <param name="cancellationToken">Cancellation token.</param>
     /// <returns>Task.</returns>
+    /// <exception cref="HttpRequestException">Thrown for issues with request excluding non-success server responses.</exception>
+    /// <exception cref="AggregateException">Thrown with <see cref="HttpRequestException"/> and <see cref="ExHttpResponseMessageException"/> on HTTP error.</exception>
     public async Task DownloadResourceAsync(string requestUri, Stream stream, string? origin = null, string? referrer = null, CancellationToken cancellationToken = default)
     {
         NotDisposed();
         HttpRequestMessage req = new(HttpMethod.Get, requestUri);
         SetOriginAndReferrer(req, origin, referrer);
         ConfigureHttpRequest(req);
-        using HttpResponseMessage fr = await HttpClient.SendAsync(req, DownloadCompletionOption, cancellationToken).ConfigureAwait(false);
-        fr.EnsureSuccessStatusCode();
-        await fr.Content.CopyToAsync(stream, cancellationToken).ConfigureAwait(false);
+        using HttpResponseMessage res = await HttpClient.SendAsync(req, DownloadCompletionOption, cancellationToken).ConfigureAwait(false);
+        ExHttpResponseMessageException.EnsureSuccessStatusCode(res);
+        await res.Content.CopyToAsync(stream, cancellationToken).ConfigureAwait(false);
     }
 
     /// <summary>
@@ -582,6 +621,8 @@ public abstract class HttpArtifactTool : ArtifactTool
     /// <param name="referrer">Request referrer.</param>
     /// <param name="cancellationToken">Cancellation token.</param>
     /// <returns>Task.</returns>
+    /// <exception cref="HttpRequestException">Thrown for issues with request excluding non-success server responses.</exception>
+    /// <exception cref="AggregateException">Thrown with <see cref="HttpRequestException"/> and <see cref="ExHttpResponseMessageException"/> on HTTP error.</exception>
     public async Task DownloadResourceAsync(string requestUri, ArtifactResourceKey key, string? origin = null, string? referrer = null, CancellationToken cancellationToken = default)
     {
         NotDisposed();
@@ -602,6 +643,8 @@ public abstract class HttpArtifactTool : ArtifactTool
     /// <param name="referrer">Request referrer.</param>
     /// <param name="cancellationToken">Cancellation token.</param>
     /// <returns>Task.</returns>
+    /// <exception cref="HttpRequestException">Thrown for issues with request excluding non-success server responses.</exception>
+    /// <exception cref="AggregateException">Thrown with <see cref="HttpRequestException"/> and <see cref="ExHttpResponseMessageException"/> on HTTP error.</exception>
     public Task DownloadResourceAsync(string requestUri, string file, ArtifactKey key, string path = "", string? origin = null, string? referrer = null, CancellationToken cancellationToken = default)
         => DownloadResourceAsync(requestUri, new ArtifactResourceKey(key, file, path), origin, referrer, cancellationToken);
 
@@ -614,15 +657,17 @@ public abstract class HttpArtifactTool : ArtifactTool
     /// <param name="referrer">Request referrer.</param>
     /// <param name="cancellationToken">Cancellation token.</param>
     /// <returns>Task.</returns>
+    /// <exception cref="HttpRequestException">Thrown for issues with request excluding non-success server responses.</exception>
+    /// <exception cref="AggregateException">Thrown with <see cref="HttpRequestException"/> and <see cref="ExHttpResponseMessageException"/> on HTTP error.</exception>
     public async Task DownloadResourceAsync(Uri requestUri, Stream stream, string? origin = null, string? referrer = null, CancellationToken cancellationToken = default)
     {
         NotDisposed();
         HttpRequestMessage req = new(HttpMethod.Get, requestUri);
         SetOriginAndReferrer(req, origin, referrer);
         ConfigureHttpRequest(req);
-        using HttpResponseMessage fr = await HttpClient.SendAsync(req, DownloadCompletionOption, cancellationToken).ConfigureAwait(false);
-        fr.EnsureSuccessStatusCode();
-        await fr.Content.CopyToAsync(stream, cancellationToken).ConfigureAwait(false);
+        using HttpResponseMessage res = await HttpClient.SendAsync(req, DownloadCompletionOption, cancellationToken).ConfigureAwait(false);
+        ExHttpResponseMessageException.EnsureSuccessStatusCode(res);
+        await res.Content.CopyToAsync(stream, cancellationToken).ConfigureAwait(false);
     }
 
     /// <summary>
@@ -634,6 +679,8 @@ public abstract class HttpArtifactTool : ArtifactTool
     /// <param name="referrer">Request referrer.</param>
     /// <param name="cancellationToken">Cancellation token.</param>
     /// <returns>Task.</returns>
+    /// <exception cref="HttpRequestException">Thrown for issues with request excluding non-success server responses.</exception>
+    /// <exception cref="AggregateException">Thrown with <see cref="HttpRequestException"/> and <see cref="ExHttpResponseMessageException"/> on HTTP error.</exception>
     public async Task DownloadResourceAsync(Uri requestUri, ArtifactResourceKey key, string? origin = null, string? referrer = null, CancellationToken cancellationToken = default)
     {
         NotDisposed();
@@ -654,6 +701,8 @@ public abstract class HttpArtifactTool : ArtifactTool
     /// <param name="referrer">Request referrer.</param>
     /// <param name="cancellationToken">Cancellation token.</param>
     /// <returns>Task.</returns>
+    /// <exception cref="HttpRequestException">Thrown for issues with request excluding non-success server responses.</exception>
+    /// <exception cref="AggregateException">Thrown with <see cref="HttpRequestException"/> and <see cref="ExHttpResponseMessageException"/> on HTTP error.</exception>
     public Task DownloadResourceAsync(Uri requestUri, string file, ArtifactKey key, string path = "", string? origin = null, string? referrer = null, CancellationToken cancellationToken = default)
         => DownloadResourceAsync(requestUri, new ArtifactResourceKey(key, file, path), origin, referrer, cancellationToken);
 
@@ -664,12 +713,14 @@ public abstract class HttpArtifactTool : ArtifactTool
     /// <param name="stream">Target stream.</param>
     /// <param name="cancellationToken">Cancellation token.</param>
     /// <returns>Task.</returns>
+    /// <exception cref="HttpRequestException">Thrown for issues with request excluding non-success server responses.</exception>
+    /// <exception cref="AggregateException">Thrown with <see cref="HttpRequestException"/> and <see cref="ExHttpResponseMessageException"/> on HTTP error.</exception>
     public async Task DownloadResourceAsync(HttpRequestMessage requestMessage, Stream stream, CancellationToken cancellationToken = default)
     {
         NotDisposed();
-        using HttpResponseMessage fr = await HttpClient.SendAsync(requestMessage, DownloadCompletionOption, cancellationToken).ConfigureAwait(false);
-        fr.EnsureSuccessStatusCode();
-        await fr.Content.CopyToAsync(stream, cancellationToken).ConfigureAwait(false);
+        using HttpResponseMessage res = await HttpClient.SendAsync(requestMessage, DownloadCompletionOption, cancellationToken).ConfigureAwait(false);
+        ExHttpResponseMessageException.EnsureSuccessStatusCode(res);
+        await res.Content.CopyToAsync(stream, cancellationToken).ConfigureAwait(false);
     }
 
     /// <summary>
@@ -679,6 +730,8 @@ public abstract class HttpArtifactTool : ArtifactTool
     /// <param name="key">Resource key.</param>
     /// <param name="cancellationToken">Cancellation token.</param>
     /// <returns>Task.</returns>
+    /// <exception cref="HttpRequestException">Thrown for issues with request excluding non-success server responses.</exception>
+    /// <exception cref="AggregateException">Thrown with <see cref="HttpRequestException"/> and <see cref="ExHttpResponseMessageException"/> on HTTP error.</exception>
     public async Task DownloadResourceAsync(HttpRequestMessage requestMessage, ArtifactResourceKey key, CancellationToken cancellationToken = default)
     {
         NotDisposed();
@@ -694,6 +747,8 @@ public abstract class HttpArtifactTool : ArtifactTool
     /// <param name="path">File path to prepend.</param>
     /// <param name="cancellationToken">Cancellation token.</param>
     /// <returns>Task.</returns>
+    /// <exception cref="HttpRequestException">Thrown for issues with request excluding non-success server responses.</exception>
+    /// <exception cref="AggregateException">Thrown with <see cref="HttpRequestException"/> and <see cref="ExHttpResponseMessageException"/> on HTTP error.</exception>
     public Task DownloadResourceAsync(HttpRequestMessage requestMessage, string file, ArtifactKey key, string path = "", CancellationToken cancellationToken = default)
     {
         NotDisposed();
@@ -707,9 +762,9 @@ public abstract class HttpArtifactTool : ArtifactTool
 
     private async Task DownloadResourceInternalAsync(HttpRequestMessage requestMessage, ArtifactResourceKey key, CancellationToken cancellationToken = default)
     {
-        using HttpResponseMessage fr = await HttpClient.SendAsync(requestMessage, DownloadCompletionOption, cancellationToken).ConfigureAwait(false);
-        fr.EnsureSuccessStatusCode();
-        await StreamDownloadAsync(fr, key, cancellationToken);
+        using HttpResponseMessage res = await HttpClient.SendAsync(requestMessage, DownloadCompletionOption, cancellationToken).ConfigureAwait(false);
+        ExHttpResponseMessageException.EnsureSuccessStatusCode(res);
+        await StreamDownloadAsync(res, key, cancellationToken);
     }
 
     private async Task StreamDownloadAsync(HttpResponseMessage response, ArtifactResourceKey key, CancellationToken cancellationToken)

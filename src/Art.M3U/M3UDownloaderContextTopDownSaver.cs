@@ -7,17 +7,9 @@ namespace Art.M3U;
 /// <summary>
 /// Represents a top-down saver.
 /// </summary>
-public class M3UDownloaderContextTopDownSaver : ISaver
+public class M3UDownloaderContextTopDownSaver : M3UDownloaderContextSaverBase
 {
     private static readonly Regex s_bitRegex = new(@"(^[\S\s]*[^\d]|)\d+(\.\w+)$");
-
-    /// <inheritdoc />
-    public Func<Task>? HeartbeatCallback { get; set; }
-
-    /// <inheritdoc />
-    public Func<HttpRequestException, Task>? RecoveryCallback { get; set; }
-
-    private readonly M3UDownloaderContext _context;
     private readonly long _top;
     private readonly Func<string, long, string> _nameTransform;
 
@@ -31,9 +23,8 @@ public class M3UDownloaderContextTopDownSaver : ISaver
     {
     }
 
-    internal M3UDownloaderContextTopDownSaver(M3UDownloaderContext context, long top, Func<string, long, string> nameTransform)
+    internal M3UDownloaderContextTopDownSaver(M3UDownloaderContext context, long top, Func<string, long, string> nameTransform) : base(context)
     {
-        _context = context;
         _top = top;
         _nameTransform = nameTransform;
     }
@@ -61,9 +52,9 @@ public class M3UDownloaderContextTopDownSaver : ISaver
     }
 
     /// <inheritdoc />
-    public async Task RunAsync(CancellationToken cancellationToken = default)
+    public override async Task RunAsync(CancellationToken cancellationToken = default)
     {
-        int failCtr = 0;
+        FailCounter = 0;
         long top = _top;
         while (true)
         {
@@ -71,40 +62,51 @@ public class M3UDownloaderContextTopDownSaver : ISaver
             {
                 if (top < 0) break;
                 if (HeartbeatCallback != null) await HeartbeatCallback();
-                _context.Tool.LogInformation("Reading main...");
-                M3UFile m3 = await _context.GetAsync(cancellationToken);
+                Context.Tool.LogInformation("Reading main...");
+                M3UFile m3 = await Context.GetAsync(cancellationToken);
                 string str = m3.DataLines.First();
-                Uri origUri = new(_context.MainUri, str);
-                Uri uri = new UriBuilder(new Uri(_context.MainUri, _nameTransform(str, top))) { Query = origUri.Query }.Uri;
-                _context.Tool.LogInformation($"Downloading segment {uri.Segments[^1]}...");
+                Uri origUri = new(Context.MainUri, str);
+                Uri uri = new UriBuilder(new Uri(Context.MainUri, _nameTransform(str, top))) { Query = origUri.Query }.Uri;
+                Context.Tool.LogInformation($"Downloading segment {uri.Segments[^1]}...");
                 try
                 {
                     // Don't assume MSN, and just accept failure (exception) when trying to decrypt with no IV
                     // Also don't depend on current file since it probably won't do us good anyway for this use case
-                    await _context.DownloadSegmentAsync(uri, null, null, cancellationToken);
+                    await Context.DownloadSegmentAsync(uri, null, null, cancellationToken);
                     top--;
                 }
-                catch (HttpRequestException hre)
+                catch (HttpRequestException requestException)
                 {
-                    if (hre.StatusCode == HttpStatusCode.NotFound)
+                    if (requestException.StatusCode == HttpStatusCode.NotFound)
                     {
-                        _context.Tool.LogInformation("HTTP NotFound returned, ending operation");
+                        Context.Tool.LogInformation("HTTP NotFound returned, ending operation");
                         return;
                     }
+                    await HandleHttpRequestExceptionAsync(requestException, cancellationToken);
+                }
+                catch (AggregateException aggregateException)
+                {
+                    if (!TryGetHttpRequestException(aggregateException, out HttpRequestException? requestException, out ExHttpResponseMessageException? responseMessageException))
+                        throw;
+                    if (requestException.StatusCode == HttpStatusCode.NotFound)
+                    {
+                        Context.Tool.LogInformation("HTTP NotFound returned, ending operation");
+                        return;
+                    }
+                    await HandleHttpRequestExceptionAsync(aggregateException.InnerExceptions, requestException, responseMessageException, cancellationToken);
                 }
                 await Task.Delay(500, cancellationToken);
-                failCtr = 0;
+                FailCounter = 0;
             }
-            catch (HttpRequestException hre)
+            catch (HttpRequestException requestException)
             {
-                _context.Tool.LogInformation("HTTP error encountered", hre.ToString());
-                if (hre.StatusCode == HttpStatusCode.Forbidden)
-                {
-                    failCtr++;
-                    if (failCtr > _context.Config.MaxFails) throw new AggregateException($"Failed {failCtr} times in a row (exceeded threshold), aborting", hre);
-                    if (RecoveryCallback == null) throw new AggregateException($"Failed {failCtr} times in a row and no recovery callback implemented, aborting", hre);
-                    await RecoveryCallback(hre);
-                }
+                await HandleHttpRequestExceptionAsync(requestException, cancellationToken);
+            }
+            catch (AggregateException aggregateException)
+            {
+                if (!TryGetHttpRequestException(aggregateException, out HttpRequestException? requestException, out ExHttpResponseMessageException? responseMessageException))
+                    throw;
+                await HandleHttpRequestExceptionAsync(aggregateException.InnerExceptions, requestException, responseMessageException, cancellationToken);
             }
         }
     }

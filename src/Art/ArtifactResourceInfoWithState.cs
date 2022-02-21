@@ -5,4 +5,4 @@ namespace Art;
 /// </summary>
 /// <param name="ArtifactResourceInfo">Artifact resource information.</param>
 /// <param name="State">Item state flags.</param>
-public record struct ArtifactResourceInfoWithState(ArtifactResourceInfo ArtifactResourceInfo, ItemStateFlags State);
+public readonly record struct ArtifactResourceInfoWithState(ArtifactResourceInfo ArtifactResourceInfo, ItemStateFlags State);
