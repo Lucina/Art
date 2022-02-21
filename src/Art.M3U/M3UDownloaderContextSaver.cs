@@ -85,31 +85,32 @@ public abstract class M3UDownloaderContextSaver
     /// <summary>
     /// Handles HTTP request exception.
     /// </summary>
-    /// <param name="originalExceptions">Original exceptions.</param>
+    /// <param name="aggregateException">Original aggregate exception.</param>
     /// <param name="requestException">Exception.</param>
     /// <param name="responseMessageException">Response message exception, if available.</param>
     /// <param name="cancellationToken">Cancellation token.</param>
     /// <exception cref="AggregateException">Thrown when handling exception failed.</exception>
-    protected virtual async Task HandleHttpRequestExceptionAsync(IReadOnlyCollection<Exception> originalExceptions, HttpRequestException requestException, ExHttpResponseMessageException? responseMessageException, CancellationToken cancellationToken)
+    protected virtual async Task HandleHttpRequestExceptionAsync(AggregateException aggregateException, HttpRequestException requestException, ExHttpResponseMessageException? responseMessageException, CancellationToken cancellationToken)
     {
-        Context.Tool.LogInformation("HTTP error encountered", requestException.ToString());
         Interlocked.Increment(ref FailCounter);
+        Context.Tool.LogInformation("HTTP error encountered", requestException.ToString());
+        IReadOnlyCollection<Exception> originalExceptions = aggregateException.InnerExceptions;
         switch (requestException.StatusCode)
         {
             case HttpStatusCode.Forbidden: // 403
                 ThrowForExceedFails(originalExceptions);
                 await GetRecoveryCallbackOrThrow(originalExceptions)(requestException);
-                break;
+                return;
             case HttpStatusCode.InternalServerError: // 500
                 ThrowForExceedFails(originalExceptions);
                 await DelayOrThrowAsync(originalExceptions, Timeout500, requestException, responseMessageException, cancellationToken);
-                break;
+                return;
             case HttpStatusCode.ServiceUnavailable: // 503
                 ThrowForExceedFails(originalExceptions);
                 await DelayOrThrowAsync(originalExceptions, Timeout503, requestException, responseMessageException, cancellationToken);
-                break;
+                return;
         }
-        throw new AggregateException("Unhandled HTTP error", originalExceptions);
+        await GetRecoveryCallbackOrThrow(aggregateException)(requestException);
     }
 
     /// <summary>
@@ -120,45 +121,45 @@ public abstract class M3UDownloaderContextSaver
     /// <exception cref="AggregateException">Thrown when handling exception failed.</exception>
     protected virtual async Task HandleHttpRequestExceptionAsync(HttpRequestException requestException, CancellationToken cancellationToken)
     {
-        Context.Tool.LogInformation("HTTP error encountered", requestException.ToString());
         Interlocked.Increment(ref FailCounter);
+        Context.Tool.LogInformation("HTTP error encountered", requestException.ToString());
         switch (requestException.StatusCode)
         {
             case HttpStatusCode.Forbidden: // 403
                 ThrowForExceedFails(requestException);
                 await GetRecoveryCallbackOrThrow(requestException)(requestException);
-                break;
+                return;
             case HttpStatusCode.InternalServerError: // 500
                 ThrowForExceedFails(requestException);
                 await DelayOrThrowAsync(requestException, Timeout500, requestException, null, cancellationToken);
-                break;
+                return;
             case HttpStatusCode.ServiceUnavailable: // 503
                 ThrowForExceedFails(requestException);
                 await DelayOrThrowAsync(requestException, Timeout503, requestException, null, cancellationToken);
-                break;
+                return;
         }
-        throw new AggregateException("Unhandled HTTP error", requestException);
+        await GetRecoveryCallbackOrThrow(requestException)(requestException);
     }
 
     private void ThrowForExceedFails(IReadOnlyCollection<Exception> originalExceptions)
     {
-        if (FailCounter > Context.Config.MaxFails) throw new AggregateException($"Failed {FailCounter} times in a row (exceeded threshold), aborting", originalExceptions);
+        if (FailCounter > Context.Config.MaxFails) throw new AggregateException($"Failed {FailCounter} times in a row (exceeded threshold", originalExceptions);
     }
 
     private void ThrowForExceedFails(Exception exception)
     {
-        if (FailCounter > Context.Config.MaxFails) throw new AggregateException($"Failed {FailCounter} times in a row (exceeded threshold), aborting", exception);
+        if (FailCounter > Context.Config.MaxFails) throw new AggregateException($"Failed {FailCounter} times in a row (exceeded threshold", exception);
     }
 
     private Func<Exception, Task> GetRecoveryCallbackOrThrow(IReadOnlyCollection<Exception> originalExceptions)
     {
-        if (RecoveryCallback == null) throw new AggregateException("No recovery callback implemented, aborting", originalExceptions);
+        if (RecoveryCallback == null) throw new AggregateException("No recovery callback implemented", originalExceptions);
         return RecoveryCallback;
     }
 
     private Func<Exception, Task> GetRecoveryCallbackOrThrow(Exception exception)
     {
-        if (RecoveryCallback == null) throw new AggregateException("No recovery callback implemented, aborting", exception);
+        if (RecoveryCallback == null) throw new AggregateException("No recovery callback implemented", exception);
         return RecoveryCallback;
     }
 

@@ -93,7 +93,7 @@ public class M3UDownloaderContextTopDownSaver : M3UDownloaderContextSaver
                         Context.Tool.LogInformation("HTTP NotFound returned, ending operation");
                         return;
                     }
-                    await HandleHttpRequestExceptionAsync(aggregateException.InnerExceptions, requestException, responseMessageException, cancellationToken);
+                    await HandleHttpRequestExceptionAsync(aggregateException, requestException, responseMessageException, cancellationToken);
                 }
                 await Task.Delay(500, cancellationToken);
                 FailCounter = 0;
@@ -106,7 +106,7 @@ public class M3UDownloaderContextTopDownSaver : M3UDownloaderContextSaver
             {
                 if (!TryGetHttpRequestException(aggregateException, out HttpRequestException? requestException, out ExHttpResponseMessageException? responseMessageException))
                     throw;
-                await HandleHttpRequestExceptionAsync(aggregateException.InnerExceptions, requestException, responseMessageException, cancellationToken);
+                await HandleHttpRequestExceptionAsync(aggregateException, requestException, responseMessageException, cancellationToken);
             }
         }
     }

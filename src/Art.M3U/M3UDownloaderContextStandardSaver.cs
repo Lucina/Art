@@ -61,7 +61,7 @@ public class M3UDownloaderContextStandardSaver : M3UDownloaderContextSaver
             catch (AggregateException aggregateException)
             {
                 if (TryGetHttpRequestException(aggregateException, out HttpRequestException? requestException, out ExHttpResponseMessageException? responseMessageException))
-                    await HandleHttpRequestExceptionAsync(aggregateException.InnerExceptions, requestException, responseMessageException, cancellationToken);
+                    await HandleHttpRequestExceptionAsync(aggregateException, requestException, responseMessageException, cancellationToken);
                 throw;
             }
         }
