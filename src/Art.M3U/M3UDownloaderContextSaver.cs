@@ -1,69 +1,178 @@
-using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
+using System.Net;
 
 namespace Art.M3U;
 
 /// <summary>
-/// Represents a basic saver.
+/// Base class for <see cref="M3UDownloaderContext"/>-bound savers.
 /// </summary>
-public class M3UDownloaderContextSaver : M3UDownloaderContextSaverBase
+public abstract class M3UDownloaderContextSaver
 {
-    private readonly bool _oneOff;
-    private readonly TimeSpan _timeout;
+    /// <summary>
+    /// Heartbeat callback to use before an iteration.
+    /// </summary>
+    public Func<Task>? HeartbeatCallback { get; set; }
 
-    internal M3UDownloaderContextSaver(M3UDownloaderContext context, bool oneOff, TimeSpan timeout) : base(context)
+    /// <summary>
+    /// Recovery callback for errors.
+    /// </summary>
+    public Func<Exception, Task>? RecoveryCallback { get; set; }
+
+    /// <summary>
+    /// Timeout for HTTP error 500 (Internal Server Error).
+    /// </summary>
+    /// <remarks>
+    /// Default value: 10 seconds.
+    /// </remarks>
+    public TimeSpan? Timeout500 { get; set; } = TimeSpan.FromSeconds(10);
+
+    /// <summary>
+    /// Timeout for HTTP error 503 (Service Unavailable).
+    /// </summary>
+    /// <remarks>
+    /// Default value: 10 seconds.
+    /// </remarks>
+    public TimeSpan? Timeout503 { get; set; } = TimeSpan.FromSeconds(10);
+
+    /// <summary>
+    /// Parent context.
+    /// </summary>
+    protected readonly M3UDownloaderContext Context;
+
+    /// <summary>
+    /// Failure counter.
+    /// </summary>
+    protected volatile int FailCounter;
+
+    /// <summary>
+    /// Initializes a new instance of <see cref="M3UDownloaderContextSaver"/>.
+    /// </summary>
+    /// <param name="context">Parent context.</param>
+    protected M3UDownloaderContextSaver(M3UDownloaderContext context)
     {
-        _oneOff = oneOff;
-        _timeout = timeout;
+        Context = context;
     }
 
-    /// <inheritdoc />
-    public override async Task RunAsync(CancellationToken cancellationToken = default)
+    /// <summary>
+    /// Runs implementation.
+    /// </summary>
+    /// <param name="cancellationToken">Cancellation token.</param>
+    /// <returns>Task.</returns>
+    /// <exception cref="HttpRequestException">Thrown for issues with request excluding non-success server responses.</exception>
+    /// <exception cref="AggregateException">Thrown with <see cref="HttpRequestException"/> and <see cref="ExHttpResponseMessageException"/> on HTTP error.</exception>
+    public abstract Task RunAsync(CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Attempts to retrieve a <see cref="HttpRequestException"/> from the specified <see cref="AggregateException"/>.
+    /// </summary>
+    /// <param name="exception">Exception to extract from.</param>
+    /// <param name="requestException">Request exception.</param>
+    /// <param name="responseMessageException">Response message exception, if available.</param>
+    /// <returns>True if <paramref name="requestException"/> was retrieved.</returns>
+    protected static bool TryGetHttpRequestException(AggregateException exception, [NotNullWhen(true)] out HttpRequestException? requestException, out ExHttpResponseMessageException? responseMessageException)
     {
-        FailCounter = 0;
-        HashSet<string> hs = new();
-        Stopwatch sw = new();
-        while (true)
+        exception = exception.Flatten();
+        requestException = null;
+        responseMessageException = null;
+        foreach (Exception e in exception.InnerExceptions)
         {
-            try
-            {
-                if (HeartbeatCallback != null) await HeartbeatCallback();
-                Context.Tool.LogInformation("Reading main...");
-                HashSet<string> entries = new();
-                M3UFile m3 = await Context.GetAsync(cancellationToken);
-                entries.UnionWith(m3.DataLines);
-                entries.ExceptWith(hs);
-                Context.Tool.LogInformation($"{entries.Count} new segments...");
-                if (entries.Count != 0)
-                {
-                    sw.Restart();
-                }
-                else if (sw.IsRunning && sw.Elapsed > _timeout)
-                {
-                    Context.Tool.LogInformation($"No new entries for timeout {_timeout}, stopping");
-                    return;
-                }
-                int i = 0;
-                foreach (string entry in entries)
-                {
-                    Context.Tool.LogInformation($"Downloading segment {entry}...");
-                    await Context.DownloadSegmentAsync(new Uri(Context.MainUri, entry), m3, m3.FirstMediaSequenceNumber + i, cancellationToken);
-                    i++;
-                }
-                hs.UnionWith(entries);
-                if (_oneOff) break;
-                await Task.Delay(1000, cancellationToken);
-                FailCounter = 0;
-            }
-            catch (HttpRequestException requestException)
-            {
-                await HandleHttpRequestExceptionAsync(requestException, cancellationToken);
-            }
-            catch (AggregateException aggregateException)
-            {
-                if (TryGetHttpRequestException(aggregateException, out HttpRequestException? requestException, out ExHttpResponseMessageException? responseMessageException))
-                    await HandleHttpRequestExceptionAsync(aggregateException.InnerExceptions, requestException, responseMessageException, cancellationToken);
-                throw;
-            }
+            requestException ??= e as HttpRequestException;
+            responseMessageException ??= e as ExHttpResponseMessageException;
         }
+        return requestException != null;
+    }
+
+    /// <summary>
+    /// Handles HTTP request exception.
+    /// </summary>
+    /// <param name="originalExceptions">Original exceptions.</param>
+    /// <param name="requestException">Exception.</param>
+    /// <param name="responseMessageException">Response message exception, if available.</param>
+    /// <param name="cancellationToken">Cancellation token.</param>
+    /// <exception cref="AggregateException">Thrown when handling exception failed.</exception>
+    protected virtual async Task HandleHttpRequestExceptionAsync(IReadOnlyCollection<Exception> originalExceptions, HttpRequestException requestException, ExHttpResponseMessageException? responseMessageException, CancellationToken cancellationToken)
+    {
+        Context.Tool.LogInformation("HTTP error encountered", requestException.ToString());
+        Interlocked.Increment(ref FailCounter);
+        switch (requestException.StatusCode)
+        {
+            case HttpStatusCode.Forbidden: // 403
+                ThrowForExceedFails(originalExceptions);
+                await GetRecoveryCallbackOrThrow(originalExceptions)(requestException);
+                break;
+            case HttpStatusCode.InternalServerError: // 500
+                ThrowForExceedFails(originalExceptions);
+                await DelayOrThrowAsync(originalExceptions, Timeout500, requestException, responseMessageException, cancellationToken);
+                break;
+            case HttpStatusCode.ServiceUnavailable: // 503
+                ThrowForExceedFails(originalExceptions);
+                await DelayOrThrowAsync(originalExceptions, Timeout503, requestException, responseMessageException, cancellationToken);
+                break;
+        }
+        throw new AggregateException("Unhandled HTTP error", originalExceptions);
+    }
+
+    /// <summary>
+    /// Handles HTTP request exception.
+    /// </summary>
+    /// <param name="requestException">Original exception.</param>
+    /// <param name="cancellationToken">Cancellation token.</param>
+    /// <exception cref="AggregateException">Thrown when handling exception failed.</exception>
+    protected virtual async Task HandleHttpRequestExceptionAsync(HttpRequestException requestException, CancellationToken cancellationToken)
+    {
+        Context.Tool.LogInformation("HTTP error encountered", requestException.ToString());
+        Interlocked.Increment(ref FailCounter);
+        switch (requestException.StatusCode)
+        {
+            case HttpStatusCode.Forbidden: // 403
+                ThrowForExceedFails(requestException);
+                await GetRecoveryCallbackOrThrow(requestException)(requestException);
+                break;
+            case HttpStatusCode.InternalServerError: // 500
+                ThrowForExceedFails(requestException);
+                await DelayOrThrowAsync(requestException, Timeout500, requestException, null, cancellationToken);
+                break;
+            case HttpStatusCode.ServiceUnavailable: // 503
+                ThrowForExceedFails(requestException);
+                await DelayOrThrowAsync(requestException, Timeout503, requestException, null, cancellationToken);
+                break;
+        }
+        throw new AggregateException("Unhandled HTTP error", requestException);
+    }
+
+    private void ThrowForExceedFails(IReadOnlyCollection<Exception> originalExceptions)
+    {
+        if (FailCounter > Context.Config.MaxFails) throw new AggregateException($"Failed {FailCounter} times in a row (exceeded threshold), aborting", originalExceptions);
+    }
+
+    private void ThrowForExceedFails(Exception exception)
+    {
+        if (FailCounter > Context.Config.MaxFails) throw new AggregateException($"Failed {FailCounter} times in a row (exceeded threshold), aborting", exception);
+    }
+
+    private Func<Exception, Task> GetRecoveryCallbackOrThrow(IReadOnlyCollection<Exception> originalExceptions)
+    {
+        if (RecoveryCallback == null) throw new AggregateException("No recovery callback implemented, aborting", originalExceptions);
+        return RecoveryCallback;
+    }
+
+    private Func<Exception, Task> GetRecoveryCallbackOrThrow(Exception exception)
+    {
+        if (RecoveryCallback == null) throw new AggregateException("No recovery callback implemented, aborting", exception);
+        return RecoveryCallback;
+    }
+
+    private static async Task DelayOrThrowAsync(IReadOnlyCollection<Exception> originalExceptions, TimeSpan? delay, HttpRequestException hre, ExHttpResponseMessageException? responseMessageException, CancellationToken cancellationToken)
+    {
+        TimeSpan? delayMake = responseMessageException?.RetryCondition?.Delta ?? delay;
+        if (delayMake is not { } delayActual) throw new AggregateException($"No retry delay specified for HTTP response {hre.StatusCode?.ToString() ?? "<unknown>"} and no default value provided", originalExceptions);
+        await Task.Delay(delayActual, cancellationToken);
+    }
+
+    private static async Task DelayOrThrowAsync(Exception exception, TimeSpan? delay, HttpRequestException hre, ExHttpResponseMessageException? responseMessageException, CancellationToken cancellationToken)
+    {
+        TimeSpan? delayMake = delay ?? responseMessageException?.RetryCondition?.Delta;
+        if (delayMake is not { } delayActual) throw new AggregateException($"No retry delay specified for HTTP response {hre.StatusCode?.ToString() ?? "<unknown>"} and no default value provided", exception);
+        await Task.Delay(delayActual, cancellationToken);
     }
 }

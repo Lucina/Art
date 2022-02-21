@@ -7,7 +7,7 @@ namespace Art.M3U;
 /// <summary>
 /// Represents a top-down saver.
 /// </summary>
-public class M3UDownloaderContextTopDownSaver : M3UDownloaderContextSaverBase
+public class M3UDownloaderContextTopDownSaver : M3UDownloaderContextSaver
 {
     private static readonly Regex s_bitRegex = new(@"(^[\S\s]*[^\d]|)\d+(\.\w+)$");
     private readonly long _top;

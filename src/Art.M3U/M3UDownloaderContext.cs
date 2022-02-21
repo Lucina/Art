@@ -144,7 +144,7 @@ public class M3UDownloaderContext
     /// <param name="oneOff">If true, only request target once.</param>
     /// <param name="timeout">Timeout when waiting for new entries.</param>
     /// <returns>Downloader.</returns>
-    public M3UDownloaderContextSaver CreateSaver(bool oneOff, TimeSpan timeout) => new(this, oneOff, timeout);
+    public M3UDownloaderContextStandardSaver CreateStandardSaver(bool oneOff, TimeSpan timeout) => new(this, oneOff, timeout);
 
     /// <summary>
     /// Downloads a segment with an associated media sequence number.
