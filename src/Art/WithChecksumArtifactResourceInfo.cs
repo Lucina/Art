@@ -30,4 +30,8 @@ public record WithChecksumArtifactResourceInfo(Checksum? ChecksumValue, Artifact
             Checksum = ChecksumValue
         };
     }
+
+    /// <inheritdoc />
+    public override void AugmentOutputStreamOptions(ref OutputStreamOptions options)
+        => BaseArtifactResourceInfo.AugmentOutputStreamOptions(ref options);
 }

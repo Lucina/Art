@@ -53,6 +53,14 @@ public record ArtifactResourceInfo(ArtifactResourceKey Key, string? ContentType 
         => ValueTask.FromResult(this);
 
     /// <summary>
+    /// Adjusts output stream options to suit outputting this resource.
+    /// </summary>
+    /// <param name="options">Output options.</param>
+    public virtual void AugmentOutputStreamOptions(ref OutputStreamOptions options)
+    {
+    }
+
+    /// <summary>
     /// Gets informational path string.
     /// </summary>
     /// <returns>Info path string.</returns>

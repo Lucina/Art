@@ -41,10 +41,17 @@ public class DiskArtifactDataManager : ArtifactDataManager
     }
 
     /// <inheritdoc/>
-    public override ValueTask<CommittableStream> CreateOutputStreamAsync(ArtifactResourceKey key, CancellationToken cancellationToken = default)
+    public override ValueTask<CommittableStream> CreateOutputStreamAsync(ArtifactResourceKey key, OutputStreamOptions? options = null, CancellationToken cancellationToken = default)
     {
         string dir = Path.Combine(DiskPaths.GetBasePath(BaseDirectory, key.Artifact.Tool, key.Artifact.Group), key.Path);
         if (!Directory.Exists(dir)) Directory.CreateDirectory(dir);
-        return new ValueTask<CommittableStream>(new CommittableFileStream(Path.Combine(dir, key.File.SafeifyFileName()), FileMode.Create));
+        FileStreamOptions fso = new() { Mode = FileMode.Create, Access = FileAccess.ReadWrite };
+        if (options is { } optionsActual)
+        {
+            long preallocationSize = optionsActual.PreallocationSize;
+            if (preallocationSize < 0) throw new ArgumentException($"Invalid {nameof(OutputStreamOptions.PreallocationSize)} value", nameof(options));
+            if (preallocationSize != 0) fso.PreallocationSize = preallocationSize;
+        }
+        return new ValueTask<CommittableStream>(new CommittableFileStream(Path.Combine(dir, key.File.SafeifyFileName()), fso));
     }
 }

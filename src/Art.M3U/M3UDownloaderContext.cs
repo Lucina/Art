@@ -110,7 +110,7 @@ public class M3UDownloaderContext
     private async Task WriteAncillaryFileAsync(string file, ReadOnlyMemory<byte> data, CancellationToken cancellationToken)
     {
         ArtifactResourceKey keyFormatArk = new(Config.ArtifactKey, file, Config.ArtifactKey.Id);
-        await using CommittableStream keyFormatStream = await Tool.DataManager.CreateOutputStreamAsync(keyFormatArk, cancellationToken);
+        await using CommittableStream keyFormatStream = await Tool.DataManager.CreateOutputStreamAsync(keyFormatArk, OutputStreamOptions.Default, cancellationToken);
         await keyFormatStream.WriteAsync(data, cancellationToken);
         keyFormatStream.ShouldCommit = true;
     }
@@ -178,7 +178,7 @@ public class M3UDownloaderContext
             if (mediaSequenceNumber is { } msn) await WriteAncillaryFileAsync($"{fn}.msn.txt", Encoding.UTF8.GetBytes(msn.ToString(CultureInfo.InvariantCulture)), cancellationToken);
             if (Config.Decrypt) ari = new EncryptedArtifactResourceInfo(ei.ToEncryptionInfo(mediaSequenceNumber), ari);
         }
-        await using (CommittableStream oStream = await Tool.DataManager.CreateOutputStreamAsync(ari.Key, cancellationToken))
+        await using (CommittableStream oStream = await Tool.DataManager.CreateOutputStreamAsync(ari.Key, OutputStreamOptions.Default, cancellationToken))
         {
             await ari.ExportStreamAsync(oStream, cancellationToken).ConfigureAwait(false);
             oStream.ShouldCommit = true;

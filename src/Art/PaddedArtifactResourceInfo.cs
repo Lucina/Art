@@ -16,7 +16,8 @@ public record PaddedArtifactResourceInfo(PaddingMode PaddingMode, ArtifactResour
         MemoryStream stream = new();
         await BaseArtifactResourceInfo.ExportStreamAsync(stream, cancellationToken).ConfigureAwait(false);
         if (!stream.TryGetBuffer(out ArraySegment<byte> buf) || buf.Array == null) throw new InvalidOperationException("unpoggers");
-        await targetStream.WriteAsync(buf.Array, 0, Padding.GetDepaddedLength(buf, PaddingMode), cancellationToken).ConfigureAwait(false);
+        // TODO some better streaming-only method to depad
+        await targetStream.WriteAsync(buf.Array.AsMemory(0, Padding.GetDepaddedLength(buf, PaddingMode)), cancellationToken).ConfigureAwait(false);
     }
 
     /// <inheritdoc/>

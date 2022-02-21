@@ -15,6 +15,7 @@ public class CommittableFileStream : CommittableWrappingStream
     public string DestinationPath => _path;
 
     private readonly string _path;
+    private readonly string _pathForStream;
     private readonly string? _tempPath;
     private bool _committed;
 
@@ -27,8 +28,8 @@ public class CommittableFileStream : CommittableWrappingStream
     public CommittableFileStream(string path, FileMode mode)
     {
         // Implicit write access
-        EnsureAccess(_path = path, nameof(path), out string pathForStream, out _tempPath);
-        BaseStream = new FileStream(pathForStream, mode);
+        EnsureAccess(_path = path, nameof(path), out _pathForStream, out _tempPath);
+        BaseStream = new FileStream(_pathForStream, mode);
     }
 
     /// <summary>
@@ -41,8 +42,8 @@ public class CommittableFileStream : CommittableWrappingStream
     public CommittableFileStream(string path, FileMode mode, FileAccess access)
     {
         EnsureWriting(access, nameof(access));
-        EnsureAccess(_path = path, nameof(path), out string pathForStream, out _tempPath);
-        BaseStream = new FileStream(pathForStream, mode, access);
+        EnsureAccess(_path = path, nameof(path), out _pathForStream, out _tempPath);
+        BaseStream = new FileStream(_pathForStream, mode, access);
     }
 
     /// <summary>
@@ -56,8 +57,8 @@ public class CommittableFileStream : CommittableWrappingStream
     public CommittableFileStream(string path, FileMode mode, FileAccess access, FileShare share)
     {
         EnsureWriting(access, nameof(access));
-        EnsureAccess(_path = path, nameof(path), out string pathForStream, out _tempPath);
-        BaseStream = new FileStream(pathForStream, mode, access, share);
+        EnsureAccess(_path = path, nameof(path), out _pathForStream, out _tempPath);
+        BaseStream = new FileStream(_pathForStream, mode, access, share);
     }
 
     /// <summary>
@@ -72,8 +73,8 @@ public class CommittableFileStream : CommittableWrappingStream
     public CommittableFileStream(string path, FileMode mode, FileAccess access, FileShare share, int bufferSize)
     {
         EnsureWriting(access, nameof(access));
-        EnsureAccess(_path = path, nameof(path), out string pathForStream, out _tempPath);
-        BaseStream = new FileStream(pathForStream, mode, access, share, bufferSize);
+        EnsureAccess(_path = path, nameof(path), out _pathForStream, out _tempPath);
+        BaseStream = new FileStream(_pathForStream, mode, access, share, bufferSize);
     }
 
     /// <summary>
@@ -89,8 +90,8 @@ public class CommittableFileStream : CommittableWrappingStream
     public CommittableFileStream(string path, FileMode mode, FileAccess access, FileShare share, int bufferSize, bool useAsync)
     {
         EnsureWriting(access, nameof(access));
-        EnsureAccess(_path = path, nameof(path), out string pathForStream, out _tempPath);
-        BaseStream = new FileStream(pathForStream, mode, access, share, bufferSize, useAsync);
+        EnsureAccess(_path = path, nameof(path), out _pathForStream, out _tempPath);
+        BaseStream = new FileStream(_pathForStream, mode, access, share, bufferSize, useAsync);
     }
 
     /// <summary>
@@ -106,8 +107,8 @@ public class CommittableFileStream : CommittableWrappingStream
     public CommittableFileStream(string path, FileMode mode, FileAccess access, FileShare share, int bufferSize, FileOptions options)
     {
         EnsureWriting(access, nameof(access));
-        EnsureAccess(_path = path, nameof(path), out string pathForStream, out _tempPath);
-        BaseStream = new FileStream(pathForStream, mode, access, share, bufferSize, options);
+        EnsureAccess(_path = path, nameof(path), out _pathForStream, out _tempPath);
+        BaseStream = new FileStream(_pathForStream, mode, access, share, bufferSize, options);
     }
 
     /// <summary>
@@ -119,8 +120,22 @@ public class CommittableFileStream : CommittableWrappingStream
     public CommittableFileStream(string path, FileStreamOptions options)
     {
         EnsureWriting(options.Access, nameof(options));
-        EnsureAccess(_path = path, nameof(path), out string pathForStream, out _tempPath);
-        BaseStream = new FileStream(pathForStream, options);
+        EnsureAccess(_path = path, nameof(path), out _pathForStream, out _tempPath);
+        if (options.PreallocationSize != 0 && options.Mode is FileMode.Create or FileMode.CreateNew)
+        {
+            // Try to initialize with the provided preallocation size.
+            // Failing that, retry with size 0.
+            try
+            {
+                BaseStream = new FileStream(_pathForStream, options);
+                return;
+            }
+            catch (IOException)
+            {
+                options.PreallocationSize = 0;
+            }
+        }
+        BaseStream = new FileStream(_pathForStream, options);
     }
 
     private static void EnsureWriting(FileAccess access, string arg)
@@ -164,26 +179,47 @@ public class CommittableFileStream : CommittableWrappingStream
     }
 
     /// <inheritdoc />
-    protected override void Commit()
+    protected override void Commit(bool shouldCommit)
     {
         if (_committed) return;
         _committed = true;
         DisposeStream();
-        if (_tempPath != null) File.Replace(_tempPath, _path, null, true);
+        if (shouldCommit)
+        {
+            if (_tempPath != null) File.Replace(_tempPath, _path, null, true);
+        }
+        else
+        {
+            if (File.Exists(_pathForStream))
+                File.Delete(_pathForStream);
+        }
     }
 
     /// <inheritdoc />
-    protected override async ValueTask CommitAsync()
+    protected override async ValueTask CommitAsync(bool shouldCommit)
     {
         if (_committed) return;
         _committed = true;
         await DisposeStreamAsync();
-        if (_tempPath != null) File.Replace(_tempPath, _path, null, true);
+        if (shouldCommit)
+        {
+            if (_tempPath != null) File.Replace(_tempPath, _path, null, true);
+        }
+        else
+        {
+            if (File.Exists(_pathForStream))
+                File.Delete(_pathForStream);
+        }
     }
 
     private static string CreateRandomPath(string sibling)
     {
         string dir = Path.GetDirectoryName(sibling) ?? throw new ArgumentException();
-        return Path.Combine(dir, $"{Guid.NewGuid():N}.tmp");
+        for (int i = 0; i < 10; i++)
+        {
+            string path = Path.Combine(dir, $"{Guid.NewGuid():N}.tmp");
+            if (!File.Exists(path)) return path;
+        }
+        throw new IOException("Failed to create temp filename");
     }
 }

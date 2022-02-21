@@ -65,7 +65,13 @@ public class CommittableSinkStream : CommittableStream
     }
 
     /// <inheritdoc />
-    protected override void Commit()
+    protected override void Commit(bool shouldCommit)
     {
+    }
+
+    /// <inheritdoc />
+    protected override ValueTask CommitAsync(bool shouldCommit)
+    {
+        return ValueTask.CompletedTask;
     }
 }

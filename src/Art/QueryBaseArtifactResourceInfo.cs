@@ -8,7 +8,8 @@
 /// <param name="Updated">Updated date.</param>
 /// <param name="Version">Version.</param>
 /// <param name="Checksum">Checksum.</param>
-public record QueryBaseArtifactResourceInfo(ArtifactResourceKey Key, string? ContentType = "application/octet-stream", DateTimeOffset? Updated = null, string? Version = null, Checksum? Checksum = null)
+/// <param name="ContentLength">Content length.</param>
+public record QueryBaseArtifactResourceInfo(ArtifactResourceKey Key, string? ContentType = "application/octet-stream", DateTimeOffset? Updated = null, string? Version = null, Checksum? Checksum = null, long? ContentLength = null)
     : ArtifactResourceInfo(Key, ContentType, Updated, Version, Checksum)
 {
     /// <summary>
@@ -23,6 +24,13 @@ public record QueryBaseArtifactResourceInfo(ArtifactResourceKey Key, string? Con
         string? contentType = response.Content.Headers.ContentType?.MediaType;
         DateTimeOffset? updated = response.Content.Headers.LastModified;
         string? version = response.Headers.ETag?.Tag;
-        return this with { ContentType = contentType ?? ContentType, Updated = updated ?? Updated, Version = version ?? Version };
+        long? contentLength = response.Content.Headers.ContentLength;
+        return this with { ContentType = contentType ?? ContentType, Updated = updated ?? Updated, Version = version ?? Version, ContentLength = contentLength ?? ContentLength };
+    }
+
+    /// <inheritdoc />
+    public override void AugmentOutputStreamOptions(ref OutputStreamOptions options)
+    {
+        if (ContentLength is { } contentLength) options = options with { PreallocationSize = contentLength };
     }
 }

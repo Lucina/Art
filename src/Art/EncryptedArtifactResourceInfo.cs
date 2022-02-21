@@ -39,4 +39,8 @@ public record EncryptedArtifactResourceInfo(EncryptionInfo EncryptionInfo, Artif
             Checksum = b.Checksum
         };
     }
+
+    /// <inheritdoc />
+    public override void AugmentOutputStreamOptions(ref OutputStreamOptions options)
+        => BaseArtifactResourceInfo.AugmentOutputStreamOptions(ref options);
 }

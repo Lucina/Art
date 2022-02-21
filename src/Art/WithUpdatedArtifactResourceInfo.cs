@@ -30,4 +30,8 @@ public record WithUpdatedArtifactResourceInfo(DateTimeOffset? UpdatedValue, Arti
             Checksum = b.Checksum
         };
     }
+
+    /// <inheritdoc />
+    public override void AugmentOutputStreamOptions(ref OutputStreamOptions options)
+        => BaseArtifactResourceInfo.AugmentOutputStreamOptions(ref options);
 }

@@ -36,12 +36,12 @@ public class CommittableMemoryStream : CommittableWrappingStream
     }
 
     /// <inheritdoc />
-    protected override void Commit()
+    protected override void Commit(bool shouldCommit)
     {
     }
 
     /// <inheritdoc />
-    protected override ValueTask CommitAsync()
+    protected override ValueTask CommitAsync(bool shouldCommit)
     {
         return ValueTask.CompletedTask;
     }

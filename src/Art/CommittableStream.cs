@@ -20,7 +20,7 @@ public abstract class CommittableStream : Stream
     {
         try
         {
-            if (ShouldCommit) CommitInternal();
+            CommitInternal(ShouldCommit);
         }
         finally
         {
@@ -33,7 +33,7 @@ public abstract class CommittableStream : Stream
     {
         try
         {
-            if (ShouldCommit) await CommitInternalAsync();
+            await CommitInternalAsync(ShouldCommit);
         }
         finally
         {
@@ -41,18 +41,18 @@ public abstract class CommittableStream : Stream
         }
     }
 
-    private void CommitInternal()
+    private void CommitInternal(bool shouldCommit)
     {
         if (Committed) return;
         Committed = true;
-        Commit();
+        Commit(shouldCommit);
     }
 
-    private async ValueTask CommitInternalAsync()
+    private async ValueTask CommitInternalAsync(bool shouldCommit)
     {
         if (Committed) return;
         Committed = true;
-        await CommitAsync();
+        await CommitAsync(shouldCommit);
     }
 
     /// <summary>
@@ -67,14 +67,16 @@ public abstract class CommittableStream : Stream
     /// <summary>
     /// Perform data commit.
     /// </summary>
-    protected abstract void Commit();
+    /// <param name="shouldCommit">If true, perform commit. Otherwise, perform appropriate cleanup.</param>
+    protected abstract void Commit(bool shouldCommit);
 
     /// <summary>
     /// Perform data commit.
     /// </summary>
-    protected virtual ValueTask CommitAsync()
+    /// <param name="shouldCommit">If true, perform commit. Otherwise, perform appropriate cleanup.</param>
+    protected virtual ValueTask CommitAsync(bool shouldCommit)
     {
-        Commit();
+        Commit(shouldCommit);
         return ValueTask.CompletedTask;
     }
 }

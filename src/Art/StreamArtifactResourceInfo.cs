@@ -28,4 +28,10 @@ public record StreamArtifactResourceInfo(Stream Resource, ArtifactResourceKey Ke
             if (position is { } p) Resource.Position = p;
         }
     }
+
+    /// <inheritdoc />
+    public override void AugmentOutputStreamOptions(ref OutputStreamOptions options)
+    {
+        if (Resource.CanSeek) options = options with { PreallocationSize = Resource.Length };
+    }
 }

@@ -769,7 +769,9 @@ public abstract class HttpArtifactTool : ArtifactTool
 
     private async Task StreamDownloadAsync(HttpResponseMessage response, ArtifactResourceKey key, CancellationToken cancellationToken)
     {
-        await using CommittableStream stream = await CreateOutputStreamAsync(key, cancellationToken).ConfigureAwait(false);
+        OutputStreamOptions options = OutputStreamOptions.Default;
+        if (response.Content.Headers.ContentLength is { } contentLength) options = options with { PreallocationSize = contentLength };
+        await using CommittableStream stream = await CreateOutputStreamAsync(key, options, cancellationToken).ConfigureAwait(false);
         await response.Content.CopyToAsync(stream, cancellationToken).ConfigureAwait(false);
         stream.ShouldCommit = true;
     }
