@@ -5,6 +5,11 @@ namespace Art;
 /// </summary>
 public class NullArtifactDataManager : ArtifactDataManager
 {
+    /// <summary>
+    /// Shared instance.
+    /// </summary>
+    public static readonly NullArtifactDataManager Instance = new();
+
     /// <inheritdoc />
     public override ValueTask<CommittableStream> CreateOutputStreamAsync(ArtifactResourceKey key, OutputStreamOptions? options = null, CancellationToken cancellationToken = default) => new(new CommittableSinkStream());
 

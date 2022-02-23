@@ -36,19 +36,27 @@ public class InMemoryArtifactRegistrationManager : ArtifactRegistrationManager
     private readonly Dictionary<ArtifactResourceKey, ArtifactResourceInfo> _resources = new();
 
     /// <inheritdoc />
-    public override Task<List<ArtifactInfo>> ListArtifactsAsync(CancellationToken cancellationToken = new()) => throw new NotImplementedException();
+    public override Task<List<ArtifactInfo>> ListArtifactsAsync(CancellationToken cancellationToken = new())
+        => Task.FromResult(_artifacts.Values.ToList());
 
     /// <inheritdoc />
-    public override Task<List<ArtifactInfo>> ListArtifactsAsync(Expression<Func<ArtifactInfoModel, bool>> predicate, CancellationToken cancellationToken = default) => throw new NotImplementedException();
+    public override Task<List<ArtifactInfo>> ListArtifactsAsync(Expression<Func<ArtifactInfoModel, bool>> predicate, CancellationToken cancellationToken = default)
+    {
+        var x = predicate.Compile();
+        return Task.FromResult(_artifacts.Values.Where(v => x(v)).ToList());
+    }
 
     /// <inheritdoc />
-    public override Task<List<ArtifactInfo>> ListArtifactsAsync(string tool, CancellationToken cancellationToken = new()) => throw new NotImplementedException();
+    public override Task<List<ArtifactInfo>> ListArtifactsAsync(string tool, CancellationToken cancellationToken = new())
+        => Task.FromResult(_artifacts.Values.Where(v => v.Key.Tool == tool).ToList());
 
     /// <inheritdoc />
-    public override Task<List<ArtifactInfo>> ListArtifactsAsync(string tool, string @group, CancellationToken cancellationToken = new()) => throw new NotImplementedException();
+    public override Task<List<ArtifactInfo>> ListArtifactsAsync(string tool, string group, CancellationToken cancellationToken = new())
+        => Task.FromResult(_artifacts.Values.Where(v => v.Key.Tool == tool && v.Key.Group == group).ToList());
 
     /// <inheritdoc />
-    public override Task<List<ArtifactResourceInfo>> ListResourcesAsync(ArtifactKey key, CancellationToken cancellationToken = new()) => throw new NotImplementedException();
+    public override Task<List<ArtifactResourceInfo>> ListResourcesAsync(ArtifactKey key, CancellationToken cancellationToken = new())
+        => Task.FromResult(_resources.Values.Where(v => v.Key.Artifact == key).ToList());
 
     /// <inheritdoc />
     public override ValueTask AddArtifactAsync(ArtifactInfo artifactInfo, CancellationToken ct = default)

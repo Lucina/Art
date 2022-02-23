@@ -184,15 +184,7 @@ public class CommittableFileStream : CommittableWrappingStream
         if (_committed) return;
         _committed = true;
         DisposeStream();
-        if (shouldCommit)
-        {
-            if (_tempPath != null) File.Replace(_tempPath, _path, null, true);
-        }
-        else
-        {
-            if (File.Exists(_pathForStream))
-                File.Delete(_pathForStream);
-        }
+        CommitCore(shouldCommit);
     }
 
     /// <inheritdoc />
@@ -201,6 +193,11 @@ public class CommittableFileStream : CommittableWrappingStream
         if (_committed) return;
         _committed = true;
         await DisposeStreamAsync();
+    }
+
+    private void CommitCore(bool shouldCommit)
+    {
+
         if (shouldCommit)
         {
             if (_tempPath != null) File.Replace(_tempPath, _path, null, true);
