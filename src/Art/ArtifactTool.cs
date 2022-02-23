@@ -115,6 +115,13 @@ public abstract partial class ArtifactTool : IDisposable
     public async Task InitializeAsync(ArtifactToolConfig? config = null, ArtifactToolProfile? profile = null, CancellationToken cancellationToken = default)
     {
         EnsureNotDisposed();
+        InitializeCore(config, profile);
+        await ConfigureAsync(cancellationToken);
+        _initialized = true;
+    }
+
+    private void InitializeCore(ArtifactToolConfig? config, ArtifactToolProfile? profile)
+    {
         config ??= ArtifactToolConfig.Default;
         if (config.RegistrationManager == null) throw new ArgumentException("Cannot configure with null registration manager");
         if (config.DataManager == null) throw new ArgumentException("Cannot configure with null data manager");
@@ -124,8 +131,6 @@ public abstract partial class ArtifactTool : IDisposable
         Profile = profile ?? ArtifactToolProfile.Create(GetType(), "default");
         SetFlag(OptDebugMode, ref DebugMode);
         //_configured = true;
-        await ConfigureAsync(cancellationToken);
-        _initialized = true;
     }
 
     /// <summary>
