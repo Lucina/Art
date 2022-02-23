@@ -43,7 +43,7 @@ public abstract partial class ArtifactTool : IDisposable
     /// <summary>
     /// True if this tool is in debug mode.
     /// </summary>
-    public bool DebugMode { get; set; }
+    public bool DebugMode;
 
     /// <summary>
     /// Configuration
@@ -106,24 +106,23 @@ public abstract partial class ArtifactTool : IDisposable
     #region Setup
 
     /// <summary>
-    /// Initializes and configures this tool with the specified runtime configuration.
+    /// Initializes and configures this tool with the specified runtime configuration and profile.
     /// </summary>
     /// <param name="config">Configuration.</param>
     /// <param name="profile">Profile.</param>
     /// <param name="cancellationToken">Cancellation token.</param>
     /// <returns>Task.</returns>
-    public async Task InitializeAsync(ArtifactToolConfig config, ArtifactToolProfile profile, CancellationToken cancellationToken = default)
+    public async Task InitializeAsync(ArtifactToolConfig? config = null, ArtifactToolProfile? profile = null, CancellationToken cancellationToken = default)
     {
         EnsureNotDisposed();
-        if (config == null) throw new ArgumentNullException(nameof(config));
+        config ??= ArtifactToolConfig.Default;
         if (config.RegistrationManager == null) throw new ArgumentException("Cannot configure with null registration manager");
         if (config.DataManager == null) throw new ArgumentException("Cannot configure with null data manager");
-        if (profile == null) throw new ArgumentException("Cannot configure with null profile");
         Config = config;
         RegistrationManager = config.RegistrationManager;
         DataManager = config.DataManager;
-        Profile = profile;
-        DebugMode = GetFlagTrue(OptDebugMode);
+        Profile = profile ?? ArtifactToolProfile.Create(GetType(), "default");
+        SetFlag(OptDebugMode, ref DebugMode);
         //_configured = true;
         await ConfigureAsync(cancellationToken);
         _initialized = true;

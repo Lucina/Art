@@ -99,6 +99,19 @@ public partial class ArtifactTool
     }
 
     /// <summary>
+    /// Modifies a ref bool if a flag option is present.
+    /// </summary>
+    /// <param name="optKey">Key to search.</param>
+    /// <param name="flag">Flag to set.</param>
+    /// <param name="throwIfIncorrectType">If true, throw a <see cref="JsonException"/> or <see cref="NotSupportedException"/> if type is wrong.</param>
+    /// <returns>True if flag is set to true.</returns>
+    public void SetFlag(string optKey, ref bool flag, bool throwIfIncorrectType = false)
+    {
+        if (TryGetOption(optKey, out bool? value, throwIfIncorrectType)) flag = value.Value;
+        if (TryGetOption(optKey, out string? valueStr)) flag = s_yesLower.Contains(valueStr.ToLowerInvariant());
+    }
+
+    /// <summary>
     /// Gets an string option from a string value, or take value from <see cref="ArtifactToolProfile.Group"/>.
     /// </summary>
     /// <param name="optKey">Key to search.</param>

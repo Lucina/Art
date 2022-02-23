@@ -208,6 +208,16 @@ public record ArtifactToolProfile(
         => new(ArtifactTool.CreateToolString<TTool>(), group, options.ToDictionary(v => v.Item1, v => v.Item2));
 
     /// <summary>
+    /// Creates a tool profile for the specified tool.
+    /// </summary>
+    /// <param name="toolType">Tool type.</param>
+    /// <param name="group">Target group.</param>
+    /// <param name="options">Options.</param>
+    /// <returns>Profile.</returns>
+    public static ArtifactToolProfile Create(Type toolType, string group, params (string, JsonElement)[] options)
+        => new(ArtifactTool.CreateToolString(toolType), group, options.ToDictionary(v => v.Item1, v => v.Item2));
+
+    /// <summary>
     /// Creates an instance of this profile with most derived core type of instance or instance's type.
     /// </summary>
     /// <param name="instance">Instance to derive tool type from.</param>
