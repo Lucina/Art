@@ -13,11 +13,28 @@ public record PaddedArtifactResourceInfo(PaddingMode PaddingMode, ArtifactResour
     /// <inheritdoc/>
     public override async ValueTask ExportStreamAsync(Stream targetStream, CancellationToken cancellationToken = default)
     {
-        MemoryStream stream = new();
-        await BaseArtifactResourceInfo.ExportStreamAsync(stream, cancellationToken).ConfigureAwait(false);
-        if (!stream.TryGetBuffer(out ArraySegment<byte> buf) || buf.Array == null) throw new InvalidOperationException("unpoggers");
-        // TODO some better streaming-only method to depad
-        await targetStream.WriteAsync(buf.Array.AsMemory(0, Padding.GetDepaddedLength(buf, PaddingMode)), cancellationToken).ConfigureAwait(false);
+        // TODO add additional streaming de-padding implementations
+        switch (PaddingMode)
+        {
+            case PaddingMode.Pkcs7 when BaseArtifactResourceInfo is EncryptedArtifactResourceInfo ex:
+                await ExportStreamWithDepaddingHandlerAsync(new Pkcs7DepaddingHandler(ex.EncryptionInfo.GetBlockSize() / 8), targetStream, cancellationToken).ConfigureAwait(false);
+                break;
+            case PaddingMode.Pkcs5 when BaseArtifactResourceInfo is EncryptedArtifactResourceInfo ex:
+                await ExportStreamWithDepaddingHandlerAsync(new Pkcs5DepaddingHandler(ex.EncryptionInfo.GetBlockSize() / 8), targetStream, cancellationToken).ConfigureAwait(false);
+                break;
+            default:
+                MemoryStream stream = new();
+                if (!stream.TryGetBuffer(out ArraySegment<byte> buf) || buf.Array == null) throw new InvalidOperationException("unpoggers");
+                await BaseArtifactResourceInfo.ExportStreamAsync(stream, cancellationToken).ConfigureAwait(false);
+                await targetStream.WriteAsync(buf.Array.AsMemory(0, Padding.GetDepaddedLength(buf, PaddingMode)), cancellationToken).ConfigureAwait(false);
+                break;
+        }
+    }
+
+    private async Task ExportStreamWithDepaddingHandlerAsync(DepaddingHandler handler, Stream targetStream, CancellationToken cancellationToken)
+    {
+        await using DepaddingStream ds = new(handler, targetStream, true);
+        await BaseArtifactResourceInfo.ExportStreamAsync(ds, cancellationToken).ConfigureAwait(false);
     }
 
     /// <inheritdoc/>

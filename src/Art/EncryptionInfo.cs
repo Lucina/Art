@@ -55,4 +55,14 @@ public record EncryptionInfo(CryptoAlgorithm Algorithm, ReadOnlyMemory<byte> Enc
             alg.IV = encIv.ToArray();
         return alg;
     }
+
+    /// <summary>
+    /// Gets explicit or default block size.
+    /// </summary>
+    /// <returns>Block size, in bits.</returns>
+    public int GetBlockSize()
+    {
+        using SymmetricAlgorithm sa = CreateSymmetricAlgorithm();
+        return sa.BlockSize;
+    }
 }
