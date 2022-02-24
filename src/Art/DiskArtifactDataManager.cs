@@ -22,7 +22,18 @@ public class DiskArtifactDataManager : ArtifactDataManager
     /// <inheritdoc/>
     public override ValueTask<Stream> OpenInputStreamAsync(ArtifactResourceKey key, CancellationToken cancellationToken = default)
     {
-        return ValueTask.FromResult((Stream)File.OpenRead(Path.Combine(DiskPaths.GetBasePath(BaseDirectory, key.Artifact.Tool, key.Artifact.Group), key.Path, key.File.SafeifyFileName())));
+        try
+        {
+            return ValueTask.FromResult((Stream)File.OpenRead(Path.Combine(DiskPaths.GetBasePath(BaseDirectory, key.Artifact.Tool, key.Artifact.Group), key.Path, key.File.SafeifyFileName())));
+        }
+        catch (FileNotFoundException)
+        {
+            throw new KeyNotFoundException();
+        }
+        catch (DirectoryNotFoundException)
+        {
+            throw new KeyNotFoundException();
+        }
     }
 
     /// <inheritdoc/>

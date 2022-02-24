@@ -3,7 +3,7 @@ namespace Art;
 /// <summary>
 /// Represents a checksum pairing an algorithm ID and checksum value.
 /// </summary>
-/// <param name="Id">Algorithm ID.</param>
+/// <param name="Id">Algorithm ID. Case-insensitive.</param>
 /// <param name="Value">Checksum value.</param>
 public record Checksum(string Id, byte[] Value)
 {
@@ -17,7 +17,7 @@ public record Checksum(string Id, byte[] Value)
     {
         if (first != null && second == null || first == null && second != null) return false;
         if (first != null && second != null)
-            return first.Id == second.Id && first.Value.AsSpan().SequenceEqual(second.Value);
+            return string.Equals(first.Id, second.Id, StringComparison.InvariantCultureIgnoreCase) && first.Value.AsSpan().SequenceEqual(second.Value);
         return true;
     }
 }

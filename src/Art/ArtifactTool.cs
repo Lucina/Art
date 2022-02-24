@@ -78,13 +78,11 @@ public abstract partial class ArtifactTool : IDisposable
 
     private JsonSerializerOptions? _jsonOptions;
 
-    //private bool _configured;
-
     private bool _disposed;
 
     private bool _delayFirstCalled;
 
-    private bool _initialized;
+    //private bool _initialized;
 
     #endregion
 
@@ -117,7 +115,7 @@ public abstract partial class ArtifactTool : IDisposable
         EnsureNotDisposed();
         InitializeCore(config, profile);
         await ConfigureAsync(cancellationToken);
-        _initialized = true;
+        //_initialized = true;
     }
 
     private void InitializeCore(ArtifactToolConfig? config, ArtifactToolProfile? profile)
@@ -130,7 +128,6 @@ public abstract partial class ArtifactTool : IDisposable
         DataManager = config.DataManager;
         Profile = profile ?? ArtifactToolProfile.Create(GetType(), "default");
         GetFlag(OptDebugMode, ref DebugMode);
-        //_configured = true;
     }
 
     /// <summary>
@@ -168,16 +165,10 @@ public abstract partial class ArtifactTool : IDisposable
         GC.SuppressFinalize(this);
     }
 
-    /*private void EnsureState()
-    {
-        EnsureNotDisposed();
-        if (!_configured) throw new InvalidOperationException("Tool has not been initialized");
-    }*/
-
-    private void EnsureInitialized()
+    /*private void EnsureInitialized()
     {
         if (!_initialized) throw new InvalidOperationException("Instance has not been initialized");
-    }
+    }*/
 
     private void EnsureNotDisposed()
     {

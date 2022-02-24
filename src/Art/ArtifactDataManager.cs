@@ -1,4 +1,5 @@
-﻿using System.Text.Json;
+﻿using System.Security.Cryptography;
+using System.Text.Json;
 
 namespace Art;
 
@@ -7,6 +8,8 @@ namespace Art;
 /// </summary>
 public abstract class ArtifactDataManager
 {
+    #region Abstract
+
     /// <summary>
     /// Creates an output stream for the specified resource.
     /// </summary>
@@ -38,7 +41,12 @@ public abstract class ArtifactDataManager
     /// <param name="key">Resource key.</param>
     /// <param name="cancellationToken">Cancellation token.</param>
     /// <returns>Task returning a read-only stream.</returns>
+    /// <exception cref="KeyNotFoundException">Thrown for missing resource.</exception>
     public abstract ValueTask<Stream> OpenInputStreamAsync(ArtifactResourceKey key, CancellationToken cancellationToken = default);
+
+    #endregion
+
+    #region Virtual
 
     /// <summary>
     /// Outputs a text file for the specified artifact.
@@ -90,8 +98,61 @@ public abstract class ArtifactDataManager
         stream.ShouldCommit = true;
     }
 
+    /// <summary>
+    /// Gets checksum of a resource.
+    /// </summary>
+    /// <param name="key">Resource key.</param>
+    /// <param name="checksumId">Checksum algorithm ID.</param>
+    /// <param name="cancellationToken">Cancellation token.</param>
+    /// <returns>Checksum for resource.</returns>
+    /// <exception cref="KeyNotFoundException">Thrown for missing resource.</exception>
+    /// <exception cref="ArgumentException">Thrown for a bad <paramref name="checksumId"/> value.</exception>
+    public virtual async ValueTask<Checksum> GetChecksumAsync(ArtifactResourceKey key, string checksumId, CancellationToken cancellationToken = default)
+    {
+        if (!ChecksumSource.TryGetHashAlgorithm(checksumId, out HashAlgorithm? hashAlgorithm))
+            throw new ArgumentException("Unknown checksum ID", nameof(checksumId));
+        await using Stream sourceStream = await OpenInputStreamAsync(key, cancellationToken);
+        await using HashProxyStream hps = new(sourceStream, hashAlgorithm, true);
+        await using MemoryStream ms = new();
+        await hps.CopyToAsync(ms, cancellationToken);
+        return new Checksum(checksumId, hps.GetHash());
+    }
+
+    /// <summary>
+    /// Validates a checksum for a given resource.
+    /// </summary>
+    /// <param name="key">Resource key.</param>
+    /// <param name="checksum">Checksum to validate.</param>
+    /// <param name="cancellationToken">Cancellation token.</param>
+    /// <returns>True if checksum is validated.</returns>
+    /// <exception cref="KeyNotFoundException">Thrown for missing resource.</exception>
+    public virtual async ValueTask<bool> ValidateChecksumAsync(ArtifactResourceKey key, Checksum checksum, CancellationToken cancellationToken = default)
+        => Checksum.DatawiseEquals(await GetChecksumAsync(key, checksum.Id, cancellationToken), checksum);
+
+    /// <summary>
+    /// Gets checksum associated with a resource if it exists.
+    /// </summary>
+    /// <param name="key">Resource key.</param>
+    /// <param name="cancellationToken">Cancellation token.</param>
+    /// <returns>A checksum for the resource, if one exists.</returns>
+    /// <exception cref="KeyNotFoundException">Thrown for missing resource.</exception>
+    /// <remarks>
+    /// This method should return any "primary" checksum readily available from this manager.
+    /// </remarks>
+    public virtual async ValueTask<Checksum?> GetChecksumAsync(ArtifactResourceKey key, CancellationToken cancellationToken = default)
+    {
+        if (!await ExistsAsync(key, cancellationToken)) throw new KeyNotFoundException();
+        return null;
+    }
+
+    #endregion
+
+    #region Internal
+
     private static void UpdateOptionsTextual(ref OutputStreamOptions? options)
     {
         if (options is { } optionsActual) options = optionsActual with { PreallocationSize = 0 };
     }
+
+    #endregion
 }

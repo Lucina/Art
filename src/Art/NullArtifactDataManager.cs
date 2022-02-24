@@ -20,5 +20,5 @@ public class NullArtifactDataManager : ArtifactDataManager
     public override ValueTask<bool> DeleteAsync(ArtifactResourceKey key, CancellationToken cancellationToken = default) => new(true);
 
     /// <inheritdoc />
-    public override ValueTask<Stream> OpenInputStreamAsync(ArtifactResourceKey key, CancellationToken cancellationToken = default) => throw new IOException("Specified resource was not found.");
+    public override ValueTask<Stream> OpenInputStreamAsync(ArtifactResourceKey key, CancellationToken cancellationToken = default) => throw new KeyNotFoundException();
 }

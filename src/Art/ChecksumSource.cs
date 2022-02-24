@@ -40,7 +40,7 @@ public class ChecksumSource
 
     static ChecksumSource()
     {
-        DefaultSources = new[] { SHA1, SHA256, SHA384, SHA512, MD5 }.ToDictionary(source => source.Id);
+        DefaultSources = new[] { SHA1, SHA256, SHA384, SHA512, MD5 }.ToDictionary(source => source.Id, StringComparer.InvariantCultureIgnoreCase);
     }
 
     /// <summary>Algorithm ID.</summary>
