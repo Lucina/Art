@@ -1,5 +1,6 @@
 using System.Buffers.Binary;
 using System.Security.Cryptography;
+using Art.Crypto;
 
 namespace Art.M3U;
 

@@ -2,6 +2,7 @@ using System;
 using System.IO;
 using System.Reflection;
 using System.Security.Cryptography;
+using Art.IO;
 using NUnit.Framework;
 
 namespace Art.Tests;

@@ -1,4 +1,6 @@
-﻿namespace Art;
+﻿using Art.Management;
+
+namespace Art;
 
 /// <summary>
 /// Runtime configuration for a <see cref="ArtifactTool"/>.

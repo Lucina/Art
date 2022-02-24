@@ -1,4 +1,6 @@
-﻿namespace Art;
+﻿using Art.Logging;
+
+namespace Art;
 
 /// <summary>
 /// Proxy to run artifact tool as a dump tool.
