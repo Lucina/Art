@@ -30,16 +30,25 @@ public abstract class DepaddingHandler
     /// Updates padding state and returns buffers if any data is available.
     /// </summary>
     /// <param name="data"></param>
-    /// <param name="a">First buffer (from previous calls to <see cref="TryUpdate"/>), must be used first.</param>
+    /// <param name="a">First buffer, must be used first.</param>
     /// <param name="b">Second buffer (sub-span of <paramref name="data"/>), must be used second.</param>
     /// <returns>True if any data is to be written.</returns>
-    public abstract bool TryUpdate(ArraySegment<byte> data, out ArraySegment<byte> a, out ArraySegment<byte> b);
+    public abstract bool TryUpdate(ReadOnlyMemory<byte> data, out ReadOnlyMemory<byte> a, out ReadOnlyMemory<byte> b);
+
+    /// <summary>
+    /// Updates padding state and returns buffers if any data is available.
+    /// </summary>
+    /// <param name="data"></param>
+    /// <param name="a">First buffer, must be used first.</param>
+    /// <param name="b">Second buffer (sub-span of <paramref name="data"/>), must be used second.</param>
+    /// <returns>True if any data is to be written.</returns>
+    public abstract bool TryUpdate(ReadOnlySpan<byte> data, out ReadOnlySpan<byte> a, out ReadOnlySpan<byte> b);
 
     /// <summary>
     /// Updates padding state with final block.
     /// </summary>
-    /// <param name="buf">Buffer from previous calls to <see cref="TryUpdate"/>.</param>
-    public abstract void DoFinal(out ArraySegment<byte> buf);
+    /// <param name="buf">Buffer.</param>
+    public abstract void DoFinal(out ReadOnlyMemory<byte> buf);
 
     /// <summary>
     /// Copies <paramref name="from"/> to <paramref name="to"/> with depadding operation.
@@ -70,15 +79,15 @@ public abstract class DepaddingHandler
                 if (read == 0)
                 {
                     DoFinal(out var final);
-                    if (final.Count != 0) await to.WriteAsync(final, cancellationToken);
+                    if (final.Length != 0) await to.WriteAsync(final, cancellationToken);
                     return;
                 }
                 else
                 {
-                    if (TryUpdate(new ArraySegment<byte>(tmp, 0, read), out var a, out var b))
+                    if (TryUpdate(new ReadOnlyMemory<byte>(tmp, 0, read), out var a, out var b))
                     {
-                        if (a.Count != 0) await to.WriteAsync(a, cancellationToken);
-                        if (b.Count != 0) await to.WriteAsync(b, cancellationToken);
+                        if (a.Length != 0) await to.WriteAsync(a, cancellationToken);
+                        if (b.Length != 0) await to.WriteAsync(b, cancellationToken);
                     }
                 }
             }

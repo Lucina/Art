@@ -15,8 +15,9 @@ public class DepaddingTests
         byte pad = 4;
         PadRepeatEnd(buf, pad);
         ArraySegment<byte> expected = GetDepadded(buf, pad);
-        ArraySegment<byte> åctual = await GetDepaddedAsync(buf, new Pkcs5DepaddingHandler(8));
-        Assert.That(åctual.Count, Is.EqualTo(expected.Count));
+        ArraySegment<byte> actual = await GetDepaddedWithHandlerCopyAsync(buf, new Pkcs5DepaddingHandler(8));
+        ArraySegment<byte> åctual = await GetDepaddedWithStreamAsync(buf, new Pkcs5DepaddingHandler(8));
+        Assert.That(expected.AsSpan().SequenceEqual(actual));
         Assert.That(expected.AsSpan().SequenceEqual(åctual));
     }
 
@@ -28,8 +29,9 @@ public class DepaddingTests
         byte pad = (byte)Math.Max(1, blockSize / 2);
         PadRepeatEnd(buf, pad);
         ArraySegment<byte> expected = GetDepadded(buf, pad);
-        ArraySegment<byte> åctual = await GetDepaddedAsync(buf, new Pkcs7DepaddingHandler(blockSize));
-        Assert.That(åctual.Count, Is.EqualTo(expected.Count));
+        ArraySegment<byte> actual = await GetDepaddedWithHandlerCopyAsync(buf, new Pkcs7DepaddingHandler(blockSize));
+        ArraySegment<byte> åctual = await GetDepaddedWithStreamAsync(buf, new Pkcs7DepaddingHandler(blockSize));
+        Assert.That(expected.AsSpan().SequenceEqual(actual));
         Assert.That(expected.AsSpan().SequenceEqual(åctual));
     }
 
@@ -40,7 +42,8 @@ public class DepaddingTests
         Random.Shared.NextBytes(buf);
         PadRepeatEnd(buf, 4);
         buf[^2] = 0x66;
-        Assert.ThrowsAsync<InvalidDataException>(async () => await GetDepaddedAsync(buf, new Pkcs5DepaddingHandler(8)));
+        Assert.ThrowsAsync<InvalidDataException>(async () => await GetDepaddedWithHandlerCopyAsync(buf, new Pkcs5DepaddingHandler(8)));
+        Assert.ThrowsAsync<InvalidDataException>(async () => await GetDepaddedWithStreamAsync(buf, new Pkcs5DepaddingHandler(8)));
     }
 
     [Test]
@@ -50,7 +53,8 @@ public class DepaddingTests
         Random.Shared.NextBytes(buf);
         PadRepeatEnd(buf, 10);
         buf[^4] = 0x66;
-        Assert.ThrowsAsync<InvalidDataException>(async () => await GetDepaddedAsync(buf, new Pkcs7DepaddingHandler(17)));
+        Assert.ThrowsAsync<InvalidDataException>(async () => await GetDepaddedWithHandlerCopyAsync(buf, new Pkcs7DepaddingHandler(17)));
+        Assert.ThrowsAsync<InvalidDataException>(async () => await GetDepaddedWithStreamAsync(buf, new Pkcs7DepaddingHandler(17)));
     }
 
     [Test]
@@ -59,7 +63,8 @@ public class DepaddingTests
         byte[] buf = new byte[10 * 8 - 1];
         Random.Shared.NextBytes(buf);
         PadRepeatEnd(buf, 10);
-        Assert.ThrowsAsync<InvalidDataException>(async () => await GetDepaddedAsync(buf, new Pkcs7DepaddingHandler(17)));
+        Assert.ThrowsAsync<InvalidDataException>(async () => await GetDepaddedWithHandlerCopyAsync(buf, new Pkcs7DepaddingHandler(17)));
+        Assert.ThrowsAsync<InvalidDataException>(async () => await GetDepaddedWithStreamAsync(buf, new Pkcs7DepaddingHandler(17)));
     }
 
     [Test]
@@ -68,7 +73,8 @@ public class DepaddingTests
         byte[] buf = new byte[10 * 17 - 1];
         Random.Shared.NextBytes(buf);
         PadRepeatEnd(buf, 10);
-        Assert.ThrowsAsync<InvalidDataException>(async () => await GetDepaddedAsync(buf, new Pkcs7DepaddingHandler(17)));
+        Assert.ThrowsAsync<InvalidDataException>(async () => await GetDepaddedWithHandlerCopyAsync(buf, new Pkcs7DepaddingHandler(17)));
+        Assert.ThrowsAsync<InvalidDataException>(async () => await GetDepaddedWithStreamAsync(buf, new Pkcs7DepaddingHandler(17)));
     }
 
     private static void PadRepeatEnd(byte[] buf, byte v)
@@ -79,10 +85,19 @@ public class DepaddingTests
         }
     }
 
-    private async Task<ArraySegment<byte>> GetDepaddedAsync(byte[] buf, DepaddingHandler handler)
+    private async Task<ArraySegment<byte>> GetDepaddedWithHandlerCopyAsync(byte[] buf, DepaddingHandler handler)
     {
         MemoryStream ms = new();
         await handler.CopyDepaddedAsync(new MemoryStream(buf), ms);
+        ms.TryGetBuffer(out var bb);
+        return bb;
+    }
+
+    private async Task<ArraySegment<byte>> GetDepaddedWithStreamAsync(byte[] buf, DepaddingHandler handler)
+    {
+        MemoryStream ms = new();
+        using (DepaddingStream ds = new(handler, ms, true))
+            await new MemoryStream(buf).CopyToAsync(ds);
         ms.TryGetBuffer(out var bb);
         return bb;
     }

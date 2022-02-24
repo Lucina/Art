@@ -34,13 +34,13 @@ public abstract class PkcsDepaddingHandler : DepaddingHandler
     }
 
     /// <inheritdoc />
-    public override bool TryUpdate(ArraySegment<byte> data, out ArraySegment<byte> a, out ArraySegment<byte> b)
+    public override bool TryUpdate(ReadOnlySpan<byte> data, out ReadOnlySpan<byte> a, out ReadOnlySpan<byte> b)
     {
         if (_didFinal) throw new InvalidOperationException("Already performed final padding");
-        if (data.Count == 0)
+        if (data.Length == 0)
         {
-            a = ArraySegment<byte>.Empty;
-            b = ArraySegment<byte>.Empty;
+            a = ReadOnlySpan<byte>.Empty;
+            b = ReadOnlySpan<byte>.Empty;
             return false;
         }
         if (_currentWritten == _blockSize)
@@ -54,11 +54,11 @@ public abstract class PkcsDepaddingHandler : DepaddingHandler
         {
             // Try to populate existing cache
             int rem = _blockSize - _currentWritten;
-            int av = Math.Min(data.Count, rem);
-            data[..av].AsSpan().CopyTo(_blockCache.AsSpan(_currentWritten, av));
+            int av = Math.Min(data.Length, rem);
+            data[..av].CopyTo(_blockCache.AsSpan(_currentWritten, av));
             data = data[av..];
             _currentWritten += av;
-            if (data.Count != 0)
+            if (data.Length != 0)
             {
                 // buffer remaining after this
                 // block size matches
@@ -70,24 +70,82 @@ public abstract class PkcsDepaddingHandler : DepaddingHandler
             {
                 // no buffer remaining after this
                 // even if block size matches, don't do anything in case data stream didn't actually end here
-                a = ArraySegment<byte>.Empty;
-                b = ArraySegment<byte>.Empty;
+                a = ReadOnlySpan<byte>.Empty;
+                b = ReadOnlySpan<byte>.Empty;
                 return false;
             }
         }
         else
         {
             // cache was empty, so leave empty for now
-            a = ArraySegment<byte>.Empty;
+            a = ReadOnlySpan<byte>.Empty;
             // current cache now empty
         }
         // Currently have empty cache
-        int usedBytes = Math.Max((data.Count - 1) / _blockSize, 0) * _blockSize;
+        int usedBytes = Math.Max((data.Length - 1) / _blockSize, 0) * _blockSize;
         b = data[..usedBytes];
         data = data[usedBytes..];
         // data.Length: [1, BlockSize]
         data.CopyTo(_blockCache);
-        _currentWritten += data.Count;
+        _currentWritten += data.Length;
+        return true;
+    }
+
+    /// <inheritdoc />
+    public override bool TryUpdate(ReadOnlyMemory<byte> data, out ReadOnlyMemory<byte> a, out ReadOnlyMemory<byte> b)
+    {
+        if (_didFinal) throw new InvalidOperationException("Already performed final padding");
+        if (data.Length == 0)
+        {
+            a = ReadOnlyMemory<byte>.Empty;
+            b = ReadOnlyMemory<byte>.Empty;
+            return false;
+        }
+        if (_currentWritten == _blockSize)
+        {
+            // existing buffer was already populated from previous run, reuse since we have at least 1 more byte available after this
+            a = _blockCache;
+            FlipBuffer();
+            // current cache now empty
+        }
+        else if (_currentWritten != 0)
+        {
+            // Try to populate existing cache
+            int rem = _blockSize - _currentWritten;
+            int av = Math.Min(data.Length, rem);
+            data[..av].Span.CopyTo(_blockCache.AsSpan(_currentWritten, av));
+            data = data[av..];
+            _currentWritten += av;
+            if (data.Length != 0)
+            {
+                // buffer remaining after this
+                // block size matches
+                a = _blockCache;
+                FlipBuffer();
+                // current cache now empty
+            }
+            else
+            {
+                // no buffer remaining after this
+                // even if block size matches, don't do anything in case data stream didn't actually end here
+                a = ReadOnlyMemory<byte>.Empty;
+                b = ReadOnlyMemory<byte>.Empty;
+                return false;
+            }
+        }
+        else
+        {
+            // cache was empty, so leave empty for now
+            a = ReadOnlyMemory<byte>.Empty;
+            // current cache now empty
+        }
+        // Currently have empty cache
+        int usedBytes = Math.Max((data.Length - 1) / _blockSize, 0) * _blockSize;
+        b = data[..usedBytes];
+        data = data[usedBytes..];
+        // data.Length: [1, BlockSize]
+        data.CopyTo(_blockCache);
+        _currentWritten += data.Length;
         return true;
     }
 
@@ -107,20 +165,20 @@ public abstract class PkcsDepaddingHandler : DepaddingHandler
     }
 
     /// <inheritdoc />
-    public override void DoFinal(out ArraySegment<byte> buf)
+    public override void DoFinal(out ReadOnlyMemory<byte> buf)
     {
         if (_didFinal) throw new InvalidOperationException("Already performed final padding");
         // Should be the case that no data at all was written, so just ignore
         if (_currentWritten == 0)
         {
-            buf = ArraySegment<byte>.Empty;
+            buf = ReadOnlyMemory<byte>.Empty;
         }
         else
         {
             if (_currentWritten != _blockSize)
                 throw new InvalidDataException("Cannot perform final padding: current state indicates non-block-aligned data");
             if (!ValidatePkcsBlock(_blockCache, out byte b)) throw new InvalidDataException("Failed to depad final block: invalid padding");
-            buf = new ArraySegment<byte>(_blockCache, 0, _blockSize - b);
+            buf = new ReadOnlyMemory<byte>(_blockCache, 0, _blockSize - b);
         }
         _didFinal = true;
     }
