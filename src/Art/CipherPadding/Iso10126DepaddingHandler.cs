@@ -1,6 +1,6 @@
 using System.Security.Cryptography;
 
-namespace Art;
+namespace Art.CipherPadding;
 
 /// <summary>
 /// Handler for ISO 10126 depadding.

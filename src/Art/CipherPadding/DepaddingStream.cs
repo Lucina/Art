@@ -1,4 +1,4 @@
-namespace Art;
+namespace Art.CipherPadding;
 
 /// <summary>
 /// Represents a stream that uses a <see cref="DepaddingHandler"/> to write de-padded content to a target stream.

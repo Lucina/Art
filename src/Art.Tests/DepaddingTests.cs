@@ -1,6 +1,7 @@
 using System;
 using System.IO;
 using System.Threading.Tasks;
+using Art.CipherPadding;
 using NUnit.Framework;
 
 namespace Art.Tests;

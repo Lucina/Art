@@ -1,7 +1,7 @@
 using System.Buffers;
 using System.Security.Cryptography;
 
-namespace Art;
+namespace Art.CipherPadding;
 
 /// <summary>
 /// Provides streaming depadding support.

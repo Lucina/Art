@@ -1,4 +1,6 @@
-﻿namespace Art;
+﻿using Art.CipherPadding;
+
+namespace Art;
 
 /// <summary>
 /// Represents a resource with padding.

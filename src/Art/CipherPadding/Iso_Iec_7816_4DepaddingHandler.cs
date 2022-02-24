@@ -1,6 +1,6 @@
 using System.Security.Cryptography;
 
-namespace Art;
+namespace Art.CipherPadding;
 
 /// <summary>
 /// Handler for ISO/IEC 7816-4:2005 depadding.
