@@ -7,7 +7,11 @@ namespace Art;
 /// </summary>
 public abstract class BlockedDepaddingHandler : DepaddingHandler
 {
-    private readonly int _blockSize;
+    /// <summary>
+    /// Block size.
+    /// </summary>
+    protected readonly int BlockSize;
+
     private readonly byte[][] _blockCaches;
     private byte[] _blockCache;
     private int _currentWritten;
@@ -24,7 +28,7 @@ public abstract class BlockedDepaddingHandler : DepaddingHandler
     {
         if (blockSize <= 0) throw new ArgumentException("Invalid block size", nameof(blockSize));
         if (!ValidateBlockSize(supportedBlockSize, blockSize)) throw new ArgumentException("Invalid block size", nameof(blockSize));
-        _blockSize = blockSize;
+        BlockSize = blockSize;
         _blockCaches = new byte[2][];
         _blockCaches[0] = new byte[blockSize];
         _blockCaches[1] = new byte[blockSize];
@@ -43,7 +47,7 @@ public abstract class BlockedDepaddingHandler : DepaddingHandler
             b = ReadOnlySpan<byte>.Empty;
             return false;
         }
-        if (_currentWritten == _blockSize)
+        if (_currentWritten == BlockSize)
         {
             // existing buffer was already populated from previous run, reuse since we have at least 1 more byte available after this
             a = _blockCache;
@@ -53,7 +57,7 @@ public abstract class BlockedDepaddingHandler : DepaddingHandler
         else if (_currentWritten != 0)
         {
             // Try to populate existing cache
-            int rem = _blockSize - _currentWritten;
+            int rem = BlockSize - _currentWritten;
             int av = Math.Min(data.Length, rem);
             data[..av].CopyTo(_blockCache.AsSpan(_currentWritten, av));
             data = data[av..];
@@ -82,7 +86,7 @@ public abstract class BlockedDepaddingHandler : DepaddingHandler
             // current cache now empty
         }
         // Currently have empty cache
-        int usedBytes = Math.Max((data.Length - 1) / _blockSize, 0) * _blockSize;
+        int usedBytes = Math.Max((data.Length - 1) / BlockSize, 0) * BlockSize;
         b = data[..usedBytes];
         data = data[usedBytes..];
         // data.Length: [1, BlockSize]
@@ -101,7 +105,7 @@ public abstract class BlockedDepaddingHandler : DepaddingHandler
             b = ReadOnlyMemory<byte>.Empty;
             return false;
         }
-        if (_currentWritten == _blockSize)
+        if (_currentWritten == BlockSize)
         {
             // existing buffer was already populated from previous run, reuse since we have at least 1 more byte available after this
             a = _blockCache;
@@ -111,7 +115,7 @@ public abstract class BlockedDepaddingHandler : DepaddingHandler
         else if (_currentWritten != 0)
         {
             // Try to populate existing cache
-            int rem = _blockSize - _currentWritten;
+            int rem = BlockSize - _currentWritten;
             int av = Math.Min(data.Length, rem);
             data[..av].Span.CopyTo(_blockCache.AsSpan(_currentWritten, av));
             data = data[av..];
@@ -140,7 +144,7 @@ public abstract class BlockedDepaddingHandler : DepaddingHandler
             // current cache now empty
         }
         // Currently have empty cache
-        int usedBytes = Math.Max((data.Length - 1) / _blockSize, 0) * _blockSize;
+        int usedBytes = Math.Max((data.Length - 1) / BlockSize, 0) * BlockSize;
         b = data[..usedBytes];
         data = data[usedBytes..];
         // data.Length: [1, BlockSize]
@@ -155,7 +159,7 @@ public abstract class BlockedDepaddingHandler : DepaddingHandler
     /// <param name="buffer">Buffer to validate.</param>
     /// <param name="b">Padding byte count.</param>
     /// <returns>If true, padding was successfully validated and <paramref name="b"/> stores number of padding bytes.</returns>
-    protected abstract bool ValidateBlock(ReadOnlySpan<byte> buffer, out byte b);
+    protected abstract bool ValidateLastBlock(ReadOnlySpan<byte> buffer, out byte b);
 
     /// <inheritdoc />
     public sealed override void DoFinal(out ReadOnlyMemory<byte> buf)
@@ -168,17 +172,17 @@ public abstract class BlockedDepaddingHandler : DepaddingHandler
         }
         else
         {
-            if (_currentWritten != _blockSize)
+            if (_currentWritten != BlockSize)
                 throw new InvalidDataException("Cannot perform final padding: current state indicates non-block-aligned data");
-            if (!ValidateBlock(_blockCache, out byte b)) throw new InvalidDataException("Failed to depad final block: invalid padding");
-            buf = new ReadOnlyMemory<byte>(_blockCache, 0, _blockSize - b);
+            if (!ValidateLastBlock(_blockCache, out byte b)) throw new InvalidDataException("Failed to depad final block: invalid padding");
+            buf = new ReadOnlyMemory<byte>(_blockCache, 0, BlockSize - b);
         }
         _didFinal = true;
     }
 
     private void FlipBuffer()
     {
-        if (_currentWritten != _blockSize) throw new InvalidOperationException("Failed vibe check, current written != block size");
+        if (_currentWritten != BlockSize) throw new InvalidOperationException("Failed vibe check, current written != block size");
         _blockCache = _blockCaches[_blockCacheIdx ^= 1];
         _currentWritten = 0;
     }

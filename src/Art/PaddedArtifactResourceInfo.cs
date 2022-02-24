@@ -13,22 +13,25 @@ public record PaddedArtifactResourceInfo(PaddingMode PaddingMode, ArtifactResour
     /// <inheritdoc/>
     public override async ValueTask ExportStreamAsync(Stream targetStream, CancellationToken cancellationToken = default)
     {
-        // TODO add additional streaming de-padding implementations
-        switch (PaddingMode)
+        if (BaseArtifactResourceInfo is EncryptedArtifactResourceInfo({ } encryptionInfo, _))
         {
-            case PaddingMode.Pkcs7 when BaseArtifactResourceInfo is EncryptedArtifactResourceInfo ex:
-                await ExportStreamWithDepaddingHandlerAsync(new Pkcs7DepaddingHandler(ex.EncryptionInfo.GetBlockSize() / 8), targetStream, cancellationToken).ConfigureAwait(false);
-                break;
-            case PaddingMode.Pkcs5 when BaseArtifactResourceInfo is EncryptedArtifactResourceInfo ex:
-                await ExportStreamWithDepaddingHandlerAsync(new Pkcs5DepaddingHandler(ex.EncryptionInfo.GetBlockSize() / 8), targetStream, cancellationToken).ConfigureAwait(false);
-                break;
-            default:
-                MemoryStream stream = new();
-                if (!stream.TryGetBuffer(out ArraySegment<byte> buf) || buf.Array == null) throw new InvalidOperationException("unpoggers");
-                await BaseArtifactResourceInfo.ExportStreamAsync(stream, cancellationToken).ConfigureAwait(false);
-                await targetStream.WriteAsync(buf.Array.AsMemory(0, Padding.GetDepaddedLength(buf, PaddingMode)), cancellationToken).ConfigureAwait(false);
-                break;
+            int blockSize = encryptionInfo.GetBlockSize() / 8;
+            DepaddingHandler? dp = PaddingMode switch
+            {
+                PaddingMode.Zero => new ZeroDepaddingHandler(blockSize),
+                PaddingMode.AnsiX9_23 => new AnsiX9_23DepaddingHandler(blockSize),
+                PaddingMode.Iso10126 => new Iso10126DepaddingHandler(blockSize),
+                PaddingMode.Pkcs7 => new Pkcs7DepaddingHandler(blockSize),
+                PaddingMode.Pkcs5 => new Pkcs5DepaddingHandler(blockSize),
+                PaddingMode.Iso_Iec_7816_4 => new Iso_Iec_7816_4DepaddingHandler(blockSize),
+                _ => null
+            };
+            if (dp != null) await ExportStreamWithDepaddingHandlerAsync(dp, targetStream, cancellationToken).ConfigureAwait(false);
         }
+        MemoryStream stream = new();
+        if (!stream.TryGetBuffer(out ArraySegment<byte> buf) || buf.Array == null) throw new InvalidOperationException("unpoggers");
+        await BaseArtifactResourceInfo.ExportStreamAsync(stream, cancellationToken).ConfigureAwait(false);
+        await targetStream.WriteAsync(buf.Array.AsMemory(0, Padding.GetDepaddedLength(buf, PaddingMode)), cancellationToken).ConfigureAwait(false);
     }
 
     private async Task ExportStreamWithDepaddingHandlerAsync(DepaddingHandler handler, Stream targetStream, CancellationToken cancellationToken)
