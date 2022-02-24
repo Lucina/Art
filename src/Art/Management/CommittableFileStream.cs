@@ -193,6 +193,7 @@ public class CommittableFileStream : CommittableWrappingStream
         if (_committed) return;
         _committed = true;
         await DisposeStreamAsync();
+        CommitCore(shouldCommit);
     }
 
     private void CommitCore(bool shouldCommit)
