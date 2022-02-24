@@ -10,6 +10,18 @@ namespace Art;
 public static class ArtExtensions
 {
     /// <summary>
+    /// Converts a hex string (optionally including hex specifier "0x") to a byte array.
+    /// </summary>
+    /// <param name="hex">Hex string.</param>
+    /// <returns>Value.</returns>
+    /// <exception cref="FormatException">Thrown for invalid format.</exception>
+    public static byte[] Dehex(ReadOnlySpan<char> hex)
+    {
+        if (hex.StartsWith("0x", StringComparison.InvariantCultureIgnoreCase)) hex = hex[2..];
+        return Convert.FromHexString(hex);
+    }
+
+    /// <summary>
     /// Loads an object from a UTF-8 JSON stream.
     /// </summary>
     /// <typeparam name="T">Data type.</typeparam>
@@ -24,7 +36,7 @@ public static class ArtExtensions
     /// <param name="stream">Stream to load from.</param>
     /// <param name="cancellationToken">Cancellation token.</param>
     /// <returns>Task returning read data.</returns>
-    public static async Task<T?> LoadFromUtf8StreamAsync<T>(Stream stream, CancellationToken cancellationToken = default) => (await JsonSerializer.DeserializeAsync<T>(stream, ArtJsonSerializerOptions.s_jsonOptions, cancellationToken).ConfigureAwait(false));
+    public static async Task<T?> LoadFromUtf8StreamAsync<T>(Stream stream, CancellationToken cancellationToken = default) => await JsonSerializer.DeserializeAsync<T>(stream, ArtJsonSerializerOptions.s_jsonOptions, cancellationToken).ConfigureAwait(false);
 
     /// <summary>
     /// Loads an object from a JSON file.

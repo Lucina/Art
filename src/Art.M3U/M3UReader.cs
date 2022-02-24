@@ -113,8 +113,9 @@ public static class M3UReader
             if (TmpDict.TryGetValue(ENCRYPTION_INF_URI, out string? uriT)) uri = uriT;
             if (TmpDict.TryGetValue(ENCRYPTION_INF_IV, out string? ivT))
             {
-                if (ivT.StartsWith("0x", StringComparison.InvariantCultureIgnoreCase)) ivT = ivT[2..];
-                iv = Convert.FromHexString(ivT);
+                ReadOnlySpan<char> ivS = ivT;
+                if (ivS.StartsWith("0x", StringComparison.InvariantCultureIgnoreCase)) ivS = ivS[2..];
+                iv = Convert.FromHexString(ivS);
             }
             keyFormat ??= "identity";
             if (method == null) throw new InvalidDataException("method not provided");
