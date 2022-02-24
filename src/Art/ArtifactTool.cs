@@ -129,7 +129,7 @@ public abstract partial class ArtifactTool : IDisposable
         RegistrationManager = config.RegistrationManager;
         DataManager = config.DataManager;
         Profile = profile ?? ArtifactToolProfile.Create(GetType(), "default");
-        SetFlag(OptDebugMode, ref DebugMode);
+        GetFlag(OptDebugMode, ref DebugMode);
         //_configured = true;
     }
 
