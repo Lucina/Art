@@ -11,7 +11,8 @@ namespace Art;
 /// <param name="BlockSize">Block size, in bits.</param>
 /// <param name="Mode">Cipher mode.</param>
 /// <param name="EncIv">IV.</param>
-public record EncryptionInfo(CryptoAlgorithm Algorithm, ReadOnlyMemory<byte> EncKey, CipherMode? Mode = null, int? KeySize = null, int? BlockSize = null, ReadOnlyMemory<byte>? EncIv = null)
+/// <param name="PaddingMode">Padding mode.</param>
+public record EncryptionInfo(CryptoAlgorithm Algorithm, ReadOnlyMemory<byte> EncKey, CipherMode? Mode = null, int? KeySize = null, int? BlockSize = null, ReadOnlyMemory<byte>? EncIv = null, System.Security.Cryptography.PaddingMode? PaddingMode = null)
 {
     /// <summary>
     /// Empty 128-bit buffer.
@@ -53,16 +54,8 @@ public record EncryptionInfo(CryptoAlgorithm Algorithm, ReadOnlyMemory<byte> Enc
         alg.Key = EncKey.ToArray();
         if (EncIv is { } encIv)
             alg.IV = encIv.ToArray();
+        if (PaddingMode is { } paddingMode)
+            alg.Padding = paddingMode;
         return alg;
-    }
-
-    /// <summary>
-    /// Gets explicit or default block size.
-    /// </summary>
-    /// <returns>Block size, in bits.</returns>
-    public int GetBlockSize()
-    {
-        using SymmetricAlgorithm sa = CreateSymmetricAlgorithm();
-        return sa.BlockSize;
     }
 }
