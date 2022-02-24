@@ -1,4 +1,4 @@
-﻿namespace Art;
+﻿namespace Art.Proxies;
 
 /// <summary>
 /// Proxy to run artifact tool as a find tool.

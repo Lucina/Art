@@ -1,4 +1,4 @@
-﻿namespace Art;
+﻿namespace Art.Logging;
 
 /// <summary>
 /// Log level.

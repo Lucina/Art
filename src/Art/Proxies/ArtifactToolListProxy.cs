@@ -3,7 +3,7 @@ using Art.Logging;
 using Art.Management;
 using Art.Resources;
 
-namespace Art;
+namespace Art.Proxies;
 
 /// <summary>
 /// Proxy to run artifact tool as a list tool.

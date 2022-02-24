@@ -1,3 +1,5 @@
+using Art.Logging;
+
 namespace Art;
 
 public partial class ArtifactTool
