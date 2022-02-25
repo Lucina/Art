@@ -31,4 +31,12 @@
     <Company>Lucina</Company>
   </PropertyGroup>
 
+  <ItemGroup>
+    <Content Include="NOTICE.Art.md">
+      <Link>NOTICE.Art.md</Link>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <PackagePath>contentFiles/any/any/</PackagePath>
+    </Content>
+  </ItemGroup>
+
 </Project>
