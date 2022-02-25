@@ -1,6 +1,7 @@
 using System.Buffers.Binary;
 using System.Security.Cryptography;
 using Art.Crypto;
+using PaddingMode = System.Security.Cryptography.PaddingMode;
 
 namespace Art.M3U;
 
@@ -80,7 +81,7 @@ public class M3UEncryptionInfo
     private static EncryptionInfo ToEncryptionInfo(string method, byte[] key, byte[] iv) =>
         method switch
         {
-            "AES-128" => new EncryptionInfo(CryptoAlgorithm.Aes, key, CipherMode.CBC, EncIv: iv),
+            "AES-128" => new EncryptionInfo(CryptoAlgorithm.Aes, key, CipherMode.CBC, EncIv: iv, PaddingMode: PaddingMode.PKCS7),
             "SAMPLE-AES" => throw new InvalidOperationException("Encryption type SAMPLE-AES is not supported for direct decryption"),
             _ => throw new InvalidDataException()
         };

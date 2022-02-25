@@ -191,7 +191,6 @@ public partial class ArtifactTool
 
     #endregion
 
-
     #region Int
 
     /// <summary>
