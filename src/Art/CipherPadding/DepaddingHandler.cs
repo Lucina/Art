@@ -1,4 +1,3 @@
-using System.Buffers;
 using System.Security.Cryptography;
 
 namespace Art.CipherPadding;
@@ -49,52 +48,4 @@ public abstract class DepaddingHandler
     /// </summary>
     /// <param name="buf">Buffer.</param>
     public abstract void DoFinal(out ReadOnlyMemory<byte> buf);
-
-    /// <summary>
-    /// Copies <paramref name="from"/> to <paramref name="to"/> with depadding operation.
-    /// </summary>
-    /// <param name="from">Source stream.</param>
-    /// <param name="to">Target stream.</param>
-    /// <param name="cancellationToken">Cancellation token.</param>
-    /// <returns>True if successful.</returns>
-    /// <exception cref="ArgumentNullException">Thrown for null <paramref name="from"/> or <paramref name="to"/>.</exception>
-    /// <exception cref="ArgumentException">Thrown if <paramref name="from"/> is not readable or <paramref name="to"/> is not writeable.</exception>
-    public Task CopyDepaddedAsync(Stream from, Stream to, CancellationToken cancellationToken = default)
-    {
-        if (from == null) throw new ArgumentNullException(nameof(from));
-        if (to == null) throw new ArgumentNullException(nameof(to));
-        if (!from.CanRead) throw new ArgumentException("Stream must be readable", nameof(from));
-        if (!to.CanWrite) throw new ArgumentException("Stream must be writeable", nameof(from));
-        return CopyDepaddedCoreAsync(from, to, cancellationToken);
-    }
-
-    private async Task CopyDepaddedCoreAsync(Stream from, Stream to, CancellationToken cancellationToken)
-    {
-        byte[] tmp = ArrayPool<byte>.Shared.Rent(16 * 1024);
-        try
-        {
-            while (true)
-            {
-                int read = await from.ReadAsync(tmp, cancellationToken);
-                if (read == 0)
-                {
-                    DoFinal(out var final);
-                    if (final.Length != 0) await to.WriteAsync(final, cancellationToken);
-                    return;
-                }
-                else
-                {
-                    if (TryUpdate(new ReadOnlyMemory<byte>(tmp, 0, read), out var a, out var b))
-                    {
-                        if (a.Length != 0) await to.WriteAsync(a, cancellationToken);
-                        if (b.Length != 0) await to.WriteAsync(b, cancellationToken);
-                    }
-                }
-            }
-        }
-        finally
-        {
-            ArrayPool<byte>.Shared.Return(tmp);
-        }
-    }
 }
