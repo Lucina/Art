@@ -1,7 +1,6 @@
 ﻿using System.Security.Cryptography;
 using Art.Crypto;
 using Art.Resources;
-using PaddingMode = Art.Crypto.PaddingMode;
 
 namespace Art;
 
@@ -58,11 +57,11 @@ public readonly record struct ArtifactDataResource(ArtifactData Data, ArtifactRe
     /// <summary>
     /// Creates an instance of this resource with an added depadding layer.
     /// </summary>
-    /// <param name="paddingMode">Padding mode.</param>
+    /// <param name="artPaddingMode">Padding mode.</param>
     /// <param name="blockSize">Block size, in bits.</param>
     /// <returns>Depadded resource.</returns>
-    public ArtifactDataResource WithPadding(PaddingMode paddingMode, int? blockSize = null)
-        => this with { Info = new PaddedArtifactResourceInfo(paddingMode, blockSize, Info) };
+    public ArtifactDataResource WithPadding(ArtPaddingMode artPaddingMode, int? blockSize = null)
+        => this with { Info = new PaddedArtifactResourceInfo(artPaddingMode, blockSize, Info) };
 
     /// <summary>
     /// Adds this resource.

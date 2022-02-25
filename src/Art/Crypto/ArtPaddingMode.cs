@@ -3,7 +3,7 @@ namespace Art.Crypto;
 /// <summary>
 /// Block cipher padding mode
 /// </summary>
-public enum PaddingMode
+public enum ArtPaddingMode
 {
     /// <summary>
     /// End of message is padded with null bytes

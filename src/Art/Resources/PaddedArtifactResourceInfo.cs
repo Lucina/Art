@@ -6,10 +6,10 @@ namespace Art.Resources;
 /// <summary>
 /// Represents a resource with padding.
 /// </summary>
-/// <param name="PaddingMode">Padding mode.</param>
+/// <param name="ArtPaddingMode">Padding mode.</param>
 /// <param name="BlockSize">Block size, in bits.</param>
 /// <param name="BaseArtifactResourceInfo">Base resource.</param>
-public record PaddedArtifactResourceInfo(PaddingMode PaddingMode, int? BlockSize, ArtifactResourceInfo BaseArtifactResourceInfo) : ArtifactResourceInfo(BaseArtifactResourceInfo.Key, BaseArtifactResourceInfo.ContentType, BaseArtifactResourceInfo.Updated, BaseArtifactResourceInfo.Version, BaseArtifactResourceInfo.Checksum)
+public record PaddedArtifactResourceInfo(ArtPaddingMode ArtPaddingMode, int? BlockSize, ArtifactResourceInfo BaseArtifactResourceInfo) : ArtifactResourceInfo(BaseArtifactResourceInfo.Key, BaseArtifactResourceInfo.ContentType, BaseArtifactResourceInfo.Updated, BaseArtifactResourceInfo.Version, BaseArtifactResourceInfo.Checksum)
 {
     /// <inheritdoc/>
     public override bool Exportable => BaseArtifactResourceInfo.Exportable;
@@ -19,14 +19,14 @@ public record PaddedArtifactResourceInfo(PaddingMode PaddingMode, int? BlockSize
     {
         GetParameters(out int? blockSizeBytesV);
         if (blockSizeBytesV is not { } blockSizeBytes) throw new InvalidOperationException("No block size provided");
-        DepaddingHandler dp = PaddingMode switch
+        DepaddingHandler dp = ArtPaddingMode switch
         {
-            PaddingMode.Zero => new ZeroDepaddingHandler(blockSizeBytes),
-            PaddingMode.AnsiX9_23 => new AnsiX9_23DepaddingHandler(blockSizeBytes),
-            PaddingMode.Iso10126 => new Iso10126DepaddingHandler(blockSizeBytes),
-            PaddingMode.Pkcs7 => new Pkcs7DepaddingHandler(blockSizeBytes),
-            PaddingMode.Pkcs5 => new Pkcs5DepaddingHandler(blockSizeBytes),
-            PaddingMode.Iso_Iec_7816_4 => new Iso_Iec_7816_4DepaddingHandler(blockSizeBytes),
+            ArtPaddingMode.Zero => new ZeroDepaddingHandler(blockSizeBytes),
+            ArtPaddingMode.AnsiX9_23 => new AnsiX9_23DepaddingHandler(blockSizeBytes),
+            ArtPaddingMode.Iso10126 => new Iso10126DepaddingHandler(blockSizeBytes),
+            ArtPaddingMode.Pkcs7 => new Pkcs7DepaddingHandler(blockSizeBytes),
+            ArtPaddingMode.Pkcs5 => new Pkcs5DepaddingHandler(blockSizeBytes),
+            ArtPaddingMode.Iso_Iec_7816_4 => new Iso_Iec_7816_4DepaddingHandler(blockSizeBytes),
             _ => throw new InvalidOperationException("Invalid padding mode")
         };
         await ExportStreamWithDepaddingHandlerAsync(dp, targetStream, cancellationToken).ConfigureAwait(false);
