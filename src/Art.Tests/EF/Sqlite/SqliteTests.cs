@@ -5,7 +5,7 @@ using Art.EF.Sqlite;
 using Art.Resources;
 using NUnit.Framework;
 
-namespace Art.Tests;
+namespace Art.Tests.EF.Sqlite;
 
 public class SqliteTests
 {

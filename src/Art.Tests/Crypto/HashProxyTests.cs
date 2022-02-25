@@ -2,10 +2,10 @@ using System;
 using System.IO;
 using System.Reflection;
 using System.Security.Cryptography;
-using Art.IO;
+using Art.Crypto;
 using NUnit.Framework;
 
-namespace Art.Tests;
+namespace Art.Tests.Crypto;
 
 public class HashProxyTests
 {
