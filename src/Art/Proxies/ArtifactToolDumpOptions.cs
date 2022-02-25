@@ -7,14 +7,14 @@
 /// <param name="IncludeNonFull">Overwrite full entries with non-full if newer.</param>
 /// <param name="SkipMode">Skip mode.</param>
 /// <param name="ChecksumId">Checksum algorithm ID.</param>
-/// <param name="FailureBypassFlags">Failure bypass flags.</param>
+/// <param name="FailureFlags">Failure bypass flags.</param>
 /// <param name="EagerFlags">Eager evaluation flags.</param>
 public record ArtifactToolDumpOptions(
     ResourceUpdateMode ResourceUpdate = ResourceUpdateMode.ArtifactHard,
     bool IncludeNonFull = true,
     ArtifactSkipMode SkipMode = ArtifactSkipMode.None,
     string? ChecksumId = null,
-    FailureBypassFlags FailureBypassFlags = FailureBypassFlags.None,
+    FailureFlags FailureFlags = FailureFlags.None,
     EagerFlags EagerFlags = EagerFlags.None)
 {
     /// <summary>

@@ -1,6 +1,6 @@
 using System.Collections.Concurrent;
 
-namespace Art;
+namespace Art.Async;
 
 internal class EagerAsyncEnumerator<T> : IAsyncEnumerator<T>
 {

@@ -1,4 +1,5 @@
 using System.Net;
+using Art.Web;
 
 namespace Art;
 
@@ -13,24 +14,25 @@ public static class FailureBypass
     /// <param name="exception">Exception.</param>
     /// <param name="flags">Flags specifying types of errors to ignore.</param>
     /// <returns>True if exception should be ignored.</returns>
-    public static bool ShouldBypass(Exception exception, FailureBypassFlags flags) => (FilterFlags(exception) & flags) != 0;
+    public static bool ShouldBypass(Exception exception, FailureFlags flags) => (FilterFlags(exception) & flags) != 0;
 
-    private static FailureBypassFlags FilterFlags(Exception exception) =>
+    private static FailureFlags FilterFlags(Exception exception) =>
         exception switch
         {
-            AggregateException a => a.InnerExceptions.Aggregate(FailureBypassFlags.None, (f, e) => f | FilterFlags(e)),
-            GeoblockingException => FailureBypassFlags.Geoblocking,
-            AccessDeniedException => FailureBypassFlags.AccessDenied,
-            MaintenanceException => FailureBypassFlags.Maintenance,
-            HttpRequestException httpRequestException => FilterHttpFlags(httpRequestException),
-            IOException => FailureBypassFlags.IO,
-            _ => FailureBypassFlags.Miscellaneous
+            AggregateException a => a.InnerExceptions.Aggregate(FailureFlags.None, (f, e) => f | FilterFlags(e)),
+            GeoblockingException => FailureFlags.Geoblocking,
+            AccessDeniedException => FailureFlags.AccessDenied,
+            MaintenanceException => FailureFlags.Maintenance,
+            HttpRequestException httpRequestException => FilterHttpFlags(httpRequestException.StatusCode),
+            ExHttpResponseMessageException exHttpResponseMessageException => FilterHttpFlags(exHttpResponseMessageException.StatusCode),
+            IOException => FailureFlags.IO,
+            _ => FailureFlags.Miscellaneous
         };
 
-    private static FailureBypassFlags FilterHttpFlags(HttpRequestException exception) =>
-        exception.StatusCode switch
+    private static FailureFlags FilterHttpFlags(HttpStatusCode? statusCode) =>
+        statusCode switch
         {
-            HttpStatusCode.Forbidden => FailureBypassFlags.AccessDenied,
-            _ => FailureBypassFlags.Network
+            HttpStatusCode.Forbidden => FailureFlags.AccessDenied,
+            _ => FailureFlags.Network
         };
 }

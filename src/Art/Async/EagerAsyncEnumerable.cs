@@ -1,4 +1,4 @@
-namespace Art;
+namespace Art.Async;
 
 internal class EagerAsyncEnumerable<T> : IAsyncEnumerable<T>
 {
