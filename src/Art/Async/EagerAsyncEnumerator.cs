@@ -1,6 +1,6 @@
 using System.Collections.Concurrent;
 
-namespace Art;
+namespace Art.Async;
 
 internal class EagerAsyncEnumerator<T> : IAsyncEnumerator<T>
 {
@@ -29,18 +29,31 @@ internal class EagerAsyncEnumerator<T> : IAsyncEnumerator<T>
     {
         bool advanced = await _e.MoveNextAsync().ConfigureAwait(false);
         _cancellationToken.ThrowIfCancellationRequested();
-        if (advanced) _queue.Enqueue(_e.Current);
-        if (advanced) ScheduleNext(NextInternal);
+        if (!advanced) return advanced;
+        _queue.Enqueue(_e.Current);
+        ScheduleNext(NextInternal);
         return advanced;
     }
 
     public ValueTask DisposeAsync() => _e.DisposeAsync();
 
-    public async ValueTask<bool> MoveNextAsync()
+    public ValueTask<bool> MoveNextAsync()
     {
-        if (_over) return false;
+        if (_over) return new ValueTask<bool>(false);
         if (!_qt.TryDequeue(out Task<bool>? task)) throw new InvalidOperationException($"State violation ({nameof(_qt)}");
-        bool advanced = await task.ConfigureAwait(false);
+        return task.IsCompleted ? new ValueTask<bool>(Update(task)) : MoveNextAsync(task);
+    }
+
+    private async ValueTask<bool> MoveNextAsync(Task<bool> task)
+    {
+        await task.ConfigureAwait(false);
+        return Update(task);
+    }
+
+    private bool Update(Task<bool> task)
+    {
+        if (task.Exception != null) throw task.Exception;
+        bool advanced = task.Result;
         if (advanced)
         {
             if (!_queue.TryDequeue(out T? value)) throw new InvalidOperationException($"State violation ({nameof(_queue)})");

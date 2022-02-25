@@ -11,9 +11,9 @@ public class EagerTests
     [Test]
     public async Task TestEager1Async()
     {
-        var v = CounterAsync(10, 10, 0.01).EagerAsync();
+        var v = CounterAsync(10, 10, 0.003).EagerAsync();
         var v2 = v.GetAsyncEnumerator();
-        await Task.Delay(TimeSpan.FromSeconds(0.5));
+        await Task.Delay(TimeSpan.FromSeconds(0.1));
         TestEager1(v2, 10, 10);
     }
 

@@ -5,6 +5,7 @@ using System.Net.Http;
 using System.Security.Cryptography;
 using System.Threading.Tasks;
 using Art.Crypto;
+using Art.Web;
 using NUnit.Framework;
 using RichardSzalay.MockHttp;
 using PaddingMode = System.Security.Cryptography.PaddingMode;

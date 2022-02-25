@@ -1,10 +1,10 @@
 namespace Art;
 
 /// <summary>
-/// Represents kinds of failures to ignore.
+/// Represents kinds of failures.
 /// </summary>
 [Flags]
-public enum FailureBypassFlags
+public enum FailureFlags
 {
     /// <summary>
     /// Ignore no failures.
