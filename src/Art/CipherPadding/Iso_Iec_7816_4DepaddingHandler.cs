@@ -13,7 +13,7 @@ public class Iso_Iec_7816_4DepaddingHandler : BlockedDepaddingHandler
     /// Initializes a new instance of <see cref="Iso_Iec_7816_4DepaddingHandler"/>.
     /// </summary>
     /// <param name="blockSize">Block size, in bytes.</param>
-    /// <exception cref="ArgumentException">Thrown for invalid <see cref="blockSize"/>.</exception>
+    /// <exception cref="ArgumentException">Thrown for invalid <paramref name="blockSize"/>.</exception>
     public Iso_Iec_7816_4DepaddingHandler(int blockSize) : base(s_supportedBlockSize, blockSize)
     {
     }

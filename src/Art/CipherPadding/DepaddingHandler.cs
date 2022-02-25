@@ -57,7 +57,7 @@ public abstract class DepaddingHandler
     /// <param name="to">Target stream.</param>
     /// <param name="cancellationToken">Cancellation token.</param>
     /// <returns>True if successful.</returns>
-    /// <exception cref="ArgumentNullException">Thrown for null <paramref cref="from"/> or <paramref cref="to"/>.</exception>
+    /// <exception cref="ArgumentNullException">Thrown for null <paramref name="from"/> or <paramref name="to"/>.</exception>
     /// <exception cref="ArgumentException">Thrown if <paramref name="from"/> is not readable or <paramref name="to"/> is not writeable.</exception>
     public Task CopyDepaddedAsync(Stream from, Stream to, CancellationToken cancellationToken = default)
     {

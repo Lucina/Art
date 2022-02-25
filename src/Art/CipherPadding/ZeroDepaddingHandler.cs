@@ -13,7 +13,7 @@ public class ZeroDepaddingHandler : BlockedDepaddingHandler
     /// Initializes a new instance of <see cref="ZeroDepaddingHandler"/>.
     /// </summary>
     /// <param name="blockSize">Block size, in bytes.</param>
-    /// <exception cref="ArgumentException">Thrown for invalid <see cref="blockSize"/>.</exception>
+    /// <exception cref="ArgumentException">Thrown for invalid <paramref name="blockSize"/>.</exception>
     public ZeroDepaddingHandler(int blockSize) : base(s_supportedBlockSize, blockSize)
     {
     }

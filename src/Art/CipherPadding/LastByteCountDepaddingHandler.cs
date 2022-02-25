@@ -12,7 +12,7 @@ public abstract class LastByteCountDepaddingHandler : BlockedDepaddingHandler
     /// </summary>
     /// <param name="supportedBlockSize">Supported block sizes.</param>
     /// <param name="blockSize">Block size, in bytes.</param>
-    /// <exception cref="ArgumentException">Thrown for invalid <see cref="blockSize"/> or illegally configured <paramref name="supportedBlockSize"/>.</exception>
+    /// <exception cref="ArgumentException">Thrown for invalid <paramref name="blockSize"/> or illegally configured <paramref name="supportedBlockSize"/>.</exception>
     protected LastByteCountDepaddingHandler(KeySizes supportedBlockSize, int blockSize) : base(supportedBlockSize, blockSize)
     {
     }
