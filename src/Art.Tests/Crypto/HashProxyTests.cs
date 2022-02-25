@@ -15,17 +15,8 @@ public class HashProxyTests
         [Values(typeof(SHA1), typeof(SHA256), typeof(SHA384), typeof(SHA512), typeof(MD5))]
         Type hashType)
     {
-        MethodInfo? method = hashType.GetMethod("Create", BindingFlags.Static | BindingFlags.Public, Array.Empty<Type>());
-        if (method == null)
-        {
-            Assert.Ignore($"Type {hashType.FullName} does not have a public static parameterless Create method");
-            return;
-        }
-        if (method.Invoke(null, Array.Empty<object?>()) is not HashAlgorithm hashAlgorithm)
-        {
-            Assert.Ignore($"Return of Create method on {hashType.FullName} is not a hash algorithm instance");
-            return;
-        }
+        MethodInfo method = hashType.GetMethod("Create", BindingFlags.Static | BindingFlags.Public, Array.Empty<Type>())!;
+        HashAlgorithm hashAlgorithm = (HashAlgorithm)method.Invoke(null, Array.Empty<object?>())!;
         TestHashProxy(inputSize, hashAlgorithm);
     }
 

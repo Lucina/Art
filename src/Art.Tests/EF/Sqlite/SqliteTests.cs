@@ -26,6 +26,13 @@ public class SqliteTests
         await TestSqliteDatabase(r);
     }
 
+    [Test]
+    public async Task TestSqliteDatabaseMemoryExplicit()
+    {
+        using SqliteArtifactRegistrationManager r = new(true);
+        await TestSqliteDatabase(r);
+    }
+
     private static async Task TestSqliteDatabase(SqliteArtifactRegistrationManager r)
     {
         // 1
