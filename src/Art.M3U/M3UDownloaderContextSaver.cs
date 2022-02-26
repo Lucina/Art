@@ -60,7 +60,7 @@ public abstract class M3UDownloaderContextSaver
     /// <param name="cancellationToken">Cancellation token.</param>
     /// <returns>Task.</returns>
     /// <exception cref="HttpRequestException">Thrown for issues with request excluding non-success server responses.</exception>
-    /// <exception cref="AggregateException">Thrown with <see cref="HttpRequestException"/> and <see cref="ExHttpResponseMessageException"/> on HTTP error.</exception>
+    /// <exception cref="ArtHttpResponseMessageException">Thrown on HTTP response indicating non-successful response.</exception>
     public abstract Task RunAsync(CancellationToken cancellationToken = default);
 
     /// <summary>
@@ -70,7 +70,7 @@ public abstract class M3UDownloaderContextSaver
     /// <param name="requestException">Request exception.</param>
     /// <param name="responseMessageException">Response message exception, if available.</param>
     /// <returns>True if <paramref name="requestException"/> was retrieved.</returns>
-    protected static bool TryGetHttpRequestException(AggregateException exception, [NotNullWhen(true)] out HttpRequestException? requestException, out ExHttpResponseMessageException? responseMessageException)
+    protected static bool TryGetHttpRequestException(AggregateException exception, [NotNullWhen(true)] out HttpRequestException? requestException, out ArtHttpResponseMessageException? responseMessageException)
     {
         exception = exception.Flatten();
         requestException = null;
@@ -78,7 +78,7 @@ public abstract class M3UDownloaderContextSaver
         foreach (Exception e in exception.InnerExceptions)
         {
             requestException ??= e as HttpRequestException;
-            responseMessageException ??= e as ExHttpResponseMessageException;
+            responseMessageException ??= e as ArtHttpResponseMessageException;
         }
         return requestException != null;
     }
@@ -91,7 +91,7 @@ public abstract class M3UDownloaderContextSaver
     /// <param name="responseMessageException">Response message exception, if available.</param>
     /// <param name="cancellationToken">Cancellation token.</param>
     /// <exception cref="AggregateException">Thrown when handling exception failed.</exception>
-    protected virtual async Task HandleHttpRequestExceptionAsync(AggregateException aggregateException, HttpRequestException requestException, ExHttpResponseMessageException? responseMessageException, CancellationToken cancellationToken)
+    protected virtual async Task HandleHttpRequestExceptionAsync(AggregateException aggregateException, HttpRequestException requestException, ArtHttpResponseMessageException? responseMessageException, CancellationToken cancellationToken)
     {
         Interlocked.Increment(ref FailCounter);
         Context.Tool.LogInformation("HTTP error encountered", requestException.ToString());
@@ -164,14 +164,14 @@ public abstract class M3UDownloaderContextSaver
         return RecoveryCallback;
     }
 
-    private static async Task DelayOrThrowAsync(IReadOnlyCollection<Exception> originalExceptions, TimeSpan? delay, HttpRequestException hre, ExHttpResponseMessageException? responseMessageException, CancellationToken cancellationToken)
+    private static async Task DelayOrThrowAsync(IReadOnlyCollection<Exception> originalExceptions, TimeSpan? delay, HttpRequestException hre, ArtHttpResponseMessageException? responseMessageException, CancellationToken cancellationToken)
     {
         TimeSpan? delayMake = responseMessageException?.RetryCondition?.Delta ?? delay;
         if (delayMake is not { } delayActual) throw new AggregateException($"No retry delay specified for HTTP response {hre.StatusCode?.ToString() ?? "<unknown>"} and no default value provided", originalExceptions);
         await Task.Delay(delayActual, cancellationToken);
     }
 
-    private static async Task DelayOrThrowAsync(Exception exception, TimeSpan? delay, HttpRequestException hre, ExHttpResponseMessageException? responseMessageException, CancellationToken cancellationToken)
+    private static async Task DelayOrThrowAsync(Exception exception, TimeSpan? delay, HttpRequestException hre, ArtHttpResponseMessageException? responseMessageException, CancellationToken cancellationToken)
     {
         TimeSpan? delayMake = delay ?? responseMessageException?.RetryCondition?.Delta;
         if (delayMake is not { } delayActual) throw new AggregateException($"No retry delay specified for HTTP response {hre.StatusCode?.ToString() ?? "<unknown>"} and no default value provided", exception);

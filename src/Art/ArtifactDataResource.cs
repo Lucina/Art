@@ -51,7 +51,7 @@ public readonly record struct ArtifactDataResource(ArtifactData Data, ArtifactRe
     /// <param name="encIv">IV.</param>
     /// <param name="paddingMode">Padding mode.</param>
     /// <returns>Decrypting resource.</returns>
-    public ArtifactDataResource WithEncryption(CryptoAlgorithm algorithm, ReadOnlyMemory<byte> encKey, CipherMode? mode = null, int? keySize = null, int? blockSize = null, ReadOnlyMemory<byte>? encIv = null, System.Security.Cryptography.PaddingMode? paddingMode = null)
+    public ArtifactDataResource WithEncryption(CryptoAlgorithm algorithm, ReadOnlyMemory<byte> encKey, CipherMode? mode = null, int? keySize = null, int? blockSize = null, ReadOnlyMemory<byte>? encIv = null, PaddingMode? paddingMode = null)
         => this with { Info = new EncryptedArtifactResourceInfo(new EncryptionInfo(algorithm, encKey, mode, keySize, blockSize, encIv, paddingMode), Info) };
 
     /// <summary>

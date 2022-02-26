@@ -12,7 +12,7 @@ namespace Art.Crypto;
 /// <param name="Mode">Cipher mode.</param>
 /// <param name="EncIv">IV.</param>
 /// <param name="PaddingMode">Padding mode.</param>
-public record EncryptionInfo(CryptoAlgorithm Algorithm, ReadOnlyMemory<byte> EncKey, CipherMode? Mode = null, int? KeySize = null, int? BlockSize = null, ReadOnlyMemory<byte>? EncIv = null, System.Security.Cryptography.PaddingMode? PaddingMode = null)
+public record EncryptionInfo(CryptoAlgorithm Algorithm, ReadOnlyMemory<byte> EncKey, CipherMode? Mode = null, int? KeySize = null, int? BlockSize = null, ReadOnlyMemory<byte>? EncIv = null, PaddingMode? PaddingMode = null)
 {
     /// <summary>
     /// Empty 128-bit buffer.

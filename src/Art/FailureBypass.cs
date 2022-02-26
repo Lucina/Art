@@ -24,7 +24,7 @@ public static class FailureBypass
             AccessDeniedException => FailureFlags.AccessDenied,
             MaintenanceException => FailureFlags.Maintenance,
             HttpRequestException httpRequestException => FilterHttpFlags(httpRequestException.StatusCode),
-            ExHttpResponseMessageException exHttpResponseMessageException => FilterHttpFlags(exHttpResponseMessageException.StatusCode),
+            ArtHttpResponseMessageException exHttpResponseMessageException => FilterHttpFlags(exHttpResponseMessageException.StatusCode),
             IOException => FailureFlags.IO,
             _ => FailureFlags.Miscellaneous
         };
