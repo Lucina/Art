@@ -15,7 +15,7 @@ public partial class HttpArtifactTool
     /// <param name="cancellationToken">Cancellation token.</param>
     /// <returns>Task returning text.</returns>
     /// <exception cref="HttpRequestException">Thrown for issues with request excluding non-success server responses.</exception>
-    /// <exception cref="ExHttpResponseMessageException">Thrown on HTTP response indicating non-successful response.</exception>
+    /// <exception cref="ArtHttpResponseMessageException">Thrown on HTTP response indicating non-successful response.</exception>
     public async Task<string> GetHttpTextAsync(string requestUri, string? origin = null, string? referrer = null, CancellationToken cancellationToken = default)
     {
         NotDisposed();
@@ -23,7 +23,7 @@ public partial class HttpArtifactTool
         SetOriginAndReferrer(req, origin, referrer);
         ConfigureTextRequest(req);
         using HttpResponseMessage res = await HttpClient.SendAsync(req, JsonCompletionOption, cancellationToken).ConfigureAwait(false);
-        ExHttpResponseMessageException.EnsureSuccessStatusCode(res);
+        ArtHttpResponseMessageException.EnsureSuccessStatusCode(res);
         return await res.Content.ReadAsStringAsync(cancellationToken).ConfigureAwait(false);
     }
 
@@ -36,7 +36,7 @@ public partial class HttpArtifactTool
     /// <param name="cancellationToken">Cancellation token.</param>
     /// <returns>Task returning text.</returns>
     /// <exception cref="HttpRequestException">Thrown for issues with request excluding non-success server responses.</exception>
-    /// <exception cref="ExHttpResponseMessageException">Thrown on HTTP response indicating non-successful response.</exception>
+    /// <exception cref="ArtHttpResponseMessageException">Thrown on HTTP response indicating non-successful response.</exception>
     public async Task<string> GetHttpTextAsync(Uri requestUri, string? origin = null, string? referrer = null, CancellationToken cancellationToken = default)
     {
         NotDisposed();
@@ -44,7 +44,7 @@ public partial class HttpArtifactTool
         SetOriginAndReferrer(req, origin, referrer);
         ConfigureTextRequest(req);
         using HttpResponseMessage res = await HttpClient.SendAsync(req, JsonCompletionOption, cancellationToken).ConfigureAwait(false);
-        ExHttpResponseMessageException.EnsureSuccessStatusCode(res);
+        ArtHttpResponseMessageException.EnsureSuccessStatusCode(res);
         return await res.Content.ReadAsStringAsync(cancellationToken).ConfigureAwait(false);
     }
 
@@ -55,12 +55,12 @@ public partial class HttpArtifactTool
     /// <param name="cancellationToken">Cancellation token.</param>
     /// <returns>Task returning text.</returns>
     /// <exception cref="HttpRequestException">Thrown for issues with request excluding non-success server responses.</exception>
-    /// <exception cref="ExHttpResponseMessageException">Thrown on HTTP response indicating non-successful response.</exception>
+    /// <exception cref="ArtHttpResponseMessageException">Thrown on HTTP response indicating non-successful response.</exception>
     public async Task<string> RetrieveHttpTextAsync(HttpRequestMessage requestMessage, CancellationToken cancellationToken = default)
     {
         NotDisposed();
         using HttpResponseMessage res = await HttpClient.SendAsync(requestMessage, JsonCompletionOption, cancellationToken).ConfigureAwait(false);
-        ExHttpResponseMessageException.EnsureSuccessStatusCode(res);
+        ArtHttpResponseMessageException.EnsureSuccessStatusCode(res);
         return await res.Content.ReadAsStringAsync(cancellationToken).ConfigureAwait(false);
     }
 

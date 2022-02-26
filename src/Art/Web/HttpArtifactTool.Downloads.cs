@@ -16,7 +16,7 @@ public partial class HttpArtifactTool
     /// <param name="cancellationToken">Cancellation token.</param>
     /// <returns>Task.</returns>
     /// <exception cref="HttpRequestException">Thrown for issues with request excluding non-success server responses.</exception>
-    /// <exception cref="ExHttpResponseMessageException">Thrown on HTTP response indicating non-successful response.</exception>
+    /// <exception cref="ArtHttpResponseMessageException">Thrown on HTTP response indicating non-successful response.</exception>
     public async Task DownloadResourceAsync(string requestUri, Stream stream, string? origin = null, string? referrer = null, CancellationToken cancellationToken = default)
     {
         NotDisposed();
@@ -24,7 +24,7 @@ public partial class HttpArtifactTool
         SetOriginAndReferrer(req, origin, referrer);
         ConfigureHttpRequest(req);
         using HttpResponseMessage res = await HttpClient.SendAsync(req, DownloadCompletionOption, cancellationToken).ConfigureAwait(false);
-        ExHttpResponseMessageException.EnsureSuccessStatusCode(res);
+        ArtHttpResponseMessageException.EnsureSuccessStatusCode(res);
         await res.Content.CopyToAsync(stream, cancellationToken).ConfigureAwait(false);
     }
 
@@ -38,7 +38,7 @@ public partial class HttpArtifactTool
     /// <param name="cancellationToken">Cancellation token.</param>
     /// <returns>Task.</returns>
     /// <exception cref="HttpRequestException">Thrown for issues with request excluding non-success server responses.</exception>
-    /// <exception cref="ExHttpResponseMessageException">Thrown on HTTP response indicating non-successful response.</exception>
+    /// <exception cref="ArtHttpResponseMessageException">Thrown on HTTP response indicating non-successful response.</exception>
     public async Task DownloadResourceAsync(string requestUri, ArtifactResourceKey key, string? origin = null, string? referrer = null, CancellationToken cancellationToken = default)
     {
         NotDisposed();
@@ -60,7 +60,7 @@ public partial class HttpArtifactTool
     /// <param name="cancellationToken">Cancellation token.</param>
     /// <returns>Task.</returns>
     /// <exception cref="HttpRequestException">Thrown for issues with request excluding non-success server responses.</exception>
-    /// <exception cref="ExHttpResponseMessageException">Thrown on HTTP response indicating non-successful response.</exception>
+    /// <exception cref="ArtHttpResponseMessageException">Thrown on HTTP response indicating non-successful response.</exception>
     public Task DownloadResourceAsync(string requestUri, string file, ArtifactKey key, string path = "", string? origin = null, string? referrer = null, CancellationToken cancellationToken = default)
         => DownloadResourceAsync(requestUri, new ArtifactResourceKey(key, file, path), origin, referrer, cancellationToken);
 
@@ -74,7 +74,7 @@ public partial class HttpArtifactTool
     /// <param name="cancellationToken">Cancellation token.</param>
     /// <returns>Task.</returns>
     /// <exception cref="HttpRequestException">Thrown for issues with request excluding non-success server responses.</exception>
-    /// <exception cref="ExHttpResponseMessageException">Thrown on HTTP response indicating non-successful response.</exception>
+    /// <exception cref="ArtHttpResponseMessageException">Thrown on HTTP response indicating non-successful response.</exception>
     public async Task DownloadResourceAsync(Uri requestUri, Stream stream, string? origin = null, string? referrer = null, CancellationToken cancellationToken = default)
     {
         NotDisposed();
@@ -82,7 +82,7 @@ public partial class HttpArtifactTool
         SetOriginAndReferrer(req, origin, referrer);
         ConfigureHttpRequest(req);
         using HttpResponseMessage res = await HttpClient.SendAsync(req, DownloadCompletionOption, cancellationToken).ConfigureAwait(false);
-        ExHttpResponseMessageException.EnsureSuccessStatusCode(res);
+        ArtHttpResponseMessageException.EnsureSuccessStatusCode(res);
         await res.Content.CopyToAsync(stream, cancellationToken).ConfigureAwait(false);
     }
 
@@ -96,7 +96,7 @@ public partial class HttpArtifactTool
     /// <param name="cancellationToken">Cancellation token.</param>
     /// <returns>Task.</returns>
     /// <exception cref="HttpRequestException">Thrown for issues with request excluding non-success server responses.</exception>
-    /// <exception cref="ExHttpResponseMessageException">Thrown on HTTP response indicating non-successful response.</exception>
+    /// <exception cref="ArtHttpResponseMessageException">Thrown on HTTP response indicating non-successful response.</exception>
     public async Task DownloadResourceAsync(Uri requestUri, ArtifactResourceKey key, string? origin = null, string? referrer = null, CancellationToken cancellationToken = default)
     {
         NotDisposed();
@@ -118,7 +118,7 @@ public partial class HttpArtifactTool
     /// <param name="cancellationToken">Cancellation token.</param>
     /// <returns>Task.</returns>
     /// <exception cref="HttpRequestException">Thrown for issues with request excluding non-success server responses.</exception>
-    /// <exception cref="ExHttpResponseMessageException">Thrown on HTTP response indicating non-successful response.</exception>
+    /// <exception cref="ArtHttpResponseMessageException">Thrown on HTTP response indicating non-successful response.</exception>
     public Task DownloadResourceAsync(Uri requestUri, string file, ArtifactKey key, string path = "", string? origin = null, string? referrer = null, CancellationToken cancellationToken = default)
         => DownloadResourceAsync(requestUri, new ArtifactResourceKey(key, file, path), origin, referrer, cancellationToken);
 
@@ -130,12 +130,12 @@ public partial class HttpArtifactTool
     /// <param name="cancellationToken">Cancellation token.</param>
     /// <returns>Task.</returns>
     /// <exception cref="HttpRequestException">Thrown for issues with request excluding non-success server responses.</exception>
-    /// <exception cref="ExHttpResponseMessageException">Thrown on HTTP response indicating non-successful response.</exception>
+    /// <exception cref="ArtHttpResponseMessageException">Thrown on HTTP response indicating non-successful response.</exception>
     public async Task DownloadResourceAsync(HttpRequestMessage requestMessage, Stream stream, CancellationToken cancellationToken = default)
     {
         NotDisposed();
         using HttpResponseMessage res = await HttpClient.SendAsync(requestMessage, DownloadCompletionOption, cancellationToken).ConfigureAwait(false);
-        ExHttpResponseMessageException.EnsureSuccessStatusCode(res);
+        ArtHttpResponseMessageException.EnsureSuccessStatusCode(res);
         await res.Content.CopyToAsync(stream, cancellationToken).ConfigureAwait(false);
     }
 
@@ -147,7 +147,7 @@ public partial class HttpArtifactTool
     /// <param name="cancellationToken">Cancellation token.</param>
     /// <returns>Task.</returns>
     /// <exception cref="HttpRequestException">Thrown for issues with request excluding non-success server responses.</exception>
-    /// <exception cref="ExHttpResponseMessageException">Thrown on HTTP response indicating non-successful response.</exception>
+    /// <exception cref="ArtHttpResponseMessageException">Thrown on HTTP response indicating non-successful response.</exception>
     public async Task DownloadResourceAsync(HttpRequestMessage requestMessage, ArtifactResourceKey key, CancellationToken cancellationToken = default)
     {
         NotDisposed();
@@ -164,7 +164,7 @@ public partial class HttpArtifactTool
     /// <param name="cancellationToken">Cancellation token.</param>
     /// <returns>Task.</returns>
     /// <exception cref="HttpRequestException">Thrown for issues with request excluding non-success server responses.</exception>
-    /// <exception cref="ExHttpResponseMessageException">Thrown on HTTP response indicating non-successful response.</exception>
+    /// <exception cref="ArtHttpResponseMessageException">Thrown on HTTP response indicating non-successful response.</exception>
     public Task DownloadResourceAsync(HttpRequestMessage requestMessage, string file, ArtifactKey key, string path = "", CancellationToken cancellationToken = default)
     {
         NotDisposed();
@@ -179,7 +179,7 @@ public partial class HttpArtifactTool
     private async Task DownloadResourceInternalAsync(HttpRequestMessage requestMessage, ArtifactResourceKey key, CancellationToken cancellationToken = default)
     {
         using HttpResponseMessage res = await HttpClient.SendAsync(requestMessage, DownloadCompletionOption, cancellationToken).ConfigureAwait(false);
-        ExHttpResponseMessageException.EnsureSuccessStatusCode(res);
+        ArtHttpResponseMessageException.EnsureSuccessStatusCode(res);
         await StreamDownloadAsync(res, key, cancellationToken);
     }
 

@@ -87,7 +87,7 @@ public class M3UDownloaderContextTopDownSaver : M3UDownloaderContextSaver
                 }
                 catch (AggregateException aggregateException)
                 {
-                    if (!TryGetHttpRequestException(aggregateException, out HttpRequestException? requestException, out ExHttpResponseMessageException? responseMessageException))
+                    if (!TryGetHttpRequestException(aggregateException, out HttpRequestException? requestException, out ArtHttpResponseMessageException? responseMessageException))
                         throw;
                     if (requestException.StatusCode == HttpStatusCode.NotFound)
                     {
@@ -105,7 +105,7 @@ public class M3UDownloaderContextTopDownSaver : M3UDownloaderContextSaver
             }
             catch (AggregateException aggregateException)
             {
-                if (!TryGetHttpRequestException(aggregateException, out HttpRequestException? requestException, out ExHttpResponseMessageException? responseMessageException))
+                if (!TryGetHttpRequestException(aggregateException, out HttpRequestException? requestException, out ArtHttpResponseMessageException? responseMessageException))
                     throw;
                 await HandleHttpRequestExceptionAsync(aggregateException, requestException, responseMessageException, cancellationToken);
             }

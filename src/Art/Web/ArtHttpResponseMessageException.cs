@@ -6,7 +6,7 @@ namespace Art.Web;
 /// <summary>
 /// Represents an exception created from an <see cref="HttpResponseMessage"/>.
 /// </summary>
-public class ExHttpResponseMessageException : Exception
+public class ArtHttpResponseMessageException : Exception
 {
     /// <summary>
     /// Gets the HTTP status code associated with this exception.
@@ -19,29 +19,29 @@ public class ExHttpResponseMessageException : Exception
     public RetryConditionHeaderValue? RetryCondition { get; }
 
     /// <summary>
-    /// Initializes a new instance of the <see cref="ExHttpResponseMessageException"/> class.
+    /// Initializes a new instance of the <see cref="ArtHttpResponseMessageException"/> class.
     /// </summary>
     /// <param name="message">A message describing the current exception.</param>
-    public ExHttpResponseMessageException(string? message) : base(message)
+    public ArtHttpResponseMessageException(string? message) : base(message)
     {
     }
 
     /// <summary>
-    /// Initializes a new instance of the <see cref="ExHttpResponseMessageException"/> class.
+    /// Initializes a new instance of the <see cref="ArtHttpResponseMessageException"/> class.
     /// </summary>
     /// <param name="message">A message describing the current exception.</param>
     /// <param name="httpResponseMessage">Source HTTP response message to source state from.</param>
-    public ExHttpResponseMessageException(string? message, HttpResponseMessage httpResponseMessage) : base(message)
+    public ArtHttpResponseMessageException(string? message, HttpResponseMessage httpResponseMessage) : base(message)
     {
         StatusCode = httpResponseMessage.StatusCode;
         RetryCondition = httpResponseMessage.Headers.RetryAfter;
     }
 
     /// <summary>
-    /// Throws <see cref="ExHttpResponseMessageException"/> on failure.
+    /// Throws <see cref="ArtHttpResponseMessageException"/> on failure.
     /// </summary>
     /// <param name="httpResponseMessage">HTTP response message.</param>
-    /// <exception cref="ExHttpResponseMessageException">Thrown on HTTP response indicating non-successful response.</exception>
+    /// <exception cref="ArtHttpResponseMessageException">Thrown on HTTP response indicating non-successful response.</exception>
     public static void EnsureSuccessStatusCode(HttpResponseMessage httpResponseMessage)
     {
         try
@@ -51,7 +51,7 @@ public class ExHttpResponseMessageException : Exception
         catch (HttpRequestException exception)
         {
             string message = exception.Message;
-            throw new ExHttpResponseMessageException(message, httpResponseMessage);
+            throw new ArtHttpResponseMessageException(message, httpResponseMessage);
         }
     }
 }

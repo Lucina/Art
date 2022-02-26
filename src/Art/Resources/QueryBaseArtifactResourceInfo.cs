@@ -21,10 +21,10 @@ public record QueryBaseArtifactResourceInfo(ArtifactResourceKey Key, string? Con
     /// <param name="response">Response.</param>
     /// <returns>Instance.</returns>
     /// <exception cref="HttpRequestException">Thrown for issues with request excluding non-success server responses.</exception>
-    /// <exception cref="ExHttpResponseMessageException">Thrown on HTTP response indicating non-successful response.</exception>
+    /// <exception cref="ArtHttpResponseMessageException">Thrown on HTTP response indicating non-successful response.</exception>
     protected ArtifactResourceInfo WithMetadata(HttpResponseMessage response)
     {
-        ExHttpResponseMessageException.EnsureSuccessStatusCode(response);
+        ArtHttpResponseMessageException.EnsureSuccessStatusCode(response);
         string? contentType = response.Content.Headers.ContentType?.MediaType;
         DateTimeOffset? updated = response.Content.Headers.LastModified;
         string? version = response.Headers.ETag?.Tag;
