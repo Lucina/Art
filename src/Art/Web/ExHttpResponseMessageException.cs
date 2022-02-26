@@ -38,9 +38,10 @@ public class ExHttpResponseMessageException : Exception
     }
 
     /// <summary>
-    /// Throws <see cref="AggregateException"/> containing <see cref="HttpRequestException"/> and <see cref="ExHttpResponseMessageException"/>.
+    /// Throws <see cref="ExHttpResponseMessageException"/> on failure.
     /// </summary>
     /// <param name="httpResponseMessage">HTTP response message.</param>
+    /// <exception cref="ExHttpResponseMessageException">Thrown on HTTP response indicating non-successful response.</exception>
     public static void EnsureSuccessStatusCode(HttpResponseMessage httpResponseMessage)
     {
         try
@@ -50,7 +51,7 @@ public class ExHttpResponseMessageException : Exception
         catch (HttpRequestException exception)
         {
             string message = exception.Message;
-            throw new AggregateException(message, exception, new ExHttpResponseMessageException(message, httpResponseMessage));
+            throw new ExHttpResponseMessageException(message, httpResponseMessage);
         }
     }
 }

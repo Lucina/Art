@@ -53,7 +53,7 @@ public class M3UDownloaderContext
     /// <param name="config">Configuration.</param>
     /// <param name="cancellationToken">Cancellation token.</param>
     /// <exception cref="HttpRequestException">Thrown for issues with request excluding non-success server responses.</exception>
-    /// <exception cref="AggregateException">Thrown with <see cref="HttpRequestException"/> and <see cref="ExHttpResponseMessageException"/> on HTTP error.</exception>
+    /// <exception cref="ExHttpResponseMessageException">Thrown on HTTP response indicating non-successful response.</exception>
     public async Task SetConfigAsync(M3UDownloaderConfig config, CancellationToken cancellationToken = default)
     {
         Uri mainUri = await SelectSubStreamAsync(Tool, config, cancellationToken);
@@ -69,7 +69,7 @@ public class M3UDownloaderContext
     /// <param name="cancellationToken">Cancellation token.</param>
     /// <returns>Task returning downloader context.</returns>
     /// <exception cref="HttpRequestException">Thrown for issues with request excluding non-success server responses.</exception>
-    /// <exception cref="AggregateException">Thrown with <see cref="HttpRequestException"/> and <see cref="ExHttpResponseMessageException"/> on HTTP error.</exception>
+    /// <exception cref="ExHttpResponseMessageException">Thrown on HTTP response indicating non-successful response.</exception>
     public static async Task<M3UDownloaderContext> OpenContextAsync(HttpArtifactTool tool, M3UDownloaderConfig config, CancellationToken cancellationToken = default)
     {
         string? referrer = config.Referrer;
@@ -157,7 +157,7 @@ public class M3UDownloaderContext
     /// <param name="mediaSequenceNumber">Media sequence number, if available.</param>
     /// <param name="cancellationToken">Cancellation token.</param>
     /// <exception cref="HttpRequestException">Thrown for issues with request excluding non-success server responses.</exception>
-    /// <exception cref="AggregateException">Thrown with <see cref="HttpRequestException"/> and <see cref="ExHttpResponseMessageException"/> on HTTP error.</exception>
+    /// <exception cref="ExHttpResponseMessageException">Thrown on HTTP response indicating non-successful response.</exception>
     /// <exception cref="InvalidDataException">Thrown for unexpected encryption algorithm when set to decrypt.</exception>
     /// <remarks>
     /// <paramref name="mediaSequenceNumber"/> is meant to support scenarios for decrypting media segments without an explicit IV,
@@ -202,7 +202,7 @@ public class M3UDownloaderContext
     /// <param name="cancellationToken">Cancellation token.</param>
     /// <returns>Task returning stream file from <see cref="MainUri"/>.</returns>
     /// <exception cref="HttpRequestException">Thrown for issues with request excluding non-success server responses.</exception>
-    /// <exception cref="AggregateException">Thrown with <see cref="HttpRequestException"/> and <see cref="ExHttpResponseMessageException"/> on HTTP error.</exception>
+    /// <exception cref="ExHttpResponseMessageException">Thrown on HTTP response indicating non-successful response.</exception>
     public async Task<M3UFile> GetAsync(CancellationToken cancellationToken = default)
     {
         using var res = await Tool.GetAsync(MainUri, referrer: Config.Referrer, cancellationToken: cancellationToken);

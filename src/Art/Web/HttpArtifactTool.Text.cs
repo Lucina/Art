@@ -15,7 +15,7 @@ public partial class HttpArtifactTool
     /// <param name="cancellationToken">Cancellation token.</param>
     /// <returns>Task returning text.</returns>
     /// <exception cref="HttpRequestException">Thrown for issues with request excluding non-success server responses.</exception>
-    /// <exception cref="AggregateException">Thrown with <see cref="HttpRequestException"/> and <see cref="ExHttpResponseMessageException"/> on HTTP error.</exception>
+    /// <exception cref="ExHttpResponseMessageException">Thrown on HTTP response indicating non-successful response.</exception>
     public async Task<string> GetHttpTextAsync(string requestUri, string? origin = null, string? referrer = null, CancellationToken cancellationToken = default)
     {
         NotDisposed();
@@ -36,7 +36,7 @@ public partial class HttpArtifactTool
     /// <param name="cancellationToken">Cancellation token.</param>
     /// <returns>Task returning text.</returns>
     /// <exception cref="HttpRequestException">Thrown for issues with request excluding non-success server responses.</exception>
-    /// <exception cref="AggregateException">Thrown with <see cref="HttpRequestException"/> and <see cref="ExHttpResponseMessageException"/> on HTTP error.</exception>
+    /// <exception cref="ExHttpResponseMessageException">Thrown on HTTP response indicating non-successful response.</exception>
     public async Task<string> GetHttpTextAsync(Uri requestUri, string? origin = null, string? referrer = null, CancellationToken cancellationToken = default)
     {
         NotDisposed();
@@ -55,7 +55,7 @@ public partial class HttpArtifactTool
     /// <param name="cancellationToken">Cancellation token.</param>
     /// <returns>Task returning text.</returns>
     /// <exception cref="HttpRequestException">Thrown for issues with request excluding non-success server responses.</exception>
-    /// <exception cref="AggregateException">Thrown with <see cref="HttpRequestException"/> and <see cref="ExHttpResponseMessageException"/> on HTTP error.</exception>
+    /// <exception cref="ExHttpResponseMessageException">Thrown on HTTP response indicating non-successful response.</exception>
     public async Task<string> RetrieveHttpTextAsync(HttpRequestMessage requestMessage, CancellationToken cancellationToken = default)
     {
         NotDisposed();

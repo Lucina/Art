@@ -17,7 +17,7 @@ public partial class HttpArtifactTool
     /// <param name="cancellationToken">Cancellation token.</param>
     /// <returns>Task returning deserialized data.</returns>
     /// <exception cref="HttpRequestException">Thrown for issues with request excluding non-success server responses.</exception>
-    /// <exception cref="AggregateException">Thrown with <see cref="HttpRequestException"/> and <see cref="ExHttpResponseMessageException"/> on HTTP error.</exception>
+    /// <exception cref="ExHttpResponseMessageException">Thrown on HTTP response indicating non-successful response.</exception>
     /// <remarks>
     /// This overload uses <see cref="ArtifactTool.JsonOptions"/> member automatically.
     /// </remarks>
@@ -42,7 +42,7 @@ public partial class HttpArtifactTool
     /// <param name="cancellationToken">Cancellation token.</param>
     /// <returns>Task returning deserialized data.</returns>
     /// <exception cref="HttpRequestException">Thrown for issues with request excluding non-success server responses.</exception>
-    /// <exception cref="AggregateException">Thrown with <see cref="HttpRequestException"/> and <see cref="ExHttpResponseMessageException"/> on HTTP error.</exception>
+    /// <exception cref="ExHttpResponseMessageException">Thrown on HTTP response indicating non-successful response.</exception>
     /// <remarks>
     /// This overload uses <see cref="ArtifactTool.JsonOptions"/> member automatically.
     /// </remarks>
@@ -62,7 +62,7 @@ public partial class HttpArtifactTool
     /// <param name="cancellationToken">Cancellation token.</param>
     /// <returns>Task returning deserialized data.</returns>
     /// <exception cref="HttpRequestException">Thrown for issues with request excluding non-success server responses.</exception>
-    /// <exception cref="AggregateException">Thrown with <see cref="HttpRequestException"/> and <see cref="ExHttpResponseMessageException"/> on HTTP error.</exception>
+    /// <exception cref="ExHttpResponseMessageException">Thrown on HTTP response indicating non-successful response.</exception>
     public async Task<T?> GetDeserializedJsonAsync<T>(string requestUri, JsonSerializerOptions? jsonSerializerOptions, string? origin = null, string? referrer = null, CancellationToken cancellationToken = default)
     {
         NotDisposed();
@@ -85,7 +85,7 @@ public partial class HttpArtifactTool
     /// <param name="cancellationToken">Cancellation token.</param>
     /// <returns>Task returning deserialized data.</returns>
     /// <exception cref="HttpRequestException">Thrown for issues with request excluding non-success server responses.</exception>
-    /// <exception cref="AggregateException">Thrown with <see cref="HttpRequestException"/> and <see cref="ExHttpResponseMessageException"/> on HTTP error.</exception>
+    /// <exception cref="ExHttpResponseMessageException">Thrown on HTTP response indicating non-successful response.</exception>
     public async Task<T> GetDeserializedRequiredJsonAsync<T>(string requestUri, JsonSerializerOptions? jsonSerializerOptions, string? origin = null, string? referrer = null, CancellationToken cancellationToken = default)
     {
         return await GetDeserializedJsonAsync<T>(requestUri, jsonSerializerOptions, origin, referrer, cancellationToken).ConfigureAwait(false) ?? throw new NullJsonDataException();
@@ -101,7 +101,7 @@ public partial class HttpArtifactTool
     /// <param name="cancellationToken">Cancellation token.</param>
     /// <returns>Task returning deserialized data.</returns>
     /// <exception cref="HttpRequestException">Thrown for issues with request excluding non-success server responses.</exception>
-    /// <exception cref="AggregateException">Thrown with <see cref="HttpRequestException"/> and <see cref="ExHttpResponseMessageException"/> on HTTP error.</exception>
+    /// <exception cref="ExHttpResponseMessageException">Thrown on HTTP response indicating non-successful response.</exception>
     /// <remarks>
     /// This overload uses <see cref="ArtifactTool.JsonOptions"/> member automatically.
     /// </remarks>
@@ -126,7 +126,7 @@ public partial class HttpArtifactTool
     /// <param name="cancellationToken">Cancellation token.</param>
     /// <returns>Task returning deserialized data.</returns>
     /// <exception cref="HttpRequestException">Thrown for issues with request excluding non-success server responses.</exception>
-    /// <exception cref="AggregateException">Thrown with <see cref="HttpRequestException"/> and <see cref="ExHttpResponseMessageException"/> on HTTP error.</exception>
+    /// <exception cref="ExHttpResponseMessageException">Thrown on HTTP response indicating non-successful response.</exception>
     /// <remarks>
     /// This overload uses <see cref="ArtifactTool.JsonOptions"/> member automatically.
     /// </remarks>
@@ -146,7 +146,7 @@ public partial class HttpArtifactTool
     /// <param name="cancellationToken">Cancellation token.</param>
     /// <returns>Task returning deserialized data.</returns>
     /// <exception cref="HttpRequestException">Thrown for issues with request excluding non-success server responses.</exception>
-    /// <exception cref="AggregateException">Thrown with <see cref="HttpRequestException"/> and <see cref="ExHttpResponseMessageException"/> on HTTP error.</exception>
+    /// <exception cref="ExHttpResponseMessageException">Thrown on HTTP response indicating non-successful response.</exception>
     public async Task<T?> GetDeserializedJsonAsync<T>(Uri requestUri, JsonSerializerOptions? jsonSerializerOptions, string? origin = null, string? referrer = null, CancellationToken cancellationToken = default)
     {
         NotDisposed();
@@ -155,7 +155,7 @@ public partial class HttpArtifactTool
         ConfigureJsonRequest(req);
         using HttpResponseMessage res = await HttpClient.SendAsync(req, JsonCompletionOption, cancellationToken).ConfigureAwait(false);
         ExHttpResponseMessageException.EnsureSuccessStatusCode(res);
-        return await DeserializeJsonWithDebugAsync<T>(res, cancellationToken).ConfigureAwait(false);
+        return await DeserializeJsonWithDebugAsync<T>(res, jsonSerializerOptions, cancellationToken).ConfigureAwait(false);
     }
 
     /// <summary>
@@ -169,7 +169,7 @@ public partial class HttpArtifactTool
     /// <param name="cancellationToken">Cancellation token.</param>
     /// <returns>Task returning deserialized data.</returns>
     /// <exception cref="HttpRequestException">Thrown for issues with request excluding non-success server responses.</exception>
-    /// <exception cref="AggregateException">Thrown with <see cref="HttpRequestException"/> and <see cref="ExHttpResponseMessageException"/> on HTTP error.</exception>
+    /// <exception cref="ExHttpResponseMessageException">Thrown on HTTP response indicating non-successful response.</exception>
     public async Task<T> GetDeserializedRequiredJsonAsync<T>(Uri requestUri, JsonSerializerOptions? jsonSerializerOptions, string? origin = null, string? referrer = null, CancellationToken cancellationToken = default)
     {
         return await GetDeserializedJsonAsync<T>(requestUri, jsonSerializerOptions, origin, referrer, cancellationToken).ConfigureAwait(false) ?? throw new NullJsonDataException();
@@ -183,7 +183,7 @@ public partial class HttpArtifactTool
     /// <param name="cancellationToken">Cancellation token.</param>
     /// <returns>Task returning deserialized data.</returns>
     /// <exception cref="HttpRequestException">Thrown for issues with request excluding non-success server responses.</exception>
-    /// <exception cref="AggregateException">Thrown with <see cref="HttpRequestException"/> and <see cref="ExHttpResponseMessageException"/> on HTTP error.</exception>
+    /// <exception cref="ExHttpResponseMessageException">Thrown on HTTP response indicating non-successful response.</exception>
     /// <remarks>
     /// This overload uses <see cref="ArtifactTool.JsonOptions"/> member automatically.
     /// </remarks>
@@ -203,7 +203,7 @@ public partial class HttpArtifactTool
     /// <param name="cancellationToken">Cancellation token.</param>
     /// <returns>Task returning deserialized data.</returns>
     /// <exception cref="HttpRequestException">Thrown for issues with request excluding non-success server responses.</exception>
-    /// <exception cref="AggregateException">Thrown with <see cref="HttpRequestException"/> and <see cref="ExHttpResponseMessageException"/> on HTTP error.</exception>
+    /// <exception cref="ExHttpResponseMessageException">Thrown on HTTP response indicating non-successful response.</exception>
     /// <remarks>
     /// This overload uses <see cref="ArtifactTool.JsonOptions"/> member automatically.
     /// </remarks>
@@ -221,7 +221,7 @@ public partial class HttpArtifactTool
     /// <param name="cancellationToken">Cancellation token.</param>
     /// <returns>Task returning deserialized data.</returns>
     /// <exception cref="HttpRequestException">Thrown for issues with request excluding non-success server responses.</exception>
-    /// <exception cref="AggregateException">Thrown with <see cref="HttpRequestException"/> and <see cref="ExHttpResponseMessageException"/> on HTTP error.</exception>
+    /// <exception cref="ExHttpResponseMessageException">Thrown on HTTP response indicating non-successful response.</exception>
     public async Task<T?> RetrieveDeserializedJsonAsync<T>(HttpRequestMessage requestMessage, JsonSerializerOptions? jsonSerializerOptions, CancellationToken cancellationToken = default)
     {
         NotDisposed();
@@ -239,7 +239,7 @@ public partial class HttpArtifactTool
     /// <param name="cancellationToken">Cancellation token.</param>
     /// <returns>Task returning deserialized data.</returns>
     /// <exception cref="HttpRequestException">Thrown for issues with request excluding non-success server responses.</exception>
-    /// <exception cref="AggregateException">Thrown with <see cref="HttpRequestException"/> and <see cref="ExHttpResponseMessageException"/> on HTTP error.</exception>
+    /// <exception cref="ExHttpResponseMessageException">Thrown on HTTP response indicating non-successful response.</exception>
     public async Task<T> RetrieveDeserializedRequiredJsonAsync<T>(HttpRequestMessage requestMessage, JsonSerializerOptions? jsonSerializerOptions, CancellationToken cancellationToken = default)
     {
         return await RetrieveDeserializedJsonAsync<T>(requestMessage, jsonSerializerOptions, cancellationToken).ConfigureAwait(false) ?? throw new NullJsonDataException();
@@ -253,7 +253,7 @@ public partial class HttpArtifactTool
     /// <param name="cancellationToken">Cancellation token.</param>
     /// <returns>Task returning value.</returns>
     /// <exception cref="HttpRequestException">Thrown for issues with request excluding non-success server responses.</exception>
-    /// <exception cref="AggregateException">Thrown with <see cref="HttpRequestException"/> and <see cref="ExHttpResponseMessageException"/> on HTTP error.</exception>
+    /// <exception cref="ExHttpResponseMessageException">Thrown on HTTP response indicating non-successful response.</exception>
     /// <remarks>
     /// This overload uses <see cref="ArtifactTool.JsonOptions"/> member automatically.
     /// </remarks>
@@ -268,7 +268,7 @@ public partial class HttpArtifactTool
     /// <param name="cancellationToken">Cancellation token.</param>
     /// <returns>Task returning value.</returns>
     /// <exception cref="HttpRequestException">Thrown for issues with request excluding non-success server responses.</exception>
-    /// <exception cref="AggregateException">Thrown with <see cref="HttpRequestException"/> and <see cref="ExHttpResponseMessageException"/> on HTTP error.</exception>
+    /// <exception cref="ExHttpResponseMessageException">Thrown on HTTP response indicating non-successful response.</exception>
     /// <remarks>
     /// This overload uses <see cref="ArtifactTool.JsonOptions"/> member automatically.
     /// </remarks>
@@ -284,7 +284,7 @@ public partial class HttpArtifactTool
     /// <param name="cancellationToken">Cancellation token.</param>
     /// <returns>Task returning value.</returns>
     /// <exception cref="HttpRequestException">Thrown for issues with request excluding non-success server responses.</exception>
-    /// <exception cref="AggregateException">Thrown with <see cref="HttpRequestException"/> and <see cref="ExHttpResponseMessageException"/> on HTTP error.</exception>
+    /// <exception cref="ExHttpResponseMessageException">Thrown on HTTP response indicating non-successful response.</exception>
     public async Task<T?> DeserializeJsonWithDebugAsync<T>(HttpResponseMessage response, JsonSerializerOptions? jsonSerializerOptions, CancellationToken cancellationToken = default)
     {
         ExHttpResponseMessageException.EnsureSuccessStatusCode(response);
@@ -304,7 +304,7 @@ public partial class HttpArtifactTool
     /// <param name="cancellationToken">Cancellation token.</param>
     /// <returns>Task returning value.</returns>
     /// <exception cref="HttpRequestException">Thrown for issues with request excluding non-success server responses.</exception>
-    /// <exception cref="AggregateException">Thrown with <see cref="HttpRequestException"/> and <see cref="ExHttpResponseMessageException"/> on HTTP error.</exception>
+    /// <exception cref="ExHttpResponseMessageException">Thrown on HTTP response indicating non-successful response.</exception>
     public async Task<T> DeserializeRequiredJsonWithDebugAsync<T>(HttpResponseMessage response, JsonSerializerOptions? jsonSerializerOptions, CancellationToken cancellationToken = default)
     {
         ExHttpResponseMessageException.EnsureSuccessStatusCode(response);

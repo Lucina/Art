@@ -1,7 +1,6 @@
 using System;
 using System.IO;
 using System.Net;
-using System.Net.Http;
 using System.Security.Cryptography;
 using System.Threading.Tasks;
 using Art.Crypto;
@@ -21,10 +20,7 @@ public class UriArtifactResourceInfoTests : HttpTestsBase
         var ari = Data.Uri("http://localhost/harmony.bin", "file");
         Assert.That(() => ari.Info.WithMetadataAsync().AsTask().Wait(),
             Throws.InstanceOf<AggregateException>().With.InnerException.Matches(
-                Is.InstanceOf<AggregateException>().With.Property("InnerExceptions").Matches(
-                    Has.Some.InstanceOf<HttpRequestException>()
-                        .And.Some.InstanceOf<ExHttpResponseMessageException>().With.Property("StatusCode").EqualTo(HttpStatusCode.NotFound)))
-        );
+                Is.InstanceOf<ExHttpResponseMessageException>().With.Property("StatusCode").EqualTo(HttpStatusCode.NotFound)));
     }
 
     [Test]
@@ -34,10 +30,7 @@ public class UriArtifactResourceInfoTests : HttpTestsBase
         var inf = Data.Uri("http://localhost/wintercontingency.bin", "file").Info;
         Assert.That(() => inf.ExportStreamAsync(Stream.Null).AsTask().Wait(),
             Throws.InstanceOf<AggregateException>().With.InnerException.Matches(
-                Is.InstanceOf<AggregateException>().With.Property("InnerExceptions").Matches(
-                    Has.Some.InstanceOf<HttpRequestException>()
-                        .And.Some.InstanceOf<ExHttpResponseMessageException>().With.Property("StatusCode").EqualTo(HttpStatusCode.NotFound)))
-        );
+                Is.InstanceOf<ExHttpResponseMessageException>().With.Property("StatusCode").EqualTo(HttpStatusCode.NotFound)));
     }
 
     [Test]

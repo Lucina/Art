@@ -20,7 +20,8 @@ public record QueryBaseArtifactResourceInfo(ArtifactResourceKey Key, string? Con
     /// </summary>
     /// <param name="response">Response.</param>
     /// <returns>Instance.</returns>
-    /// <exception cref="AggregateException">Thrown with <see cref="HttpRequestException"/> and <see cref="ExHttpResponseMessageException"/> on HTTP error.</exception>
+    /// <exception cref="HttpRequestException">Thrown for issues with request excluding non-success server responses.</exception>
+    /// <exception cref="ExHttpResponseMessageException">Thrown on HTTP response indicating non-successful response.</exception>
     protected ArtifactResourceInfo WithMetadata(HttpResponseMessage response)
     {
         ExHttpResponseMessageException.EnsureSuccessStatusCode(response);
