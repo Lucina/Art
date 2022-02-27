@@ -55,15 +55,9 @@ public class M3UDownloaderContextStandardSaver : M3UDownloaderContextSaver
                 await Task.Delay(1000, cancellationToken);
                 FailCounter = 0;
             }
-            catch (HttpRequestException requestException)
+            catch (ArtHttpResponseMessageException e)
             {
-                await HandleHttpRequestExceptionAsync(requestException, cancellationToken);
-            }
-            catch (AggregateException aggregateException)
-            {
-                if (TryGetHttpRequestException(aggregateException, out HttpRequestException? requestException, out ArtHttpResponseMessageException? responseMessageException))
-                    await HandleHttpRequestExceptionAsync(aggregateException, requestException, responseMessageException, cancellationToken);
-                throw;
+                await HandleRequestExceptionAsync(e, cancellationToken);
             }
         }
     }
