@@ -76,38 +76,21 @@ public class M3UDownloaderContextTopDownSaver : M3UDownloaderContextSaver
                     await Context.DownloadSegmentAsync(uri, null, null, cancellationToken);
                     top--;
                 }
-                catch (HttpRequestException requestException)
+                catch (ArtHttpResponseMessageException e)
                 {
-                    if (requestException.StatusCode == HttpStatusCode.NotFound)
+                    if (e.StatusCode == HttpStatusCode.NotFound)
                     {
                         Context.Tool.LogInformation("HTTP NotFound returned, ending operation");
                         return;
                     }
-                    await HandleHttpRequestExceptionAsync(requestException, cancellationToken);
-                }
-                catch (AggregateException aggregateException)
-                {
-                    if (!TryGetHttpRequestException(aggregateException, out HttpRequestException? requestException, out ArtHttpResponseMessageException? responseMessageException))
-                        throw;
-                    if (requestException.StatusCode == HttpStatusCode.NotFound)
-                    {
-                        Context.Tool.LogInformation("HTTP NotFound returned, ending operation");
-                        return;
-                    }
-                    await HandleHttpRequestExceptionAsync(aggregateException, requestException, responseMessageException, cancellationToken);
+                    await HandleRequestExceptionAsync(e, cancellationToken);
                 }
                 await Task.Delay(500, cancellationToken);
                 FailCounter = 0;
             }
-            catch (HttpRequestException requestException)
+            catch (ArtHttpResponseMessageException e)
             {
-                await HandleHttpRequestExceptionAsync(requestException, cancellationToken);
-            }
-            catch (AggregateException aggregateException)
-            {
-                if (!TryGetHttpRequestException(aggregateException, out HttpRequestException? requestException, out ArtHttpResponseMessageException? responseMessageException))
-                    throw;
-                await HandleHttpRequestExceptionAsync(aggregateException, requestException, responseMessageException, cancellationToken);
+                await HandleRequestExceptionAsync(e, cancellationToken);
             }
         }
     }
