@@ -214,8 +214,27 @@ public record ArtifactToolProfile(
     /// <param name="group">Target group.</param>
     /// <param name="options">Options.</param>
     /// <returns>Profile.</returns>
+    /// <remarks>
+    /// This overload sets <see cref="Options"/> to null if no options are specified.
+    /// </remarks>
     public static ArtifactToolProfile Create(Type toolType, string group, params (string, JsonElement)[] options)
-        => new(ArtifactTool.CreateToolString(toolType), group, options.ToDictionary(v => v.Item1, v => v.Item2));
+        => CreateInternal(toolType, group, options, false);
+
+    /// <summary>
+    /// Creates a tool profile for the specified tool.
+    /// </summary>
+    /// <param name="toolType">Tool type.</param>
+    /// <param name="group">Target group.</param>
+    /// <param name="options">Options.</param>
+    /// <returns>Profile.</returns>
+    /// <remarks>
+    /// This overload sets <see cref="Options"/> to a valid dictionary even if no options are specified.
+    /// </remarks>
+    public static ArtifactToolProfile CreateWithOptions(Type toolType, string group, params (string, JsonElement)[] options)
+        => CreateInternal(toolType, group, options, true);
+
+    private static ArtifactToolProfile CreateInternal(Type toolType, string group, (string, JsonElement)[] options, bool alwaysOptions)
+        => new(ArtifactTool.CreateToolString(toolType), group, options.Length == 0 ? alwaysOptions ? new Dictionary<string, JsonElement>() : null : options.ToDictionary(v => v.Item1, v => v.Item2));
 
     /// <summary>
     /// Creates an instance of this profile with most derived core type of instance or instance's type.
