@@ -12,52 +12,6 @@ namespace Art;
 public static class ArtExtensions
 {
     /// <summary>
-    /// Converts a hex string (optionally including hex specifier "0x") to a byte array.
-    /// </summary>
-    /// <param name="hex">Hex string.</param>
-    /// <returns>Value.</returns>
-    /// <exception cref="FormatException">Thrown for invalid format.</exception>
-    public static byte[] Dehex(ReadOnlySpan<char> hex)
-    {
-        if (hex.StartsWith("0x", StringComparison.InvariantCultureIgnoreCase)) hex = hex[2..];
-        return Convert.FromHexString(hex);
-    }
-
-    /// <summary>
-    /// Loads an object from a UTF-8 JSON stream.
-    /// </summary>
-    /// <typeparam name="T">Data type.</typeparam>
-    /// <param name="stream">Stream to load from.</param>
-    /// <returns>Read data.</returns>
-    public static T? LoadFromUtf8Stream<T>(Stream stream) => JsonSerializer.Deserialize<T>(stream, ArtJsonSerializerOptions.s_jsonOptions);
-
-    /// <summary>
-    /// Loads an object from a UTF-8 JSON stream.
-    /// </summary>
-    /// <typeparam name="T">Data type.</typeparam>
-    /// <param name="stream">Stream to load from.</param>
-    /// <param name="cancellationToken">Cancellation token.</param>
-    /// <returns>Task returning read data.</returns>
-    public static async Task<T?> LoadFromUtf8StreamAsync<T>(Stream stream, CancellationToken cancellationToken = default) => await JsonSerializer.DeserializeAsync<T>(stream, ArtJsonSerializerOptions.s_jsonOptions, cancellationToken).ConfigureAwait(false);
-
-    /// <summary>
-    /// Loads an object from a JSON file.
-    /// </summary>
-    /// <typeparam name="T">Data type.</typeparam>
-    /// <param name="file">File path to load from.</param>
-    /// <returns>Read data.</returns>
-    public static T? LoadFromFile<T>(string file) => JsonSerializer.Deserialize<T>(File.ReadAllText(file), ArtJsonSerializerOptions.s_jsonOptions);
-
-    /// <summary>
-    /// Loads an object from a JSON file.
-    /// </summary>
-    /// <typeparam name="T">Data type.</typeparam>
-    /// <param name="file">File path to load from.</param>
-    /// <param name="cancellationToken">Cancellation token.</param>
-    /// <returns>Task returning ead data.</returns>
-    public static async Task<T?> LoadFromFileAsync<T>(string file, CancellationToken cancellationToken = default) => JsonSerializer.Deserialize<T>(await File.ReadAllTextAsync(file, cancellationToken).ConfigureAwait(false), ArtJsonSerializerOptions.s_jsonOptions);
-
-    /// <summary>
     /// Writes an object to a JSON file.
     /// </summary>
     /// <typeparam name="T">Data type.</typeparam>

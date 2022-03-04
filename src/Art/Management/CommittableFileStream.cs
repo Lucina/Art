@@ -150,7 +150,7 @@ public class CommittableFileStream : CommittableWrappingStream
         if (fi.Exists)
         {
             if (fi.IsReadOnly) throw new IOException("File exists and is read-only");
-            tempPath = CreateRandomPath(path);
+            tempPath = ArtUtils.CreateRandomPathForSibling(path);
             pathForStream = tempPath;
         }
         else
@@ -208,16 +208,5 @@ public class CommittableFileStream : CommittableWrappingStream
             if (File.Exists(_pathForStream))
                 File.Delete(_pathForStream);
         }
-    }
-
-    private static string CreateRandomPath(string sibling)
-    {
-        string dir = Path.GetDirectoryName(sibling) ?? throw new ArgumentException();
-        for (int i = 0; i < 10; i++)
-        {
-            string path = Path.Combine(dir, $"{Guid.NewGuid():N}.tmp");
-            if (!File.Exists(path)) return path;
-        }
-        throw new IOException("Failed to create temp filename");
     }
 }

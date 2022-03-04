@@ -12,7 +12,7 @@ public record Checksum(string Id, byte[] Value)
     /// </summary>
     /// <param name="id">ID.</param>
     /// <param name="value">Hex string containing checksum value.</param>
-    public Checksum(string id, string value) : this(id, ArtExtensions.Dehex(value))
+    public Checksum(string id, string value) : this(id, ArtUtils.Dehex(value))
     {
     }
 
