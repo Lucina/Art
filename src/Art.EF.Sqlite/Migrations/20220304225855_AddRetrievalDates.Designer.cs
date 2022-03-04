@@ -3,6 +3,7 @@ using System;
 using Art.EF;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -10,9 +11,10 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Art.EF.Sqlite.Migrations
 {
     [DbContext(typeof(ArtifactContext))]
-    partial class ArtifactContextModelSnapshot : ModelSnapshot
+    [Migration("20220304225855_AddRetrievalDates")]
+    partial class AddRetrievalDates
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder.HasAnnotation("ProductVersion", "6.0.2");
