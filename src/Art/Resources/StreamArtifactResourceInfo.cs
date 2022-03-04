@@ -37,3 +37,33 @@ public record StreamArtifactResourceInfo(Stream Resource, ArtifactResourceKey Ke
         if (Resource.CanSeek) options = options with { PreallocationSize = Resource.Length };
     }
 }
+
+public partial class ArtifactDataExtensions
+{
+    /// <summary>
+    /// Creates a <see cref="StreamArtifactResourceInfo"/> resource.
+    /// </summary>
+    /// <param name="artifactData">Source <see cref="ArtifactData"/> instance.</param>
+    /// <param name="resource">Resource.</param>
+    /// <param name="key">Resource key.</param>
+    /// <param name="contentType">MIME content type.</param>
+    /// <param name="updated">Updated date.</param>
+    /// <param name="version">Version.</param>
+    /// <param name="checksum">Checksum.</param>
+    public static ArtifactDataResource Stream(this ArtifactData artifactData, Stream resource, ArtifactResourceKey key, string? contentType = "application/octet-stream", DateTimeOffset? updated = null, string? version = null, Checksum? checksum = null)
+        => new(artifactData, new StreamArtifactResourceInfo(resource, key, contentType, updated, version, checksum));
+
+    /// <summary>
+    /// Creates a <see cref="StreamArtifactResourceInfo"/> resource.
+    /// </summary>
+    /// <param name="artifactData">Source <see cref="ArtifactData"/> instance.</param>
+    /// <param name="resource">Resource.</param>
+    /// <param name="file">Filename.</param>
+    /// <param name="path">Path.</param>
+    /// <param name="contentType">MIME content type.</param>
+    /// <param name="updated">Updated date.</param>
+    /// <param name="version">Version.</param>
+    /// <param name="checksum">Checksum.</param>
+    public static ArtifactDataResource Stream(this ArtifactData artifactData, Stream resource, string file, string path = "", string? contentType = "application/octet-stream", DateTimeOffset? updated = null, string? version = null, Checksum? checksum = null)
+        => new(artifactData, new StreamArtifactResourceInfo(resource, new ArtifactResourceKey(artifactData.Info.Key, file, path), contentType, updated, version, checksum));
+}

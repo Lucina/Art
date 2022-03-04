@@ -25,3 +25,33 @@ public record StringArtifactResourceInfo(string Resource, ArtifactResourceKey Ke
         await sw.WriteAsync(Resource).ConfigureAwait(false);
     }
 }
+
+public partial class ArtifactDataExtensions
+{
+    /// <summary>
+    /// Creates a <see cref="StringArtifactResourceInfo"/> resource.
+    /// </summary>
+    /// <param name="artifactData">Source <see cref="ArtifactData"/> instance.</param>
+    /// <param name="resource">Resource.</param>
+    /// <param name="key">Resource key.</param>
+    /// <param name="contentType">MIME content type.</param>
+    /// <param name="updated">Updated date.</param>
+    /// <param name="version">Version.</param>
+    /// <param name="checksum">Checksum.</param>
+    public static ArtifactDataResource String(this ArtifactData artifactData, string resource, ArtifactResourceKey key, string? contentType = "text/plain", DateTimeOffset? updated = null, string? version = null, Checksum? checksum = null)
+        => new(artifactData, new StringArtifactResourceInfo(resource, key, contentType, updated, version, checksum));
+
+    /// <summary>
+    /// Creates a <see cref="StringArtifactResourceInfo"/> resource.
+    /// </summary>
+    /// <param name="artifactData">Source <see cref="ArtifactData"/> instance.</param>
+    /// <param name="resource">Resource.</param>
+    /// <param name="file">Filename.</param>
+    /// <param name="path">Path.</param>
+    /// <param name="contentType">MIME content type.</param>
+    /// <param name="updated">Updated date.</param>
+    /// <param name="version">Version.</param>
+    /// <param name="checksum">Checksum.</param>
+    public static ArtifactDataResource String(this ArtifactData artifactData, string resource, string file, string path = "", string? contentType = "text/plain", DateTimeOffset? updated = null, string? version = null, Checksum? checksum = null)
+        => new(artifactData, new StringArtifactResourceInfo(resource, new ArtifactResourceKey(artifactData.Info.Key, file, path), contentType, updated, version, checksum));
+}

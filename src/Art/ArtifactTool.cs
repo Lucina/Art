@@ -129,7 +129,8 @@ public abstract partial class ArtifactTool : IDisposable
         RegistrationManager = config.RegistrationManager;
         DataManager = config.DataManager;
         Profile = profile ?? ArtifactToolProfile.Create(GetType(), "default");
-        GetFlag(OptDebugMode, ref DebugMode);
+        if (Profile.Options != null)
+            ConfigureOptions();
     }
 
     /// <summary>
@@ -141,6 +142,17 @@ public abstract partial class ArtifactTool : IDisposable
     public virtual Task ConfigureAsync(CancellationToken cancellationToken = default)
     {
         return Task.CompletedTask;
+    }
+
+    /// <summary>
+    /// Configures options.
+    /// </summary>
+    /// <remarks>
+    /// This method is called by <see cref="InitializeAsync"/> when <see cref="Profile"/>.<see cref="ArtifactToolProfile.Options"/> is not null.
+    /// </remarks>
+    public virtual void ConfigureOptions()
+    {
+        GetFlag(OptDebugMode, ref DebugMode);
     }
 
     #endregion

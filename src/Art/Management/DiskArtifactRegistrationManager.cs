@@ -48,7 +48,7 @@ public class DiskArtifactRegistrationManager : ArtifactRegistrationManager
         foreach (string toolDir in Directory.EnumerateDirectories(dir))
         foreach (string groupDir in Directory.EnumerateDirectories(toolDir))
         foreach (string file in Directory.EnumerateFiles(groupDir).Where(v => v.EndsWith(ArtifactFileNameEnd)))
-            if (await ArtExtensions.LoadFromFileAsync<ArtifactInfo>(file, cancellationToken).ConfigureAwait(false) is { } v)
+            if (await ArtUtils.LoadFromFileAsync<ArtifactInfo>(file, cancellationToken).ConfigureAwait(false) is { } v)
                 results.Add(v);
         return results;
     }
@@ -63,7 +63,7 @@ public class DiskArtifactRegistrationManager : ArtifactRegistrationManager
         foreach (string toolDir in Directory.EnumerateDirectories(dir))
         foreach (string groupDir in Directory.EnumerateDirectories(toolDir))
         foreach (string file in Directory.EnumerateFiles(groupDir).Where(v => v.EndsWith(ArtifactFileNameEnd)))
-            if (await ArtExtensions.LoadFromFileAsync<ArtifactInfo>(file, cancellationToken).ConfigureAwait(false) is { } v && compiled(v))
+            if (await ArtUtils.LoadFromFileAsync<ArtifactInfo>(file, cancellationToken).ConfigureAwait(false) is { } v && compiled(v))
                 results.Add(v);
         return results;
     }
@@ -76,7 +76,7 @@ public class DiskArtifactRegistrationManager : ArtifactRegistrationManager
         if (!Directory.Exists(toolDir)) return results;
         foreach (string groupDir in Directory.EnumerateDirectories(toolDir))
         foreach (string file in Directory.EnumerateFiles(groupDir).Where(v => v.EndsWith(ArtifactFileNameEnd)))
-            if (await ArtExtensions.LoadFromFileAsync<ArtifactInfo>(file, cancellationToken).ConfigureAwait(false) is { } v)
+            if (await ArtUtils.LoadFromFileAsync<ArtifactInfo>(file, cancellationToken).ConfigureAwait(false) is { } v)
                 results.Add(v);
         return results;
     }
@@ -88,7 +88,7 @@ public class DiskArtifactRegistrationManager : ArtifactRegistrationManager
         List<ArtifactInfo> results = new();
         if (!Directory.Exists(groupDir)) return results;
         foreach (string file in Directory.EnumerateFiles(groupDir).Where(v => v.EndsWith(ArtifactFileNameEnd)))
-            if (await ArtExtensions.LoadFromFileAsync<ArtifactInfo>(file, cancellationToken).ConfigureAwait(false) is { } v)
+            if (await ArtUtils.LoadFromFileAsync<ArtifactInfo>(file, cancellationToken).ConfigureAwait(false) is { } v)
                 results.Add(v);
         return results;
     }
@@ -112,7 +112,7 @@ public class DiskArtifactRegistrationManager : ArtifactRegistrationManager
         while (dQueue.TryDequeue(out string? dd))
         {
             foreach (string f in Directory.EnumerateFiles(dd).Where(v => v.EndsWith(ResourceFileNameEnd)))
-                if (await ArtExtensions.LoadFromFileAsync<ArtifactResourceInfo>(f, cancellationToken).ConfigureAwait(false) is { } v)
+                if (await ArtUtils.LoadFromFileAsync<ArtifactResourceInfo>(f, cancellationToken).ConfigureAwait(false) is { } v)
                     results.Add(v);
             foreach (string d in Directory.EnumerateDirectories(dd))
                 dQueue.Enqueue(d);
@@ -125,7 +125,7 @@ public class DiskArtifactRegistrationManager : ArtifactRegistrationManager
     {
         string dir = GetArtifactInfoDir(key);
         string path = GetArtifactInfoFilePath(dir, key);
-        return File.Exists(path) ? await ArtExtensions.LoadFromFileAsync<ArtifactInfo>(path, cancellationToken).ConfigureAwait(false) : null;
+        return File.Exists(path) ? await ArtUtils.LoadFromFileAsync<ArtifactInfo>(path, cancellationToken).ConfigureAwait(false) : null;
     }
 
     /// <inheritdoc/>
@@ -133,7 +133,7 @@ public class DiskArtifactRegistrationManager : ArtifactRegistrationManager
     {
         string dir = GetResourceInfoDir(key);
         string path = GetResourceInfoFilePath(dir, key);
-        return File.Exists(path) ? await ArtExtensions.LoadFromFileAsync<ArtifactResourceInfo>(path, cancellationToken).ConfigureAwait(false) : null;
+        return File.Exists(path) ? await ArtUtils.LoadFromFileAsync<ArtifactResourceInfo>(path, cancellationToken).ConfigureAwait(false) : null;
     }
 
     /// <inheritdoc/>

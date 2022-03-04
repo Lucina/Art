@@ -1,4 +1,5 @@
 ﻿using System.Net;
+using System.Net.WebSockets;
 
 namespace Art.Web;
 
@@ -98,7 +99,7 @@ public abstract partial class HttpArtifactTool : ArtifactTool
 
     #endregion
 
-    #region Http client configuraiton
+    #region Http client configuration
 
     /// <summary>
     /// Creates a cookie container (by default using the <see cref="OptCookieFile"/> configuration option).
@@ -125,6 +126,17 @@ public abstract partial class HttpArtifactTool : ArtifactTool
     /// <param name="httpMessageHandler">HTTP message handler.</param>
     /// <returns>Configured HTTP client.</returns>
     public virtual HttpClient CreateHttpClient(HttpMessageHandler httpMessageHandler) => new(httpMessageHandler);
+
+    /// <summary>
+    /// Creates a <see cref="ClientWebSocket"/> using this instance's <see cref="CookieContainer"/>.
+    /// </summary>
+    /// <returns>New instance of <see cref="ClientWebSocket"/>.</returns>
+    public ClientWebSocket CreateClientWebSocket()
+    {
+        ClientWebSocket cws = new();
+        cws.Options.Cookies = CookieContainer;
+        return cws;
+    }
 
     #endregion
 

@@ -1,9 +1,6 @@
 ﻿using System.Collections;
 using System.Diagnostics.CodeAnalysis;
-using System.Text.Json;
-using Art.Crypto;
 using Art.Resources;
-using Art.Web;
 
 namespace Art;
 
@@ -17,7 +14,10 @@ public class ArtifactData : IReadOnlyDictionary<ArtifactResourceKey, ArtifactRes
     /// </summary>
     public readonly ArtifactInfo Info;
 
-    private readonly ArtifactTool? _tool;
+    /// <summary>
+    /// Tool associated with this instance.
+    /// </summary>
+    public readonly ArtifactTool? Tool;
 
     /// <summary>
     /// Resources for this artifact.
@@ -78,7 +78,7 @@ public class ArtifactData : IReadOnlyDictionary<ArtifactResourceKey, ArtifactRes
     public ArtifactData(ArtifactTool artifactTool, string tool, string group, string id, string? name = null, DateTimeOffset? date = null, DateTimeOffset? updateDate = null, bool full = true)
     {
         Info = new ArtifactInfo(new ArtifactKey(tool, group, id), name, date, updateDate, full);
-        _tool = artifactTool;
+        Tool = artifactTool;
     }
 
     /// <summary>
@@ -93,7 +93,7 @@ public class ArtifactData : IReadOnlyDictionary<ArtifactResourceKey, ArtifactRes
     public ArtifactData(ArtifactTool artifactTool, ArtifactKey key, string? name = null, DateTimeOffset? date = null, DateTimeOffset? updateDate = null, bool full = true)
     {
         Info = new ArtifactInfo(key, name, date, updateDate, full);
-        _tool = artifactTool;
+        Tool = artifactTool;
     }
 
     /// <summary>
@@ -135,281 +135,14 @@ public class ArtifactData : IReadOnlyDictionary<ArtifactResourceKey, ArtifactRes
     }
 
     /// <summary>
-    /// Creates a <see cref="StreamArtifactResourceInfo"/> resource.
+    /// Attempts to cast <see cref="Tool"/> to a <see cref="ArtifactTool"/> of the specified type.
     /// </summary>
-    /// <param name="resource">Resource.</param>
-    /// <param name="key">Resource key.</param>
-    /// <param name="contentType">MIME content type.</param>
-    /// <param name="updated">Updated date.</param>
-    /// <param name="version">Version.</param>
-    /// <param name="checksum">Checksum.</param>
-    public ArtifactDataResource Stream(Stream resource, ArtifactResourceKey key, string? contentType = "application/octet-stream", DateTimeOffset? updated = null, string? version = null, Checksum? checksum = null)
-        => new(this, new StreamArtifactResourceInfo(resource, key, contentType, updated, version, checksum));
-
-    /// <summary>
-    /// Creates a <see cref="StreamArtifactResourceInfo"/> resource.
-    /// </summary>
-    /// <param name="resource">Resource.</param>
-    /// <param name="file">Filename.</param>
-    /// <param name="path">Path.</param>
-    /// <param name="contentType">MIME content type.</param>
-    /// <param name="updated">Updated date.</param>
-    /// <param name="version">Version.</param>
-    /// <param name="checksum">Checksum.</param>
-    public ArtifactDataResource Stream(Stream resource, string file, string path = "", string? contentType = "application/octet-stream", DateTimeOffset? updated = null, string? version = null, Checksum? checksum = null)
-        => new(this, new StreamArtifactResourceInfo(resource, new ArtifactResourceKey(Info.Key, file, path), contentType, updated, version, checksum));
-
-    /// <summary>
-    /// Creates a <see cref="StringArtifactResourceInfo"/> resource.
-    /// </summary>
-    /// <param name="resource">Resource.</param>
-    /// <param name="key">Resource key.</param>
-    /// <param name="contentType">MIME content type.</param>
-    /// <param name="updated">Updated date.</param>
-    /// <param name="version">Version.</param>
-    /// <param name="checksum">Checksum.</param>
-    public ArtifactDataResource String(string resource, ArtifactResourceKey key, string? contentType = "text/plain", DateTimeOffset? updated = null, string? version = null, Checksum? checksum = null)
-        => new(this, new StringArtifactResourceInfo(resource, key, contentType, updated, version, checksum));
-
-    /// <summary>
-    /// Creates a <see cref="StringArtifactResourceInfo"/> resource.
-    /// </summary>
-    /// <param name="resource">Resource.</param>
-    /// <param name="file">Filename.</param>
-    /// <param name="path">Path.</param>
-    /// <param name="contentType">MIME content type.</param>
-    /// <param name="updated">Updated date.</param>
-    /// <param name="version">Version.</param>
-    /// <param name="checksum">Checksum.</param>
-    public ArtifactDataResource String(string resource, string file, string path = "", string? contentType = "text/plain", DateTimeOffset? updated = null, string? version = null, Checksum? checksum = null)
-        => new(this, new StringArtifactResourceInfo(resource, new ArtifactResourceKey(Info.Key, file, path), contentType, updated, version, checksum));
-
-    /// <summary>
-    /// Creates a <see cref="JsonArtifactResourceInfo{T}"/> resource.
-    /// </summary>
-    /// <param name="resource">Resource.</param>
-    /// <param name="serializerOptions">Serializer options.</param>
-    /// <param name="key">Resource key.</param>
-    /// <param name="contentType">MIME content type.</param>
-    /// <param name="updated">Updated date.</param>
-    /// <param name="version">Version.</param>
-    /// <param name="checksum">Checksum.</param>
-    public ArtifactDataResource Json<T>(T resource, JsonSerializerOptions? serializerOptions, ArtifactResourceKey key, string? contentType = "application/json", DateTimeOffset? updated = null, string? version = null, Checksum? checksum = null)
-        => new(this, new JsonArtifactResourceInfo<T>(resource, serializerOptions, key, contentType, updated, version, checksum));
-
-    /// <summary>
-    /// Creates a <see cref="JsonArtifactResourceInfo{T}"/> resource.
-    /// </summary>
-    /// <param name="resource">Resource.</param>
-    /// <param name="serializerOptions">Serializer options.</param>
-    /// <param name="file">Filename.</param>
-    /// <param name="path">Path.</param>
-    /// <param name="contentType">MIME content type.</param>
-    /// <param name="updated">Updated date.</param>
-    /// <param name="version">Version.</param>
-    /// <param name="checksum">Checksum.</param>
-    public ArtifactDataResource Json<T>(T resource, JsonSerializerOptions? serializerOptions, string file, string path = "", string? contentType = "application/json", DateTimeOffset? updated = null, string? version = null, Checksum? checksum = null)
-        => new(this, new JsonArtifactResourceInfo<T>(resource, serializerOptions, new ArtifactResourceKey(Info.Key, file, path), contentType, updated, version, checksum));
-
-    /// <summary>
-    /// Creates a <see cref="JsonArtifactResourceInfo{T}"/> resource.
-    /// </summary>
-    /// <param name="resource">Resource.</param>
-    /// <param name="key">Resource key.</param>
-    /// <param name="contentType">MIME content type.</param>
-    /// <param name="updated">Updated date.</param>
-    /// <param name="version">Version.</param>
-    /// <param name="checksum">Checksum.</param>
-    public ArtifactDataResource Json<T>(T resource, ArtifactResourceKey key, string? contentType = "application/json", DateTimeOffset? updated = null, string? version = null, Checksum? checksum = null)
-        => new(this, new JsonArtifactResourceInfo<T>(resource, _tool?.JsonOptions, key, contentType, updated, version, checksum));
-
-    /// <summary>
-    /// Creates a <see cref="JsonArtifactResourceInfo{T}"/> resource.
-    /// </summary>
-    /// <param name="resource">Resource.</param>
-    /// <param name="file">Filename.</param>
-    /// <param name="path">Path.</param>
-    /// <param name="contentType">MIME content type.</param>
-    /// <param name="updated">Updated date.</param>
-    /// <param name="version">Version.</param>
-    /// <param name="checksum">Checksum.</param>
-    public ArtifactDataResource Json<T>(T resource, string file, string path = "", string? contentType = "application/json", DateTimeOffset? updated = null, string? version = null, Checksum? checksum = null)
-        => new(this, new JsonArtifactResourceInfo<T>(resource, _tool?.JsonOptions, new ArtifactResourceKey(Info.Key, file, path), contentType, updated, version, checksum));
-
-    /// <summary>
-    /// Creates a <see cref="UriArtifactResourceInfo"/> resource.
-    /// </summary>
-    /// <param name="artifactTool">Artifact tool.</param>
-    /// <param name="uri">URI.</param>
-    /// <param name="key">Resource key.</param>
-    /// <param name="contentType">MIME content type.</param>
-    /// <param name="updated">Updated date.</param>
-    /// <param name="version">Version.</param>
-    /// <param name="checksum">Checksum.</param>
-    /// <param name="origin">Request origin.</param>
-    /// <param name="referrer">Request referrer.</param>
-    public ArtifactDataResource Uri(HttpArtifactTool artifactTool, Uri uri, ArtifactResourceKey key, string? contentType = "application/octet-stream", DateTimeOffset? updated = null, string? version = null, Checksum? checksum = null, string? origin = null, string? referrer = null)
-        => new(this, new UriArtifactResourceInfo(artifactTool, uri, origin, referrer, key, contentType, updated, version, checksum));
-
-    /// <summary>
-    /// Creates a <see cref="UriArtifactResourceInfo"/> resource.
-    /// </summary>
-    /// <param name="artifactTool">Artifact tool.</param>
-    /// <param name="uri">URI.</param>
-    /// <param name="file">Filename.</param>
-    /// <param name="path">Path.</param>
-    /// <param name="contentType">MIME content type.</param>
-    /// <param name="updated">Updated date.</param>
-    /// <param name="version">Version.</param>
-    /// <param name="checksum">Checksum.</param>
-    /// <param name="origin">Request origin.</param>
-    /// <param name="referrer">Request referrer.</param>
-    public ArtifactDataResource Uri(HttpArtifactTool artifactTool, Uri uri, string file, string path = "", string? contentType = "application/octet-stream", DateTimeOffset? updated = null, string? version = null, Checksum? checksum = null, string? origin = null, string? referrer = null)
-        => new(this, new UriArtifactResourceInfo(artifactTool, uri, origin, referrer, new ArtifactResourceKey(Info.Key, file, path), contentType, updated, version, checksum));
-
-    /// <summary>
-    /// Creates a <see cref="UriArtifactResourceInfo"/> resource.
-    /// </summary>
-    /// <param name="uri">URI.</param>
-    /// <param name="key">Resource key.</param>
-    /// <param name="contentType">MIME content type.</param>
-    /// <param name="updated">Updated date.</param>
-    /// <param name="version">Version.</param>
-    /// <param name="checksum">Checksum.</param>
-    /// <param name="origin">Request origin.</param>
-    /// <param name="referrer">Request referrer.</param>
-    public ArtifactDataResource Uri(Uri uri, ArtifactResourceKey key, string? contentType = "application/octet-stream", DateTimeOffset? updated = null, string? version = null, Checksum? checksum = null, string? origin = null, string? referrer = null)
-        => Uri(GetArtifactTool<HttpArtifactTool>(), uri, key, contentType, updated, version, checksum, origin, referrer);
-
-    /// <summary>
-    /// Creates a <see cref="UriArtifactResourceInfo"/> resource.
-    /// </summary>
-    /// <param name="uri">URI.</param>
-    /// <param name="file">Filename.</param>
-    /// <param name="path">Path.</param>
-    /// <param name="contentType">MIME content type.</param>
-    /// <param name="updated">Updated date.</param>
-    /// <param name="version">Version.</param>
-    /// <param name="checksum">Checksum.</param>
-    /// <param name="origin">Request origin.</param>
-    /// <param name="referrer">Request referrer.</param>
-    public ArtifactDataResource Uri(Uri uri, string file, string path = "", string? contentType = "application/octet-stream", DateTimeOffset? updated = null, string? version = null, Checksum? checksum = null, string? origin = null, string? referrer = null)
-        => Uri(GetArtifactTool<HttpArtifactTool>(), uri, file, path, contentType, updated, version, checksum, origin, referrer);
-
-    /// <summary>
-    /// Creates a <see cref="UriArtifactResourceInfo"/> resource.
-    /// </summary>
-    /// <param name="artifactTool">Artifact tool.</param>
-    /// <param name="uri">URI.</param>
-    /// <param name="key">Resource key.</param>
-    /// <param name="contentType">MIME content type.</param>
-    /// <param name="updated">Updated date.</param>
-    /// <param name="version">Version.</param>
-    /// <param name="checksum">Checksum.</param>
-    /// <param name="origin">Request origin.</param>
-    /// <param name="referrer">Request referrer.</param>
-    public ArtifactDataResource Uri(HttpArtifactTool artifactTool, string uri, ArtifactResourceKey key, string? contentType = "application/octet-stream", DateTimeOffset? updated = null, string? version = null, Checksum? checksum = null, string? origin = null, string? referrer = null)
-        => new(this, new UriArtifactResourceInfo(artifactTool, new Uri(uri), origin, referrer, key, contentType, updated, version, checksum));
-
-    /// <summary>
-    /// Creates a <see cref="UriArtifactResourceInfo"/> resource.
-    /// </summary>
-    /// <param name="artifactTool">Artifact tool.</param>
-    /// <param name="uri">URI.</param>
-    /// <param name="file">Filename.</param>
-    /// <param name="path">Path.</param>
-    /// <param name="contentType">MIME content type.</param>
-    /// <param name="updated">Updated date.</param>
-    /// <param name="version">Version.</param>
-    /// <param name="checksum">Checksum.</param>
-    /// <param name="origin">Request origin.</param>
-    /// <param name="referrer">Request referrer.</param>
-    public ArtifactDataResource Uri(HttpArtifactTool artifactTool, string uri, string file, string path = "", string? contentType = "application/octet-stream", DateTimeOffset? updated = null, string? version = null, Checksum? checksum = null, string? origin = null, string? referrer = null)
-        => new(this, new UriArtifactResourceInfo(artifactTool, new Uri(uri), origin, referrer, new ArtifactResourceKey(Info.Key, file, path), contentType, updated, version, checksum));
-
-    /// <summary>
-    /// Creates a <see cref="UriArtifactResourceInfo"/> resource.
-    /// </summary>
-    /// <param name="uri">URI.</param>
-    /// <param name="key">Resource key.</param>
-    /// <param name="contentType">MIME content type.</param>
-    /// <param name="updated">Updated date.</param>
-    /// <param name="version">Version.</param>
-    /// <param name="checksum">Checksum.</param>
-    /// <param name="origin">Request origin.</param>
-    /// <param name="referrer">Request referrer.</param>
-    public ArtifactDataResource Uri(string uri, ArtifactResourceKey key, string? contentType = "application/octet-stream", DateTimeOffset? updated = null, string? version = null, Checksum? checksum = null, string? origin = null, string? referrer = null)
-        => Uri(GetArtifactTool<HttpArtifactTool>(), uri, key, contentType, updated, version, checksum, origin, referrer);
-
-    /// <summary>
-    /// Creates a <see cref="UriArtifactResourceInfo"/> resource.
-    /// </summary>
-    /// <param name="uri">URI.</param>
-    /// <param name="file">Filename.</param>
-    /// <param name="path">Path.</param>
-    /// <param name="contentType">MIME content type.</param>
-    /// <param name="updated">Updated date.</param>
-    /// <param name="version">Version.</param>
-    /// <param name="checksum">Checksum.</param>
-    /// <param name="origin">Request origin.</param>
-    /// <param name="referrer">Request referrer.</param>
-    public ArtifactDataResource Uri(string uri, string file, string path = "", string? contentType = "application/octet-stream", DateTimeOffset? updated = null, string? version = null, Checksum? checksum = null, string? origin = null, string? referrer = null)
-        => Uri(GetArtifactTool<HttpArtifactTool>(), uri, file, path, contentType, updated, version, checksum, origin, referrer);
-
-    /// <summary>
-    /// Creates a <see cref="HttpRequestMessageArtifactResourceInfo"/> resource.
-    /// </summary>
-    /// <param name="artifactTool">Artifact tool.</param>
-    /// <param name="request">Request.</param>
-    /// <param name="key">Resource key.</param>
-    /// <param name="contentType">MIME content type.</param>
-    /// <param name="updated">Updated date.</param>
-    /// <param name="version">Version.</param>
-    /// <param name="checksum">Checksum.</param>
-    public ArtifactDataResource HttpRequestMessage(HttpArtifactTool artifactTool, HttpRequestMessage request, ArtifactResourceKey key, string? contentType = "application/octet-stream", DateTimeOffset? updated = null, string? version = null, Checksum? checksum = null)
-        => new(this, new HttpRequestMessageArtifactResourceInfo(artifactTool, request, key, contentType, updated, version, checksum));
-
-    /// <summary>
-    /// Creates a <see cref="HttpRequestMessageArtifactResourceInfo"/> resource.
-    /// </summary>
-    /// <param name="artifactTool">Artifact tool.</param>
-    /// <param name="request">Request.</param>
-    /// <param name="file">Filename.</param>
-    /// <param name="path">Path.</param>
-    /// <param name="contentType">MIME content type.</param>
-    /// <param name="updated">Updated date.</param>
-    /// <param name="version">Version.</param>
-    /// <param name="checksum">Checksum.</param>
-    public ArtifactDataResource HttpRequestMessage(HttpArtifactTool artifactTool, HttpRequestMessage request, string file, string path = "", string? contentType = "application/octet-stream", DateTimeOffset? updated = null, string? version = null, Checksum? checksum = null)
-        => new(this, new HttpRequestMessageArtifactResourceInfo(artifactTool, request, new ArtifactResourceKey(Info.Key, file, path), contentType, updated, version, checksum));
-
-    /// <summary>
-    /// Creates a <see cref="HttpRequestMessageArtifactResourceInfo"/> resource.
-    /// </summary>
-    /// <param name="request">Request.</param>
-    /// <param name="key">Resource key.</param>
-    /// <param name="contentType">MIME content type.</param>
-    /// <param name="updated">Updated date.</param>
-    /// <param name="version">Version.</param>
-    /// <param name="checksum">Checksum.</param>
-    public ArtifactDataResource HttpRequestMessage(HttpRequestMessage request, ArtifactResourceKey key, string? contentType = "application/octet-stream", DateTimeOffset? updated = null, string? version = null, Checksum? checksum = null)
-        => HttpRequestMessage(GetArtifactTool<HttpArtifactTool>(), request, key, contentType, updated, version, checksum);
-
-    /// <summary>
-    /// Creates a <see cref="HttpRequestMessageArtifactResourceInfo"/> resource.
-    /// </summary>
-    /// <param name="request">Request.</param>
-    /// <param name="file">Filename.</param>
-    /// <param name="path">Path.</param>
-    /// <param name="contentType">MIME content type.</param>
-    /// <param name="updated">Updated date.</param>
-    /// <param name="version">Version.</param>
-    /// <param name="checksum">Checksum.</param>
-    public ArtifactDataResource HttpRequestMessage(HttpRequestMessage request, string file, string path = "", string? contentType = "application/octet-stream", DateTimeOffset? updated = null, string? version = null, Checksum? checksum = null)
-        => HttpRequestMessage(GetArtifactTool<HttpArtifactTool>(), request, file, path, contentType, updated, version, checksum);
-
-    private T GetArtifactTool<T>() where T : ArtifactTool
-        => (_tool
+    /// <typeparam name="T">Tool type.</typeparam>
+    /// <returns><see cref="Tool"/> with a type cast.</returns>
+    /// <exception cref="InvalidOperationException">Thrown when <see cref="Tool"/> is not specified.</exception>
+    /// <exception cref="InvalidCastException">Thrown for invalid type.</exception>
+    public T GetArtifactTool<T>() where T : ArtifactTool
+        => (Tool
             ?? throw new InvalidOperationException("Data object was not initialized with an artifact tool")) as T
            ?? throw new InvalidCastException("Tool type for this data object is not compatible with needed type");
 
