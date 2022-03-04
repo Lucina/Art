@@ -49,6 +49,12 @@ public class ArtifactResourceInfoModel
     public virtual DateTimeOffset? Updated { get; set; }
 
     /// <summary>
+    /// Retrieval date.
+    /// </summary>
+    public virtual DateTimeOffset? Retrieved { get; set; }
+    // TODO core support on ARI for creation, other logics
+
+    /// <summary>
     /// Version.
     /// </summary>
     public virtual string? Version { get; set; }

@@ -36,6 +36,12 @@ public class ArtifactInfoModel
     public virtual DateTimeOffset? UpdateDate { get; set; }
 
     /// <summary>
+    /// Artifact retrieval date.
+    /// </summary>
+    public virtual DateTimeOffset? RetrievalDate { get; set; }
+    // TODO core support on AI for creation, other logics
+
+    /// <summary>
     /// True if this is a full artifact.
     /// </summary>
     public virtual bool Full { get; set; }
