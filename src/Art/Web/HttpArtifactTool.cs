@@ -99,7 +99,7 @@ public abstract partial class HttpArtifactTool : ArtifactTool
 
     #endregion
 
-    #region Http client configuraiton
+    #region Http client configuration
 
     /// <summary>
     /// Creates a cookie container (by default using the <see cref="OptCookieFile"/> configuration option).

@@ -6,9 +6,9 @@
 public class NullLogHandler : IToolLogHandler
 {
     /// <summary>
-    /// Default instance.
+    /// Shared instance.
     /// </summary>
-    public static readonly NullLogHandler Default = new();
+    public static readonly NullLogHandler Instance = new();
 
     /// <inheritdoc/>
     public void Log(string tool, string group, string? title, string? body, LogLevel level)
