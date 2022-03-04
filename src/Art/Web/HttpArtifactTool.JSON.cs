@@ -43,6 +43,7 @@ public partial class HttpArtifactTool
     /// <returns>Task returning deserialized data.</returns>
     /// <exception cref="HttpRequestException">Thrown for issues with request excluding non-success server responses.</exception>
     /// <exception cref="ArtHttpResponseMessageException">Thrown on HTTP response indicating non-successful response.</exception>
+    /// <exception cref="NullJsonDataException">Thrown for null JSON value.</exception>
     /// <remarks>
     /// This overload uses <see cref="ArtifactTool.JsonOptions"/> member automatically.
     /// </remarks>
@@ -86,6 +87,7 @@ public partial class HttpArtifactTool
     /// <returns>Task returning deserialized data.</returns>
     /// <exception cref="HttpRequestException">Thrown for issues with request excluding non-success server responses.</exception>
     /// <exception cref="ArtHttpResponseMessageException">Thrown on HTTP response indicating non-successful response.</exception>
+    /// <exception cref="NullJsonDataException">Thrown for null JSON value.</exception>
     public async Task<T> GetDeserializedRequiredJsonAsync<T>(string requestUri, JsonSerializerOptions? jsonSerializerOptions, string? origin = null, string? referrer = null, CancellationToken cancellationToken = default)
     {
         return await GetDeserializedJsonAsync<T>(requestUri, jsonSerializerOptions, origin, referrer, cancellationToken).ConfigureAwait(false) ?? throw new NullJsonDataException();
@@ -127,6 +129,7 @@ public partial class HttpArtifactTool
     /// <returns>Task returning deserialized data.</returns>
     /// <exception cref="HttpRequestException">Thrown for issues with request excluding non-success server responses.</exception>
     /// <exception cref="ArtHttpResponseMessageException">Thrown on HTTP response indicating non-successful response.</exception>
+    /// <exception cref="NullJsonDataException">Thrown for null JSON value.</exception>
     /// <remarks>
     /// This overload uses <see cref="ArtifactTool.JsonOptions"/> member automatically.
     /// </remarks>
@@ -170,6 +173,7 @@ public partial class HttpArtifactTool
     /// <returns>Task returning deserialized data.</returns>
     /// <exception cref="HttpRequestException">Thrown for issues with request excluding non-success server responses.</exception>
     /// <exception cref="ArtHttpResponseMessageException">Thrown on HTTP response indicating non-successful response.</exception>
+    /// <exception cref="NullJsonDataException">Thrown for null JSON value.</exception>
     public async Task<T> GetDeserializedRequiredJsonAsync<T>(Uri requestUri, JsonSerializerOptions? jsonSerializerOptions, string? origin = null, string? referrer = null, CancellationToken cancellationToken = default)
     {
         return await GetDeserializedJsonAsync<T>(requestUri, jsonSerializerOptions, origin, referrer, cancellationToken).ConfigureAwait(false) ?? throw new NullJsonDataException();
@@ -204,6 +208,7 @@ public partial class HttpArtifactTool
     /// <returns>Task returning deserialized data.</returns>
     /// <exception cref="HttpRequestException">Thrown for issues with request excluding non-success server responses.</exception>
     /// <exception cref="ArtHttpResponseMessageException">Thrown on HTTP response indicating non-successful response.</exception>
+    /// <exception cref="NullJsonDataException">Thrown for null JSON value.</exception>
     /// <remarks>
     /// This overload uses <see cref="ArtifactTool.JsonOptions"/> member automatically.
     /// </remarks>
@@ -240,6 +245,7 @@ public partial class HttpArtifactTool
     /// <returns>Task returning deserialized data.</returns>
     /// <exception cref="HttpRequestException">Thrown for issues with request excluding non-success server responses.</exception>
     /// <exception cref="ArtHttpResponseMessageException">Thrown on HTTP response indicating non-successful response.</exception>
+    /// <exception cref="NullJsonDataException">Thrown for null JSON value.</exception>
     public async Task<T> RetrieveDeserializedRequiredJsonAsync<T>(HttpRequestMessage requestMessage, JsonSerializerOptions? jsonSerializerOptions, CancellationToken cancellationToken = default)
     {
         return await RetrieveDeserializedJsonAsync<T>(requestMessage, jsonSerializerOptions, cancellationToken).ConfigureAwait(false) ?? throw new NullJsonDataException();
@@ -269,6 +275,7 @@ public partial class HttpArtifactTool
     /// <returns>Task returning value.</returns>
     /// <exception cref="HttpRequestException">Thrown for issues with request excluding non-success server responses.</exception>
     /// <exception cref="ArtHttpResponseMessageException">Thrown on HTTP response indicating non-successful response.</exception>
+    /// <exception cref="NullJsonDataException">Thrown for null JSON value.</exception>
     /// <remarks>
     /// This overload uses <see cref="ArtifactTool.JsonOptions"/> member automatically.
     /// </remarks>
@@ -305,6 +312,7 @@ public partial class HttpArtifactTool
     /// <returns>Task returning value.</returns>
     /// <exception cref="HttpRequestException">Thrown for issues with request excluding non-success server responses.</exception>
     /// <exception cref="ArtHttpResponseMessageException">Thrown on HTTP response indicating non-successful response.</exception>
+    /// <exception cref="NullJsonDataException">Thrown for null JSON value.</exception>
     public async Task<T> DeserializeRequiredJsonWithDebugAsync<T>(HttpResponseMessage response, JsonSerializerOptions? jsonSerializerOptions, CancellationToken cancellationToken = default)
     {
         ArtHttpResponseMessageException.EnsureSuccessStatusCode(response);
