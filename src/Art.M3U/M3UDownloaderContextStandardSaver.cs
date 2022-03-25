@@ -31,6 +31,11 @@ public class M3UDownloaderContextStandardSaver : M3UDownloaderContextSaver
                 Context.Tool.LogInformation("Reading main...");
                 HashSet<string> entries = new();
                 M3UFile m3 = await Context.GetAsync(cancellationToken);
+                if (Context.StreamInfo.EncryptionInfo is { Encrypted: true } ei && m3.EncryptionInfo is { Encrypted: true } ei2 && ei.Method == ei2.Method)
+                {
+                    ei2.Key ??= ei.Key; // assume key kept if it was supplied in the first place
+                    ei2.Iv ??= ei.Key; // assume IV kept if it was supplied in the first place
+                }
                 entries.UnionWith(m3.DataLines);
                 entries.ExceptWith(hs);
                 Context.Tool.LogInformation($"{entries.Count} new segments...");
