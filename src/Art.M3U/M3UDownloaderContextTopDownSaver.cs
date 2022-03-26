@@ -67,6 +67,8 @@ public class M3UDownloaderContextTopDownSaver : M3UDownloaderContextSaver
                 M3UFile m3 = await Context.GetAsync(cancellationToken);
                 string str = m3.DataLines.First();
                 Uri origUri = new(Context.MainUri, str);
+                int idx = str.IndexOf('?');
+                if (idx >= 0) str = str[..idx];
                 Uri uri = new UriBuilder(new Uri(Context.MainUri, _nameTransform(str, top))) { Query = origUri.Query }.Uri;
                 Context.Tool.LogInformation($"Downloading segment {uri.Segments[^1]}...");
                 try
