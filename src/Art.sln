@@ -17,6 +17,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Art.M3U", "Art.M3U\Art.M3U.
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Art.EF.Sqlite.Tests", "Art.EF.Sqlite.Tests\Art.EF.Sqlite.Tests.csproj", "{141F4BFD-32C0-41DE-AD25-EF70AF18FC19}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Art.EF.Tests", "Art.EF.Tests\Art.EF.Tests.csproj", "{7EA2B7D4-1B9A-4C09-B24D-23B42F218448}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -54,5 +56,9 @@ Global
 		{141F4BFD-32C0-41DE-AD25-EF70AF18FC19}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{141F4BFD-32C0-41DE-AD25-EF70AF18FC19}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{141F4BFD-32C0-41DE-AD25-EF70AF18FC19}.Release|Any CPU.Build.0 = Release|Any CPU
+		{7EA2B7D4-1B9A-4C09-B24D-23B42F218448}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{7EA2B7D4-1B9A-4C09-B24D-23B42F218448}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{7EA2B7D4-1B9A-4C09-B24D-23B42F218448}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{7EA2B7D4-1B9A-4C09-B24D-23B42F218448}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal

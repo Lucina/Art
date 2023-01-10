@@ -7,7 +7,7 @@ namespace Art.EF;
 /// <summary>
 /// Represents an EF artifact registration manager.
 /// </summary>
-public class EFArtifactRegistrationManager : ArtifactRegistrationManager, IDisposable
+public class EFArtifactRegistrationManager : ArtifactRegistrationManager, IDisposable, IAsyncDisposable
 {
     private bool _disposed;
 
@@ -117,9 +117,20 @@ public class EFArtifactRegistrationManager : ArtifactRegistrationManager, IDispo
     public void Dispose()
     {
         if (_disposed) return;
+        _disposed = true;
         Context.Dispose();
         Context = null!;
+        GC.SuppressFinalize(this);
+    }
+
+    /// <inheritdoc />
+    public async ValueTask DisposeAsync()
+    {
+        if (_disposed) return;
         _disposed = true;
+        await Context.DisposeAsync();
+        Context = null!;
+        GC.SuppressFinalize(this);
     }
 
     private void EnsureNotDisposed()

@@ -47,7 +47,10 @@ public class ArtifactContext : DbContext
     public async ValueTask AddArtifactAsync(ArtifactInfo artifactInfo, CancellationToken cancellationToken = default)
     {
         EnsureNotDisposed();
-        _wh.WaitOne();
+        if (!_wh.WaitOne(0))
+        {
+            throw new InvalidOperationException($"Concurrent access to {nameof(ArtifactContext)} is disallowed");
+        }
         try
         {
             ((string tool, string group, string id), string? _, DateTimeOffset? date, DateTimeOffset? updateDate, bool full) = artifactInfo;
@@ -79,7 +82,10 @@ public class ArtifactContext : DbContext
     /// <returns>Task returning artifacts.</returns>
     public async Task<List<ArtifactInfo>> ListArtifactsAsync(CancellationToken cancellationToken = default)
     {
-        _wh.WaitOne();
+        if (!_wh.WaitOne(0))
+        {
+            throw new InvalidOperationException($"Concurrent access to {nameof(ArtifactContext)} is disallowed");
+        }
         try
         {
             List<ArtifactInfoModel> results = await ArtifactInfoModels.ToListAsync(cancellationToken);
@@ -99,7 +105,10 @@ public class ArtifactContext : DbContext
     /// <returns>Task returning artifacts.</returns>
     public async Task<List<ArtifactInfo>> ListArtifactsAsync(Expression<Func<ArtifactInfoModel, bool>> predicate, CancellationToken cancellationToken = default)
     {
-        _wh.WaitOne();
+        if (!_wh.WaitOne(0))
+        {
+            throw new InvalidOperationException($"Concurrent access to {nameof(ArtifactContext)} is disallowed");
+        }
         try
         {
             List<ArtifactInfoModel> results = await ArtifactInfoModels.Where(predicate).ToListAsync(cancellationToken);
@@ -119,7 +128,10 @@ public class ArtifactContext : DbContext
     /// <returns>Task returning artifacts.</returns>
     public async Task<List<ArtifactInfo>> ListArtifactsAsync(string tool, CancellationToken cancellationToken = default)
     {
-        _wh.WaitOne();
+        if (!_wh.WaitOne(0))
+        {
+            throw new InvalidOperationException($"Concurrent access to {nameof(ArtifactContext)} is disallowed");
+        }
         try
         {
             List<ArtifactInfoModel> results = await ArtifactInfoModels.Where(v => v.Tool == tool).ToListAsync(cancellationToken);
@@ -140,7 +152,10 @@ public class ArtifactContext : DbContext
     /// <returns>Task returning artifacts.</returns>
     public async Task<List<ArtifactInfo>> ListArtifactsAsync(string tool, string group, CancellationToken cancellationToken = default)
     {
-        _wh.WaitOne();
+        if (!_wh.WaitOne(0))
+        {
+            throw new InvalidOperationException($"Concurrent access to {nameof(ArtifactContext)} is disallowed");
+        }
         try
         {
             List<ArtifactInfoModel> results = await ArtifactInfoModels.Where(v => v.Tool == tool && v.Group == group).ToListAsync(cancellationToken);
@@ -161,7 +176,10 @@ public class ArtifactContext : DbContext
     public async ValueTask AddResourceAsync(ArtifactResourceInfo artifactResourceInfo, CancellationToken cancellationToken = default)
     {
         EnsureNotDisposed();
-        _wh.WaitOne();
+        if (!_wh.WaitOne(0))
+        {
+            throw new InvalidOperationException($"Concurrent access to {nameof(ArtifactContext)} is disallowed");
+        }
         try
         {
             (((string tool, string group, string id), string file, string? path), string? contentType, DateTimeOffset? updated, string? version, Checksum? checksum) = artifactResourceInfo;
@@ -198,7 +216,10 @@ public class ArtifactContext : DbContext
     /// <returns>Task returning resources.</returns>
     public async Task<List<ArtifactResourceInfo>> ListResourcesAsync(ArtifactKey key, CancellationToken cancellationToken = default)
     {
-        _wh.WaitOne();
+        if (!_wh.WaitOne(0))
+        {
+            throw new InvalidOperationException($"Concurrent access to {nameof(ArtifactContext)} is disallowed");
+        }
         (string? tool, string? group, string? id) = key;
         try
         {
@@ -220,7 +241,10 @@ public class ArtifactContext : DbContext
     public async ValueTask<ArtifactInfo?> TryGetArtifactAsync(ArtifactKey key, CancellationToken cancellationToken = default)
     {
         EnsureNotDisposed();
-        _wh.WaitOne();
+        if (!_wh.WaitOne(0))
+        {
+            throw new InvalidOperationException($"Concurrent access to {nameof(ArtifactContext)} is disallowed");
+        }
         try
         {
             (string tool, string group, string id) = key;
@@ -242,7 +266,10 @@ public class ArtifactContext : DbContext
     public async ValueTask<ArtifactResourceInfo?> TryGetResourceAsync(ArtifactResourceKey key, CancellationToken cancellationToken = default)
     {
         EnsureNotDisposed();
-        _wh.WaitOne();
+        if (!_wh.WaitOne(0))
+        {
+            throw new InvalidOperationException($"Concurrent access to {nameof(ArtifactContext)} is disallowed");
+        }
         try
         {
             ((string tool, string group, string id), string file, string? path) = key;
@@ -264,7 +291,10 @@ public class ArtifactContext : DbContext
     public async ValueTask RemoveArtifactAsync(ArtifactKey key, CancellationToken cancellationToken = default)
     {
         EnsureNotDisposed();
-        _wh.WaitOne();
+        if (!_wh.WaitOne(0))
+        {
+            throw new InvalidOperationException($"Concurrent access to {nameof(ArtifactContext)} is disallowed");
+        }
         try
         {
             (string tool, string group, string id) = key;
@@ -290,7 +320,10 @@ public class ArtifactContext : DbContext
     public async ValueTask RemoveResourceAsync(ArtifactResourceKey key, CancellationToken cancellationToken = default)
     {
         EnsureNotDisposed();
-        _wh.WaitOne();
+        if (!_wh.WaitOne(0))
+        {
+            throw new InvalidOperationException($"Concurrent access to {nameof(ArtifactContext)} is disallowed");
+        }
         try
         {
             ((string tool, string group, string id), string file, string? path) = key;
@@ -349,19 +382,23 @@ public class ArtifactContext : DbContext
     /// <inheritdoc />
     public override void Dispose()
     {
+        _wh.WaitOne();
         base.Dispose();
         if (_disposed) return;
         _disposed = true;
         _wh.Dispose();
+        GC.SuppressFinalize(this);
     }
 
     /// <inheritdoc />
     public override async ValueTask DisposeAsync()
     {
+        _wh.WaitOne();
         await base.DisposeAsync();
         if (_disposed) return;
         _disposed = true;
         _wh.Dispose();
+        GC.SuppressFinalize(this);
     }
 
     private void EnsureNotDisposed()
