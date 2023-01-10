@@ -1,11 +1,10 @@
 using System;
 using System.IO;
 using System.Threading.Tasks;
-using Art.EF.Sqlite;
 using Art.Resources;
 using NUnit.Framework;
 
-namespace Art.Tests.EF.Sqlite;
+namespace Art.EF.Sqlite.Tests;
 
 public class SqliteTests
 {
