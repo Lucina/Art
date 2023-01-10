@@ -96,7 +96,6 @@ public abstract class ArtifactRegistrationManager
     /// <returns>Task.</returns>
     public abstract ValueTask RemoveResourceAsync(ArtifactResourceKey key, CancellationToken cancellationToken = default);
 
-
     /// <summary>
     /// Lists all artifacts for the specified tool and group, where each is optional.
     /// </summary>

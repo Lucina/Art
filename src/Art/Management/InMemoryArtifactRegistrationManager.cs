@@ -8,33 +8,9 @@ namespace Art.Management;
 /// </summary>
 public class InMemoryArtifactRegistrationManager : ArtifactRegistrationManager
 {
-    /// <summary>
-    /// Artifacts that have been searched for.
-    /// </summary>
-    public IReadOnlySet<ArtifactInfo> CheckedArtifacts => _checkedArtifacts;
-
-    private readonly HashSet<ArtifactInfo> _checkedArtifacts = new();
-
-    /// <summary>
-    /// Artifact keys that have been searched for.
-    /// </summary>
-    public IReadOnlySet<ArtifactKey> CheckedIds => _checkedIds;
-
-    private readonly HashSet<ArtifactKey> _checkedIds = new();
-
-    /// <summary>
-    /// Artifacts stored in manager.
-    /// </summary>
-    public IReadOnlyDictionary<ArtifactKey, ArtifactInfo> Artifacts => _artifacts;
-
     private readonly Dictionary<ArtifactKey, ArtifactInfo> _artifacts = new();
 
-    /// <summary>
-    /// Resources stored in manager.
-    /// </summary>
-    public IReadOnlyDictionary<ArtifactResourceKey, ArtifactResourceInfo> Resources => _resources;
-
-    private readonly Dictionary<ArtifactResourceKey, ArtifactResourceInfo> _resources = new();
+    private readonly Dictionary<ArtifactKey, Dictionary<ArtifactResourceKey, ArtifactResourceInfo>> _resources = new();
 
     /// <inheritdoc />
     public override Task<List<ArtifactInfo>> ListArtifactsAsync(CancellationToken cancellationToken = new())
@@ -57,13 +33,17 @@ public class InMemoryArtifactRegistrationManager : ArtifactRegistrationManager
 
     /// <inheritdoc />
     public override Task<List<ArtifactResourceInfo>> ListResourcesAsync(ArtifactKey key, CancellationToken cancellationToken = new())
-        => Task.FromResult(_resources.Values.Where(v => v.Key.Artifact == key).ToList());
+    {
+        if (_resources.TryGetValue(key, out var dict))
+        {
+            return Task.FromResult(dict.Values.ToList());
+        }
+        return Task.FromResult(new List<ArtifactResourceInfo>());
+    }
 
     /// <inheritdoc />
     public override ValueTask AddArtifactAsync(ArtifactInfo artifactInfo, CancellationToken ct = default)
     {
-        _checkedArtifacts.Add(artifactInfo);
-        _checkedIds.Add(artifactInfo.Key);
         _artifacts[artifactInfo.Key] = artifactInfo;
         return ValueTask.CompletedTask;
     }
@@ -71,27 +51,29 @@ public class InMemoryArtifactRegistrationManager : ArtifactRegistrationManager
     /// <inheritdoc />
     public override ValueTask<ArtifactInfo?> TryGetArtifactAsync(ArtifactKey key, CancellationToken ct = default)
     {
-        _checkedIds.Add(key);
         return new ValueTask<ArtifactInfo?>(_artifacts.TryGetValue(key, out ArtifactInfo? value) ? value : null);
     }
 
     /// <inheritdoc />
     public override ValueTask AddResourceAsync(ArtifactResourceInfo artifactResourceInfo, CancellationToken ct = default)
     {
-        _resources.Add(artifactResourceInfo.Key, artifactResourceInfo);
+        if (!_resources.TryGetValue(artifactResourceInfo.Key.Artifact, out var dict))
+        {
+            _resources.Add(artifactResourceInfo.Key.Artifact, dict = new Dictionary<ArtifactResourceKey, ArtifactResourceInfo>());
+        }
+        dict.Add(artifactResourceInfo.Key, artifactResourceInfo);
         return ValueTask.CompletedTask;
     }
 
     /// <inheritdoc />
     public override ValueTask<ArtifactResourceInfo?> TryGetResourceAsync(ArtifactResourceKey key, CancellationToken ct = default)
     {
-        return new ValueTask<ArtifactResourceInfo?>(_resources.TryGetValue(key, out ArtifactResourceInfo? value) ? value : null);
+        return new ValueTask<ArtifactResourceInfo?>(_resources.TryGetValue(key.Artifact, out var dict) && dict.TryGetValue(key, out var value) ? value : null);
     }
 
     /// <inheritdoc />
     public override ValueTask RemoveArtifactAsync(ArtifactKey key, CancellationToken cancellationToken = default)
     {
-        _checkedIds.Add(key);
         _artifacts.Remove(key);
         return ValueTask.CompletedTask;
     }
@@ -99,7 +81,10 @@ public class InMemoryArtifactRegistrationManager : ArtifactRegistrationManager
     /// <inheritdoc />
     public override ValueTask RemoveResourceAsync(ArtifactResourceKey key, CancellationToken cancellationToken = default)
     {
-        _resources.Remove(key);
+        if (_resources.TryGetValue(key.Artifact, out var dict))
+        {
+            dict.Remove(key);
+        }
         return ValueTask.CompletedTask;
     }
 }
