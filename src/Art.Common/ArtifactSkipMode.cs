@@ -1,4 +1,4 @@
-namespace Art;
+namespace Art.Common;
 
 /// <summary>
 /// Represents artifact skip mode.

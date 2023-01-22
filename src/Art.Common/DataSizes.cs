@@ -1,7 +1,7 @@
 ﻿using System.Globalization;
 using System.Text;
 
-namespace Art;
+namespace Art.Common;
 
 /// <summary>
 /// Constants for data sizes

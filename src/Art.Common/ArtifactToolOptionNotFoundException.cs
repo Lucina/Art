@@ -1,6 +1,6 @@
 ﻿using System.Text;
 
-namespace Art;
+namespace Art.Common;
 
 /// <summary>
 /// Represents an exception thrown when an option needed by a <see cref="ArtifactToolBase"/> is not found.

@@ -1,4 +1,4 @@
-﻿namespace Art;
+﻿namespace Art.Common;
 
 /// <summary>
 /// Represents exception thrown when null JSON data is encountered.
