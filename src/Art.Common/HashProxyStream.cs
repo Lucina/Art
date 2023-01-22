@@ -1,6 +1,6 @@
 using System.Security.Cryptography;
 
-namespace Art;
+namespace Art.Common;
 
 /// <summary>
 /// Represents a non-seekable proxy to another stream, sending data to a hash algorithm as data is read or written.

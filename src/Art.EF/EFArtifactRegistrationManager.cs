@@ -5,7 +5,7 @@ namespace Art.EF;
 /// <summary>
 /// Represents an EF artifact registration manager.
 /// </summary>
-public class EFArtifactRegistrationManager : ArtifactRegistrationManager, IDisposable, IAsyncDisposable
+public class EFArtifactRegistrationManager : ArtifactRegistrationManagerBase, IDisposable, IAsyncDisposable
 {
     private bool _disposed;
 

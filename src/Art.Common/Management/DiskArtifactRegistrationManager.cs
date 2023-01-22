@@ -4,9 +4,9 @@ using System.Linq.Expressions;
 namespace Art.Common.Management;
 
 /// <summary>
-/// Represents a simple <see cref="ArtifactRegistrationManager"/> with purely file-based tracking.
+/// Represents a simple <see cref="ArtifactRegistrationManagerBase"/> with purely file-based tracking.
 /// </summary>
-public class DiskArtifactRegistrationManager : ArtifactRegistrationManager
+public class DiskArtifactRegistrationManager : ArtifactRegistrationManagerBase
 {
     private const string ArtifactDir = ".artifacts";
     private const string ArtifactFileName = "{0}.json";

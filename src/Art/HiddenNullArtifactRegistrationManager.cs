@@ -2,7 +2,7 @@ using System.Linq.Expressions;
 
 namespace Art;
 
-internal class HiddenNullArtifactRegistrationManager : ArtifactRegistrationManager
+internal class HiddenNullArtifactRegistrationManager : ArtifactRegistrationManagerBase
 {
     /// <summary>
     /// Shared instance.

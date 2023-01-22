@@ -39,12 +39,12 @@ public abstract partial class ArtifactToolBase : IDisposable
     /// <summary>
     /// Registration manager used by this instance.
     /// </summary>
-    public ArtifactRegistrationManager RegistrationManager;
+    public ArtifactRegistrationManagerBase RegistrationManager;
 
     /// <summary>
     /// Data manager used by this instance.
     /// </summary>
-    public ArtifactDataManager DataManager;
+    public ArtifactDataManagerBase DataManager;
 
     /// <summary>
     /// JSON serialization defaults.
@@ -222,7 +222,7 @@ public abstract partial class ArtifactToolBase : IDisposable
     /// <returns>Task.</returns>
     /// <exception cref="ArgumentException">Thrown when an invalid profile is provided.</exception>
     /// <exception cref="ArtifactToolNotFoundException">Thrown when tool is not found.</exception>
-    public static async Task<ArtifactToolBase> PrepareToolAsync(ArtifactToolProfile artifactToolProfile, ArtifactRegistrationManager artifactRegistrationManager, ArtifactDataManager artifactDataManager, CancellationToken cancellationToken = default)
+    public static async Task<ArtifactToolBase> PrepareToolAsync(ArtifactToolProfile artifactToolProfile, ArtifactRegistrationManagerBase artifactRegistrationManager, ArtifactDataManagerBase artifactDataManager, CancellationToken cancellationToken = default)
     {
         if (artifactToolProfile.Group == null) throw new ArgumentException("Group not specified in profile");
         if (!ArtifactToolLoader.TryLoad(artifactToolProfile, out ArtifactToolBase? t))

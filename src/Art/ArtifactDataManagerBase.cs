@@ -1,15 +1,12 @@
-﻿using System.Security.Cryptography;
-using System.Text.Json;
+﻿using System.Text.Json;
 
 namespace Art;
 
 /// <summary>
 /// Represents a manager for artifact data.
 /// </summary>
-public abstract class ArtifactDataManager
+public abstract class ArtifactDataManagerBase
 {
-    #region Abstract
-
     /// <summary>
     /// Creates an output stream for the specified resource.
     /// </summary>
@@ -44,10 +41,6 @@ public abstract class ArtifactDataManager
     /// <exception cref="KeyNotFoundException">Thrown for missing resource.</exception>
     public abstract ValueTask<Stream> OpenInputStreamAsync(ArtifactResourceKey key, CancellationToken cancellationToken = default);
 
-    #endregion
-
-    #region Virtual
-
     /// <summary>
     /// Outputs a text file for the specified artifact.
     /// </summary>
@@ -56,14 +49,7 @@ public abstract class ArtifactDataManager
     /// <param name="options">Output options.</param>
     /// <param name="cancellationToken">Cancellation token.</param>
     /// <returns>Task.</returns>
-    public virtual async ValueTask OutputTextAsync(string text, ArtifactResourceKey key, OutputStreamOptions? options = null, CancellationToken cancellationToken = default)
-    {
-        UpdateOptionsTextual(ref options);
-        await using CommittableStream stream = await CreateOutputStreamAsync(key, options, cancellationToken).ConfigureAwait(false);
-        await using var sw = new StreamWriter(stream);
-        await sw.WriteAsync(text).ConfigureAwait(false);
-        stream.ShouldCommit = true;
-    }
+    public abstract ValueTask OutputTextAsync(string text, ArtifactResourceKey key, OutputStreamOptions? options = null, CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Outputs a JSON-serialized file for the specified artifact.
@@ -73,13 +59,7 @@ public abstract class ArtifactDataManager
     /// <param name="options">Output options.</param>
     /// <param name="cancellationToken">Cancellation token.</param>
     /// <returns>Task.</returns>
-    public virtual async ValueTask OutputJsonAsync<T>(T data, ArtifactResourceKey key, OutputStreamOptions? options = null, CancellationToken cancellationToken = default)
-    {
-        UpdateOptionsTextual(ref options);
-        await using CommittableStream stream = await CreateOutputStreamAsync(key, options, cancellationToken).ConfigureAwait(false);
-        await JsonSerializer.SerializeAsync(stream, data, cancellationToken: cancellationToken).ConfigureAwait(false);
-        stream.ShouldCommit = true;
-    }
+    public abstract ValueTask OutputJsonAsync<T>(T data, ArtifactResourceKey key, OutputStreamOptions? options = null, CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Outputs a JSON-serialized file for the specified artifact.
@@ -90,13 +70,7 @@ public abstract class ArtifactDataManager
     /// <param name="options">Output options.</param>
     /// <param name="cancellationToken">Cancellation token.</param>
     /// <returns>Task.</returns>
-    public virtual async ValueTask OutputJsonAsync<T>(T data, JsonSerializerOptions jsonSerializerOptions, ArtifactResourceKey key, OutputStreamOptions? options = null, CancellationToken cancellationToken = default)
-    {
-        UpdateOptionsTextual(ref options);
-        await using CommittableStream stream = await CreateOutputStreamAsync(key, options, cancellationToken).ConfigureAwait(false);
-        await JsonSerializer.SerializeAsync(stream, data, jsonSerializerOptions, cancellationToken).ConfigureAwait(false);
-        stream.ShouldCommit = true;
-    }
+    public abstract ValueTask OutputJsonAsync<T>(T data, JsonSerializerOptions jsonSerializerOptions, ArtifactResourceKey key, OutputStreamOptions? options = null, CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Gets checksum of a resource.
@@ -107,16 +81,7 @@ public abstract class ArtifactDataManager
     /// <returns>Checksum for resource.</returns>
     /// <exception cref="KeyNotFoundException">Thrown for missing resource.</exception>
     /// <exception cref="ArgumentException">Thrown for a bad <paramref name="checksumId"/> value.</exception>
-    public virtual async ValueTask<Checksum> GetChecksumAsync(ArtifactResourceKey key, string checksumId, CancellationToken cancellationToken = default)
-    {
-        if (!ChecksumSource.TryGetHashAlgorithm(checksumId, out HashAlgorithm? hashAlgorithm))
-            throw new ArgumentException("Unknown checksum ID", nameof(checksumId));
-        await using Stream sourceStream = await OpenInputStreamAsync(key, cancellationToken);
-        await using HashProxyStream hps = new(sourceStream, hashAlgorithm, true);
-        await using MemoryStream ms = new();
-        await hps.CopyToAsync(ms, cancellationToken);
-        return new Checksum(checksumId, hps.GetHash());
-    }
+    public abstract ValueTask<Checksum> GetChecksumAsync(ArtifactResourceKey key, string checksumId, CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Validates a checksum for a given resource.
@@ -126,8 +91,7 @@ public abstract class ArtifactDataManager
     /// <param name="cancellationToken">Cancellation token.</param>
     /// <returns>True if checksum is validated.</returns>
     /// <exception cref="KeyNotFoundException">Thrown for missing resource.</exception>
-    public virtual async ValueTask<bool> ValidateChecksumAsync(ArtifactResourceKey key, Checksum checksum, CancellationToken cancellationToken = default)
-        => Checksum.DatawiseEquals(await GetChecksumAsync(key, checksum.Id, cancellationToken), checksum);
+    public abstract ValueTask<bool> ValidateChecksumAsync(ArtifactResourceKey key, Checksum checksum, CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Gets checksum associated with a resource if it exists.
@@ -139,20 +103,5 @@ public abstract class ArtifactDataManager
     /// <remarks>
     /// This method should return any "primary" checksum readily available from this manager.
     /// </remarks>
-    public virtual async ValueTask<Checksum?> GetChecksumAsync(ArtifactResourceKey key, CancellationToken cancellationToken = default)
-    {
-        if (!await ExistsAsync(key, cancellationToken)) throw new KeyNotFoundException();
-        return null;
-    }
-
-    #endregion
-
-    #region Internal
-
-    private static void UpdateOptionsTextual(ref OutputStreamOptions? options)
-    {
-        if (options is { } optionsActual) options = optionsActual with { PreallocationSize = 0 };
-    }
-
-    #endregion
+    public abstract ValueTask<Checksum?> GetChecksumAsync(ArtifactResourceKey key, CancellationToken cancellationToken = default);
 }

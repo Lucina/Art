@@ -1,7 +1,7 @@
 using System.Diagnostics.CodeAnalysis;
 using System.Security.Cryptography;
 
-namespace Art;
+namespace Art.Common;
 
 /// <summary>
 /// Identifies a checksum source.

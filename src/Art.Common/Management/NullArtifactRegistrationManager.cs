@@ -5,7 +5,7 @@ namespace Art.Common.Management;
 /// <summary>
 /// Represents an artifact registration manager that does not preserve data.
 /// </summary>
-public class NullArtifactRegistrationManager : ArtifactRegistrationManager
+public class NullArtifactRegistrationManager : ArtifactRegistrationManagerBase
 {
     /// <summary>
     /// Shared instance.

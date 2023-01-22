@@ -5,7 +5,7 @@ namespace Art;
 /// <summary>
 /// Represents a manager for artifact data.
 /// </summary>
-public abstract class ArtifactRegistrationManager
+public abstract class ArtifactRegistrationManagerBase
 {
     /// <summary>
     /// Lists all artifacts.

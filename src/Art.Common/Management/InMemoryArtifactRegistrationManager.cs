@@ -5,7 +5,7 @@ namespace Art.Common.Management;
 /// <summary>
 /// Represents an in-memory artifact registration manager.
 /// </summary>
-public class InMemoryArtifactRegistrationManager : ArtifactRegistrationManager
+public class InMemoryArtifactRegistrationManager : ArtifactRegistrationManagerBase
 {
     private readonly Dictionary<ArtifactKey, ArtifactInfo> _artifacts = new();
 

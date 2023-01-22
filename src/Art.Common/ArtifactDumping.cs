@@ -40,7 +40,7 @@ public static class ArtifactDumping
     /// <returns>Task.</returns>
     /// <exception cref="ArgumentException">Thrown when an invalid profile is provided.</exception>
     /// <exception cref="ArtifactToolNotFoundException">Thrown when tool is not found.</exception>
-    public static async Task DumpAsync(ArtifactToolProfile artifactToolProfile, ArtifactRegistrationManager artifactRegistrationManager, ArtifactDataManager artifactDataManager, ArtifactToolDumpOptions? dumpOptions = null, IToolLogHandler? toolLogHandler = null, CancellationToken cancellationToken = default)
+    public static async Task DumpAsync(ArtifactToolProfile artifactToolProfile, ArtifactRegistrationManagerBase artifactRegistrationManager, ArtifactDataManagerBase artifactDataManager, ArtifactToolDumpOptions? dumpOptions = null, IToolLogHandler? toolLogHandler = null, CancellationToken cancellationToken = default)
     {
         if (artifactToolProfile.Group == null) throw new ArgumentException("Group not specified in profile");
         using ArtifactToolBase tool = await ArtifactToolBase.PrepareToolAsync(artifactToolProfile, artifactRegistrationManager, artifactDataManager, cancellationToken);
