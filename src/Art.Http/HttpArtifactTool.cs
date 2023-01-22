@@ -1,5 +1,6 @@
 ﻿using System.Net;
 using System.Net.WebSockets;
+using Art.Common;
 
 namespace Art.Http;
 
@@ -108,7 +109,7 @@ public abstract partial class HttpArtifactTool : ArtifactTool
     public virtual CookieContainer CreateCookieContainer()
     {
         CookieContainer cookies = new();
-        if (TryGetOption(OptCookieFile, out string? cookieFile))
+        if (this.TryGetOption(OptCookieFile, out string? cookieFile))
             using (StreamReader f = File.OpenText(cookieFile))
                 cookies.LoadCookieFile(f);
         return cookies;

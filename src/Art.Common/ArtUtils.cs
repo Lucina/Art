@@ -1,6 +1,6 @@
 ﻿using System.Text.Json;
 
-namespace Art;
+namespace Art.Common;
 
 /// <summary>
 /// Utility functions.

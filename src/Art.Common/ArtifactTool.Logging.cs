@@ -1,4 +1,4 @@
-namespace Art;
+namespace Art.Common;
 
 public partial class ArtifactTool
 {

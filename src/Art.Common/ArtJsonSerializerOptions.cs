@@ -1,7 +1,7 @@
 ﻿using System.Text.Json;
 using System.Text.Json.Serialization;
 
-namespace Art;
+namespace Art.Common;
 
 /// <summary>
 /// Provides defaults for JSON serialization for artifact and profile storage.

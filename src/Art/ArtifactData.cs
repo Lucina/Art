@@ -16,7 +16,7 @@ public class ArtifactData : IReadOnlyDictionary<ArtifactResourceKey, ArtifactRes
     /// <summary>
     /// Tool associated with this instance.
     /// </summary>
-    public readonly ArtifactTool? Tool;
+    public readonly ArtifactToolBase? Tool;
 
     /// <summary>
     /// Resources for this artifact.
@@ -74,7 +74,7 @@ public class ArtifactData : IReadOnlyDictionary<ArtifactResourceKey, ArtifactRes
     /// <param name="date">Artifact creation date.</param>
     /// <param name="updateDate">Artifact update date.</param>
     /// <param name="full">True if this is a full artifact.</param>
-    public ArtifactData(ArtifactTool artifactTool, string tool, string group, string id, string? name = null, DateTimeOffset? date = null, DateTimeOffset? updateDate = null, bool full = true)
+    public ArtifactData(ArtifactToolBase artifactTool, string tool, string group, string id, string? name = null, DateTimeOffset? date = null, DateTimeOffset? updateDate = null, bool full = true)
     {
         Info = new ArtifactInfo(new ArtifactKey(tool, group, id), name, date, updateDate, full);
         Tool = artifactTool;
@@ -89,7 +89,7 @@ public class ArtifactData : IReadOnlyDictionary<ArtifactResourceKey, ArtifactRes
     /// <param name="date">Artifact creation date.</param>
     /// <param name="updateDate">Artifact update date.</param>
     /// <param name="full">True if this is a full artifact.</param>
-    public ArtifactData(ArtifactTool artifactTool, ArtifactKey key, string? name = null, DateTimeOffset? date = null, DateTimeOffset? updateDate = null, bool full = true)
+    public ArtifactData(ArtifactToolBase artifactTool, ArtifactKey key, string? name = null, DateTimeOffset? date = null, DateTimeOffset? updateDate = null, bool full = true)
     {
         Info = new ArtifactInfo(key, name, date, updateDate, full);
         Tool = artifactTool;
@@ -134,13 +134,13 @@ public class ArtifactData : IReadOnlyDictionary<ArtifactResourceKey, ArtifactRes
     }
 
     /// <summary>
-    /// Attempts to cast <see cref="Tool"/> to a <see cref="ArtifactTool"/> of the specified type.
+    /// Attempts to cast <see cref="Tool"/> to a <see cref="ArtifactToolBase"/> of the specified type.
     /// </summary>
     /// <typeparam name="T">Tool type.</typeparam>
     /// <returns><see cref="Tool"/> with a type cast.</returns>
     /// <exception cref="InvalidOperationException">Thrown when <see cref="Tool"/> is not specified.</exception>
     /// <exception cref="InvalidCastException">Thrown for invalid type.</exception>
-    public T GetArtifactTool<T>() where T : ArtifactTool
+    public T GetArtifactTool<T>() where T : ArtifactToolBase
         => (Tool
             ?? throw new InvalidOperationException("Data object was not initialized with an artifact tool")) as T
            ?? throw new InvalidCastException("Tool type for this data object is not compatible with needed type");

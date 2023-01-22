@@ -2,7 +2,7 @@ using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
 using System.Text.Json;
 
-namespace Art;
+namespace Art.Common;
 
 public partial class ArtifactTool
 {

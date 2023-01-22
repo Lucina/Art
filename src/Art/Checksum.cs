@@ -12,7 +12,7 @@ public record Checksum(string Id, byte[] Value)
     /// </summary>
     /// <param name="id">ID.</param>
     /// <param name="value">Hex string containing checksum value.</param>
-    public Checksum(string id, string value) : this(id, ArtUtils.Dehex(value))
+    public Checksum(string id, string value) : this(id, Dehex(value))
     {
     }
 
@@ -28,5 +28,11 @@ public record Checksum(string Id, byte[] Value)
         if (first != null && second != null)
             return string.Equals(first.Id, second.Id, StringComparison.InvariantCultureIgnoreCase) && first.Value.AsSpan().SequenceEqual(second.Value);
         return true;
+    }
+
+    private static byte[] Dehex(ReadOnlySpan<char> hex)
+    {
+        if (hex.StartsWith("0x", StringComparison.InvariantCultureIgnoreCase)) hex = hex[2..];
+        return Convert.FromHexString(hex);
     }
 }

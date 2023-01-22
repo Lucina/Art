@@ -202,7 +202,7 @@ public abstract class HtmlArtifactTool : HttpArtifactTool
     /// <param name="cancellationToken">Cancellation token.</param>
     /// <returns>Task returning deserialized data.</returns>
     /// <remarks>
-    /// This overload usees <see cref="ArtifactTool.JsonOptions"/> member automatically.
+    /// This overload usees <see cref="ArtifactToolBase.JsonOptions"/> member automatically.
     /// </remarks>
     public Task<T?> GetDeserializedJsonAsync<T>(Url url, CancellationToken cancellationToken = default)
         => GetDeserializedJsonAsync<T>(url.ToUri(), cancellationToken: cancellationToken);
@@ -215,7 +215,7 @@ public abstract class HtmlArtifactTool : HttpArtifactTool
     /// <param name="cancellationToken">Cancellation token.</param>
     /// <returns>Task returning deserialized data.</returns>
     /// <remarks>
-    /// This overload usees <see cref="ArtifactTool.JsonOptions"/> member automatically.
+    /// This overload usees <see cref="ArtifactToolBase.JsonOptions"/> member automatically.
     /// </remarks>
     public Task<T> GetDeserializedRequiredJsonAsync<T>(Url url, CancellationToken cancellationToken = default)
         => GetDeserializedRequiredJsonAsync<T>(url.ToUri(), cancellationToken: cancellationToken);

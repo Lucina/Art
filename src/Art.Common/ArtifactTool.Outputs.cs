@@ -1,6 +1,6 @@
 using System.Text.Json;
 
-namespace Art;
+namespace Art.Common;
 
 public partial class ArtifactTool
 {

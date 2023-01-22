@@ -1,7 +1,7 @@
 ﻿namespace Art;
 
 /// <summary>
-/// Runtime configuration for a <see cref="ArtifactTool"/>.
+/// Runtime configuration for a <see cref="ArtifactToolBase"/>.
 /// </summary>
 /// <param name="RegistrationManager">Registration manager.</param>
 /// <param name="DataManager">Data manager.</param>
