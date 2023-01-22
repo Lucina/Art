@@ -1,4 +1,4 @@
-﻿namespace Art.Management;
+﻿namespace Art.Common.Management;
 
 internal static class DiskPaths
 {

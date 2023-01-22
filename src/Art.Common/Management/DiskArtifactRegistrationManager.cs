@@ -1,8 +1,9 @@
 ﻿using System.Globalization;
 using System.Linq.Expressions;
+using Art.Management;
 using Art.Resources;
 
-namespace Art.Management;
+namespace Art.Common.Management;
 
 /// <summary>
 /// Represents a simple <see cref="ArtifactRegistrationManager"/> with purely file-based tracking.

@@ -1,6 +1,7 @@
+using Art.Management;
 using Art.Resources;
 
-namespace Art.Management;
+namespace Art.Common.Management;
 
 /// <summary>
 /// Represents an in-memory artifact data manager.

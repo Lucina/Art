@@ -1,11 +1,12 @@
 ﻿using System.Security.Cryptography;
+using Art.Common.Management;
+using Art.Common.Proxies;
 using Art.Crypto;
 using Art.Logging;
 using Art.Management;
-using Art.Proxies;
 using Art.Resources;
 
-namespace Art;
+namespace Art.Common;
 
 /// <summary>
 /// Simple dumping process.

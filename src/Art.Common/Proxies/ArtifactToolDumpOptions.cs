@@ -1,4 +1,4 @@
-﻿namespace Art.Proxies;
+﻿namespace Art.Common.Proxies;
 
 /// <summary>
 /// Represents runtime options for dump operation.
