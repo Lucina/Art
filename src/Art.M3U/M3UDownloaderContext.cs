@@ -1,5 +1,7 @@
 using System.Globalization;
 using System.Text;
+using Art.Http;
+using Art.Http.Resources;
 using Art.Management;
 using Art.Resources;
 using Art.Web;

@@ -1,7 +1,8 @@
 ﻿using Art.Crypto;
+using Art.Resources;
 using Art.Web;
 
-namespace Art.Resources;
+namespace Art.Http.Resources;
 
 /// <summary>
 /// Provides artifact information.
@@ -39,7 +40,7 @@ public record UriArtifactResourceInfo(HttpArtifactTool ArtifactTool, Uri Uri, st
     }
 }
 
-public partial class ArtifactDataExtensions
+public partial class HttpArtifactDataExtensions
 {
     /// <summary>
     /// Creates a <see cref="UriArtifactResourceInfo"/> resource.

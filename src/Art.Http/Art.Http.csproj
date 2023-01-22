@@ -11,12 +11,8 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <!--<PackageReference Include="Art.Http" Version="0.41.0" />-->
-    <ProjectReference Include="..\Art.Http\Art.Http.csproj" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <PackageReference Include="AngleSharp" Version="0.16.1" />
+    <!--<PackageReference Include="Art" Version="0.41.0" />-->
+    <ProjectReference Include="..\Art\Art.csproj" />
   </ItemGroup>
 
   <PropertyGroup>
@@ -37,19 +33,11 @@
   <PropertyGroup>
     <Authors>Lucina,riina</Authors>
     <Owners>Lucina,riina</Owners>
-    <Description>Artifact retrieval toolkit (HTML variants)</Description>
+    <Description>Artifact retrieval toolkit (HTTP variants)</Description>
     <Copyright>Copyright ©2021 Lucina</Copyright>
     <PackageProjectUrl>https://github.com/collectioneering/Art</PackageProjectUrl>
     <RepositoryUrl>https://github.com/collectioneering/Art</RepositoryUrl>
     <Company>Lucina</Company>
   </PropertyGroup>
-
-  <ItemGroup>
-    <Content Include="NOTICE.Art.Html.md">
-      <Link>NOTICE.Art.Html.md</Link>
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-      <PackagePath>contentFiles/any/any/</PackagePath>
-    </Content>
-  </ItemGroup>
 
 </Project>

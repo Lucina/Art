@@ -1,7 +1,7 @@
 ﻿using System.Globalization;
 using System.Net;
 
-namespace Art.Web;
+namespace Art.Http;
 
 /// <summary>
 /// Utility to work with cookie files.

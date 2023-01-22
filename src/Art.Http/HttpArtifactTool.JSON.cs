@@ -1,7 +1,8 @@
 ﻿using System.Net.Http.Headers;
 using System.Text.Json;
+using Art.Web;
 
-namespace Art.Web;
+namespace Art.Http;
 
 public partial class HttpArtifactTool
 {

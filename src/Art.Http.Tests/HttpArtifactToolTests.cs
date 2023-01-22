@@ -4,7 +4,7 @@ using System.Threading.Tasks;
 using NUnit.Framework;
 using RichardSzalay.MockHttp;
 
-namespace Art.Tests;
+namespace Art.Http.Tests;
 
 public class HttpArtifactToolTests : HttpTestsBase
 {

@@ -1,7 +1,7 @@
 ﻿using Art.Crypto;
-using Art.Web;
+using Art.Resources;
 
-namespace Art.Resources;
+namespace Art.Http.Resources;
 
 /// <summary>
 /// Provides artifact information.
@@ -26,7 +26,7 @@ public record HttpRequestMessageArtifactResourceInfo(HttpArtifactTool ArtifactTo
     }
 }
 
-public partial class ArtifactDataExtensions
+public partial class HttpArtifactDataExtensions
 {
     /// <summary>
     /// Creates a <see cref="HttpRequestMessageArtifactResourceInfo"/> resource.

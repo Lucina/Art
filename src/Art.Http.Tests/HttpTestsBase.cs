@@ -6,7 +6,7 @@ using Art.Web;
 using NUnit.Framework;
 using RichardSzalay.MockHttp;
 
-namespace Art.Tests;
+namespace Art.Http.Tests;
 
 public class HttpTestsBase
 {

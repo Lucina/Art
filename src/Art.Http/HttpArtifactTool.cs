@@ -1,7 +1,7 @@
 ﻿using System.Net;
 using System.Net.WebSockets;
 
-namespace Art.Web;
+namespace Art.Http;
 
 /// <summary>
 /// Represents an instance of an artifact tool that depends on an <see cref="System.Net.Http.HttpClient"/>.

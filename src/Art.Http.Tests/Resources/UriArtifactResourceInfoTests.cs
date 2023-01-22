@@ -4,13 +4,14 @@ using System.Net;
 using System.Security.Cryptography;
 using System.Threading.Tasks;
 using Art.Crypto;
+using Art.Http.Resources;
 using Art.Resources;
 using Art.Web;
 using NUnit.Framework;
 using RichardSzalay.MockHttp;
 using PaddingMode = System.Security.Cryptography.PaddingMode;
 
-namespace Art.Tests.Resources;
+namespace Art.Http.Tests.Resources;
 
 public class UriArtifactResourceInfoTests : HttpTestsBase
 {
