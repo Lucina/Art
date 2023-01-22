@@ -1,5 +1,4 @@
 using Art.Crypto;
-using Art.Resources;
 
 namespace Art;
 

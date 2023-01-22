@@ -1,7 +1,7 @@
 ﻿using System.Text.Json.Serialization;
 using Art.Crypto;
 
-namespace Art.Resources;
+namespace Art;
 
 /// <summary>
 /// Provides artifact information.

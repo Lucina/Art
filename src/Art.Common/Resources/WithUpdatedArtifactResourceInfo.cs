@@ -1,4 +1,4 @@
-﻿namespace Art.Resources;
+﻿namespace Art.Common.Resources;
 
 /// <summary>
 /// Represents a resource with version.

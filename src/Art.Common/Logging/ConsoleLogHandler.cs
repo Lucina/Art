@@ -1,4 +1,4 @@
-﻿namespace Art.Logging;
+﻿namespace Art.Common.Logging;
 
 /// <summary>
 /// Log handler output to console.

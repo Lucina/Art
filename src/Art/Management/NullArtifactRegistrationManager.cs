@@ -1,5 +1,4 @@
 using System.Linq.Expressions;
-using Art.Resources;
 
 namespace Art.Management;
 

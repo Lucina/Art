@@ -1,5 +1,5 @@
+using Art.Common.Resources;
 using Art.Management;
-using Art.Resources;
 
 namespace Art.Common.Management;
 

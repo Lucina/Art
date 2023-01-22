@@ -1,4 +1,4 @@
-﻿namespace Art.Logging;
+﻿namespace Art;
 
 /// <summary>
 /// Represents general log handler.

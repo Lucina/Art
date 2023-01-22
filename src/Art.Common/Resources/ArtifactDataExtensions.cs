@@ -1,4 +1,4 @@
-﻿namespace Art.Resources;
+﻿namespace Art.Common.Resources;
 
 /// <summary>
 /// Extensions for <see cref="ArtifactData"/>.

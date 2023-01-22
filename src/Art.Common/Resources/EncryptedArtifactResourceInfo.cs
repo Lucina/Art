@@ -1,7 +1,7 @@
 ﻿using System.Security.Cryptography;
 using Art.Crypto;
 
-namespace Art.Resources;
+namespace Art.Common.Resources;
 
 /// <summary>
 /// Represents an encrypted resource.

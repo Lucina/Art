@@ -1,11 +1,11 @@
-﻿namespace Art.Resources;
+﻿namespace Art.Common.Resources;
 
 /// <summary>
-/// Represents a resource with version.
+/// Represents a resource with content type.
 /// </summary>
-/// <param name="VersionValue">Version.</param>
+/// <param name="ContentTypeValue">Content type.</param>
 /// <param name="BaseArtifactResourceInfo">Base resource.</param>
-public record WithVersionArtifactResourceInfo(string? VersionValue, ArtifactResourceInfo BaseArtifactResourceInfo) : ArtifactResourceInfo(BaseArtifactResourceInfo.Key, BaseArtifactResourceInfo.ContentType, BaseArtifactResourceInfo.Updated, VersionValue)
+public record WithContentTypeArtifactResourceInfo(string? ContentTypeValue, ArtifactResourceInfo BaseArtifactResourceInfo) : ArtifactResourceInfo(BaseArtifactResourceInfo.Key, ContentTypeValue, BaseArtifactResourceInfo.Updated, BaseArtifactResourceInfo.Version)
 {
     /// <inheritdoc/>
     public override bool Exportable => BaseArtifactResourceInfo.Exportable;
@@ -24,9 +24,9 @@ public record WithVersionArtifactResourceInfo(string? VersionValue, ArtifactReso
         return this with
         {
             BaseArtifactResourceInfo = b,
-            ContentType = b.ContentType,
+            ContentType = ContentTypeValue,
             Updated = b.Updated,
-            Version = VersionValue,
+            Version = b.Version,
             Checksum = b.Checksum
         };
     }

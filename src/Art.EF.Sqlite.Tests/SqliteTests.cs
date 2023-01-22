@@ -1,7 +1,6 @@
 using System;
 using System.IO;
 using System.Threading.Tasks;
-using Art.Resources;
 using NUnit.Framework;
 
 namespace Art.EF.Sqlite.Tests;

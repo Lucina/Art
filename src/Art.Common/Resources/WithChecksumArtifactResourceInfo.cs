@@ -1,11 +1,13 @@
-﻿namespace Art.Resources;
+﻿using Art.Crypto;
+
+namespace Art.Common.Resources;
 
 /// <summary>
-/// Represents a resource with content type.
+/// Represents a resource with checksum.
 /// </summary>
-/// <param name="ContentTypeValue">Content type.</param>
+/// <param name="ChecksumValue">Checksum.</param>
 /// <param name="BaseArtifactResourceInfo">Base resource.</param>
-public record WithContentTypeArtifactResourceInfo(string? ContentTypeValue, ArtifactResourceInfo BaseArtifactResourceInfo) : ArtifactResourceInfo(BaseArtifactResourceInfo.Key, ContentTypeValue, BaseArtifactResourceInfo.Updated, BaseArtifactResourceInfo.Version)
+public record WithChecksumArtifactResourceInfo(Checksum? ChecksumValue, ArtifactResourceInfo BaseArtifactResourceInfo) : ArtifactResourceInfo(BaseArtifactResourceInfo.Key, BaseArtifactResourceInfo.ContentType, BaseArtifactResourceInfo.Updated, BaseArtifactResourceInfo.Version, ChecksumValue)
 {
     /// <inheritdoc/>
     public override bool Exportable => BaseArtifactResourceInfo.Exportable;
@@ -24,10 +26,10 @@ public record WithContentTypeArtifactResourceInfo(string? ContentTypeValue, Arti
         return this with
         {
             BaseArtifactResourceInfo = b,
-            ContentType = ContentTypeValue,
+            ContentType = b.ContentType,
             Updated = b.Updated,
             Version = b.Version,
-            Checksum = b.Checksum
+            Checksum = ChecksumValue
         };
     }
 

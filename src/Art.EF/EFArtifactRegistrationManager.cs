@@ -1,6 +1,5 @@
 using System.Linq.Expressions;
 using Art.Management;
-using Art.Resources;
 
 namespace Art.EF;
 
