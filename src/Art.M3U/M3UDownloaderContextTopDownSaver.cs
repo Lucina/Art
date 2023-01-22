@@ -1,7 +1,7 @@
 using System.Globalization;
 using System.Net;
 using System.Text.RegularExpressions;
-using Art.Web;
+using Art.Http;
 
 namespace Art.M3U;
 

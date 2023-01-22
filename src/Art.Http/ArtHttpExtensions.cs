@@ -1,6 +1,4 @@
-﻿using Art.Web;
-
-namespace Art.Http;
+﻿namespace Art.Http;
 
 /// <summary>
 /// Provides utility functions.

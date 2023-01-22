@@ -7,11 +7,10 @@ namespace Art;
 /// </summary>
 /// <param name="RegistrationManager">Registration manager.</param>
 /// <param name="DataManager">Data manager.</param>
-/// <param name="FailureFlags">Flags indicating errors to ignore.</param>
-public record ArtifactToolConfig(ArtifactRegistrationManager RegistrationManager, ArtifactDataManager DataManager, FailureFlags FailureFlags)
+public record ArtifactToolConfig(ArtifactRegistrationManager RegistrationManager, ArtifactDataManager DataManager)
 {
     /// <summary>
     /// Shared default instance.
     /// </summary>
-    public static readonly ArtifactToolConfig Default = new(NullArtifactRegistrationManager.Instance, NullArtifactDataManager.Instance, FailureFlags.None);
+    public static readonly ArtifactToolConfig Default = new(NullArtifactRegistrationManager.Instance, NullArtifactDataManager.Instance);
 }

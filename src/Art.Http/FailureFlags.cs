@@ -1,4 +1,4 @@
-namespace Art;
+namespace Art.Http;
 
 /// <summary>
 /// Represents kinds of failures.

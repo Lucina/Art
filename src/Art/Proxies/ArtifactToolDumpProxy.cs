@@ -96,10 +96,18 @@ public record ArtifactToolDumpProxy
                     .Where(v => v.IsFaulted && v.Exception != null)
                     .SelectMany(v => v.Exception!.InnerExceptions)
                     .ToList();
-                var ignored = exc.Where(v => FailureBypass.ShouldBypass(v, Options.FailureFlags)).ToList();
-                foreach (var ignore in ignored)
-                    LogHandler?.Log($"Ignored exception of type {ignore.GetType().FullName}", ignore.ToString(), LogLevel.Warning);
-                var failed = exc.Where(v => !FailureBypass.ShouldBypass(v, Options.FailureFlags)).ToList();
+                List<Exception> failed;
+                if (Options.IgnoreException is { } ignoreException)
+                {
+                    var ignored = exc.Where(ignoreException).ToList();
+                    foreach (var ignore in ignored)
+                        LogHandler?.Log($"Ignored exception of type {ignore.GetType().FullName}", ignore.ToString(), LogLevel.Warning);
+                    failed = exc.Where(v => !ignoreException(v)).ToList();
+                }
+                else
+                {
+                    failed = exc;
+                }
                 if (failed.Any())
                     throw new AggregateException(exc);
             }
@@ -133,7 +141,7 @@ public record ArtifactToolDumpProxy
                     }
                     catch (Exception e)
                     {
-                        if (FailureBypass.ShouldBypass(e, Options.FailureFlags))
+                        if (Options.IgnoreException is { } ignoreException && ignoreException(e))
                             LogHandler?.Log($"Ignored exception of type {e.GetType().FullName}", e.ToString(), LogLevel.Warning);
                         else throw;
                     }

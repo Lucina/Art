@@ -1,4 +1,4 @@
-namespace Art.Web;
+namespace Art.Http;
 
 /// <summary>
 /// Exception thrown when geoblocking has been encountered.

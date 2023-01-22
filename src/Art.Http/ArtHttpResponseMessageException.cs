@@ -1,7 +1,7 @@
 using System.Net;
 using System.Net.Http.Headers;
 
-namespace Art.Web;
+namespace Art.Http;
 
 /// <summary>
 /// Represents an exception created from an <see cref="HttpResponseMessage"/>.

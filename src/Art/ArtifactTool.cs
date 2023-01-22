@@ -248,7 +248,7 @@ public abstract partial class ArtifactTool : IDisposable
         if (artifactToolProfile.Group == null) throw new ArgumentException("Group not specified in profile");
         if (!ArtifactToolLoader.TryLoad(artifactToolProfile, out ArtifactTool? t))
             throw new ArtifactToolNotFoundException(artifactToolProfile.Tool);
-        ArtifactToolConfig config = new(artifactRegistrationManager, artifactDataManager, FailureFlags.None);
+        ArtifactToolConfig config = new(artifactRegistrationManager, artifactDataManager);
         artifactToolProfile = artifactToolProfile.WithCoreTool(t);
         await t.InitializeAsync(config, artifactToolProfile, cancellationToken).ConfigureAwait(false);
         return t;

@@ -1,7 +1,6 @@
 using System.Net;
-using Art.Web;
 
-namespace Art;
+namespace Art.Http;
 
 /// <summary>
 /// Contains methods for failure bypass.
@@ -15,6 +14,13 @@ public static class FailureBypass
     /// <param name="flags">Flags specifying types of errors to ignore.</param>
     /// <returns>True if exception should be ignored.</returns>
     public static bool ShouldBypass(Exception exception, FailureFlags flags) => (FilterFlags(exception) & flags) != 0;
+
+    /// <summary>
+    /// Creates exception filter using the specified filter flags.
+    /// </summary>
+    /// <param name="flags">Flags specifying types of errors to ignore.</param>
+    /// <returns>True if exception should be ignored.</returns>
+    public static Func<Exception, bool> CreateFilter(FailureFlags flags) => exception => (FilterFlags(exception) & flags) != 0;
 
     private static FailureFlags FilterFlags(Exception exception) =>
         exception switch

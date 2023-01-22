@@ -1,5 +1,5 @@
 using System.Net;
-using Art.Web;
+using Art.Http;
 
 namespace Art.M3U;
 
