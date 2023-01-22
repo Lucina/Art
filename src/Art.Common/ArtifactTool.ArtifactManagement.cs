@@ -86,7 +86,7 @@ public partial class ArtifactTool
     #endregion
 }
 
-internal static partial class ArtifactToolBaseExtensions
+internal partial class ArtifactToolBaseExtensions
 {
     public static async ValueTask<ItemStateFlags> CompareArtifactAsync(this ArtifactToolBase artifactTool, ArtifactInfo artifactInfo, CancellationToken cancellationToken = default)
     {
@@ -144,7 +144,7 @@ internal static partial class ArtifactToolBaseExtensions
                 state |= ItemStateFlags.NewerDate;
             if (resource.Version != null)
                 state |= ItemStateFlags.ChangedVersion;
-            if (resource.Checksum != null && !Checksum.DatawiseEquals(resource.Checksum, null))
+            if (resource.Checksum != null && !ChecksumUtility.DatawiseEquals(resource.Checksum, null))
                 state |= ItemStateFlags.NewChecksum;
         }
         else
@@ -157,7 +157,7 @@ internal static partial class ArtifactToolBaseExtensions
                 state |= ItemStateFlags.OlderDate;
             if (resource.IsMetadataDifferent(prev))
                 state |= ItemStateFlags.ChangedMetadata;
-            if (resource.Checksum != null && !Checksum.DatawiseEquals(resource.Checksum, prev.Checksum))
+            if (resource.Checksum != null && !ChecksumUtility.DatawiseEquals(resource.Checksum, prev.Checksum))
                 state |= ItemStateFlags.NewChecksum;
         }
         return new ArtifactResourceInfoWithState(resource, state);

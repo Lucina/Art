@@ -24,7 +24,7 @@ public static class ArtifactDumping
         dumpOptions ??= new ArtifactToolDumpOptions();
         var srm = new DiskArtifactRegistrationManager(targetDirectory);
         var sdm = new DiskArtifactDataManager(targetDirectory);
-        foreach (ArtifactToolProfile profile in ArtifactToolProfileLoader.DeserializeProfilesFromFile(artifactToolProfilePath))
+        foreach (ArtifactToolProfile profile in ArtifactToolProfileUtil.DeserializeProfilesFromFile(artifactToolProfilePath))
             await DumpAsync(profile, srm, sdm, dumpOptions, toolLogHandler, cancellationToken).ConfigureAwait(false);
     }
 
@@ -43,7 +43,7 @@ public static class ArtifactDumping
     public static async Task DumpAsync(ArtifactToolProfile artifactToolProfile, ArtifactRegistrationManagerBase artifactRegistrationManager, ArtifactDataManagerBase artifactDataManager, ArtifactToolDumpOptions? dumpOptions = null, IToolLogHandler? toolLogHandler = null, CancellationToken cancellationToken = default)
     {
         if (artifactToolProfile.Group == null) throw new ArgumentException("Group not specified in profile");
-        using ArtifactToolBase tool = await ArtifactToolBase.PrepareToolAsync(artifactToolProfile, artifactRegistrationManager, artifactDataManager, cancellationToken);
+        using ArtifactToolBase tool = await ArtifactTool.PrepareToolAsync(artifactToolProfile, artifactRegistrationManager, artifactDataManager, cancellationToken);
         await new ArtifactToolDumpProxy(tool, dumpOptions ?? new ArtifactToolDumpOptions(), toolLogHandler).DumpAsync(cancellationToken);
     }
 
@@ -151,7 +151,7 @@ public static class ArtifactDumping
                 await versionedResource.ExportStreamAsync(hps, cancellationToken).ConfigureAwait(false);
                 stream.ShouldCommit = true;
                 Checksum newChecksum = new(checksumId, hps.GetHash());
-                if (!Checksum.DatawiseEquals(newChecksum, versionedResource.Checksum))
+                if (!ChecksumUtility.DatawiseEquals(newChecksum, versionedResource.Checksum))
                 {
                     rF |= ItemStateFlags.NewChecksum;
                     versionedResource = versionedResource with { Checksum = newChecksum };

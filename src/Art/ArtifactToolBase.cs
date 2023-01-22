@@ -1,4 +1,5 @@
-﻿using System.Globalization;
+﻿using System.Collections.Immutable;
+using System.Globalization;
 using System.Reflection;
 using System.Text.Json;
 
@@ -108,7 +109,7 @@ public abstract partial class ArtifactToolBase : IDisposable
         Config = config;
         RegistrationManager = config.RegistrationManager;
         DataManager = config.DataManager;
-        Profile = profile ?? ArtifactToolProfile.Create(GetType(), "default");
+        Profile = profile ?? new ArtifactToolProfile(CreateToolString(GetType()), "default", ImmutableDictionary<string, JsonElement>.Empty);
         if (Profile.Options != null)
             ConfigureOptions();
     }
@@ -177,6 +178,18 @@ public abstract partial class ArtifactToolBase : IDisposable
     /// </summary>
     /// <param name="type">Tool type.</param>
     /// <returns>Tool string.</returns>
+    public static string CreateToolString(Type type)
+    {
+        string assemblyName = type.Assembly.GetName().Name ?? throw new InvalidOperationException();
+        string typeName = type.FullName ?? throw new InvalidOperationException();
+        return $"{assemblyName}::{typeName}";
+    }
+
+    /// <summary>
+    /// Creates a tool string for the specified tool.
+    /// </summary>
+    /// <param name="type">Tool type.</param>
+    /// <returns>Tool string.</returns>
     public static string CreateCoreToolString(Type type)
     {
         Type? coreType = type;
@@ -195,43 +208,10 @@ public abstract partial class ArtifactToolBase : IDisposable
     /// <summary>
     /// Creates a tool string for the specified tool.
     /// </summary>
-    /// <param name="type">Tool type.</param>
-    /// <returns>Tool string.</returns>
-    public static string CreateToolString(Type type)
-    {
-        string assemblyName = type.Assembly.GetName().Name ?? throw new InvalidOperationException();
-        string typeName = type.FullName ?? throw new InvalidOperationException();
-        return $"{assemblyName}::{typeName}";
-    }
-
-    /// <summary>
-    /// Creates a tool string for the specified tool.
-    /// </summary>
     /// <typeparam name="TTool">Tool type.</typeparam>
     /// <returns>Tool string.</returns>
     public static string CreateToolString<TTool>() where TTool : ArtifactToolBase
         => CreateToolString(typeof(TTool));
-
-    /// <summary>
-    /// Prepares a tool for the specified profile.
-    /// </summary>
-    /// <param name="artifactToolProfile">Tool profile.</param>
-    /// <param name="artifactRegistrationManager">Registration manager.</param>
-    /// <param name="artifactDataManager">Data manager.</param>
-    /// <param name="cancellationToken">Cancellation token.</param>
-    /// <returns>Task.</returns>
-    /// <exception cref="ArgumentException">Thrown when an invalid profile is provided.</exception>
-    /// <exception cref="ArtifactToolNotFoundException">Thrown when tool is not found.</exception>
-    public static async Task<ArtifactToolBase> PrepareToolAsync(ArtifactToolProfile artifactToolProfile, ArtifactRegistrationManagerBase artifactRegistrationManager, ArtifactDataManagerBase artifactDataManager, CancellationToken cancellationToken = default)
-    {
-        if (artifactToolProfile.Group == null) throw new ArgumentException("Group not specified in profile");
-        if (!ArtifactToolLoader.TryLoad(artifactToolProfile, out ArtifactToolBase? t))
-            throw new ArtifactToolNotFoundException(artifactToolProfile.Tool);
-        ArtifactToolConfig config = new(artifactRegistrationManager, artifactDataManager);
-        artifactToolProfile = artifactToolProfile.WithCoreTool(t);
-        await t.InitializeAsync(config, artifactToolProfile, cancellationToken).ConfigureAwait(false);
-        return t;
-    }
 
     #endregion
 }

@@ -1,7 +1,7 @@
 ﻿using System.Diagnostics.CodeAnalysis;
 using System.Reflection;
 
-namespace Art;
+namespace Art.Common;
 
 /// <summary>
 /// Provides loading facility for artifact tools via reflection.
@@ -19,16 +19,15 @@ public static class ArtifactToolLoader
     /// <summary>
     /// Attempts to load artifact tool from an assembly name and tool type name.
     /// </summary>
-    /// <param name="assemblyName">Artifact tool assembly name.</param>
-    /// <param name="toolTypeName">Artifact tool type name.</param>
+    /// <param name="artifactToolId">Artifact tool ID.</param>
     /// <param name="tool">Tool.</param>
     /// <returns>True if successfully located and created a tool.</returns>
-    public static bool TryLoad(string assemblyName, string toolTypeName, [NotNullWhen(true)] out ArtifactToolBase? tool)
+    public static bool TryLoad(ArtifactToolID artifactToolId, [NotNullWhen(true)] out ArtifactToolBase? tool)
     {
         try
         {
-            Assembly assembly = Assembly.Load(assemblyName);
-            Type? type = assembly.GetType(toolTypeName);
+            Assembly assembly = Assembly.Load(artifactToolId.Assembly);
+            Type? type = assembly.GetType(artifactToolId.Type);
             object? obj = type == null ? null : Activator.CreateInstance(type);
             tool = obj is ArtifactToolBase at ? at : null;
             return tool != null;
@@ -48,7 +47,6 @@ public static class ArtifactToolLoader
     /// <returns>True if successfully located and created a tool.</returns>
     public static bool TryLoad(string toolId, [NotNullWhen(true)] out ArtifactToolBase? tool)
     {
-        (string assembly, string type) = ArtifactToolProfile.GetId(toolId);
-        return TryLoad(assembly, type, out tool);
+        return TryLoad(ArtifactToolProfileUtil.GetID(toolId), out tool);
     }
 }

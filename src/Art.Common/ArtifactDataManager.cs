@@ -50,7 +50,7 @@ public abstract class ArtifactDataManager : ArtifactDataManagerBase
 
     /// <inheritdoc />
     public override async ValueTask<bool> ValidateChecksumAsync(ArtifactResourceKey key, Checksum checksum, CancellationToken cancellationToken = default)
-        => Checksum.DatawiseEquals(await GetChecksumAsync(key, checksum.Id, cancellationToken), checksum);
+        => ChecksumUtility.DatawiseEquals(await GetChecksumAsync(key, checksum.Id, cancellationToken), checksum);
 
     /// <inheritdoc />
     public override async ValueTask<Checksum?> GetChecksumAsync(ArtifactResourceKey key, CancellationToken cancellationToken = default)
