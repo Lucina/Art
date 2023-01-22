@@ -1,7 +1,6 @@
 ﻿using System.Globalization;
 using System.Runtime.CompilerServices;
 using System.Text.Json;
-using Art.Async;
 
 namespace Art;
 
@@ -267,13 +266,4 @@ public static class ArtExtensions
             return v;
         return @default;
     }
-
-    /// <summary>
-    /// Executes enumerable's enumerator independently of move-next calls.
-    /// </summary>
-    /// <param name="asyncEnumerable">Enumerable.</param>
-    /// <typeparam name="T">Value type.</typeparam>
-    /// <returns>Enumerable.</returns>
-    public static IAsyncEnumerable<T> EagerAsync<T>(this IAsyncEnumerable<T> asyncEnumerable)
-        => new EagerAsyncEnumerable<T>(asyncEnumerable);
 }

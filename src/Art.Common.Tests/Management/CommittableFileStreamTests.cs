@@ -1,10 +1,10 @@
 ﻿using System;
 using System.IO;
 using System.Text;
-using Art.Management;
+using Art.Common.Management;
 using NUnit.Framework;
 
-namespace Art.Tests.Management;
+namespace Art.Common.Tests.Management;
 
 public class CommittableFileStreamTests
 {

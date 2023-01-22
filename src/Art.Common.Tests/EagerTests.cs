@@ -4,7 +4,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using NUnit.Framework;
 
-namespace Art.Tests;
+namespace Art.Common.Tests;
 
 public class EagerTests
 {

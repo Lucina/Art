@@ -5,7 +5,7 @@ using System.Security.Cryptography;
 using Art.Crypto;
 using NUnit.Framework;
 
-namespace Art.Tests.Crypto;
+namespace Art.Common.Tests.Crypto;
 
 public class HashProxyTests
 {

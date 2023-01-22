@@ -1,11 +1,6 @@
-using Art.IO;
-
 namespace Art.Management;
 
-/// <summary>
-/// Represents a wrapper around a <see cref="SinkStream"/>.
-/// </summary>
-public class CommittableSinkStream : CommittableStream
+internal class HiddenCommittableSinkStream : CommittableStream
 {
     /// <inheritdoc />
     public override void Flush()

@@ -4,7 +4,7 @@ using System.Text;
 
 #pragma warning disable 1591
 
-namespace Art;
+namespace Art.Common;
 
 /// <summary>
 /// Utility for paths.

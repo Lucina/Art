@@ -11,7 +11,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Art.EF", "Art.EF\Art.EF.csp
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Art.EF.Sqlite", "Art.EF.Sqlite\Art.EF.Sqlite.csproj", "{C6019E3E-9E07-43AA-9945-844F922A0FE2}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Art.Tests", "Art.Tests\Art.Tests.csproj", "{E6F46DCD-E097-4D9F-A190-BD41C9950521}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Art.Common.Tests", "Art.Common.Tests\Art.Common.Tests.csproj", "{E6F46DCD-E097-4D9F-A190-BD41C9950521}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Art.M3U", "Art.M3U\Art.M3U.csproj", "{880A1298-B192-4B03-B5A8-6C4C5BB90501}"
 EndProject

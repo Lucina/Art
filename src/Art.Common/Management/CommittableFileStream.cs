@@ -1,4 +1,4 @@
-namespace Art.Management;
+namespace Art.Common.Management;
 
 /// <summary>
 /// Represents a wrapper around a <see cref="FileStream"/> that operates on a temporary file before moving the file into place.

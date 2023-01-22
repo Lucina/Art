@@ -1,4 +1,4 @@
-namespace Art.Async;
+namespace Art.Common.Async;
 
 /// <summary>
 /// Represents empty async enumerator.
