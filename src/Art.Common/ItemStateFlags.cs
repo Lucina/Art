@@ -1,4 +1,4 @@
-namespace Art;
+namespace Art.Common;
 
 /// <summary>
 /// Flags for item state.

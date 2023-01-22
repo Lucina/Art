@@ -1,4 +1,4 @@
-﻿namespace Art;
+﻿namespace Art.Common;
 
 /// <summary>
 /// Modes for determining how resources are updated.
