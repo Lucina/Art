@@ -65,13 +65,13 @@ public record ArtifactResourceInfo(ArtifactResourceKey Key, string? ContentType 
     /// Gets informational path string.
     /// </summary>
     /// <returns>Info path string.</returns>
-    public virtual string GetInfoPathString() => $"{ArtifactTool.Combine("/", Key.Path, Key.File)}";
+    public virtual string GetInfoPathString() => $"{Key.Path}/{Key.File}";
 
     /// <summary>
     /// Gets informational string.
     /// </summary>
     /// <returns>Info string.</returns>
-    public virtual string GetInfoString() => $"Path: {ArtifactTool.Combine("/", Key.Path, Key.File)}{(ContentType != null ? $"\nContent type: {ContentType}" : "")}{(Updated != null ? $"\nUpdated: {Updated}" : "")}{(Version != null ? $"\nVersion: {Version}" : "")}{(Checksum != null ? $"\nChecksum: {Checksum.Id}:{Convert.ToHexString(Checksum.Value)}" : "")}";
+    public virtual string GetInfoString() => $"Path: {GetInfoPathString()}{(ContentType != null ? $"\nContent type: {ContentType}" : "")}{(Updated != null ? $"\nUpdated: {Updated}" : "")}{(Version != null ? $"\nVersion: {Version}" : "")}{(Checksum != null ? $"\nChecksum: {Checksum.Id}:{Convert.ToHexString(Checksum.Value)}" : "")}";
 
     /// <summary>
     /// Converts info record to model.

@@ -6,7 +6,10 @@ using System.Text;
 
 namespace Art;
 
-public partial class ArtifactTool
+/// <summary>
+/// Utility for paths.
+/// </summary>
+public static class PathUtil
 {
     /*
      * Code pulled from https://github.com/dotnet/runtime
