@@ -66,10 +66,32 @@ public partial class ArtifactTool
     /// <param name="artifactInfo">Artifact to check.</param>
     /// <param name="cancellationToken">Cancellation token.</param>
     /// <returns>Task returning comparison against whatever exists with the same ID.</returns>
-    public async ValueTask<ItemStateFlags> CompareArtifactAsync(ArtifactInfo artifactInfo, CancellationToken cancellationToken = default)
+    public ValueTask<ItemStateFlags> CompareArtifactAsync(ArtifactInfo artifactInfo, CancellationToken cancellationToken = default)
+    {
+        return ArtifactToolBaseExtensions.CompareArtifactAsync(this, artifactInfo, cancellationToken);
+    }
+
+    /// <summary>
+    /// Attempts to get resource with populated version (if available) based on provided resource.
+    /// </summary>
+    /// <param name="resource">Resource to check.</param>
+    /// <param name="resourceUpdate">Resource update mode.</param>
+    /// <param name="cancellationToken">Cancellation token.</param>
+    /// <returns>Task returning instance for the resource with populated version (if available), and additional state information.</returns>
+    public Task<ArtifactResourceInfoWithState> DetermineUpdatedResourceAsync(ArtifactResourceInfo resource, ResourceUpdateMode resourceUpdate, CancellationToken cancellationToken = default)
+    {
+        return ArtifactToolBaseExtensions.DetermineUpdatedResourceAsync(this, resource, resourceUpdate, cancellationToken);
+    }
+
+    #endregion
+}
+
+internal static partial class ArtifactToolBaseExtensions
+{
+    public static async ValueTask<ItemStateFlags> CompareArtifactAsync(this ArtifactToolBase artifactTool, ArtifactInfo artifactInfo, CancellationToken cancellationToken = default)
     {
         ItemStateFlags state = ItemStateFlags.None;
-        if (await TryGetArtifactAsync(artifactInfo.Key, cancellationToken).ConfigureAwait(false) is not { } oldArtifact)
+        if (await artifactTool.RegistrationManager.TryGetArtifactAsync(artifactInfo.Key, cancellationToken).ConfigureAwait(false) is not { } oldArtifact)
         {
             state |= ItemStateFlags.New;
             if (artifactInfo.Date != null || artifactInfo.UpdateDate != null)
@@ -104,14 +126,7 @@ public partial class ArtifactTool
         return state;
     }
 
-    /// <summary>
-    /// Attempts to get resource with populated version (if available) based on provided resource.
-    /// </summary>
-    /// <param name="resource">Resource to check.</param>
-    /// <param name="resourceUpdate">Resource update mode.</param>
-    /// <param name="cancellationToken">Cancellation token.</param>
-    /// <returns>Task returning instance for the resource with populated version (if available), and additional state information.</returns>
-    public async Task<ArtifactResourceInfoWithState> DetermineUpdatedResourceAsync(ArtifactResourceInfo resource, ResourceUpdateMode resourceUpdate, CancellationToken cancellationToken = default)
+    public static async Task<ArtifactResourceInfoWithState> DetermineUpdatedResourceAsync(this ArtifactToolBase artifactTool, ArtifactResourceInfo resource, ResourceUpdateMode resourceUpdate, CancellationToken cancellationToken = default)
     {
         ItemStateFlags state = resourceUpdate switch
         {
@@ -122,7 +137,7 @@ public partial class ArtifactTool
             _ => throw new ArgumentOutOfRangeException(nameof(resourceUpdate), resourceUpdate, null)
         };
         resource = await resource.WithMetadataAsync(cancellationToken).ConfigureAwait(false);
-        if (await TryGetResourceAsync(resource.Key, cancellationToken).ConfigureAwait(false) is not { } prev)
+        if (await artifactTool.RegistrationManager.TryGetResourceAsync(resource.Key, cancellationToken).ConfigureAwait(false) is not { } prev)
         {
             state |= ItemStateFlags.ChangedMetadata | ItemStateFlags.New;
             if (resource.Updated != null)
@@ -147,6 +162,4 @@ public partial class ArtifactTool
         }
         return new ArtifactResourceInfoWithState(resource, state);
     }
-
-    #endregion
 }

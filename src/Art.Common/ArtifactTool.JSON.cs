@@ -14,7 +14,7 @@ public partial class ArtifactTool
     /// <param name="cancellationToken">Cancellation token.</param>
     /// <returns>Value returning deserialized data.</returns>
     /// <remarks>
-    /// This overload uses <see cref="JsonOptions"/> member automatically.
+    /// This overload uses <see cref="ArtifactToolBase.JsonOptions"/> member automatically.
     /// </remarks>
     public async Task<T?> DeserializeJsonAsync<T>(Stream utf8Stream, CancellationToken cancellationToken = default)
         => await JsonSerializer.DeserializeAsync<T>(utf8Stream, JsonOptions, cancellationToken).ConfigureAwait(false);
@@ -27,7 +27,7 @@ public partial class ArtifactTool
     /// <param name="cancellationToken">Cancellation token.</param>
     /// <returns>Value returning deserialized data.</returns>
     /// <remarks>
-    /// This overload uses <see cref="JsonOptions"/> member automatically.
+    /// This overload uses <see cref="ArtifactToolBase.JsonOptions"/> member automatically.
     /// </remarks>
     public async Task<T> DeserializeRequiredJsonAsync<T>(Stream utf8Stream, CancellationToken cancellationToken = default)
         => await JsonSerializer.DeserializeAsync<T>(utf8Stream, JsonOptions, cancellationToken).ConfigureAwait(false) ?? throw new NullJsonDataException();
@@ -61,7 +61,7 @@ public partial class ArtifactTool
     /// <param name="str">String.</param>
     /// <returns>Value returning deserialized data.</returns>
     /// <remarks>
-    /// This overload uses <see cref="JsonOptions"/> member automatically.
+    /// This overload uses <see cref="ArtifactToolBase.JsonOptions"/> member automatically.
     /// </remarks>
     public T? DeserializeJson<T>(string str)
         => JsonSerializer.Deserialize<T>(str, JsonOptions);
@@ -73,7 +73,7 @@ public partial class ArtifactTool
     /// <param name="str">String.</param>
     /// <returns>Value returning deserialized data.</returns>
     /// <remarks>
-    /// This overload uses <see cref="JsonOptions"/> member automatically.
+    /// This overload uses <see cref="ArtifactToolBase.JsonOptions"/> member automatically.
     /// </remarks>
     public T DeserializeRequiredJson<T>(string str)
         => JsonSerializer.Deserialize<T>(str, JsonOptions) ?? throw new NullJsonDataException();

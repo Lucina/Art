@@ -6,7 +6,7 @@
 public record ArtifactToolDumpProxy
 {
     /// <summary>Artifact tool.</summary>
-    public ArtifactTool ArtifactTool { get; init; }
+    public ArtifactToolBase ArtifactTool { get; init; }
 
     /// <summary>Dump options.</summary>
     public ArtifactToolDumpOptions Options { get; init; }
@@ -23,10 +23,9 @@ public record ArtifactToolDumpProxy
     public ArtifactToolDumpProxy(ArtifactToolBase artifactTool, ArtifactToolDumpOptions options, IToolLogHandler? logHandler)
     {
         if (artifactTool == null) throw new ArgumentNullException(nameof(artifactTool));
-        if (artifactTool is not ArtifactTool artifactToolTyped) throw new ArgumentException($"Cannot use tool of type {artifactTool.GetType()} that does not derive from {nameof(global::Art.Common.ArtifactTool)}");
         if (options == null) throw new ArgumentNullException(nameof(options));
         Validate(options, true);
-        ArtifactTool = artifactToolTyped;
+        ArtifactTool = artifactTool;
         Options = options;
         LogHandler = logHandler;
     }
@@ -73,14 +72,14 @@ public record ArtifactToolDumpProxy
                             break;
                         case ArtifactSkipMode.FastExit:
                             {
-                                ArtifactInfo? info = await ArtifactTool.TryGetArtifactAsync(data.Info.Key.Id, cancellationToken).ConfigureAwait(false);
+                                ArtifactInfo? info = await ArtifactTool.RegistrationManager.TryGetArtifactAsync(new ArtifactKey(ArtifactTool.Profile.Tool, ArtifactTool.Profile.Group, data.Info.Key.Id), cancellationToken).ConfigureAwait(false);
                                 if (info != null)
                                     goto E_ArtifactDump_WaitForTasks;
                                 break;
                             }
                         case ArtifactSkipMode.Known:
                             {
-                                ArtifactInfo? info = await ArtifactTool.TryGetArtifactAsync(data.Info.Key.Id, cancellationToken).ConfigureAwait(false);
+                                ArtifactInfo? info = await ArtifactTool.RegistrationManager.TryGetArtifactAsync(new ArtifactKey(ArtifactTool.Profile.Tool, ArtifactTool.Profile.Group, data.Info.Key.Id), cancellationToken).ConfigureAwait(false);
                                 if (info != null)
                                     continue;
                                 break;
@@ -120,14 +119,14 @@ public record ArtifactToolDumpProxy
                             break;
                         case ArtifactSkipMode.FastExit:
                             {
-                                ArtifactInfo? info = await ArtifactTool.TryGetArtifactAsync(data.Info.Key.Id, cancellationToken).ConfigureAwait(false);
+                                ArtifactInfo? info = await ArtifactTool.RegistrationManager.TryGetArtifactAsync(new ArtifactKey(ArtifactTool.Profile.Tool, ArtifactTool.Profile.Group, data.Info.Key.Id), cancellationToken).ConfigureAwait(false);
                                 if (info != null)
                                     return;
                                 break;
                             }
                         case ArtifactSkipMode.Known:
                             {
-                                ArtifactInfo? info = await ArtifactTool.TryGetArtifactAsync(data.Info.Key.Id, cancellationToken).ConfigureAwait(false);
+                                ArtifactInfo? info = await ArtifactTool.RegistrationManager.TryGetArtifactAsync(new ArtifactKey(ArtifactTool.Profile.Tool, ArtifactTool.Profile.Group, data.Info.Key.Id), cancellationToken).ConfigureAwait(false);
                                 if (info != null)
                                     continue;
                                 break;

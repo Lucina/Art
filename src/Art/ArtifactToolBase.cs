@@ -1,5 +1,6 @@
 ﻿using System.Globalization;
 using System.Reflection;
+using System.Text.Json;
 
 namespace Art;
 
@@ -45,9 +46,20 @@ public abstract partial class ArtifactToolBase : IDisposable
     /// </summary>
     public ArtifactDataManager DataManager;
 
+    /// <summary>
+    /// JSON serialization defaults.
+    /// </summary>
+    public JsonSerializerOptions JsonOptions
+    {
+        get => _jsonOptions ??= new JsonSerializerOptions();
+        set => _jsonOptions = value;
+    }
+
     #endregion
 
     #region Private fields
+
+    private JsonSerializerOptions? _jsonOptions;
 
     private bool _disposed;
 

@@ -58,7 +58,7 @@ public static class ArtifactDumping
     /// <param name="logHandler">Log handler.</param>
     /// <param name="cancellationToken">Cancellation token.</param>
     /// <exception cref="ArgumentOutOfRangeException">Thrown if <paramref name="resourceUpdate"/> is invalid.</exception>
-    public static async Task DumpArtifactAsync(this ArtifactTool artifactTool, ArtifactData artifactData, ResourceUpdateMode resourceUpdate = ResourceUpdateMode.Soft, string? checksumId = null, EagerFlags eagerFlags = EagerFlags.None, IToolLogHandler? logHandler = null, CancellationToken cancellationToken = default)
+    public static async Task DumpArtifactAsync(this ArtifactToolBase artifactTool, ArtifactData artifactData, ResourceUpdateMode resourceUpdate = ResourceUpdateMode.Soft, string? checksumId = null, EagerFlags eagerFlags = EagerFlags.None, IToolLogHandler? logHandler = null, CancellationToken cancellationToken = default)
     {
         switch (resourceUpdate)
         {
@@ -73,7 +73,7 @@ public static class ArtifactDumping
         ItemStateFlags iF = await artifactTool.CompareArtifactAsync(artifactData.Info, cancellationToken).ConfigureAwait(false);
         logHandler?.Log(artifactTool.Profile.Tool, artifactTool.Profile.Group, $"{((iF & ItemStateFlags.NewerIdentityMask) != 0 ? "[NEW] " : "")}{artifactData.Info.GetInfoTitleString()}", artifactData.Info.GetInfoString(), LogLevel.Entry);
         if ((iF & ItemStateFlags.NewerIdentityMask) != 0)
-            await artifactTool.AddArtifactAsync(artifactData.Info with { Full = false }, cancellationToken).ConfigureAwait(false);
+            await artifactTool.RegistrationManager.AddArtifactAsync(artifactData.Info with { Full = false }, cancellationToken).ConfigureAwait(false);
         switch (resourceUpdate)
         {
             case ResourceUpdateMode.ArtifactSoft:
@@ -119,7 +119,7 @@ public static class ArtifactDumping
         }
         SaveArtifact:
         if ((iF & ItemStateFlags.NewerIdentityMask) != 0)
-            await artifactTool.AddArtifactAsync(artifactData.Info, cancellationToken).ConfigureAwait(false);
+            await artifactTool.RegistrationManager.AddArtifactAsync(artifactData.Info, cancellationToken).ConfigureAwait(false);
     }
 
     /// <summary>
@@ -131,19 +131,19 @@ public static class ArtifactDumping
     /// <param name="logHandler">Log handler.</param>
     /// <param name="checksumId">Checksum algorithm ID.</param>
     /// <param name="cancellationToken">Cancellation token.</param>
-    public static async Task DumpResourceAsync(this ArtifactTool artifactTool, ArtifactResourceInfo resource, ResourceUpdateMode resourceUpdate, IToolLogHandler? logHandler, string? checksumId, CancellationToken cancellationToken = default)
+    public static async Task DumpResourceAsync(this ArtifactToolBase artifactTool, ArtifactResourceInfo resource, ResourceUpdateMode resourceUpdate, IToolLogHandler? logHandler, string? checksumId, CancellationToken cancellationToken = default)
     {
         await UpdateResourceAsync(artifactTool, await artifactTool.DetermineUpdatedResourceAsync(resource, resourceUpdate, cancellationToken).ConfigureAwait(false), logHandler, checksumId, cancellationToken);
     }
 
-    private static async Task UpdateResourceAsync(ArtifactTool artifactTool, ArtifactResourceInfoWithState aris, IToolLogHandler? logHandler, string? checksumId, CancellationToken cancellationToken)
+    private static async Task UpdateResourceAsync(ArtifactToolBase artifactTool, ArtifactResourceInfoWithState aris, IToolLogHandler? logHandler, string? checksumId, CancellationToken cancellationToken)
     {
         (ArtifactResourceInfo versionedResource, ItemStateFlags rF) = aris;
         if ((rF & ItemStateFlags.NewerIdentityMask) != 0 && versionedResource.Exportable)
         {
             OutputStreamOptions options = OutputStreamOptions.Default;
             versionedResource.AugmentOutputStreamOptions(ref options);
-            await using CommittableStream stream = await artifactTool.CreateOutputStreamAsync(versionedResource.Key, options, cancellationToken).ConfigureAwait(false);
+            await using CommittableStream stream = await artifactTool.DataManager.CreateOutputStreamAsync(versionedResource.Key, options, cancellationToken).ConfigureAwait(false);
             if (checksumId != null && ChecksumSource.TryGetHashAlgorithm(checksumId, out HashAlgorithm? algorithm))
             {
                 // Take this opportunity to hash the resource.
@@ -165,6 +165,6 @@ public static class ArtifactDumping
         }
         logHandler?.Log(artifactTool.Profile.Tool, artifactTool.Profile.Group, $"-- {((rF & ItemStateFlags.NewerIdentityMask) != 0 ? "[NEW] " : "")}{versionedResource.GetInfoPathString()}", versionedResource.GetInfoString(), LogLevel.Entry);
         if ((rF & ItemStateFlags.DifferentMask) != 0)
-            await artifactTool.AddResourceAsync(versionedResource, cancellationToken).ConfigureAwait(false);
+            await artifactTool.RegistrationManager.AddResourceAsync(versionedResource, cancellationToken).ConfigureAwait(false);
     }
 }

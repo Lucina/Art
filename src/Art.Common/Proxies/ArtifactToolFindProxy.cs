@@ -4,7 +4,7 @@
 /// Proxy to run artifact tool as a find tool.
 /// </summary>
 /// <param name="ArtifactTool">Artifact tool.</param>
-public record ArtifactToolFindProxy(ArtifactTool ArtifactTool)
+public record ArtifactToolFindProxy(ArtifactToolBase ArtifactTool)
 {
     #region API
 
