@@ -1,5 +1,5 @@
-﻿using Art.CipherPadding;
-using Art.Crypto;
+﻿using Art.Common.CipherPadding;
+using Art.Common.Crypto;
 
 namespace Art.Common.Resources;
 

@@ -1,5 +1,3 @@
-using Art.Management;
-
 namespace Art.Common.Management;
 
 /// <summary>

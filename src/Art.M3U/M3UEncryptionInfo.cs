@@ -1,6 +1,6 @@
 using System.Buffers.Binary;
 using System.Security.Cryptography;
-using Art.Crypto;
+using Art.Common.Crypto;
 using PaddingMode = System.Security.Cryptography.PaddingMode;
 
 namespace Art.M3U;

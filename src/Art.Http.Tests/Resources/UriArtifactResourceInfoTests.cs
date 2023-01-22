@@ -4,7 +4,7 @@ using System.Net;
 using System.Security.Cryptography;
 using System.Threading.Tasks;
 using Art.Common;
-using Art.Crypto;
+using Art.Common.Crypto;
 using Art.Http.Resources;
 using NUnit.Framework;
 using RichardSzalay.MockHttp;

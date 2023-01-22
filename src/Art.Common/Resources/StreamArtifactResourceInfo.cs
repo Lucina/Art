@@ -1,6 +1,4 @@
-﻿using Art.Crypto;
-
-namespace Art.Common.Resources;
+﻿namespace Art.Common.Resources;
 
 /// <summary>
 /// Provides artifact information.

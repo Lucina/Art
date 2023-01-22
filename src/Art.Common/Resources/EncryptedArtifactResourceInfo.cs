@@ -1,5 +1,5 @@
 ﻿using System.Security.Cryptography;
-using Art.Crypto;
+using Art.Common.Crypto;
 
 namespace Art.Common.Resources;
 

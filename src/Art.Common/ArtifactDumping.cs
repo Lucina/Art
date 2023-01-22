@@ -1,8 +1,6 @@
 ﻿using System.Security.Cryptography;
 using Art.Common.Management;
 using Art.Common.Proxies;
-using Art.Crypto;
-using Art.Management;
 
 namespace Art.Common;
 

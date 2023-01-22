@@ -1,6 +1,4 @@
-﻿using Art.Management;
-
-namespace Art.Http;
+﻿namespace Art.Http;
 
 public partial class HttpArtifactTool
 {

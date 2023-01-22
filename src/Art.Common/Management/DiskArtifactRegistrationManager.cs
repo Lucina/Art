@@ -1,6 +1,5 @@
 ﻿using System.Globalization;
 using System.Linq.Expressions;
-using Art.Management;
 
 namespace Art.Common.Management;
 

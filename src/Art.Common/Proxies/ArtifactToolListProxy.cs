@@ -1,6 +1,5 @@
 ﻿using System.Runtime.CompilerServices;
 using Art.Common.Management;
-using Art.Management;
 
 namespace Art.Common.Proxies;
 

@@ -1,6 +1,4 @@
-﻿using Art.Management;
-
-namespace Art.Common.Management;
+﻿namespace Art.Common.Management;
 
 /// <summary>
 /// Represents a simple <see cref="ArtifactDataManager"/> with purely file-based tracking.

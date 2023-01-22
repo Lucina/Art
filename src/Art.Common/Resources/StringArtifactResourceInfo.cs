@@ -1,5 +1,4 @@
 ﻿using System.Text;
-using Art.Crypto;
 
 namespace Art.Common.Resources;
 

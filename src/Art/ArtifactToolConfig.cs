@@ -1,6 +1,4 @@
-﻿using Art.Management;
-
-namespace Art;
+﻿namespace Art;
 
 /// <summary>
 /// Runtime configuration for a <see cref="ArtifactTool"/>.
@@ -12,5 +10,5 @@ public record ArtifactToolConfig(ArtifactRegistrationManager RegistrationManager
     /// <summary>
     /// Shared default instance.
     /// </summary>
-    public static readonly ArtifactToolConfig Default = new(NullArtifactRegistrationManager.Instance, NullArtifactDataManager.Instance);
+    public static readonly ArtifactToolConfig Default = new(HiddenNullArtifactRegistrationManager.Instance, HiddenNullArtifactDataManager.Instance);
 }

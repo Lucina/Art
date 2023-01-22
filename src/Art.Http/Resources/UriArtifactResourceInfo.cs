@@ -1,6 +1,4 @@
-﻿using Art.Crypto;
-
-namespace Art.Http.Resources;
+﻿namespace Art.Http.Resources;
 
 /// <summary>
 /// Provides artifact information.
