@@ -22,11 +22,6 @@ public abstract partial class ArtifactTool : IDisposable
     public IToolLogHandler? LogHandler;
 
     /// <summary>
-    /// Option used to check if currently in debug mode.
-    /// </summary>
-    public const string OptDebugMode = "debugMode";
-
-    /// <summary>
     /// JSON serialization defaults.
     /// </summary>
     public JsonSerializerOptions JsonOptions
@@ -70,17 +65,19 @@ public abstract partial class ArtifactTool : IDisposable
     /// </summary>
     public ArtifactDataManager DataManager;
 
+    /// <summary>
+    /// True if first delay has been triggered.
+    /// </summary>
+    public bool DelayFirstCalled;
+
     #endregion
 
     #region Private fields
-
-    private static readonly HashSet<string> s_yesLower = new HashSet<string> { "y", "yes", "" };
 
     private JsonSerializerOptions? _jsonOptions;
 
     private bool _disposed;
 
-    private bool _delayFirstCalled;
 
     //private bool _initialized;
 
@@ -150,7 +147,6 @@ public abstract partial class ArtifactTool : IDisposable
     /// </remarks>
     public virtual void ConfigureOptions()
     {
-        GetFlag(OptDebugMode, ref DebugMode);
     }
 
     #endregion

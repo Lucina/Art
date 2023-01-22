@@ -24,7 +24,7 @@ public static class ArtifactDumping
         dumpOptions ??= new ArtifactToolDumpOptions();
         var srm = new DiskArtifactRegistrationManager(targetDirectory);
         var sdm = new DiskArtifactDataManager(targetDirectory);
-        foreach (ArtifactToolProfile profile in ArtifactToolProfile.DeserializeProfilesFromFile(artifactToolProfilePath))
+        foreach (ArtifactToolProfile profile in ArtifactToolProfileLoader.DeserializeProfilesFromFile(artifactToolProfilePath))
             await DumpAsync(profile, srm, sdm, dumpOptions, toolLogHandler, cancellationToken).ConfigureAwait(false);
     }
 
