@@ -11,8 +11,8 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <!--<PackageReference Include="Art" Version="0.41.0" />-->
-    <ProjectReference Include="..\Art\Art.csproj" />
+    <PackageReference Include="Art" Version="0.41.0" />
+    <!--<ProjectReference Include="..\Art\Art.csproj" />-->
   </ItemGroup>
 
   <ItemGroup>
