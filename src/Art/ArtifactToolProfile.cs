@@ -56,8 +56,8 @@ public record ArtifactToolProfile(
     /// <param name="group">Target group.</param>
     /// <param name="options">Options.</param>
     /// <returns>Profile.</returns>
-    public static ArtifactToolProfile Create<TTool>(string group, params (string, JsonElement)[] options) where TTool : ArtifactTool
-        => new(ArtifactTool.CreateToolString<TTool>(), group, options.ToDictionary(v => v.Item1, v => v.Item2));
+    public static ArtifactToolProfile Create<TTool>(string group, params (string, JsonElement)[] options) where TTool : ArtifactToolBase
+        => new(ArtifactToolBase.CreateToolString<TTool>(), group, options.ToDictionary(v => v.Item1, v => v.Item2));
 
     /// <summary>
     /// Creates a tool profile for the specified tool.
@@ -86,7 +86,7 @@ public record ArtifactToolProfile(
         => CreateInternal(toolType, group, options, true);
 
     private static ArtifactToolProfile CreateInternal(Type toolType, string group, (string, JsonElement)[] options, bool alwaysOptions)
-        => new(ArtifactTool.CreateToolString(toolType), group, options.Length == 0 ? alwaysOptions ? new Dictionary<string, JsonElement>() : null : options.ToDictionary(v => v.Item1, v => v.Item2));
+        => new(ArtifactToolBase.CreateToolString(toolType), group, options.Length == 0 ? alwaysOptions ? new Dictionary<string, JsonElement>() : null : options.ToDictionary(v => v.Item1, v => v.Item2));
 
     /// <summary>
     /// Creates an instance of this profile with most derived core type of instance or instance's type.
@@ -100,7 +100,7 @@ public record ArtifactToolProfile(
     /// </summary>
     /// <param name="type">Tool type.</param>
     /// <returns>Profile.</returns>
-    public ArtifactToolProfile WithCoreTool(Type type) => this with { Tool = ArtifactTool.CreateCoreToolString(type) };
+    public ArtifactToolProfile WithCoreTool(Type type) => this with { Tool = ArtifactToolBase.CreateCoreToolString(type) };
 
     /// <summary>
     /// Creates an instance of this profile with specified comparer.

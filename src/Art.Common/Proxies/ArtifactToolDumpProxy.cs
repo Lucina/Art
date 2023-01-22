@@ -20,12 +20,13 @@ public record ArtifactToolDumpProxy
     /// <param name="artifactTool">Artifact tool.</param>
     /// <param name="options">Dump options.</param>
     /// <param name="logHandler">Log handler.</param>
-    public ArtifactToolDumpProxy(ArtifactTool artifactTool, ArtifactToolDumpOptions options, IToolLogHandler? logHandler)
+    public ArtifactToolDumpProxy(ArtifactToolBase artifactTool, ArtifactToolDumpOptions options, IToolLogHandler? logHandler)
     {
         if (artifactTool == null) throw new ArgumentNullException(nameof(artifactTool));
+        if (artifactTool is not ArtifactTool artifactToolTyped) throw new ArgumentException($"Cannot use tool of type {artifactTool.GetType()} that does not derive from {nameof(global::Art.Common.ArtifactTool)}");
         if (options == null) throw new ArgumentNullException(nameof(options));
         Validate(options, true);
-        ArtifactTool = artifactTool;
+        ArtifactTool = artifactToolTyped;
         Options = options;
         LogHandler = logHandler;
     }

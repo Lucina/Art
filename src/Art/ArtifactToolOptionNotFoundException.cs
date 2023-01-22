@@ -3,7 +3,7 @@
 namespace Art;
 
 /// <summary>
-/// Represents an exception thrown when an option needed by a <see cref="ArtifactTool"/> is not found.
+/// Represents an exception thrown when an option needed by a <see cref="ArtifactToolBase"/> is not found.
 /// </summary>
 public class ArtifactToolOptionNotFoundException : Exception
 {

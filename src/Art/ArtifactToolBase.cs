@@ -1,13 +1,12 @@
 ﻿using System.Globalization;
 using System.Reflection;
-using System.Text.Json;
 
 namespace Art;
 
 /// <summary>
 /// Represents an instance of an artifact tool.
 /// </summary>
-public abstract partial class ArtifactTool : IDisposable
+public abstract partial class ArtifactToolBase : IDisposable
 {
     #region Fields
 
@@ -22,33 +21,14 @@ public abstract partial class ArtifactTool : IDisposable
     public IToolLogHandler? LogHandler;
 
     /// <summary>
-    /// JSON serialization defaults.
-    /// </summary>
-    public JsonSerializerOptions JsonOptions
-    {
-        get => _jsonOptions ??= new JsonSerializerOptions();
-        set => _jsonOptions = value;
-    }
-
-    /// <summary>
     /// Origin tool profile.
     /// </summary>
     public ArtifactToolProfile Profile { get; private set; }
 
     /// <summary>
-    /// True if this tool is in debug mode.
-    /// </summary>
-    public bool DebugMode;
-
-    /// <summary>
     /// Configuration
     /// </summary>
     public ArtifactToolConfig Config { get; private set; }
-
-    /// <summary>
-    /// Default delay time in seconds.
-    /// </summary>
-    public virtual double DelaySeconds => 0.25;
 
     /// <summary>
     /// Allowed eager evaluation modes for this tool.
@@ -65,16 +45,9 @@ public abstract partial class ArtifactTool : IDisposable
     /// </summary>
     public ArtifactDataManager DataManager;
 
-    /// <summary>
-    /// True if first delay has been triggered.
-    /// </summary>
-    public bool DelayFirstCalled;
-
     #endregion
 
     #region Private fields
-
-    private JsonSerializerOptions? _jsonOptions;
 
     private bool _disposed;
 
@@ -86,9 +59,9 @@ public abstract partial class ArtifactTool : IDisposable
     #region Constructor
 
     /// <summary>
-    /// Creates a new instance of <see cref="ArtifactTool"/>.
+    /// Creates a new instance of <see cref="ArtifactToolBase"/>.
     /// </summary>
-    protected ArtifactTool()
+    protected ArtifactToolBase()
     {
         RegistrationManager = null!;
         DataManager = null!;
@@ -180,7 +153,7 @@ public abstract partial class ArtifactTool : IDisposable
 
     private void EnsureNotDisposed()
     {
-        if (_disposed) throw new ObjectDisposedException(nameof(ArtifactTool));
+        if (_disposed) throw new ObjectDisposedException(nameof(ArtifactToolBase));
     }
 
     #endregion
@@ -204,7 +177,7 @@ public abstract partial class ArtifactTool : IDisposable
     /// </summary>
     /// <typeparam name="TTool">Tool type.</typeparam>
     /// <returns>Tool string.</returns>
-    public static string CreateCoreToolString<TTool>() where TTool : ArtifactTool
+    public static string CreateCoreToolString<TTool>() where TTool : ArtifactToolBase
         => CreateCoreToolString(typeof(TTool));
 
     /// <summary>
@@ -224,7 +197,7 @@ public abstract partial class ArtifactTool : IDisposable
     /// </summary>
     /// <typeparam name="TTool">Tool type.</typeparam>
     /// <returns>Tool string.</returns>
-    public static string CreateToolString<TTool>() where TTool : ArtifactTool
+    public static string CreateToolString<TTool>() where TTool : ArtifactToolBase
         => CreateToolString(typeof(TTool));
 
     /// <summary>
@@ -237,10 +210,10 @@ public abstract partial class ArtifactTool : IDisposable
     /// <returns>Task.</returns>
     /// <exception cref="ArgumentException">Thrown when an invalid profile is provided.</exception>
     /// <exception cref="ArtifactToolNotFoundException">Thrown when tool is not found.</exception>
-    public static async Task<ArtifactTool> PrepareToolAsync(ArtifactToolProfile artifactToolProfile, ArtifactRegistrationManager artifactRegistrationManager, ArtifactDataManager artifactDataManager, CancellationToken cancellationToken = default)
+    public static async Task<ArtifactToolBase> PrepareToolAsync(ArtifactToolProfile artifactToolProfile, ArtifactRegistrationManager artifactRegistrationManager, ArtifactDataManager artifactDataManager, CancellationToken cancellationToken = default)
     {
         if (artifactToolProfile.Group == null) throw new ArgumentException("Group not specified in profile");
-        if (!ArtifactToolLoader.TryLoad(artifactToolProfile, out ArtifactTool? t))
+        if (!ArtifactToolLoader.TryLoad(artifactToolProfile, out ArtifactToolBase? t))
             throw new ArtifactToolNotFoundException(artifactToolProfile.Tool);
         ArtifactToolConfig config = new(artifactRegistrationManager, artifactDataManager);
         artifactToolProfile = artifactToolProfile.WithCoreTool(t);

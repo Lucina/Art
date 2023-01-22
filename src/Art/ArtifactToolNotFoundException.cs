@@ -1,7 +1,7 @@
 ﻿namespace Art;
 
 /// <summary>
-/// Represents an exception thrown when a <see cref="ArtifactTool"/> could not be found.
+/// Represents an exception thrown when a <see cref="ArtifactToolBase"/> could not be found.
 /// </summary>
 public class ArtifactToolNotFoundException : Exception
 {

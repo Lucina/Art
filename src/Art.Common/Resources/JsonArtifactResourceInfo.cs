@@ -67,7 +67,7 @@ public partial class ArtifactDataExtensions
     /// <param name="version">Version.</param>
     /// <param name="checksum">Checksum.</param>
     public static ArtifactDataResource Json<T>(this ArtifactData artifactData, T resource, ArtifactResourceKey key, string? contentType = "application/json", DateTimeOffset? updated = null, string? version = null, Checksum? checksum = null)
-        => new(artifactData, new JsonArtifactResourceInfo<T>(resource, artifactData.Tool?.JsonOptions, key, contentType, updated, version, checksum));
+        => new(artifactData, new JsonArtifactResourceInfo<T>(resource, (artifactData.Tool as ArtifactTool)?.JsonOptions, key, contentType, updated, version, checksum));
 
     /// <summary>
     /// Creates a <see cref="JsonArtifactResourceInfo{T}"/> resource.
@@ -81,5 +81,5 @@ public partial class ArtifactDataExtensions
     /// <param name="version">Version.</param>
     /// <param name="checksum">Checksum.</param>
     public static ArtifactDataResource Json<T>(this ArtifactData artifactData, T resource, string file, string path = "", string? contentType = "application/json", DateTimeOffset? updated = null, string? version = null, Checksum? checksum = null)
-        => new(artifactData, new JsonArtifactResourceInfo<T>(resource, artifactData.Tool?.JsonOptions, new ArtifactResourceKey(artifactData.Info.Key, file, path), contentType, updated, version, checksum));
+        => new(artifactData, new JsonArtifactResourceInfo<T>(resource, (artifactData.Tool as ArtifactTool)?.JsonOptions, new ArtifactResourceKey(artifactData.Info.Key, file, path), contentType, updated, version, checksum));
 }
