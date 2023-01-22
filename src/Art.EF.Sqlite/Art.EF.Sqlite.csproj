@@ -1,13 +1,18 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <PackageVersion>0.40.1</PackageVersion>
+    <PackageVersion>0.41.0</PackageVersion>
     <AssemblyVersion>1.0.0</AssemblyVersion>
   </PropertyGroup>
 
+  <PropertyGroup Condition="'$(Configuration)'=='Release'">
+    <SignAssembly>true</SignAssembly>
+    <AssemblyOriginatorKeyFile>../../Key.snk</AssemblyOriginatorKeyFile>
+  </PropertyGroup>
+
   <ItemGroup>
-    <PackageReference Include="Art.EF" Version="0.40.0" />
-    <!--<ProjectReference Include="..\Art.EF\Art.EF.csproj" />-->
+    <!--<PackageReference Include="Art.EF" Version="0.41.0" />-->
+    <ProjectReference Include="..\Art.EF\Art.EF.csproj" />
   </ItemGroup>
 
   <ItemGroup>
