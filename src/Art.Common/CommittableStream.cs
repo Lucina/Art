@@ -1,19 +1,15 @@
-namespace Art;
+﻿namespace Art.Common;
 
 /// <summary>
-/// Represents a stream that will be committed upon disposal if <see cref="ShouldCommit"/> is set.
+/// Represents a stream that will be committed upon disposal if <see cref="CommittableStreamBase.ShouldCommit"/> is set.
 /// </summary>
-public abstract class CommittableStream : Stream
+public abstract class CommittableStream : CommittableStreamBase
 {
-    /// <summary>
-    /// If true, commit this stream upon disposal.
-    /// </summary>
-    public bool ShouldCommit { get; set; }
-
     /// <summary>
     /// If true, this stream has been committed.
     /// </summary>
     protected bool Committed { get; private set; }
+
 
     /// <inheritdoc />
     protected override void Dispose(bool disposing)

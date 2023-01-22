@@ -185,7 +185,7 @@ public partial class HttpArtifactTool
     {
         OutputStreamOptions options = OutputStreamOptions.Default;
         if (response.Content.Headers.ContentLength is { } contentLength) options = options with { PreallocationSize = contentLength };
-        await using CommittableStream stream = await CreateOutputStreamAsync(key, options, cancellationToken).ConfigureAwait(false);
+        await using CommittableStreamBase stream = await CreateOutputStreamAsync(key, options, cancellationToken).ConfigureAwait(false);
         await response.Content.CopyToAsync(stream, cancellationToken).ConfigureAwait(false);
         stream.ShouldCommit = true;
     }

@@ -22,7 +22,7 @@ public class InMemoryArtifactDataManager : ArtifactDataManager
     private readonly Dictionary<ArtifactResourceKey, Stream> _entries = new();
 
     /// <inheritdoc />
-    public override ValueTask<CommittableStream> CreateOutputStreamAsync(ArtifactResourceKey key, OutputStreamOptions? options = null, CancellationToken cancellationToken = default)
+    public override ValueTask<CommittableStreamBase> CreateOutputStreamAsync(ArtifactResourceKey key, OutputStreamOptions? options = null, CancellationToken cancellationToken = default)
     {
         // Create a new output stream. If one already exists for mapping, get rid of it.
         // Since everything uses CommittableMemoryStream, underlying memory stream isn't disposed, so
@@ -33,7 +33,7 @@ public class InMemoryArtifactDataManager : ArtifactDataManager
             s.Dispose();
             _entries.Remove(key);
         }
-        CommittableStream stream;
+        CommittableStreamBase stream;
         if (options is { } optionsActual)
         {
             long preallocationSize = optionsActual.PreallocationSize;
@@ -47,7 +47,7 @@ public class InMemoryArtifactDataManager : ArtifactDataManager
             _artifacts.Add(ak, list = new List<ArtifactResourceInfo>());
         list.Add(new ResultStreamArtifactResourceInfo(stream, key, null, null, null));
         _entries[key] = stream;
-        return new ValueTask<CommittableStream>(stream);
+        return new ValueTask<CommittableStreamBase>(stream);
     }
 
     /// <inheritdoc />

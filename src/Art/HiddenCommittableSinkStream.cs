@@ -1,6 +1,6 @@
 namespace Art;
 
-internal class HiddenCommittableSinkStream : CommittableStream
+internal class HiddenCommittableSinkStream : CommittableStreamBase
 {
     /// <inheritdoc />
     public override void Flush()
@@ -59,16 +59,5 @@ internal class HiddenCommittableSinkStream : CommittableStream
     {
         get { throw new NotSupportedException(); }
         set { throw new NotSupportedException(); }
-    }
-
-    /// <inheritdoc />
-    protected override void Commit(bool shouldCommit)
-    {
-    }
-
-    /// <inheritdoc />
-    protected override ValueTask CommitAsync(bool shouldCommit)
-    {
-        return ValueTask.CompletedTask;
     }
 }
