@@ -5,7 +5,7 @@ namespace Art.EF;
 /// <summary>
 /// Represents an EF artifact registration manager.
 /// </summary>
-public class EFArtifactRegistrationManager : ArtifactRegistrationManagerBase, IDisposable, IAsyncDisposable
+public class EFArtifactRegistrationManager : IArtifactRegistrationManager, IDisposable, IAsyncDisposable
 {
     private bool _disposed;
 
@@ -24,77 +24,77 @@ public class EFArtifactRegistrationManager : ArtifactRegistrationManagerBase, ID
     }
 
     /// <inheritdoc />
-    public override Task<List<ArtifactInfo>> ListArtifactsAsync(CancellationToken cancellationToken = default)
+    public Task<List<ArtifactInfo>> ListArtifactsAsync(CancellationToken cancellationToken = default)
     {
         EnsureNotDisposed();
         return Context.ListArtifactsAsync(cancellationToken);
     }
 
     /// <inheritdoc />
-    public override Task<List<ArtifactInfo>> ListArtifactsAsync(Expression<Func<ArtifactInfoModel, bool>> predicate, CancellationToken cancellationToken = default)
+    public Task<List<ArtifactInfo>> ListArtifactsAsync(Expression<Func<ArtifactInfoModel, bool>> predicate, CancellationToken cancellationToken = default)
     {
         EnsureNotDisposed();
         return Context.ListArtifactsAsync(predicate, cancellationToken);
     }
 
     /// <inheritdoc />
-    public override Task<List<ArtifactInfo>> ListArtifactsAsync(string tool, CancellationToken cancellationToken = default)
+    public Task<List<ArtifactInfo>> ListArtifactsAsync(string tool, CancellationToken cancellationToken = default)
     {
         EnsureNotDisposed();
         return Context.ListArtifactsAsync(tool, cancellationToken);
     }
 
     /// <inheritdoc />
-    public override Task<List<ArtifactInfo>> ListArtifactsAsync(string tool, string group, CancellationToken cancellationToken = default)
+    public Task<List<ArtifactInfo>> ListArtifactsAsync(string tool, string group, CancellationToken cancellationToken = default)
     {
         EnsureNotDisposed();
         return Context.ListArtifactsAsync(tool, group, cancellationToken);
     }
 
     /// <inheritdoc />
-    public override ValueTask AddArtifactAsync(ArtifactInfo artifactInfo, CancellationToken cancellationToken = default)
+    public ValueTask AddArtifactAsync(ArtifactInfo artifactInfo, CancellationToken cancellationToken = default)
     {
         EnsureNotDisposed();
         return Context.AddArtifactAsync(artifactInfo, cancellationToken);
     }
 
     /// <inheritdoc />
-    public override Task<List<ArtifactResourceInfo>> ListResourcesAsync(ArtifactKey key, CancellationToken cancellationToken = default)
+    public Task<List<ArtifactResourceInfo>> ListResourcesAsync(ArtifactKey key, CancellationToken cancellationToken = default)
     {
         EnsureNotDisposed();
         return Context.ListResourcesAsync(key, cancellationToken);
     }
 
     /// <inheritdoc />
-    public override ValueTask AddResourceAsync(ArtifactResourceInfo artifactResourceInfo, CancellationToken cancellationToken = default)
+    public ValueTask AddResourceAsync(ArtifactResourceInfo artifactResourceInfo, CancellationToken cancellationToken = default)
     {
         EnsureNotDisposed();
         return Context.AddResourceAsync(artifactResourceInfo, cancellationToken);
     }
 
     /// <inheritdoc />
-    public override ValueTask<ArtifactInfo?> TryGetArtifactAsync(ArtifactKey key, CancellationToken cancellationToken = default)
+    public ValueTask<ArtifactInfo?> TryGetArtifactAsync(ArtifactKey key, CancellationToken cancellationToken = default)
     {
         EnsureNotDisposed();
         return Context.TryGetArtifactAsync(key, cancellationToken);
     }
 
     /// <inheritdoc />
-    public override ValueTask<ArtifactResourceInfo?> TryGetResourceAsync(ArtifactResourceKey key, CancellationToken cancellationToken = default)
+    public ValueTask<ArtifactResourceInfo?> TryGetResourceAsync(ArtifactResourceKey key, CancellationToken cancellationToken = default)
     {
         EnsureNotDisposed();
         return Context.TryGetResourceAsync(key, cancellationToken);
     }
 
     /// <inheritdoc />
-    public override ValueTask RemoveArtifactAsync(ArtifactKey key, CancellationToken cancellationToken = default)
+    public ValueTask RemoveArtifactAsync(ArtifactKey key, CancellationToken cancellationToken = default)
     {
         EnsureNotDisposed();
         return Context.RemoveArtifactAsync(key, cancellationToken);
     }
 
     /// <inheritdoc />
-    public override ValueTask RemoveResourceAsync(ArtifactResourceKey key, CancellationToken cancellationToken = default)
+    public ValueTask RemoveResourceAsync(ArtifactResourceKey key, CancellationToken cancellationToken = default)
     {
         EnsureNotDisposed();
         return Context.RemoveResourceAsync(key, cancellationToken);

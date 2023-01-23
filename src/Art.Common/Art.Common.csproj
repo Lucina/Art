@@ -1,7 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <PackageVersion>0.41.0</PackageVersion>
+    <PackageVersion>0.42.0</PackageVersion>
     <AssemblyVersion>1.0.0</AssemblyVersion>
   </PropertyGroup>
 
@@ -11,8 +11,16 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Art" Version="0.41.0" />
-    <!--<ProjectReference Include="..\Art\Art.csproj" />-->
+    <!--<PackageReference Include="Art" Version="0.42.0" />-->
+    <ProjectReference Include="..\Art\Art.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Update="NOTICE.Art.Common.md">
+      <Link>NOTICE.Art.Common.md</Link>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <PackagePath>contentFiles/any/any/</PackagePath>
+    </Content>
   </ItemGroup>
 
   <PropertyGroup>

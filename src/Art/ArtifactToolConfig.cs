@@ -5,7 +5,7 @@
 /// </summary>
 /// <param name="RegistrationManager">Registration manager.</param>
 /// <param name="DataManager">Data manager.</param>
-public record ArtifactToolConfig(ArtifactRegistrationManagerBase RegistrationManager, ArtifactDataManagerBase DataManager)
+public record ArtifactToolConfig(IArtifactRegistrationManager RegistrationManager, IArtifactDataManager DataManager)
 {
     /// <summary>
     /// Shared default instance.

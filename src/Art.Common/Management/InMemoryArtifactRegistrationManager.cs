@@ -5,33 +5,33 @@ namespace Art.Common.Management;
 /// <summary>
 /// Represents an in-memory artifact registration manager.
 /// </summary>
-public class InMemoryArtifactRegistrationManager : ArtifactRegistrationManagerBase
+public class InMemoryArtifactRegistrationManager : IArtifactRegistrationManager
 {
     private readonly Dictionary<ArtifactKey, ArtifactInfo> _artifacts = new();
 
     private readonly Dictionary<ArtifactKey, Dictionary<ArtifactResourceKey, ArtifactResourceInfo>> _resources = new();
 
     /// <inheritdoc />
-    public override Task<List<ArtifactInfo>> ListArtifactsAsync(CancellationToken cancellationToken = new())
+    public Task<List<ArtifactInfo>> ListArtifactsAsync(CancellationToken cancellationToken = new())
         => Task.FromResult(_artifacts.Values.ToList());
 
     /// <inheritdoc />
-    public override Task<List<ArtifactInfo>> ListArtifactsAsync(Expression<Func<ArtifactInfoModel, bool>> predicate, CancellationToken cancellationToken = default)
+    public Task<List<ArtifactInfo>> ListArtifactsAsync(Expression<Func<ArtifactInfoModel, bool>> predicate, CancellationToken cancellationToken = default)
     {
         var x = predicate.Compile();
         return Task.FromResult(_artifacts.Values.Where(v => x(v)).ToList());
     }
 
     /// <inheritdoc />
-    public override Task<List<ArtifactInfo>> ListArtifactsAsync(string tool, CancellationToken cancellationToken = new())
+    public Task<List<ArtifactInfo>> ListArtifactsAsync(string tool, CancellationToken cancellationToken = new())
         => Task.FromResult(_artifacts.Values.Where(v => v.Key.Tool == tool).ToList());
 
     /// <inheritdoc />
-    public override Task<List<ArtifactInfo>> ListArtifactsAsync(string tool, string group, CancellationToken cancellationToken = new())
+    public Task<List<ArtifactInfo>> ListArtifactsAsync(string tool, string group, CancellationToken cancellationToken = new())
         => Task.FromResult(_artifacts.Values.Where(v => v.Key.Tool == tool && v.Key.Group == group).ToList());
 
     /// <inheritdoc />
-    public override Task<List<ArtifactResourceInfo>> ListResourcesAsync(ArtifactKey key, CancellationToken cancellationToken = new())
+    public Task<List<ArtifactResourceInfo>> ListResourcesAsync(ArtifactKey key, CancellationToken cancellationToken = new())
     {
         if (_resources.TryGetValue(key, out var dict))
         {
@@ -41,20 +41,20 @@ public class InMemoryArtifactRegistrationManager : ArtifactRegistrationManagerBa
     }
 
     /// <inheritdoc />
-    public override ValueTask AddArtifactAsync(ArtifactInfo artifactInfo, CancellationToken ct = default)
+    public ValueTask AddArtifactAsync(ArtifactInfo artifactInfo, CancellationToken ct = default)
     {
         _artifacts[artifactInfo.Key] = artifactInfo;
         return ValueTask.CompletedTask;
     }
 
     /// <inheritdoc />
-    public override ValueTask<ArtifactInfo?> TryGetArtifactAsync(ArtifactKey key, CancellationToken ct = default)
+    public ValueTask<ArtifactInfo?> TryGetArtifactAsync(ArtifactKey key, CancellationToken ct = default)
     {
         return new ValueTask<ArtifactInfo?>(_artifacts.TryGetValue(key, out ArtifactInfo? value) ? value : null);
     }
 
     /// <inheritdoc />
-    public override ValueTask AddResourceAsync(ArtifactResourceInfo artifactResourceInfo, CancellationToken ct = default)
+    public ValueTask AddResourceAsync(ArtifactResourceInfo artifactResourceInfo, CancellationToken ct = default)
     {
         if (!_resources.TryGetValue(artifactResourceInfo.Key.Artifact, out var dict))
         {
@@ -65,20 +65,20 @@ public class InMemoryArtifactRegistrationManager : ArtifactRegistrationManagerBa
     }
 
     /// <inheritdoc />
-    public override ValueTask<ArtifactResourceInfo?> TryGetResourceAsync(ArtifactResourceKey key, CancellationToken ct = default)
+    public ValueTask<ArtifactResourceInfo?> TryGetResourceAsync(ArtifactResourceKey key, CancellationToken ct = default)
     {
         return new ValueTask<ArtifactResourceInfo?>(_resources.TryGetValue(key.Artifact, out var dict) && dict.TryGetValue(key, out var value) ? value : null);
     }
 
     /// <inheritdoc />
-    public override ValueTask RemoveArtifactAsync(ArtifactKey key, CancellationToken cancellationToken = default)
+    public ValueTask RemoveArtifactAsync(ArtifactKey key, CancellationToken cancellationToken = default)
     {
         _artifacts.Remove(key);
         return ValueTask.CompletedTask;
     }
 
     /// <inheritdoc />
-    public override ValueTask RemoveResourceAsync(ArtifactResourceKey key, CancellationToken cancellationToken = default)
+    public ValueTask RemoveResourceAsync(ArtifactResourceKey key, CancellationToken cancellationToken = default)
     {
         if (_resources.TryGetValue(key.Artifact, out var dict))
         {

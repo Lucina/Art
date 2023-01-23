@@ -78,7 +78,7 @@ public record ArtifactToolListProxy
         }
         if (ArtifactTool is IArtifactToolDump dumpTool)
         {
-            ArtifactDataManagerBase previous = ArtifactTool.DataManager;
+            IArtifactDataManager previous = ArtifactTool.DataManager;
             try
             {
                 InMemoryArtifactDataManager im = new();

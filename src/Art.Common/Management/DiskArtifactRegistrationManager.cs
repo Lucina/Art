@@ -4,9 +4,9 @@ using System.Linq.Expressions;
 namespace Art.Common.Management;
 
 /// <summary>
-/// Represents a simple <see cref="ArtifactRegistrationManagerBase"/> with purely file-based tracking.
+/// Represents a simple <see cref="IArtifactRegistrationManager"/> with purely file-based tracking.
 /// </summary>
-public class DiskArtifactRegistrationManager : ArtifactRegistrationManagerBase
+public class DiskArtifactRegistrationManager : IArtifactRegistrationManager
 {
     private const string ArtifactDir = ".artifacts";
     private const string ArtifactFileName = "{0}.json";
@@ -30,7 +30,7 @@ public class DiskArtifactRegistrationManager : ArtifactRegistrationManagerBase
     }
 
     /// <inheritdoc/>
-    public override async ValueTask AddArtifactAsync(ArtifactInfo artifactInfo, CancellationToken cancellationToken = default)
+    public async ValueTask AddArtifactAsync(ArtifactInfo artifactInfo, CancellationToken cancellationToken = default)
     {
         string dir = GetArtifactInfoDir(artifactInfo.Key);
         if (!Directory.Exists(dir)) Directory.CreateDirectory(dir);
@@ -39,7 +39,7 @@ public class DiskArtifactRegistrationManager : ArtifactRegistrationManagerBase
     }
 
     /// <inheritdoc/>
-    public override async Task<List<ArtifactInfo>> ListArtifactsAsync(CancellationToken cancellationToken = default)
+    public async Task<List<ArtifactInfo>> ListArtifactsAsync(CancellationToken cancellationToken = default)
     {
         string dir = GetArtifactInfoDir();
         List<ArtifactInfo> results = new();
@@ -53,7 +53,7 @@ public class DiskArtifactRegistrationManager : ArtifactRegistrationManagerBase
     }
 
     /// <inheritdoc/>
-    public override async Task<List<ArtifactInfo>> ListArtifactsAsync(Expression<Func<ArtifactInfoModel, bool>> predicate, CancellationToken cancellationToken = default)
+    public async Task<List<ArtifactInfo>> ListArtifactsAsync(Expression<Func<ArtifactInfoModel, bool>> predicate, CancellationToken cancellationToken = default)
     {
         Func<ArtifactInfoModel, bool> compiled = predicate.Compile();
         string dir = GetArtifactInfoDir();
@@ -68,7 +68,7 @@ public class DiskArtifactRegistrationManager : ArtifactRegistrationManagerBase
     }
 
     /// <inheritdoc/>
-    public override async Task<List<ArtifactInfo>> ListArtifactsAsync(string tool, CancellationToken cancellationToken = default)
+    public async Task<List<ArtifactInfo>> ListArtifactsAsync(string tool, CancellationToken cancellationToken = default)
     {
         string toolDir = GetArtifactInfoDir(tool);
         List<ArtifactInfo> results = new();
@@ -81,7 +81,7 @@ public class DiskArtifactRegistrationManager : ArtifactRegistrationManagerBase
     }
 
     /// <inheritdoc/>
-    public override async Task<List<ArtifactInfo>> ListArtifactsAsync(string tool, string group, CancellationToken cancellationToken = default)
+    public async Task<List<ArtifactInfo>> ListArtifactsAsync(string tool, string group, CancellationToken cancellationToken = default)
     {
         string groupDir = GetArtifactInfoDir(tool, group);
         List<ArtifactInfo> results = new();
@@ -93,7 +93,7 @@ public class DiskArtifactRegistrationManager : ArtifactRegistrationManagerBase
     }
 
     /// <inheritdoc/>
-    public override async ValueTask AddResourceAsync(ArtifactResourceInfo artifactResourceInfo, CancellationToken cancellationToken = default)
+    public async ValueTask AddResourceAsync(ArtifactResourceInfo artifactResourceInfo, CancellationToken cancellationToken = default)
     {
         string dir = GetResourceInfoDir(artifactResourceInfo.Key);
         if (!Directory.Exists(dir)) Directory.CreateDirectory(dir);
@@ -102,7 +102,7 @@ public class DiskArtifactRegistrationManager : ArtifactRegistrationManagerBase
     }
 
     /// <inheritdoc/>
-    public override async Task<List<ArtifactResourceInfo>> ListResourcesAsync(ArtifactKey key, CancellationToken cancellationToken = default)
+    public async Task<List<ArtifactResourceInfo>> ListResourcesAsync(ArtifactKey key, CancellationToken cancellationToken = default)
     {
         string dir = GetResourceInfoDir(key);
         List<ArtifactResourceInfo> results = new();
@@ -120,7 +120,7 @@ public class DiskArtifactRegistrationManager : ArtifactRegistrationManagerBase
     }
 
     /// <inheritdoc/>
-    public override async ValueTask<ArtifactInfo?> TryGetArtifactAsync(ArtifactKey key, CancellationToken cancellationToken = default)
+    public async ValueTask<ArtifactInfo?> TryGetArtifactAsync(ArtifactKey key, CancellationToken cancellationToken = default)
     {
         string dir = GetArtifactInfoDir(key);
         string path = GetArtifactInfoFilePath(dir, key);
@@ -128,7 +128,7 @@ public class DiskArtifactRegistrationManager : ArtifactRegistrationManagerBase
     }
 
     /// <inheritdoc/>
-    public override async ValueTask<ArtifactResourceInfo?> TryGetResourceAsync(ArtifactResourceKey key, CancellationToken cancellationToken = default)
+    public async ValueTask<ArtifactResourceInfo?> TryGetResourceAsync(ArtifactResourceKey key, CancellationToken cancellationToken = default)
     {
         string dir = GetResourceInfoDir(key);
         string path = GetResourceInfoFilePath(dir, key);
@@ -136,7 +136,7 @@ public class DiskArtifactRegistrationManager : ArtifactRegistrationManagerBase
     }
 
     /// <inheritdoc/>
-    public override ValueTask RemoveArtifactAsync(ArtifactKey key, CancellationToken cancellationToken = default)
+    public ValueTask RemoveArtifactAsync(ArtifactKey key, CancellationToken cancellationToken = default)
     {
         string dir = GetArtifactInfoDir(key);
         string path = GetArtifactInfoFilePath(dir, key);
@@ -146,7 +146,7 @@ public class DiskArtifactRegistrationManager : ArtifactRegistrationManagerBase
     }
 
     /// <inheritdoc/>
-    public override ValueTask RemoveResourceAsync(ArtifactResourceKey key, CancellationToken cancellationToken = default)
+    public ValueTask RemoveResourceAsync(ArtifactResourceKey key, CancellationToken cancellationToken = default)
     {
         string dir = GetResourceInfoDir(key);
         string path = GetResourceInfoFilePath(dir, key);

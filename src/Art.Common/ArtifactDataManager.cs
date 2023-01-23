@@ -6,10 +6,22 @@ namespace Art.Common;
 /// <summary>
 /// Base type for artifact data managers.
 /// </summary>
-public abstract class ArtifactDataManager : ArtifactDataManagerBase
+public abstract class ArtifactDataManager : IArtifactDataManager
 {
     /// <inheritdoc />
-    public override async ValueTask OutputTextAsync(string text, ArtifactResourceKey key, OutputStreamOptions? options = null, CancellationToken cancellationToken = default)
+    public abstract ValueTask<CommittableStreamBase> CreateOutputStreamAsync(ArtifactResourceKey key, OutputStreamOptions? options = null, CancellationToken cancellationToken = default);
+
+    /// <inheritdoc />
+    public abstract ValueTask<bool> ExistsAsync(ArtifactResourceKey key, CancellationToken cancellationToken = default);
+
+    /// <inheritdoc />
+    public abstract ValueTask<bool> DeleteAsync(ArtifactResourceKey key, CancellationToken cancellationToken = default);
+
+    /// <inheritdoc />
+    public abstract ValueTask<Stream> OpenInputStreamAsync(ArtifactResourceKey key, CancellationToken cancellationToken = default);
+
+    /// <inheritdoc />
+    public async ValueTask OutputTextAsync(string text, ArtifactResourceKey key, OutputStreamOptions? options = null, CancellationToken cancellationToken = default)
     {
         UpdateOptionsTextual(ref options);
         await using CommittableStreamBase stream = await CreateOutputStreamAsync(key, options, cancellationToken).ConfigureAwait(false);
@@ -19,7 +31,7 @@ public abstract class ArtifactDataManager : ArtifactDataManagerBase
     }
 
     /// <inheritdoc />
-    public override async ValueTask OutputJsonAsync<T>(T data, ArtifactResourceKey key, OutputStreamOptions? options = null, CancellationToken cancellationToken = default)
+    public async ValueTask OutputJsonAsync<T>(T data, ArtifactResourceKey key, OutputStreamOptions? options = null, CancellationToken cancellationToken = default)
     {
         UpdateOptionsTextual(ref options);
         await using CommittableStreamBase stream = await CreateOutputStreamAsync(key, options, cancellationToken).ConfigureAwait(false);
@@ -28,7 +40,7 @@ public abstract class ArtifactDataManager : ArtifactDataManagerBase
     }
 
     /// <inheritdoc />
-    public override async ValueTask OutputJsonAsync<T>(T data, JsonSerializerOptions jsonSerializerOptions, ArtifactResourceKey key, OutputStreamOptions? options = null, CancellationToken cancellationToken = default)
+    public async ValueTask OutputJsonAsync<T>(T data, JsonSerializerOptions jsonSerializerOptions, ArtifactResourceKey key, OutputStreamOptions? options = null, CancellationToken cancellationToken = default)
     {
         UpdateOptionsTextual(ref options);
         await using CommittableStreamBase stream = await CreateOutputStreamAsync(key, options, cancellationToken).ConfigureAwait(false);
@@ -37,7 +49,7 @@ public abstract class ArtifactDataManager : ArtifactDataManagerBase
     }
 
     /// <inheritdoc />
-    public override async ValueTask<Checksum> GetChecksumAsync(ArtifactResourceKey key, string checksumId, CancellationToken cancellationToken = default)
+    public async ValueTask<Checksum> GetChecksumAsync(ArtifactResourceKey key, string checksumId, CancellationToken cancellationToken = default)
     {
         if (!ChecksumSource.TryGetHashAlgorithm(checksumId, out HashAlgorithm? hashAlgorithm))
             throw new ArgumentException("Unknown checksum ID", nameof(checksumId));
@@ -49,11 +61,11 @@ public abstract class ArtifactDataManager : ArtifactDataManagerBase
     }
 
     /// <inheritdoc />
-    public override async ValueTask<bool> ValidateChecksumAsync(ArtifactResourceKey key, Checksum checksum, CancellationToken cancellationToken = default)
+    public async ValueTask<bool> ValidateChecksumAsync(ArtifactResourceKey key, Checksum checksum, CancellationToken cancellationToken = default)
         => ChecksumUtility.DatawiseEquals(await GetChecksumAsync(key, checksum.Id, cancellationToken), checksum);
 
     /// <inheritdoc />
-    public override async ValueTask<Checksum?> GetChecksumAsync(ArtifactResourceKey key, CancellationToken cancellationToken = default)
+    public async ValueTask<Checksum?> GetChecksumAsync(ArtifactResourceKey key, CancellationToken cancellationToken = default)
     {
         if (!await ExistsAsync(key, cancellationToken)) throw new KeyNotFoundException();
         return null;

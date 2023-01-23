@@ -1,7 +1,7 @@
 ﻿namespace Art.Common.Management;
 
 /// <summary>
-/// Represents a simple <see cref="ArtifactDataManagerBase"/> with purely file-based tracking.
+/// Represents a simple <see cref="IArtifactDataManager"/> with purely file-based tracking.
 /// </summary>
 public class DiskArtifactDataManager : ArtifactDataManager
 {

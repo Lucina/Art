@@ -40,12 +40,12 @@ public abstract partial class ArtifactToolBase : IDisposable
     /// <summary>
     /// Registration manager used by this instance.
     /// </summary>
-    public ArtifactRegistrationManagerBase RegistrationManager;
+    public IArtifactRegistrationManager RegistrationManager;
 
     /// <summary>
     /// Data manager used by this instance.
     /// </summary>
-    public ArtifactDataManagerBase DataManager;
+    public IArtifactDataManager DataManager;
 
     /// <summary>
     /// JSON serialization defaults.
