@@ -1,9 +1,9 @@
 ﻿namespace Art.Common;
 
 /// <summary>
-/// Represents a stream that will be committed upon disposal if <see cref="CommittableStreamBase.ShouldCommit"/> is set.
+/// Represents a stream that will be committed upon disposal if <see cref="CommittableStream.ShouldCommit"/> is set.
 /// </summary>
-public abstract class CommittableStream : CommittableStreamBase
+public abstract class CommonCommittableStream : CommittableStream
 {
     /// <summary>
     /// If true, this stream has been committed.

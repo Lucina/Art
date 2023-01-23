@@ -143,7 +143,7 @@ public static class ArtifactDumping
         {
             OutputStreamOptions options = OutputStreamOptions.Default;
             versionedResource.AugmentOutputStreamOptions(ref options);
-            await using CommittableStreamBase stream = await artifactTool.DataManager.CreateOutputStreamAsync(versionedResource.Key, options, cancellationToken).ConfigureAwait(false);
+            await using CommittableStream stream = await artifactTool.DataManager.CreateOutputStreamAsync(versionedResource.Key, options, cancellationToken).ConfigureAwait(false);
             if (checksumId != null && ChecksumSource.TryGetHashAlgorithm(checksumId, out HashAlgorithm? algorithm))
             {
                 // Take this opportunity to hash the resource.

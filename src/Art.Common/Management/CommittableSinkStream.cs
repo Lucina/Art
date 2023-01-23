@@ -5,7 +5,7 @@ namespace Art.Common.Management;
 /// <summary>
 /// Represents a wrapper around a <see cref="SinkStream"/>.
 /// </summary>
-public class CommittableSinkStream : CommittableStream
+public class CommittableSinkStream : CommonCommittableStream
 {
     /// <inheritdoc />
     public override void Flush()

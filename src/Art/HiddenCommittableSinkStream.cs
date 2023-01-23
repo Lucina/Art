@@ -1,6 +1,6 @@
 namespace Art;
 
-internal class HiddenCommittableSinkStream : CommittableStreamBase
+internal class HiddenCommittableSinkStream : CommittableStream
 {
     /// <inheritdoc />
     public override void Flush()

@@ -1,6 +1,6 @@
 using System.Reflection;
 
-namespace Art;
+namespace Art.Common;
 
 /// <summary>
 /// Utility for creating tool strings.

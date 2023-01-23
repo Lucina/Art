@@ -14,7 +14,7 @@ public class NullArtifactDataManager : IArtifactDataManager
     public static readonly NullArtifactDataManager Instance = new();
 
     /// <inheritdoc />
-    public ValueTask<CommittableStreamBase> CreateOutputStreamAsync(ArtifactResourceKey key, OutputStreamOptions? options = null, CancellationToken cancellationToken = default) => new(new CommittableSinkStream());
+    public ValueTask<CommittableStream> CreateOutputStreamAsync(ArtifactResourceKey key, OutputStreamOptions? options = null, CancellationToken cancellationToken = default) => new(new CommittableSinkStream());
 
     /// <inheritdoc />
     public ValueTask<bool> ExistsAsync(ArtifactResourceKey key, CancellationToken cancellationToken = default) => new(false);

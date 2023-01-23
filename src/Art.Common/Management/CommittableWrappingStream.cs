@@ -3,7 +3,7 @@ namespace Art.Common.Management;
 /// <summary>
 /// Represents a wrapper around a <see cref="Stream"/>.
 /// </summary>
-public abstract class CommittableWrappingStream : CommittableStream
+public abstract class CommittableWrappingStream : CommonCommittableStream
 {
     /// <summary>
     /// Base stream.

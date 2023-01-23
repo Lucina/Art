@@ -10,7 +10,7 @@ internal class HiddenNullArtifactDataManager : IArtifactDataManager
     public static readonly HiddenNullArtifactDataManager Instance = new();
 
     /// <inheritdoc />
-    public ValueTask<CommittableStreamBase> CreateOutputStreamAsync(ArtifactResourceKey key, OutputStreamOptions? options = null, CancellationToken cancellationToken = default) => new(new HiddenCommittableSinkStream());
+    public ValueTask<CommittableStream> CreateOutputStreamAsync(ArtifactResourceKey key, OutputStreamOptions? options = null, CancellationToken cancellationToken = default) => new(new HiddenCommittableSinkStream());
 
     /// <inheritdoc />
     public ValueTask<bool> ExistsAsync(ArtifactResourceKey key, CancellationToken cancellationToken = default) => new(false);
