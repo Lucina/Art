@@ -11,8 +11,8 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <!--<PackageReference Include="Art.Common" Version="0.42.0" />-->
-    <ProjectReference Include="..\Art.Common\Art.Common.csproj" />
+    <PackageReference Include="Art.Common" Version="0.42.0" />
+    <!--<ProjectReference Include="..\Art.Common\Art.Common.csproj" />-->
   </ItemGroup>
 
   <PropertyGroup>
