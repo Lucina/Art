@@ -48,58 +48,62 @@ public record ArtifactToolListProxy
     {
         ArtifactToolListOptions.Validate(Options, false);
         if (LogHandler != null) ArtifactTool.LogHandler = LogHandler;
-        if (ArtifactTool is IArtifactToolList listTool)
+        switch (ArtifactTool)
         {
-            IAsyncEnumerable<ArtifactData> enumerable = listTool.ListAsync(cancellationToken);
-            if ((Options.EagerFlags & ArtifactTool.AllowedEagerModes & EagerFlags.ArtifactList) != 0) enumerable = enumerable.EagerAsync();
-            await foreach (ArtifactData data in enumerable.ConfigureAwait(false))
-            {
-                switch (Options.SkipMode)
+            case IArtifactToolList listTool:
                 {
-                    case ArtifactSkipMode.None:
-                        break;
-                    case ArtifactSkipMode.FastExit:
+                    IAsyncEnumerable<ArtifactData> enumerable = listTool.ListAsync(cancellationToken);
+                    if ((Options.EagerFlags & ArtifactTool.AllowedEagerModes & EagerFlags.ArtifactList) != 0) enumerable = enumerable.EagerAsync();
+                    await foreach (ArtifactData data in enumerable.ConfigureAwait(false))
+                    {
+                        switch (Options.SkipMode)
                         {
-                            ArtifactInfo? info = await ArtifactTool.TryGetArtifactAsync(data.Info.Key.Id, cancellationToken).ConfigureAwait(false);
-                            if (info != null)
-                                yield break;
-                            break;
+                            case ArtifactSkipMode.None:
+                                break;
+                            case ArtifactSkipMode.FastExit:
+                                {
+                                    ArtifactInfo? info = await ArtifactTool.TryGetArtifactAsync(data.Info.Key.Id, cancellationToken).ConfigureAwait(false);
+                                    if (info != null)
+                                        yield break;
+                                    break;
+                                }
+                            case ArtifactSkipMode.Known:
+                                {
+                                    ArtifactInfo? info = await ArtifactTool.TryGetArtifactAsync(data.Info.Key.Id, cancellationToken).ConfigureAwait(false);
+                                    if (info != null)
+                                        continue;
+                                    break;
+                                }
                         }
-                    case ArtifactSkipMode.Known:
-                        {
-                            ArtifactInfo? info = await ArtifactTool.TryGetArtifactAsync(data.Info.Key.Id, cancellationToken).ConfigureAwait(false);
-                            if (info != null)
-                                continue;
-                            break;
-                        }
+                        if (!data.Info.Full && !Options.IncludeNonFull) continue;
+                        yield return data;
+                    }
+                    yield break;
                 }
-                if (!data.Info.Full && !Options.IncludeNonFull) continue;
-                yield return data;
-            }
-            yield break;
-        }
-        if (ArtifactTool is IArtifactToolDump dumpTool)
-        {
-            ArtifactDataManager previous = ArtifactTool.DataManager;
-            try
-            {
-                InMemoryArtifactDataManager im = new();
-                await dumpTool.DumpAsync(cancellationToken).ConfigureAwait(false);
-                foreach ((ArtifactKey ak, List<ArtifactResourceInfo> resources) in im.Artifacts)
+            case IArtifactToolDump dumpTool:
                 {
-                    if (await ArtifactTool.TryGetArtifactAsync(ak, cancellationToken).ConfigureAwait(false) is not { } info) continue;
-                    ArtifactData data = new(info);
-                    data.AddRange(resources);
-                    yield return data;
+                    ArtifactDataManager previous = ArtifactTool.DataManager;
+                    try
+                    {
+                        InMemoryArtifactDataManager im = new();
+                        await dumpTool.DumpAsync(cancellationToken).ConfigureAwait(false);
+                        foreach ((ArtifactKey ak, List<ArtifactResourceInfo> resources) in im.Artifacts)
+                        {
+                            if (await ArtifactTool.TryGetArtifactAsync(ak, cancellationToken).ConfigureAwait(false) is not { } info) continue;
+                            ArtifactData data = new(info);
+                            data.AddRange(resources);
+                            yield return data;
+                        }
+                    }
+                    finally
+                    {
+                        ArtifactTool.DataManager = previous;
+                    }
+                    yield break;
                 }
-            }
-            finally
-            {
-                ArtifactTool.DataManager = previous;
-            }
-            yield break;
+            default:
+                throw new NotSupportedException("Artifact tool is not a supported type");
         }
-        throw new NotSupportedException("Artifact tool is not a supported type");
     }
 
     #endregion

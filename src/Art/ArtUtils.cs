@@ -7,6 +7,13 @@ namespace Art;
 /// </summary>
 public static class ArtUtils
 {
+    internal static void ThrowArgumentExceptionOrInvalidOperationExceptionWithMessage(bool constructor, string message)
+    {
+        if (constructor)
+            throw new ArgumentException(message);
+        throw new InvalidOperationException(message);
+    }
+
     /// <summary>
     /// Creates a random path for the specified sibling path.
     /// </summary>

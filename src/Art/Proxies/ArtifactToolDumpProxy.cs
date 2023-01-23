@@ -37,10 +37,7 @@ public record ArtifactToolDumpProxy
         ArtifactToolDumpOptions.Validate(options, constructor);
         if (options.SkipMode == ArtifactSkipMode.FastExit && (options.EagerFlags & EagerFlags.ArtifactDump) != 0)
         {
-            if (constructor)
-                throw new ArgumentException($"Cannot pair {nameof(ArtifactSkipMode)}.{nameof(ArtifactSkipMode.FastExit)} with {nameof(EagerFlags)}.{nameof(EagerFlags.ArtifactDump)}");
-            else
-                throw new InvalidOperationException($"Cannot pair {nameof(ArtifactSkipMode)}.{nameof(ArtifactSkipMode.FastExit)} with {nameof(EagerFlags)}.{nameof(EagerFlags.ArtifactDump)}");
+            ArtUtils.ThrowArgumentExceptionOrInvalidOperationExceptionWithMessage(constructor, $"Cannot pair {nameof(ArtifactSkipMode)}.{nameof(ArtifactSkipMode.FastExit)} with {nameof(EagerFlags)}.{nameof(EagerFlags.ArtifactDump)}");
         }
     }
 
@@ -54,93 +51,95 @@ public record ArtifactToolDumpProxy
     {
         Validate(Options, false);
         if (LogHandler != null) ArtifactTool.LogHandler = LogHandler;
-        if (ArtifactTool is IArtifactToolDump dumpTool)
+        switch (ArtifactTool)
         {
-            await dumpTool.DumpAsync(cancellationToken).ConfigureAwait(false);
-            return;
-        }
-        if (ArtifactTool is IArtifactToolList listTool)
-        {
-            IAsyncEnumerable<ArtifactData> enumerable = listTool.ListAsync(cancellationToken);
-            if ((Options.EagerFlags & ArtifactTool.AllowedEagerModes & EagerFlags.ArtifactList) != 0) enumerable = enumerable.EagerAsync();
-            if ((Options.EagerFlags & ArtifactTool.AllowedEagerModes & EagerFlags.ArtifactDump) != 0)
-            {
-                List<Task> tasks = new();
-                await foreach (ArtifactData data in enumerable.ConfigureAwait(false))
+            case IArtifactToolDump dumpTool:
+                await dumpTool.DumpAsync(cancellationToken).ConfigureAwait(false);
+                return;
+            case IArtifactToolList listTool:
                 {
-                    switch (Options.SkipMode)
+                    IAsyncEnumerable<ArtifactData> enumerable = listTool.ListAsync(cancellationToken);
+                    if ((Options.EagerFlags & ArtifactTool.AllowedEagerModes & EagerFlags.ArtifactList) != 0) enumerable = enumerable.EagerAsync();
+                    if ((Options.EagerFlags & ArtifactTool.AllowedEagerModes & EagerFlags.ArtifactDump) != 0)
                     {
-                        case ArtifactSkipMode.None:
-                            break;
-                        case ArtifactSkipMode.FastExit:
+                        List<Task> tasks = new();
+                        await foreach (ArtifactData data in enumerable.ConfigureAwait(false))
+                        {
+                            switch (Options.SkipMode)
                             {
-                                ArtifactInfo? info = await ArtifactTool.TryGetArtifactAsync(data.Info.Key.Id, cancellationToken).ConfigureAwait(false);
-                                if (info != null)
-                                    goto E_ArtifactDump_WaitForTasks;
-                                break;
+                                case ArtifactSkipMode.None:
+                                    break;
+                                case ArtifactSkipMode.FastExit:
+                                    {
+                                        ArtifactInfo? info = await ArtifactTool.TryGetArtifactAsync(data.Info.Key.Id, cancellationToken).ConfigureAwait(false);
+                                        if (info != null)
+                                            goto E_ArtifactDump_WaitForTasks;
+                                        break;
+                                    }
+                                case ArtifactSkipMode.Known:
+                                    {
+                                        ArtifactInfo? info = await ArtifactTool.TryGetArtifactAsync(data.Info.Key.Id, cancellationToken).ConfigureAwait(false);
+                                        if (info != null)
+                                            continue;
+                                        break;
+                                    }
                             }
-                        case ArtifactSkipMode.Known:
-                            {
-                                ArtifactInfo? info = await ArtifactTool.TryGetArtifactAsync(data.Info.Key.Id, cancellationToken).ConfigureAwait(false);
-                                if (info != null)
-                                    continue;
-                                break;
-                            }
+                            if (!data.Info.Full && !Options.IncludeNonFull) continue;
+                            tasks.Add(ArtifactTool.DumpArtifactAsync(data, Options.ResourceUpdate, Options.ChecksumId, Options.EagerFlags, LogHandler, cancellationToken));
+                        }
+                        E_ArtifactDump_WaitForTasks:
+                        await Task.WhenAll(tasks);
+                        var exc = tasks
+                            .Where(v => v.IsFaulted && v.Exception != null)
+                            .SelectMany(v => v.Exception!.InnerExceptions)
+                            .ToList();
+                        var ignored = exc.Where(v => FailureBypass.ShouldBypass(v, Options.FailureFlags)).ToList();
+                        foreach (var ignore in ignored)
+                            LogHandler?.Log($"Ignored exception of type {ignore.GetType().FullName}", ignore.ToString(), LogLevel.Warning);
+                        var failed = exc.Where(v => !FailureBypass.ShouldBypass(v, Options.FailureFlags)).ToList();
+                        if (failed.Any())
+                            throw new AggregateException(exc);
                     }
-                    if (!data.Info.Full && !Options.IncludeNonFull) continue;
-                    tasks.Add(ArtifactTool.DumpArtifactAsync(data, Options.ResourceUpdate, Options.ChecksumId, Options.EagerFlags, LogHandler, cancellationToken));
+                    else
+                    {
+                        await foreach (ArtifactData data in enumerable.ConfigureAwait(false))
+                        {
+                            switch (Options.SkipMode)
+                            {
+                                case ArtifactSkipMode.None:
+                                    break;
+                                case ArtifactSkipMode.FastExit:
+                                    {
+                                        ArtifactInfo? info = await ArtifactTool.TryGetArtifactAsync(data.Info.Key.Id, cancellationToken).ConfigureAwait(false);
+                                        if (info != null)
+                                            return;
+                                        break;
+                                    }
+                                case ArtifactSkipMode.Known:
+                                    {
+                                        ArtifactInfo? info = await ArtifactTool.TryGetArtifactAsync(data.Info.Key.Id, cancellationToken).ConfigureAwait(false);
+                                        if (info != null)
+                                            continue;
+                                        break;
+                                    }
+                            }
+                            if (!data.Info.Full && !Options.IncludeNonFull) continue;
+                            try
+                            {
+                                await ArtifactTool.DumpArtifactAsync(data, Options.ResourceUpdate, Options.ChecksumId, Options.EagerFlags, LogHandler, cancellationToken);
+                            }
+                            catch (Exception e)
+                            {
+                                if (FailureBypass.ShouldBypass(e, Options.FailureFlags))
+                                    LogHandler?.Log($"Ignored exception of type {e.GetType().FullName}", e.ToString(), LogLevel.Warning);
+                                else throw;
+                            }
+                        }
+                    }
+                    return;
                 }
-                E_ArtifactDump_WaitForTasks:
-                await Task.WhenAll(tasks);
-                var exc = tasks
-                    .Where(v => v.IsFaulted && v.Exception != null)
-                    .SelectMany(v => v.Exception!.InnerExceptions)
-                    .ToList();
-                var ignored = exc.Where(v => FailureBypass.ShouldBypass(v, Options.FailureFlags)).ToList();
-                foreach (var ignore in ignored)
-                    LogHandler?.Log($"Ignored exception of type {ignore.GetType().FullName}", ignore.ToString(), LogLevel.Warning);
-                var failed = exc.Where(v => !FailureBypass.ShouldBypass(v, Options.FailureFlags)).ToList();
-                if (failed.Any())
-                    throw new AggregateException(exc);
-            }
-            else
-            {
-                await foreach (ArtifactData data in enumerable.ConfigureAwait(false))
-                {
-                    switch (Options.SkipMode)
-                    {
-                        case ArtifactSkipMode.None:
-                            break;
-                        case ArtifactSkipMode.FastExit:
-                            {
-                                ArtifactInfo? info = await ArtifactTool.TryGetArtifactAsync(data.Info.Key.Id, cancellationToken).ConfigureAwait(false);
-                                if (info != null)
-                                    return;
-                                break;
-                            }
-                        case ArtifactSkipMode.Known:
-                            {
-                                ArtifactInfo? info = await ArtifactTool.TryGetArtifactAsync(data.Info.Key.Id, cancellationToken).ConfigureAwait(false);
-                                if (info != null)
-                                    continue;
-                                break;
-                            }
-                    }
-                    if (!data.Info.Full && !Options.IncludeNonFull) continue;
-                    try
-                    {
-                        await ArtifactTool.DumpArtifactAsync(data, Options.ResourceUpdate, Options.ChecksumId, Options.EagerFlags, LogHandler, cancellationToken);
-                    }
-                    catch (Exception e)
-                    {
-                        if (FailureBypass.ShouldBypass(e, Options.FailureFlags))
-                            LogHandler?.Log($"Ignored exception of type {e.GetType().FullName}", e.ToString(), LogLevel.Warning);
-                        else throw;
-                    }
-                }
-            }
-            return;
+            default:
+                throw new NotSupportedException("Artifact tool is not a supported type");
         }
-        throw new NotSupportedException("Artifact tool is not a supported type");
     }
 }

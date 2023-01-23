@@ -33,10 +33,8 @@ public record ArtifactToolListOptions(
             case ArtifactSkipMode.Known:
                 break;
             default:
-                if (constructor)
-                    throw new ArgumentException($"Invalid {nameof(ArtifactToolListOptions)}.{nameof(SkipMode)}");
-                else
-                    throw new InvalidOperationException($"Invalid {nameof(ArtifactToolListOptions)}.{nameof(SkipMode)}");
+                ArtUtils.ThrowArgumentExceptionOrInvalidOperationExceptionWithMessage(constructor, $"Invalid {nameof(ArtifactToolListOptions)}.{nameof(SkipMode)}");
+                break;
         }
     }
 }

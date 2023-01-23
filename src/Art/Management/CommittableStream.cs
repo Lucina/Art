@@ -8,6 +8,7 @@ public abstract class CommittableStream : Stream
     /// <summary>
     /// If true, commit this stream upon disposal.
     /// </summary>
+    /// <remarks>Defaults to false.</remarks>
     public bool ShouldCommit { get; set; }
 
     /// <summary>

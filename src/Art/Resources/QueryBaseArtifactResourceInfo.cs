@@ -35,6 +35,9 @@ public record QueryBaseArtifactResourceInfo(ArtifactResourceKey Key, string? Con
     /// <inheritdoc />
     public override void AugmentOutputStreamOptions(ref OutputStreamOptions options)
     {
-        if (ContentLength is { } contentLength) options = options with { PreallocationSize = contentLength };
+        if (ContentLength is { } contentLength)
+        {
+            options = new OutputStreamOptions { PreallocationSize = contentLength };
+        }
     }
 }

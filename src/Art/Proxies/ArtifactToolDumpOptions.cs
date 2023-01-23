@@ -39,10 +39,9 @@ public record ArtifactToolDumpOptions(
             case ArtifactSkipMode.Known:
                 break;
             default:
-                if (constructor)
-                    throw new ArgumentException($"Invalid {nameof(ArtifactToolDumpOptions)}.{nameof(SkipMode)}");
-                else
-                    throw new InvalidOperationException($"Invalid {nameof(ArtifactToolDumpOptions)}.{nameof(SkipMode)}");
+                ArtUtils.ThrowArgumentExceptionOrInvalidOperationExceptionWithMessage(constructor, $"Invalid {nameof(ArtifactToolDumpOptions)}.{nameof(SkipMode)}");
+                break;
+
         }
         switch (options.ResourceUpdate)
         {
@@ -52,10 +51,8 @@ public record ArtifactToolDumpOptions(
             case ResourceUpdateMode.Hard:
                 break;
             default:
-                if (constructor)
-                    throw new ArgumentException($"Invalid {nameof(ArtifactToolDumpOptions)}.{nameof(ResourceUpdate)}");
-                else
-                    throw new InvalidOperationException($"Invalid {nameof(ArtifactToolDumpOptions)}.{nameof(ResourceUpdate)}");
+                ArtUtils.ThrowArgumentExceptionOrInvalidOperationExceptionWithMessage(constructor, $"Invalid {nameof(ArtifactToolDumpOptions)}.{nameof(ResourceUpdate)}");
+                return;
         }
     }
 }

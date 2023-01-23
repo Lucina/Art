@@ -34,7 +34,10 @@ public record StreamArtifactResourceInfo(Stream Resource, ArtifactResourceKey Ke
     /// <inheritdoc />
     public override void AugmentOutputStreamOptions(ref OutputStreamOptions options)
     {
-        if (Resource.CanSeek) options = options with { PreallocationSize = Resource.Length };
+        if (Resource.CanSeek)
+        {
+            options = new OutputStreamOptions { PreallocationSize = Resource.Length };
+        }
     }
 }
 

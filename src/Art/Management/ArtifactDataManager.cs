@@ -152,7 +152,10 @@ public abstract class ArtifactDataManager
 
     private static void UpdateOptionsTextual(ref OutputStreamOptions? options)
     {
-        if (options is { } optionsActual) options = optionsActual with { PreallocationSize = 0 };
+        if (options != null)
+        {
+            options = new OutputStreamOptions { PreallocationSize = 0 };
+        }
     }
 
     #endregion
