@@ -8,6 +8,11 @@ namespace Art;
 public interface IArtifactTool : IDisposable
 {
     /// <summary>
+    /// True if this tool is in debug mode.
+    /// </summary>
+    bool DebugMode { get; set; }
+
+    /// <summary>
     /// Log handler for this tool.
     /// </summary>
     IToolLogHandler? LogHandler { get; set; }

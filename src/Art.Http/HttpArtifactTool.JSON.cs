@@ -253,7 +253,7 @@ public partial class HttpArtifactTool
     }
 
     /// <summary>
-    /// Deserialize JSON asynchronously, with debug output if <see cref="ArtifactTool.DebugMode"/> is enabled.
+    /// Deserialize JSON asynchronously, with debug output if <see cref="IArtifactTool.DebugMode"/> is enabled.
     /// </summary>
     /// <typeparam name="T">Data type.</typeparam>
     /// <param name="response">Response to read from.</param>
@@ -268,7 +268,7 @@ public partial class HttpArtifactTool
         => DeserializeJsonWithDebugAsync<T>(response, JsonOptions, cancellationToken);
 
     /// <summary>
-    /// Deserialize JSON asynchronously, with debug output if <see cref="ArtifactTool.DebugMode"/> is enabled.
+    /// Deserialize JSON asynchronously, with debug output if <see cref="IArtifactTool.DebugMode"/> is enabled.
     /// </summary>
     /// <typeparam name="T">Data type.</typeparam>
     /// <param name="response">Response to read from.</param>
@@ -284,7 +284,7 @@ public partial class HttpArtifactTool
         => DeserializeRequiredJsonWithDebugAsync<T>(response, JsonOptions, cancellationToken);
 
     /// <summary>
-    /// Deserialize JSON asynchronously, with debug output if <see cref="ArtifactTool.DebugMode"/> is enabled.
+    /// Deserialize JSON asynchronously, with debug output if <see cref="IArtifactTool.DebugMode"/> is enabled.
     /// </summary>
     /// <typeparam name="T">Data type.</typeparam>
     /// <param name="response">Response to read from.</param>
@@ -304,7 +304,7 @@ public partial class HttpArtifactTool
     }
 
     /// <summary>
-    /// Deserialize JSON asynchronously, with debug output if <see cref="ArtifactTool.DebugMode"/> is enabled.
+    /// Deserialize JSON asynchronously, with debug output if <see cref="IArtifactTool.DebugMode"/> is enabled.
     /// </summary>
     /// <typeparam name="T">Data type.</typeparam>
     /// <param name="response">Response to read from.</param>
