@@ -1,6 +1,4 @@
 ﻿using System.Collections.Immutable;
-using System.Globalization;
-using System.Reflection;
 using System.Text.Json;
 
 namespace Art;
@@ -8,48 +6,29 @@ namespace Art;
 /// <summary>
 /// Represents an instance of an artifact tool.
 /// </summary>
-public abstract partial class ArtifactToolBase : IDisposable
+public abstract partial class ArtifactToolBase : IArtifactTool
 {
     #region Fields
 
-    /// <summary>
-    /// Invariant culture.
-    /// </summary>
-    public static readonly CultureInfo IC = CultureInfo.InvariantCulture;
+    /// <inheritdoc />
+    public IToolLogHandler? LogHandler { get; set; }
 
-    /// <summary>
-    /// Log handler for this tool.
-    /// </summary>
-    public IToolLogHandler? LogHandler;
-
-    /// <summary>
-    /// Origin tool profile.
-    /// </summary>
+    /// <inheritdoc />
     public ArtifactToolProfile Profile { get; private set; }
 
-    /// <summary>
-    /// Configuration
-    /// </summary>
+    /// <inheritdoc />
     public ArtifactToolConfig Config { get; private set; }
 
-    /// <summary>
-    /// Allowed eager evaluation modes for this tool.
-    /// </summary>
+    /// <inheritdoc />
     public virtual EagerFlags AllowedEagerModes => EagerFlags.None;
 
-    /// <summary>
-    /// Registration manager used by this instance.
-    /// </summary>
-    public IArtifactRegistrationManager RegistrationManager;
+    /// <inheritdoc />
+    public IArtifactRegistrationManager RegistrationManager { get; set; }
 
-    /// <summary>
-    /// Data manager used by this instance.
-    /// </summary>
-    public IArtifactDataManager DataManager;
+    /// <inheritdoc />
+    public IArtifactDataManager DataManager { get; set; }
 
-    /// <summary>
-    /// JSON serialization defaults.
-    /// </summary>
+    /// <inheritdoc />
     public JsonSerializerOptions JsonOptions
     {
         get => _jsonOptions ??= new JsonSerializerOptions();
@@ -72,7 +51,7 @@ public abstract partial class ArtifactToolBase : IDisposable
     #region Constructor
 
     /// <summary>
-    /// Creates a new instance of <see cref="ArtifactToolBase"/>.
+    /// Creates a new instance of <see cref="IArtifactTool"/>.
     /// </summary>
     protected ArtifactToolBase()
     {
@@ -86,13 +65,7 @@ public abstract partial class ArtifactToolBase : IDisposable
 
     #region Setup
 
-    /// <summary>
-    /// Initializes and configures this tool with the specified runtime configuration and profile.
-    /// </summary>
-    /// <param name="config">Configuration.</param>
-    /// <param name="profile">Profile.</param>
-    /// <param name="cancellationToken">Cancellation token.</param>
-    /// <returns>Task.</returns>
+    /// <inheritdoc />
     public async Task InitializeAsync(ArtifactToolConfig? config = null, ArtifactToolProfile? profile = null, CancellationToken cancellationToken = default)
     {
         EnsureNotDisposed();
@@ -109,7 +82,7 @@ public abstract partial class ArtifactToolBase : IDisposable
         Config = config;
         RegistrationManager = config.RegistrationManager;
         DataManager = config.DataManager;
-        Profile = profile ?? new ArtifactToolProfile(CreateToolString(GetType()), "default", ImmutableDictionary<string, JsonElement>.Empty);
+        Profile = profile ?? new ArtifactToolProfile(ArtifactToolStringUtil.CreateToolString(GetType()), "default", ImmutableDictionary<string, JsonElement>.Empty);
         if (Profile.Options != null)
             ConfigureOptions();
     }
@@ -166,52 +139,8 @@ public abstract partial class ArtifactToolBase : IDisposable
 
     private void EnsureNotDisposed()
     {
-        if (_disposed) throw new ObjectDisposedException(nameof(ArtifactToolBase));
+        if (_disposed) throw new ObjectDisposedException(nameof(IArtifactTool));
     }
-
-    #endregion
-
-    #region Utility
-
-    /// <summary>
-    /// Creates a tool string for the specified tool.
-    /// </summary>
-    /// <param name="type">Tool type.</param>
-    /// <returns>Tool string.</returns>
-    public static string CreateToolString(Type type)
-    {
-        string assemblyName = type.Assembly.GetName().Name ?? throw new InvalidOperationException();
-        string typeName = type.FullName ?? throw new InvalidOperationException();
-        return $"{assemblyName}::{typeName}";
-    }
-
-    /// <summary>
-    /// Creates a tool string for the specified tool.
-    /// </summary>
-    /// <param name="type">Tool type.</param>
-    /// <returns>Tool string.</returns>
-    public static string CreateCoreToolString(Type type)
-    {
-        Type? coreType = type;
-        while (coreType != null && coreType.GetCustomAttribute<CoreAttribute>() == null) coreType = coreType.BaseType;
-        return CreateToolString(coreType ?? type);
-    }
-
-    /// <summary>
-    /// Creates a tool string for the specified tool.
-    /// </summary>
-    /// <typeparam name="TTool">Tool type.</typeparam>
-    /// <returns>Tool string.</returns>
-    public static string CreateCoreToolString<TTool>() where TTool : ArtifactToolBase
-        => CreateCoreToolString(typeof(TTool));
-
-    /// <summary>
-    /// Creates a tool string for the specified tool.
-    /// </summary>
-    /// <typeparam name="TTool">Tool type.</typeparam>
-    /// <returns>Tool string.</returns>
-    public static string CreateToolString<TTool>() where TTool : ArtifactToolBase
-        => CreateToolString(typeof(TTool));
 
     #endregion
 }

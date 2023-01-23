@@ -197,8 +197,8 @@ public static class ArtifactToolProfileUtil
     /// <param name="group">Target group.</param>
     /// <param name="options">Options.</param>
     /// <returns>Profile.</returns>
-    public static ArtifactToolProfile Create<TTool>(string group, params (string, JsonElement)[] options) where TTool : ArtifactToolBase
-        => new(ArtifactToolBase.CreateToolString<TTool>(), group, options.ToDictionary(v => v.Item1, v => v.Item2));
+    public static ArtifactToolProfile Create<TTool>(string group, params (string, JsonElement)[] options) where TTool : IArtifactTool
+        => new(ArtifactToolStringUtil.CreateToolString<TTool>(), group, options.ToDictionary(v => v.Item1, v => v.Item2));
 
     /// <summary>
     /// Creates a tool profile for the specified tool.
@@ -227,7 +227,7 @@ public static class ArtifactToolProfileUtil
         => CreateInternal(toolType, group, options, true);
 
     private static ArtifactToolProfile CreateInternal(Type toolType, string group, (string, JsonElement)[] options, bool alwaysOptions)
-        => new(ArtifactToolBase.CreateToolString(toolType), group, options.Length == 0 ? alwaysOptions ? new Dictionary<string, JsonElement>() : null : options.ToDictionary(v => v.Item1, v => v.Item2));
+        => new(ArtifactToolStringUtil.CreateToolString(toolType), group, options.Length == 0 ? alwaysOptions ? new Dictionary<string, JsonElement>() : null : options.ToDictionary(v => v.Item1, v => v.Item2));
 
     /// <summary>
     /// Creates an instance of this profile with most derived core type of instance or instance's type.
@@ -243,7 +243,7 @@ public static class ArtifactToolProfileUtil
     /// <param name="profile">Profile.</param>
     /// <param name="type">Tool type.</param>
     /// <returns>Profile.</returns>
-    public static ArtifactToolProfile WithCoreTool(this ArtifactToolProfile profile, Type type) => profile with { Tool = ArtifactToolBase.CreateCoreToolString(type) };
+    public static ArtifactToolProfile WithCoreTool(this ArtifactToolProfile profile, Type type) => profile with { Tool = ArtifactToolStringUtil.CreateCoreToolString(type) };
 
     /// <summary>
     /// Creates an instance of this profile with specified comparer.

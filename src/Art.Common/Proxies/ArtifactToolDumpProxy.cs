@@ -6,7 +6,7 @@
 public record ArtifactToolDumpProxy
 {
     /// <summary>Artifact tool.</summary>
-    public ArtifactToolBase ArtifactTool { get; init; }
+    public IArtifactTool ArtifactTool { get; init; }
 
     /// <summary>Dump options.</summary>
     public ArtifactToolDumpOptions Options { get; init; }
@@ -20,7 +20,7 @@ public record ArtifactToolDumpProxy
     /// <param name="artifactTool">Artifact tool.</param>
     /// <param name="options">Dump options.</param>
     /// <param name="logHandler">Log handler.</param>
-    public ArtifactToolDumpProxy(ArtifactToolBase artifactTool, ArtifactToolDumpOptions options, IToolLogHandler? logHandler)
+    public ArtifactToolDumpProxy(IArtifactTool artifactTool, ArtifactToolDumpOptions options, IToolLogHandler? logHandler)
     {
         if (artifactTool == null) throw new ArgumentNullException(nameof(artifactTool));
         if (options == null) throw new ArgumentNullException(nameof(options));

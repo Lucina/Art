@@ -9,7 +9,7 @@ namespace Art.Common.Proxies;
 public record ArtifactToolListProxy
 {
     /// <summary>Artifact tool.</summary>
-    public ArtifactToolBase ArtifactTool { get; init; }
+    public IArtifactTool ArtifactTool { get; init; }
 
     /// <summary>List options.</summary>
     public ArtifactToolListOptions Options { get; init; }
@@ -24,7 +24,7 @@ public record ArtifactToolListProxy
     /// <param name="options">List options.</param>
     /// <param name="logHandler">Log handler.</param>
     /// <exception cref="ArgumentException">Thrown when invalid options are specified.</exception>
-    public ArtifactToolListProxy(ArtifactToolBase artifactTool, ArtifactToolListOptions options, IToolLogHandler? logHandler)
+    public ArtifactToolListProxy(IArtifactTool artifactTool, ArtifactToolListOptions options, IToolLogHandler? logHandler)
     {
         if (artifactTool == null) throw new ArgumentNullException(nameof(artifactTool));
         if (options == null) throw new ArgumentNullException(nameof(options));

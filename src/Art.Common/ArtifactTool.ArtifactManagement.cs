@@ -88,7 +88,7 @@ public partial class ArtifactTool
 
 internal partial class ArtifactToolBaseExtensions
 {
-    public static async ValueTask<ItemStateFlags> CompareArtifactAsync(this ArtifactToolBase artifactTool, ArtifactInfo artifactInfo, CancellationToken cancellationToken = default)
+    public static async ValueTask<ItemStateFlags> CompareArtifactAsync(this IArtifactTool artifactTool, ArtifactInfo artifactInfo, CancellationToken cancellationToken = default)
     {
         ItemStateFlags state = ItemStateFlags.None;
         if (await artifactTool.RegistrationManager.TryGetArtifactAsync(artifactInfo.Key, cancellationToken).ConfigureAwait(false) is not { } oldArtifact)
@@ -126,7 +126,7 @@ internal partial class ArtifactToolBaseExtensions
         return state;
     }
 
-    public static async Task<ArtifactResourceInfoWithState> DetermineUpdatedResourceAsync(this ArtifactToolBase artifactTool, ArtifactResourceInfo resource, ResourceUpdateMode resourceUpdate, CancellationToken cancellationToken = default)
+    public static async Task<ArtifactResourceInfoWithState> DetermineUpdatedResourceAsync(this IArtifactTool artifactTool, ArtifactResourceInfo resource, ResourceUpdateMode resourceUpdate, CancellationToken cancellationToken = default)
     {
         ItemStateFlags state = resourceUpdate switch
         {
