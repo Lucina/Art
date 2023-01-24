@@ -1,4 +1,5 @@
-﻿using System.Security.Cryptography;
+﻿using System.Runtime.Loader;
+using System.Security.Cryptography;
 using Art.Common.Management;
 using Art.Common.Proxies;
 
@@ -29,6 +30,26 @@ public static class ArtifactDumping
     }
 
     /// <summary>
+    /// Directly dumps using a tool profile stored on disk.
+    /// </summary>
+    /// <param name="assemblyLoadContext">Custom <see cref="AssemblyLoadContext"/>.</param>
+    /// <param name="artifactToolProfilePath">Path to tool profile.</param>
+    /// <param name="targetDirectory">Base directory.</param>
+    /// <param name="dumpOptions">Dump options.</param>
+    /// <param name="toolLogHandler">Tool log handler.</param>
+    /// <param name="cancellationToken">Cancellation token.</param>
+    /// <returns>Task.</returns>
+    /// <exception cref="ArtifactToolNotFoundException"></exception>
+    public static async Task DumpAsync(AssemblyLoadContext assemblyLoadContext, string artifactToolProfilePath, string targetDirectory, ArtifactToolDumpOptions? dumpOptions = null, IToolLogHandler? toolLogHandler = null, CancellationToken cancellationToken = default)
+    {
+        dumpOptions ??= new ArtifactToolDumpOptions();
+        var srm = new DiskArtifactRegistrationManager(targetDirectory);
+        var sdm = new DiskArtifactDataManager(targetDirectory);
+        foreach (ArtifactToolProfile profile in ArtifactToolProfileUtil.DeserializeProfilesFromFile(artifactToolProfilePath))
+            await DumpAsync(assemblyLoadContext, profile, srm, sdm, dumpOptions, toolLogHandler, cancellationToken).ConfigureAwait(false);
+    }
+
+    /// <summary>
     /// Directly dumps to disk using a tool profile.
     /// </summary>
     /// <param name="artifactToolProfile">Tool profile.</param>
@@ -44,6 +65,26 @@ public static class ArtifactDumping
     {
         if (artifactToolProfile.Group == null) throw new ArgumentException("Group not specified in profile");
         using IArtifactTool tool = await ArtifactTool.PrepareToolAsync(artifactToolProfile, artifactRegistrationManager, artifactDataManager, cancellationToken);
+        await new ArtifactToolDumpProxy(tool, dumpOptions ?? new ArtifactToolDumpOptions(), toolLogHandler).DumpAsync(cancellationToken);
+    }
+
+    /// <summary>
+    /// Directly dumps to disk using a tool profile.
+    /// </summary>
+    /// <param name="assemblyLoadContext">Custom <see cref="AssemblyLoadContext"/>.</param>
+    /// <param name="artifactToolProfile">Tool profile.</param>
+    /// <param name="artifactRegistrationManager">Registration manager.</param>
+    /// <param name="artifactDataManager">Data manager.</param>
+    /// <param name="dumpOptions">Dump options.</param>
+    /// <param name="toolLogHandler">Tool log handler.</param>
+    /// <param name="cancellationToken">Cancellation token.</param>
+    /// <returns>Task.</returns>
+    /// <exception cref="ArgumentException">Thrown when an invalid profile is provided.</exception>
+    /// <exception cref="ArtifactToolNotFoundException">Thrown when tool is not found.</exception>
+    public static async Task DumpAsync(AssemblyLoadContext assemblyLoadContext, ArtifactToolProfile artifactToolProfile, IArtifactRegistrationManager artifactRegistrationManager, IArtifactDataManager artifactDataManager, ArtifactToolDumpOptions? dumpOptions = null, IToolLogHandler? toolLogHandler = null, CancellationToken cancellationToken = default)
+    {
+        if (artifactToolProfile.Group == null) throw new ArgumentException("Group not specified in profile");
+        using IArtifactTool tool = await ArtifactTool.PrepareToolAsync(assemblyLoadContext, artifactToolProfile, artifactRegistrationManager, artifactDataManager, cancellationToken);
         await new ArtifactToolDumpProxy(tool, dumpOptions ?? new ArtifactToolDumpOptions(), toolLogHandler).DumpAsync(cancellationToken);
     }
 

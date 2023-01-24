@@ -66,10 +66,7 @@ public static class ArtifactToolLoader
         try
         {
             Assembly assembly = Assembly.Load(artifactToolId.Assembly);
-            Type? type = assembly.GetType(artifactToolId.Type);
-            object? obj = type == null ? null : Activator.CreateInstance(type);
-            tool = obj as IArtifactTool;
-            return tool != null;
+            return TryLoad(assembly, artifactToolId, out tool);
         }
         catch
         {
@@ -90,6 +87,26 @@ public static class ArtifactToolLoader
         try
         {
             Assembly assembly = assemblyLoadContext.LoadFromAssemblyName(new AssemblyName(artifactToolId.Assembly));
+            return TryLoad(assembly, artifactToolId, out tool);
+        }
+        catch
+        {
+            tool = null;
+            return false;
+        }
+    }
+
+    /// <summary>
+    /// Attempts to load artifact tool from an assembly and tool type name.
+    /// </summary>
+    /// <param name="assembly">Assembly.</param>
+    /// <param name="artifactToolId">Artifact tool ID.</param>
+    /// <param name="tool">Tool.</param>
+    /// <returns>True if successfully located and created a tool.</returns>
+    public static bool TryLoad(Assembly assembly, ArtifactToolID artifactToolId, [NotNullWhen(true)] out IArtifactTool? tool)
+    {
+        try
+        {
             Type? type = assembly.GetType(artifactToolId.Type);
             object? obj = type == null ? null : Activator.CreateInstance(type);
             tool = obj as IArtifactTool;
@@ -100,5 +117,17 @@ public static class ArtifactToolLoader
             tool = null;
             return false;
         }
+    }
+
+    /// <summary>
+    /// Attempts to load artifact tool from an assembly and artifact tool target string (assembly::toolType).
+    /// </summary>
+    /// <param name="assembly">Assembly.</param>
+    /// <param name="toolId">Artifact tool target string (assembly::toolType).</param>
+    /// <param name="tool">Tool.</param>
+    /// <returns>True if successfully located and created a tool.</returns>
+    public static bool TryLoad(Assembly assembly, string toolId, [NotNullWhen(true)] out IArtifactTool? tool)
+    {
+        return TryLoad(assembly, ArtifactToolProfileUtil.GetID(toolId), out tool);
     }
 }
