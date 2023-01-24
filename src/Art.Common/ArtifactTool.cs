@@ -169,7 +169,7 @@ public partial class ArtifactTool : IArtifactTool
     public static async Task<IArtifactTool> PrepareToolAsync(ArtifactToolProfile artifactToolProfile, IArtifactRegistrationManager artifactRegistrationManager, IArtifactDataManager artifactDataManager, CancellationToken cancellationToken = default)
     {
         if (artifactToolProfile.Group == null) throw new ArgumentException("Group not specified in profile");
-        if (!ArtifactToolLoader.TryLoad(artifactToolProfile, out IArtifactTool? t))
+        if (!ArtifactToolLoader.TryLoad(artifactToolProfile.Tool, out IArtifactTool? t))
             throw new ArtifactToolNotFoundException(artifactToolProfile.Tool);
         ArtifactToolConfig config = new(artifactRegistrationManager, artifactDataManager);
         artifactToolProfile = artifactToolProfile.WithCoreTool(t);
@@ -191,7 +191,7 @@ public partial class ArtifactTool : IArtifactTool
     public static async Task<IArtifactTool> PrepareToolAsync(AssemblyLoadContext assemblyLoadContext, ArtifactToolProfile artifactToolProfile, IArtifactRegistrationManager artifactRegistrationManager, IArtifactDataManager artifactDataManager, CancellationToken cancellationToken = default)
     {
         if (artifactToolProfile.Group == null) throw new ArgumentException("Group not specified in profile");
-        if (!ArtifactToolLoader.TryLoad(assemblyLoadContext, artifactToolProfile, out IArtifactTool? t))
+        if (!ArtifactToolLoader.TryLoad(assemblyLoadContext, artifactToolProfile.Tool, out IArtifactTool? t))
             throw new ArtifactToolNotFoundException(artifactToolProfile.Tool);
         ArtifactToolConfig config = new(artifactRegistrationManager, artifactDataManager);
         artifactToolProfile = artifactToolProfile.WithCoreTool(t);

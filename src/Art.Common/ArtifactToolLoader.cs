@@ -15,6 +15,7 @@ public static class ArtifactToolLoader
     /// <param name="artifactToolProfile">Artifact tool profile.</param>
     /// <param name="tool">Tool.</param>
     /// <returns>True if successfully located and created a tool.</returns>
+    [Obsolete("Use overload that takes string toolId")]
     public static bool TryLoad(ArtifactToolProfile artifactToolProfile, [NotNullWhen(true)] out IArtifactTool? tool)
     {
         return TryLoad(artifactToolProfile.Tool, out tool);
@@ -27,6 +28,7 @@ public static class ArtifactToolLoader
     /// <param name="artifactToolProfile">Artifact tool profile.</param>
     /// <param name="tool">Tool.</param>
     /// <returns>True if successfully located and created a tool.</returns>
+    [Obsolete("Use overload that takes string toolId")]
     public static bool TryLoad(AssemblyLoadContext assemblyLoadContext, ArtifactToolProfile artifactToolProfile, [NotNullWhen(true)] out IArtifactTool? tool)
     {
         return TryLoad(assemblyLoadContext, artifactToolProfile.Tool, out tool);
