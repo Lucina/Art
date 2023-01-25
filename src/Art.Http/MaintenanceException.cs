@@ -3,7 +3,7 @@ namespace Art.Http;
 /// <summary>
 /// Exception thrown when external factors are undergoing maintenance.
 /// </summary>
-public class MaintenanceException : Exception
+public class MaintenanceException : ArtSystemException
 {
     /// <summary>
     /// Creates a new instance of <see cref="MaintenanceException"/>.

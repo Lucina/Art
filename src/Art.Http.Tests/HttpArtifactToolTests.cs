@@ -1,7 +1,6 @@
 using System;
 using System.Text.Json;
 using System.Threading.Tasks;
-using Art.Common;
 using NUnit.Framework;
 using RichardSzalay.MockHttp;
 

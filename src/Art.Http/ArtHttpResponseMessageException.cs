@@ -6,7 +6,7 @@ namespace Art.Http;
 /// <summary>
 /// Represents an exception created from an <see cref="HttpResponseMessage"/>.
 /// </summary>
-public class ArtHttpResponseMessageException : Exception
+public class ArtHttpResponseMessageException : ArtSystemException
 {
     /// <summary>
     /// Gets the HTTP status code associated with this exception.

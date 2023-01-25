@@ -5,7 +5,7 @@ namespace Art.Common;
 /// <summary>
 /// Represents an exception thrown when an option needed by a <see cref="IArtifactTool"/> is not found.
 /// </summary>
-public class ArtifactToolOptionNotFoundException : Exception
+public class ArtifactToolOptionNotFoundException : ArtUserException
 {
     /// <summary>
     /// Missing options.

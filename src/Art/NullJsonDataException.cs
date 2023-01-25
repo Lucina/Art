@@ -1,4 +1,4 @@
-﻿namespace Art.Common;
+﻿namespace Art;
 
 /// <summary>
 /// Represents exception thrown when null JSON data is encountered.
@@ -16,7 +16,7 @@ public class NullJsonDataException : Exception
     /// Creates a new instance of <see cref="NullJsonDataException"/> with the specified message.
     /// </summary>
     /// <param name="message">Message.</param>
-    public NullJsonDataException(string message) : base(message)
+    public NullJsonDataException(string? message) : base(message)
     {
     }
 }

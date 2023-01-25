@@ -3,13 +3,12 @@
 /// <summary>
 /// Represents an exception thrown when a <see cref="IArtifactTool"/> could not be found.
 /// </summary>
-public class ArtifactToolNotFoundException : Exception
+public class ArtifactToolNotFoundException : ArtUserException
 {
     /// <summary>
     /// Target tool.
     /// </summary>
     public string Tool { get; set; }
-
 
     private string? _message;
 

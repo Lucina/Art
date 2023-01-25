@@ -3,7 +3,7 @@ namespace Art.Http;
 /// <summary>
 /// Exception thrown when geoblocking has been encountered.
 /// </summary>
-public class GeoblockingException : Exception
+public class GeoblockingException : ArtSystemException
 {
     /// <summary>
     /// Creates a new instance of <see cref="GeoblockingException"/>.
