@@ -27,7 +27,7 @@ public static class ChecksumUtility
     /// <returns>Checksum for resource.</returns>
     /// <exception cref="KeyNotFoundException">Thrown for missing resource.</exception>
     /// <exception cref="ArgumentException">Thrown for a bad <paramref name="checksumId"/> value.</exception>
-    public static async ValueTask<Checksum> GetChecksumAsync(this IArtifactDataManager artifactDataManager, ArtifactResourceKey key, string checksumId, CancellationToken cancellationToken = default)
+    public static async ValueTask<Checksum> ComputeChecksumAsync(this IArtifactDataManager artifactDataManager, ArtifactResourceKey key, string checksumId, CancellationToken cancellationToken = default)
     {
         if (!ChecksumSource.TryGetHashAlgorithm(checksumId, out HashAlgorithm? hashAlgorithm))
             throw new ArgumentException("Unknown checksum ID", nameof(checksumId));
@@ -37,18 +37,6 @@ public static class ChecksumUtility
         await hps.CopyToAsync(ms, cancellationToken);
         return new Checksum(checksumId, hps.GetHash());
     }
-
-    /// <summary>
-    /// Validates a checksum for a given resource.
-    /// </summary>
-    /// <param name="artifactDataManager"><see cref="IArtifactDataManager"/>.</param>
-    /// <param name="key">Resource key.</param>
-    /// <param name="checksum">Checksum to validate.</param>
-    /// <param name="cancellationToken">Cancellation token.</param>
-    /// <returns>True if checksum is validated.</returns>
-    /// <exception cref="KeyNotFoundException">Thrown for missing resource.</exception>
-    public static async ValueTask<bool> ValidateChecksumAsync(this ArtifactDataManager artifactDataManager, ArtifactResourceKey key, Checksum checksum, CancellationToken cancellationToken = default)
-        => ChecksumUtility.DatawiseEquals(await GetChecksumAsync(artifactDataManager, key, checksum.Id, cancellationToken), checksum);
 
     /// <summary>
     /// Compares two values for data equality.

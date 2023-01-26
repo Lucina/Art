@@ -49,15 +49,9 @@ public abstract class ArtifactDataManager : IArtifactDataManager
     }
 
     /// <inheritdoc />
-    public async ValueTask<Checksum> ComputeChecksumAsync(ArtifactResourceKey key, string checksumId, CancellationToken cancellationToken = default)
+    public ValueTask<Checksum> ComputeChecksumAsync(ArtifactResourceKey key, string checksumId, CancellationToken cancellationToken = default)
     {
-        if (!ChecksumSource.TryGetHashAlgorithm(checksumId, out HashAlgorithm? hashAlgorithm))
-            throw new ArgumentException("Unknown checksum ID", nameof(checksumId));
-        await using Stream sourceStream = await OpenInputStreamAsync(key, cancellationToken);
-        await using HashProxyStream hps = new(sourceStream, hashAlgorithm, true);
-        await using MemoryStream ms = new();
-        await hps.CopyToAsync(ms, cancellationToken);
-        return new Checksum(checksumId, hps.GetHash());
+        return ChecksumUtility.ComputeChecksumAsync(this, key, checksumId, cancellationToken);
     }
 
     /// <inheritdoc />
