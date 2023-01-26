@@ -1,5 +1,4 @@
-﻿using System.Security.Cryptography;
-using System.Text.Json;
+﻿using System.Text.Json;
 
 namespace Art.Common;
 
@@ -49,13 +48,13 @@ public abstract class ArtifactDataManager : IArtifactDataManager
     }
 
     /// <inheritdoc />
-    public ValueTask<Checksum> ComputeChecksumAsync(ArtifactResourceKey key, string checksumId, CancellationToken cancellationToken = default)
+    public virtual ValueTask<Checksum> ComputeChecksumAsync(ArtifactResourceKey key, string checksumId, CancellationToken cancellationToken = default)
     {
         return ChecksumUtility.ComputeChecksumAsync(this, key, checksumId, cancellationToken);
     }
 
     /// <inheritdoc />
-    public async ValueTask<Checksum?> GetChecksumAsync(ArtifactResourceKey key, CancellationToken cancellationToken = default)
+    public virtual async ValueTask<Checksum?> GetChecksumAsync(ArtifactResourceKey key, CancellationToken cancellationToken = default)
     {
         if (!await ExistsAsync(key, cancellationToken)) throw new KeyNotFoundException();
         return null;

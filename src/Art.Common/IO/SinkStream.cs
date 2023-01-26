@@ -3,7 +3,7 @@ namespace Art.Common.IO;
 /// <summary>
 /// Represents a stream intended to act as a sink.
 /// </summary>
-public class SinkStream : Stream
+public class SinkStream : Stream, ISinkStream
 {
     /// <inheritdoc />
     public override void Flush()

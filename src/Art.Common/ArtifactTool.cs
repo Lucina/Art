@@ -88,7 +88,7 @@ public partial class ArtifactTool : IArtifactTool
 
     private void InitializeCore(ArtifactToolConfig? config, ArtifactToolProfile? profile)
     {
-        config ??= ArtifactToolConfig.Default;
+        config ??= ArtifactToolConfigUtil.DefaultInstance;
         if (config.RegistrationManager == null) throw new ArgumentException("Cannot configure with null registration manager");
         if (config.DataManager == null) throw new ArgumentException("Cannot configure with null data manager");
         Config = config;

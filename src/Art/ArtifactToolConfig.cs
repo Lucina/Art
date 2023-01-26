@@ -5,10 +5,4 @@
 /// </summary>
 /// <param name="RegistrationManager">Registration manager.</param>
 /// <param name="DataManager">Data manager.</param>
-public record ArtifactToolConfig(IArtifactRegistrationManager RegistrationManager, IArtifactDataManager DataManager)
-{
-    /// <summary>
-    /// Shared default instance.
-    /// </summary>
-    public static readonly ArtifactToolConfig Default = new(HiddenNullArtifactRegistrationManager.Instance, HiddenNullArtifactDataManager.Instance);
-}
+public record ArtifactToolConfig(IArtifactRegistrationManager RegistrationManager, IArtifactDataManager DataManager);
