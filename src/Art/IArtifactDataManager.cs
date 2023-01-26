@@ -73,7 +73,7 @@ public interface IArtifactDataManager
     ValueTask OutputJsonAsync<T>(T data, JsonSerializerOptions jsonSerializerOptions, ArtifactResourceKey key, OutputStreamOptions? options = null, CancellationToken cancellationToken = default);
 
     /// <summary>
-    /// Gets checksum of a resource.
+    /// Computes checksum of a resource.
     /// </summary>
     /// <param name="key">Resource key.</param>
     /// <param name="checksumId">Checksum algorithm ID.</param>
@@ -81,20 +81,10 @@ public interface IArtifactDataManager
     /// <returns>Checksum for resource.</returns>
     /// <exception cref="KeyNotFoundException">Thrown for missing resource.</exception>
     /// <exception cref="ArgumentException">Thrown for a bad <paramref name="checksumId"/> value.</exception>
-    ValueTask<Checksum> GetChecksumAsync(ArtifactResourceKey key, string checksumId, CancellationToken cancellationToken = default);
+    ValueTask<Checksum> ComputeChecksumAsync(ArtifactResourceKey key, string checksumId, CancellationToken cancellationToken = default);
 
     /// <summary>
-    /// Validates a checksum for a given resource.
-    /// </summary>
-    /// <param name="key">Resource key.</param>
-    /// <param name="checksum">Checksum to validate.</param>
-    /// <param name="cancellationToken">Cancellation token.</param>
-    /// <returns>True if checksum is validated.</returns>
-    /// <exception cref="KeyNotFoundException">Thrown for missing resource.</exception>
-    ValueTask<bool> ValidateChecksumAsync(ArtifactResourceKey key, Checksum checksum, CancellationToken cancellationToken = default);
-
-    /// <summary>
-    /// Gets checksum associated with a resource if it exists.
+    /// Gets existing checksum associated with a resource if it exists.
     /// </summary>
     /// <param name="key">Resource key.</param>
     /// <param name="cancellationToken">Cancellation token.</param>

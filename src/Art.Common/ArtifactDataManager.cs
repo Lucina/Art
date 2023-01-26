@@ -49,7 +49,7 @@ public abstract class ArtifactDataManager : IArtifactDataManager
     }
 
     /// <inheritdoc />
-    public async ValueTask<Checksum> GetChecksumAsync(ArtifactResourceKey key, string checksumId, CancellationToken cancellationToken = default)
+    public async ValueTask<Checksum> ComputeChecksumAsync(ArtifactResourceKey key, string checksumId, CancellationToken cancellationToken = default)
     {
         if (!ChecksumSource.TryGetHashAlgorithm(checksumId, out HashAlgorithm? hashAlgorithm))
             throw new ArgumentException("Unknown checksum ID", nameof(checksumId));
@@ -59,10 +59,6 @@ public abstract class ArtifactDataManager : IArtifactDataManager
         await hps.CopyToAsync(ms, cancellationToken);
         return new Checksum(checksumId, hps.GetHash());
     }
-
-    /// <inheritdoc />
-    public async ValueTask<bool> ValidateChecksumAsync(ArtifactResourceKey key, Checksum checksum, CancellationToken cancellationToken = default)
-        => ChecksumUtility.DatawiseEquals(await GetChecksumAsync(key, checksum.Id, cancellationToken), checksum);
 
     /// <inheritdoc />
     public async ValueTask<Checksum?> GetChecksumAsync(ArtifactResourceKey key, CancellationToken cancellationToken = default)

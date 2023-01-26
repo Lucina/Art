@@ -198,6 +198,7 @@ public static class ArtifactDumping
                     versionedResource = versionedResource with { Checksum = newChecksum };
                 }
             }
+            // TODO check doesn't account for multiple Art.Common assemblies
             else if (stream is not CommittableSinkStream) // if target output were a sink stream and hash isn't needed, then just don't bother exporting
             {
                 await versionedResource.ExportStreamAsync(stream, cancellationToken).ConfigureAwait(false);

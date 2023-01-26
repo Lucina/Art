@@ -66,22 +66,22 @@ public class ChecksumSource
     /// <param name="id">Algorithm id (e.g. from <see cref="SHA256"/>).</param>
     /// <param name="hashAlgorithm">Hash algorithm, if available.</param>
     /// <returns>True if hash algorithm found.</returns>
-    public static bool TryGetHashAlgorithm(string? id, [NotNullWhen(true)] out HashAlgorithm? hashAlgorithm)
+    public static bool TryGetHashAlgorithm(string id, [NotNullWhen(true)] out HashAlgorithm? hashAlgorithm)
     {
-        if (id == null || !DefaultSources.TryGetValue(id, out ChecksumSource? source) || source.HashAlgorithmFunc is not { } func)
+        if (DefaultSources.TryGetValue(id, out ChecksumSource? source) && source.HashAlgorithmFunc is { } func)
         {
-            hashAlgorithm = null;
-            return false;
+            try
+            {
+                hashAlgorithm = func.Invoke();
+                return true;
+            }
+            catch
+            {
+                hashAlgorithm = null;
+                return false;
+            }
         }
-        try
-        {
-            hashAlgorithm = func.Invoke();
-            return true;
-        }
-        catch
-        {
-            hashAlgorithm = null;
-            return false;
-        }
+        hashAlgorithm = null;
+        return false;
     }
 }

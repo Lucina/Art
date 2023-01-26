@@ -10,31 +10,6 @@ namespace Art.Common;
 public static class ArtifactToolLoader
 {
     /// <summary>
-    /// Attempts to load artifact tool from a profile.
-    /// </summary>
-    /// <param name="artifactToolProfile">Artifact tool profile.</param>
-    /// <param name="tool">Tool.</param>
-    /// <returns>True if successfully located and created a tool.</returns>
-    [Obsolete("Use overload that takes string toolId")]
-    public static bool TryLoad(ArtifactToolProfile artifactToolProfile, [NotNullWhen(true)] out IArtifactTool? tool)
-    {
-        return TryLoad(artifactToolProfile.Tool, out tool);
-    }
-
-    /// <summary>
-    /// Attempts to load artifact tool from a profile.
-    /// </summary>
-    /// <param name="assemblyLoadContext">Custom <see cref="AssemblyLoadContext"/>.</param>
-    /// <param name="artifactToolProfile">Artifact tool profile.</param>
-    /// <param name="tool">Tool.</param>
-    /// <returns>True if successfully located and created a tool.</returns>
-    [Obsolete("Use overload that takes string toolId")]
-    public static bool TryLoad(AssemblyLoadContext assemblyLoadContext, ArtifactToolProfile artifactToolProfile, [NotNullWhen(true)] out IArtifactTool? tool)
-    {
-        return TryLoad(assemblyLoadContext, artifactToolProfile.Tool, out tool);
-    }
-
-    /// <summary>
     /// Attempts to load artifact tool from an artifact tool target string (assembly::toolType).
     /// </summary>
     /// <param name="toolId">Artifact tool target string (assembly::toolType).</param>

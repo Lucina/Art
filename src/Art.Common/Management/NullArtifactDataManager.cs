@@ -48,13 +48,7 @@ public class NullArtifactDataManager : IArtifactDataManager
     }
 
     /// <inheritdoc />
-    public ValueTask<Checksum> GetChecksumAsync(ArtifactResourceKey key, string checksumId, CancellationToken cancellationToken = default)
-    {
-        throw new KeyNotFoundException();
-    }
-
-    /// <inheritdoc />
-    public ValueTask<bool> ValidateChecksumAsync(ArtifactResourceKey key, Checksum checksum, CancellationToken cancellationToken = default)
+    public ValueTask<Checksum> ComputeChecksumAsync(ArtifactResourceKey key, string checksumId, CancellationToken cancellationToken = default)
     {
         throw new KeyNotFoundException();
     }
