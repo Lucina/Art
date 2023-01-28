@@ -141,7 +141,7 @@ public abstract partial class HttpArtifactTool : ArtifactTool
     /// <returns>True if necessary keys were found.</returns>
     public async Task<bool> TryLoadBrowserCookiesFromOptionAsync(CookieContainer cookies, string optKeyBrowserName, string optKeyBrowserDomains, string? optKeyProfile, CancellationToken cancellationToken = default)
     {
-        if (TryGetOption(optKeyBrowserName, out string? browserName) && TryGetOption(optKeyBrowserName, out string[]? domains))
+        if (TryGetOption(optKeyBrowserName, out string? browserName) && TryGetOption(optKeyBrowserDomains, out string[]? domains))
         {
             string? profile = optKeyProfile != null && TryGetOption(optKeyProfile, out string? profileValue) ? profileValue : null;
             foreach (string domain in domains)
