@@ -6,8 +6,8 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <!--<PackageReference Include="Art.EF" Version="0.44.0" />-->
-    <ProjectReference Include="..\Art.EF\Art.EF.csproj" />
+    <PackageReference Include="Art.EF" Version="0.44.0" />
+    <!--<ProjectReference Include="..\Art.EF\Art.EF.csproj" />-->
   </ItemGroup>
 
   <ItemGroup>

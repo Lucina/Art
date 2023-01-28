@@ -6,10 +6,10 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <!--<PackageReference Include="Art.BrowserCookies" Version="0.44.0" />-->
-    <ProjectReference Include="..\Art.BrowserCookies\Art.BrowserCookies.csproj" />
-    <!--<PackageReference Include="Art.Common" Version="0.44.0" />-->
-    <ProjectReference Include="..\Art.Common\Art.Common.csproj" />
+    <PackageReference Include="Art.BrowserCookies" Version="0.44.0" />
+    <!--<ProjectReference Include="..\Art.BrowserCookies\Art.BrowserCookies.csproj" />-->
+    <PackageReference Include="Art.Common" Version="0.44.0" />
+    <!--<ProjectReference Include="..\Art.Common\Art.Common.csproj" />-->
   </ItemGroup>
 
   <PropertyGroup>
