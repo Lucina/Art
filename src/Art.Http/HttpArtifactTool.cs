@@ -1,5 +1,6 @@
 ﻿using System.Net;
 using System.Net.WebSockets;
+using Art.BrowserCookies;
 using Art.Common;
 
 namespace Art.Http;
@@ -10,6 +11,21 @@ namespace Art.Http;
 public abstract partial class HttpArtifactTool : ArtifactTool
 {
     #region Fields
+
+    /// <summary>
+    /// Option used to specify browser to extract cookies from.
+    /// </summary>
+    public const string OptCookieBrowser = "cookieBrowser";
+
+    /// <summary>
+    /// Optional option used to specify browser profile to get cookies from if applicable.
+    /// </summary>
+    public const string OptCookieBrowserProfile = "cookieBrowserProfile";
+
+    /// <summary>
+    /// Option used to specify domains to filter when extracting browser cookies.
+    /// </summary>
+    public const string OptCookieBrowserDomains = "cookieBrowserDomains";
 
     /// <summary>
     /// Option used to specify path to http client cookie file.
@@ -89,13 +105,12 @@ public abstract partial class HttpArtifactTool : ArtifactTool
     #region Configuration
 
     /// <inheritdoc/>
-    public override Task ConfigureAsync(CancellationToken cancellationToken = default)
+    public override async Task ConfigureAsync(CancellationToken cancellationToken = default)
     {
-        _cookieContainer = CreateCookieContainer();
+        _cookieContainer = await CreateCookieContainerAsync(cancellationToken);
         _httpMessageHandler = CreateHttpMessageHandler();
         _httpClient = CreateHttpClient(_httpMessageHandler);
         _httpClient.DefaultRequestHeaders.UserAgent.TryParseAdd(DefaultUserAgent);
-        return Task.CompletedTask;
     }
 
     #endregion
@@ -105,14 +120,54 @@ public abstract partial class HttpArtifactTool : ArtifactTool
     /// <summary>
     /// Creates a cookie container (by default using the <see cref="OptCookieFile"/> configuration option).
     /// </summary>
+    /// <param name="cancellationToken">Cancellation token.</param>
     /// <returns>A cookie container.</returns>
-    public virtual CookieContainer CreateCookieContainer()
+    public virtual async Task<CookieContainer> CreateCookieContainerAsync(CancellationToken cancellationToken = default)
     {
         CookieContainer cookies = new();
-        if (TryGetOption(OptCookieFile, out string? cookieFile))
-            using (StreamReader f = File.OpenText(cookieFile))
-                cookies.LoadCookieFile(f);
+        await TryLoadBrowserCookiesFromOptionAsync(cookies, OptCookieBrowser, OptCookieBrowserDomains, OptCookieBrowserProfile, cancellationToken);
+        await TryLoadCookieFileFromOptionAsync(cookies, OptCookieFile, cancellationToken);
         return cookies;
+    }
+
+    /// <summary>
+    /// Attempts to load cookies from a browser based on the specified option keys.
+    /// </summary>
+    /// <param name="cookies">Cookie container to populate.</param>
+    /// <param name="optKeyBrowserName">Option key for browser name.</param>
+    /// <param name="optKeyBrowserDomains">Option key for domains to filter by.</param>
+    /// <param name="optKeyProfile">Optional option key for browser profile name.</param>
+    /// <param name="cancellationToken">Cancellation token.</param>
+    /// <returns>True if necessary keys were found.</returns>
+    public async Task<bool> TryLoadBrowserCookiesFromOptionAsync(CookieContainer cookies, string optKeyBrowserName, string optKeyBrowserDomains, string? optKeyProfile, CancellationToken cancellationToken = default)
+    {
+        if (TryGetOption(optKeyBrowserName, out string? browserName) && TryGetOption(optKeyBrowserName, out string[]? domains))
+        {
+            string? profile = optKeyProfile != null && TryGetOption(optKeyProfile, out string? profileValue) ? profileValue : null;
+            foreach (string domain in domains)
+            {
+                await CookieSource.LoadCookiesAsync(cookies, domain, browserName, profile, cancellationToken: cancellationToken);
+            }
+        }
+        return false;
+    }
+
+    /// <summary>
+    /// Attempts to load cookies from a file based on the specified option key.
+    /// </summary>
+    /// <param name="cookies">Cookie container to populate.</param>
+    /// <param name="optKey">Option key.</param>
+    /// <param name="cancellationToken">Cancellation token.</param>
+    /// <returns>True if option key was found.</returns>
+    public async Task<bool> TryLoadCookieFileFromOptionAsync(CookieContainer cookies, string optKey, CancellationToken cancellationToken = default)
+    {
+        if (TryGetOption(optKey, out string? cookieFile))
+        {
+            using StreamReader f = File.OpenText(cookieFile);
+            await cookies.LoadCookieFileAsync(f, cancellationToken);
+            return true;
+        }
+        return false;
     }
 
     /// <summary>
