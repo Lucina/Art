@@ -109,7 +109,7 @@ public abstract partial class HttpArtifactTool : ArtifactTool
     public virtual CookieContainer CreateCookieContainer()
     {
         CookieContainer cookies = new();
-        if (this.TryGetOption(OptCookieFile, out string? cookieFile))
+        if (TryGetOption(OptCookieFile, out string? cookieFile))
             using (StreamReader f = File.OpenText(cookieFile))
                 cookies.LoadCookieFile(f);
         return cookies;

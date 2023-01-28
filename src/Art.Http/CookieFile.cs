@@ -30,7 +30,7 @@ public static class CookieFile
             long expiration = long.Parse(elem[4], CultureInfo.InvariantCulture);
             string name = elem[5];
             string? value = elem.Length < 7 ? null : elem[6];
-            cc.Add(new Cookie()
+            cc.Add(new Cookie
             {
                 Expires = DateTime.UnixEpoch.AddSeconds(expiration),
                 Secure = secure,
