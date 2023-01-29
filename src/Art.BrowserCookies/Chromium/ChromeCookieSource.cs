@@ -66,7 +66,7 @@ public record ChromeCookieSource(string Profile = "Default") : ChromiumProfileCo
     {
         if (OperatingSystem.IsWindows())
         {
-            return ChromiumKeychainUtil.GetWindowsKeychainAsync(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "Google/Chrome/User Data"), cancellationToken);
+            return ChromiumKeychainUtil.GetWindowsKeychainAsync(GetUserDataDirectory(), cancellationToken);
         }
         if (OperatingSystem.IsMacOS())
         {

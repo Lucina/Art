@@ -68,7 +68,7 @@ public record EdgeCookieSource(string Profile = "Default") : ChromiumProfileCook
     {
         if (OperatingSystem.IsWindows())
         {
-            return ChromiumKeychainUtil.GetWindowsKeychainAsync(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "Microsoft/Edge/User Data"), cancellationToken);
+            return ChromiumKeychainUtil.GetWindowsKeychainAsync(GetUserDataDirectory(), cancellationToken);
         }
         if (OperatingSystem.IsMacOS())
         {
