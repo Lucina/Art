@@ -3,7 +3,7 @@
 /// <summary>
 /// Exception thrown when a browser was not found.
 /// </summary>
-public class BrowserNotFoundException : Exception
+public class BrowserNotFoundException : ArtUserException
 {
     /// <summary>
     /// Browser name.
