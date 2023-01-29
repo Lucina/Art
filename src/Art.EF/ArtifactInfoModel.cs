@@ -1,4 +1,4 @@
-namespace Art;
+namespace Art.EF;
 
 /// <summary>
 /// Model type for <see cref="ArtifactInfo"/>.
@@ -52,4 +52,21 @@ public class ArtifactInfoModel
     /// <returns>Record.</returns>
     public static implicit operator ArtifactInfo(ArtifactInfoModel value)
         => new(new ArtifactKey(value.Tool, value.Group, value.Id), value.Name, value.Date, value.UpdateDate, value.Full);
+
+    /// <summary>
+    /// Converts model to info record.
+    /// </summary>
+    /// <param name="value">Model.</param>
+    /// <returns>Record.</returns>
+    public static implicit operator ArtifactInfoModel(ArtifactInfo value)
+        => new()
+        {
+            Tool = value.Key.Tool,
+            Group = value.Key.Group,
+            Id = value.Key.Id,
+            Name = value.Name,
+            Date = value.Date,
+            UpdateDate = value.UpdateDate,
+            Full = value.Full
+        };
 }

@@ -1,4 +1,4 @@
-namespace Art;
+namespace Art.EF;
 
 /// <summary>
 /// Model type for <see cref="ArtifactResourceInfo"/>.
@@ -68,4 +68,24 @@ public class ArtifactResourceInfoModel
     public static implicit operator ArtifactResourceInfo(ArtifactResourceInfoModel value)
         => new(new ArtifactResourceKey(new ArtifactKey(value.ArtifactTool, value.ArtifactGroup, value.ArtifactId), value.File, value.Path), value.ContentType, value.Updated, value.Version,
             value.ChecksumId != null && value.ChecksumValue != null ? new Checksum(value.ChecksumId, value.ChecksumValue) : null);
+
+    /// <summary>
+    /// Converts info record to model.
+    /// </summary>
+    /// <param name="value">Record.</param>
+    /// <returns>Model.</returns>
+    public static implicit operator ArtifactResourceInfoModel(ArtifactResourceInfo value) =>
+        new()
+        {
+            ArtifactTool = value.Key.Artifact.Tool,
+            ArtifactGroup = value.Key.Artifact.Group,
+            ArtifactId = value.Key.Artifact.Id,
+            File = value.Key.File,
+            Path = value.Key.Path,
+            ContentType = value.ContentType,
+            Updated = value.Updated,
+            Version = value.Version,
+            ChecksumId = value.Checksum?.Id,
+            ChecksumValue = value.Checksum?.Value
+        };
 }

@@ -21,21 +21,4 @@ public record ArtifactInfo(ArtifactKey Key, string? Name = null, DateTimeOffset?
     /// </summary>
     /// <returns>Info string.</returns>
     public string GetInfoString() => $"ID: {Key.Id}{(Name != null ? $"\nName: {Name}" : "")}{(Date != null ? $"\nDate: {Date}" : "")}{(UpdateDate != null ? $"\nUpdate Date: {UpdateDate}" : "")}\nFull: {Full}";
-
-    /// <summary>
-    /// Converts model to info record.
-    /// </summary>
-    /// <param name="value">Model.</param>
-    /// <returns>Record.</returns>
-    public static implicit operator ArtifactInfoModel(ArtifactInfo value)
-        => new()
-        {
-            Tool = value.Key.Tool,
-            Group = value.Key.Group,
-            Id = value.Key.Id,
-            Name = value.Name,
-            Date = value.Date,
-            UpdateDate = value.UpdateDate,
-            Full = value.Full
-        };
 }

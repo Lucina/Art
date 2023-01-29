@@ -71,24 +71,4 @@ public record ArtifactResourceInfo(ArtifactResourceKey Key, string? ContentType 
     /// </summary>
     /// <returns>Info string.</returns>
     public virtual string GetInfoString() => $"Path: {GetInfoPathString()}{(ContentType != null ? $"\nContent type: {ContentType}" : "")}{(Updated != null ? $"\nUpdated: {Updated}" : "")}{(Version != null ? $"\nVersion: {Version}" : "")}{(Checksum != null ? $"\nChecksum: {Checksum.Id}:{Convert.ToHexString(Checksum.Value)}" : "")}";
-
-    /// <summary>
-    /// Converts info record to model.
-    /// </summary>
-    /// <param name="value">Record.</param>
-    /// <returns>Model.</returns>
-    public static implicit operator ArtifactResourceInfoModel(ArtifactResourceInfo value) =>
-        new()
-        {
-            ArtifactTool = value.Key.Artifact.Tool,
-            ArtifactGroup = value.Key.Artifact.Group,
-            ArtifactId = value.Key.Artifact.Id,
-            File = value.Key.File,
-            Path = value.Key.Path,
-            ContentType = value.ContentType,
-            Updated = value.Updated,
-            Version = value.Version,
-            ChecksumId = value.Checksum?.Id,
-            ChecksumValue = value.Checksum?.Value
-        };
 }
