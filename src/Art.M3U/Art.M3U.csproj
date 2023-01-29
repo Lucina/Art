@@ -14,7 +14,6 @@
     <TargetFramework>net7.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
-    <LangVersion>10</LangVersion>
     <NoWarn>NU5105,CA1050</NoWarn>
   </PropertyGroup>
 
