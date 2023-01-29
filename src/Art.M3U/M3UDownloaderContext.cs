@@ -78,7 +78,7 @@ public class M3UDownloaderContext
         tool.LogInformation("Getting sub stream info...");
         M3UFile m3;
         M3UEncryptionInfo? ei;
-        using (var res = await tool.GetAsync(mainUri, v => HttpArtifactTool.SetOriginAndReferrer(v, null, referrer), cancellationToken: cancellationToken))
+        using (var res = await tool.GetAsync(mainUri, v => v.SetOriginAndReferrer(null, referrer), cancellationToken: cancellationToken))
         {
             ArtHttpResponseMessageException.EnsureSuccessStatusCode(res);
             m3 = M3UReader.Parse(await res.Content.ReadAsStringAsync(cancellationToken));
@@ -89,7 +89,7 @@ public class M3UDownloaderContext
         if (ei is { Uri: { } })
         {
             tool.LogInformation("Downloading enc key...");
-            using var res = await tool.GetAsync(new Uri(mainUri, ei.Uri), v => HttpArtifactTool.SetOriginAndReferrer(v, null, referrer), cancellationToken: cancellationToken);
+            using var res = await tool.GetAsync(new Uri(mainUri, ei.Uri), v => v.SetOriginAndReferrer(null, referrer), cancellationToken: cancellationToken);
             ArtHttpResponseMessageException.EnsureSuccessStatusCode(res);
             ei.Key = await res.Content.ReadAsByteArrayAsync(cancellationToken);
             tool.LogInformation($"KEY {Convert.ToHexString(ei.Key)}");
@@ -175,7 +175,7 @@ public class M3UDownloaderContext
             if (Config.SkipExistingSegments) return;
             await Tool.RegistrationManager.RemoveResourceAsync(ark, cancellationToken);
         }
-        ArtifactResourceInfo ari = new UriArtifactResourceInfo(Tool, uri, v => HttpArtifactTool.SetOriginAndReferrer(v, null, Config.Referrer), ark);
+        ArtifactResourceInfo ari = new UriArtifactResourceInfo(Tool, uri, v => v.SetOriginAndReferrer(null, Config.Referrer), ark);
         if (file.EncryptionInfo is { Encrypted: true } ei)
         {
             if (mediaSequenceNumber is { } msn) await WriteAncillaryFileAsync($"{fn}.msn.txt", Encoding.UTF8.GetBytes(msn.ToString(CultureInfo.InvariantCulture)), cancellationToken);
@@ -205,7 +205,7 @@ public class M3UDownloaderContext
     /// <exception cref="ArtHttpResponseMessageException">Thrown on HTTP response indicating non-successful response.</exception>
     public async Task<M3UFile> GetAsync(CancellationToken cancellationToken = default)
     {
-        using var res = await Tool.GetAsync(MainUri, v => HttpArtifactTool.SetOriginAndReferrer(v, null, Config.Referrer), cancellationToken: cancellationToken);
+        using var res = await Tool.GetAsync(MainUri, v => v.SetOriginAndReferrer(null, Config.Referrer), cancellationToken: cancellationToken);
         ArtHttpResponseMessageException.EnsureSuccessStatusCode(res);
         return M3UReader.Parse(await res.Content.ReadAsStringAsync(cancellationToken));
     }
@@ -213,7 +213,7 @@ public class M3UDownloaderContext
     private static async Task<StreamInfo> SelectStreamAsync(HttpArtifactTool tool, M3UDownloaderConfig config, CancellationToken cancellationToken = default)
     {
         Uri liveUrlUri = new(config.URL);
-        using var res = await tool.GetAsync(liveUrlUri, v => HttpArtifactTool.SetOriginAndReferrer(v, null, config.Referrer), cancellationToken: cancellationToken);
+        using var res = await tool.GetAsync(liveUrlUri, v => v.SetOriginAndReferrer(null, config.Referrer), cancellationToken: cancellationToken);
         ArtHttpResponseMessageException.EnsureSuccessStatusCode(res);
         var ff = M3UReader.Parse(await res.Content.ReadAsStringAsync(cancellationToken));
         if (ff.Streams.All(v => v.AverageBandwidth != 0))

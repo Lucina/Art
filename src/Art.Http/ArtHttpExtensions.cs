@@ -24,4 +24,23 @@ public static class ArtHttpExtensions
         await using FileStream fs = File.Create(file);
         await fr.Content.CopyToAsync(fs, cancellationToken);
     }
+
+    /// <summary>
+    /// Sets origin and referrer on a request.
+    /// </summary>
+    /// <param name="request">Request to configure.</param>
+    /// <param name="origin">Request origin.</param>
+    /// <param name="referrer">Request referrer.</param>
+    public static void SetOriginAndReferrer(this HttpRequestMessage request, string? origin, string? referrer)
+    {
+        if (referrer != null)
+            SetOriginAndReferrer(request, new Uri(referrer));
+        else if (origin != null) SetOriginAndReferrer(request, new Uri(origin));
+    }
+
+    private static void SetOriginAndReferrer(HttpRequestMessage request, Uri uri)
+    {
+        request.Headers.Add("origin", uri.GetComponents(UriComponents.SchemeAndServer, UriFormat.UriEscaped));
+        request.Headers.Referrer = uri;
+    }
 }

@@ -99,24 +99,6 @@ public partial class HttpArtifactTool
     }
 
     /// <summary>
-    /// Sets origin and referrer on a request.
-    /// </summary>
-    /// <param name="request">Request to configure.</param>
-    /// <param name="origin">Request origin.</param>
-    /// <param name="referrer">Request referrer.</param>
-    public static void SetOriginAndReferrer(HttpRequestMessage request, string? origin, string? referrer)
-    {
-        if (referrer != null) SetOriginAndReferrer(request, new Uri(referrer));
-        else if (origin != null) SetOriginAndReferrer(request, new Uri(origin));
-    }
-
-    private static void SetOriginAndReferrer(HttpRequestMessage request, Uri uri)
-    {
-        request.Headers.Add("origin", uri.GetComponents(UriComponents.SchemeAndServer, UriFormat.UriEscaped));
-        request.Headers.Referrer = uri;
-    }
-
-    /// <summary>
     /// Default <see cref="HttpCompletionOption"/> for generic requests.
     /// </summary>
     public virtual HttpCompletionOption GenericCompletionOption => HttpCompletionOption.ResponseContentRead;
