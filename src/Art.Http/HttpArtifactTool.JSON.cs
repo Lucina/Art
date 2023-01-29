@@ -12,8 +12,7 @@ public partial class HttpArtifactTool
     /// </summary>
     /// <typeparam name="T">Data type.</typeparam>
     /// <param name="requestUri">Request URI.</param>
-    /// <param name="origin">Request origin.</param>
-    /// <param name="referrer">Request referrer.</param>
+    /// <param name="requestAction">Custom configuration callback for the <see cref="HttpRequestMessage"/> created.</param>
     /// <param name="cancellationToken">Cancellation token.</param>
     /// <returns>Task returning deserialized data.</returns>
     /// <exception cref="HttpRequestException">Thrown for issues with request excluding non-success server responses.</exception>
@@ -21,12 +20,12 @@ public partial class HttpArtifactTool
     /// <remarks>
     /// This overload uses <see cref="IArtifactTool.JsonOptions"/> member automatically.
     /// </remarks>
-    public async Task<T?> GetDeserializedJsonAsync<T>(string requestUri, string? origin = null, string? referrer = null, CancellationToken cancellationToken = default)
+    public async Task<T?> GetDeserializedJsonAsync<T>(string requestUri, Action<HttpRequestMessage>? requestAction = null, CancellationToken cancellationToken = default)
     {
         NotDisposed();
         HttpRequestMessage req = new(HttpMethod.Get, requestUri);
-        SetOriginAndReferrer(req, origin, referrer);
         ConfigureJsonRequest(req);
+        requestAction?.Invoke(req);
         using HttpResponseMessage res = await HttpClient.SendAsync(req, JsonCompletionOption, cancellationToken).ConfigureAwait(false);
         ArtHttpResponseMessageException.EnsureSuccessStatusCode(res);
         return await DeserializeJsonWithDebugAsync<T>(res, cancellationToken).ConfigureAwait(false);
@@ -37,8 +36,7 @@ public partial class HttpArtifactTool
     /// </summary>
     /// <typeparam name="T">Data type.</typeparam>
     /// <param name="requestUri">Request URI.</param>
-    /// <param name="origin">Request origin.</param>
-    /// <param name="referrer">Request referrer.</param>
+    /// <param name="requestAction">Custom configuration callback for the <see cref="HttpRequestMessage"/> created.</param>
     /// <param name="cancellationToken">Cancellation token.</param>
     /// <returns>Task returning deserialized data.</returns>
     /// <exception cref="HttpRequestException">Thrown for issues with request excluding non-success server responses.</exception>
@@ -47,9 +45,9 @@ public partial class HttpArtifactTool
     /// <remarks>
     /// This overload uses <see cref="IArtifactTool.JsonOptions"/> member automatically.
     /// </remarks>
-    public async Task<T> GetDeserializedRequiredJsonAsync<T>(string requestUri, string? origin = null, string? referrer = null, CancellationToken cancellationToken = default)
+    public async Task<T> GetDeserializedRequiredJsonAsync<T>(string requestUri, Action<HttpRequestMessage>? requestAction = null, CancellationToken cancellationToken = default)
     {
-        return await GetDeserializedJsonAsync<T>(requestUri, origin, referrer, cancellationToken).ConfigureAwait(false) ?? throw new NullJsonDataException();
+        return await GetDeserializedJsonAsync<T>(requestUri, requestAction, cancellationToken).ConfigureAwait(false) ?? throw new NullJsonDataException();
     }
 
     /// <summary>
@@ -58,18 +56,17 @@ public partial class HttpArtifactTool
     /// <typeparam name="T">Data type.</typeparam>
     /// <param name="requestUri">Request URI.</param>
     /// <param name="jsonSerializerOptions">Optional deserialization options.</param>
-    /// <param name="origin">Request origin.</param>
-    /// <param name="referrer">Request referrer.</param>
+    /// <param name="requestAction">Custom configuration callback for the <see cref="HttpRequestMessage"/> created.</param>
     /// <param name="cancellationToken">Cancellation token.</param>
     /// <returns>Task returning deserialized data.</returns>
     /// <exception cref="HttpRequestException">Thrown for issues with request excluding non-success server responses.</exception>
     /// <exception cref="ArtHttpResponseMessageException">Thrown on HTTP response indicating non-successful response.</exception>
-    public async Task<T?> GetDeserializedJsonAsync<T>(string requestUri, JsonSerializerOptions? jsonSerializerOptions, string? origin = null, string? referrer = null, CancellationToken cancellationToken = default)
+    public async Task<T?> GetDeserializedJsonAsync<T>(string requestUri, JsonSerializerOptions? jsonSerializerOptions, Action<HttpRequestMessage>? requestAction = null, CancellationToken cancellationToken = default)
     {
         NotDisposed();
         HttpRequestMessage req = new(HttpMethod.Get, requestUri);
-        SetOriginAndReferrer(req, origin, referrer);
         ConfigureJsonRequest(req);
+        requestAction?.Invoke(req);
         using HttpResponseMessage res = await HttpClient.SendAsync(req, JsonCompletionOption, cancellationToken).ConfigureAwait(false);
         ArtHttpResponseMessageException.EnsureSuccessStatusCode(res);
         return await DeserializeJsonWithDebugAsync<T>(res, jsonSerializerOptions, cancellationToken).ConfigureAwait(false);
@@ -81,16 +78,15 @@ public partial class HttpArtifactTool
     /// <typeparam name="T">Data type.</typeparam>
     /// <param name="requestUri">Request URI.</param>
     /// <param name="jsonSerializerOptions">Optional deserialization options.</param>
-    /// <param name="origin">Request origin.</param>
-    /// <param name="referrer">Request referrer.</param>
+    /// <param name="requestAction">Custom configuration callback for the <see cref="HttpRequestMessage"/> created.</param>
     /// <param name="cancellationToken">Cancellation token.</param>
     /// <returns>Task returning deserialized data.</returns>
     /// <exception cref="HttpRequestException">Thrown for issues with request excluding non-success server responses.</exception>
     /// <exception cref="ArtHttpResponseMessageException">Thrown on HTTP response indicating non-successful response.</exception>
     /// <exception cref="NullJsonDataException">Thrown for null JSON value.</exception>
-    public async Task<T> GetDeserializedRequiredJsonAsync<T>(string requestUri, JsonSerializerOptions? jsonSerializerOptions, string? origin = null, string? referrer = null, CancellationToken cancellationToken = default)
+    public async Task<T> GetDeserializedRequiredJsonAsync<T>(string requestUri, JsonSerializerOptions? jsonSerializerOptions, Action<HttpRequestMessage>? requestAction = null, CancellationToken cancellationToken = default)
     {
-        return await GetDeserializedJsonAsync<T>(requestUri, jsonSerializerOptions, origin, referrer, cancellationToken).ConfigureAwait(false) ?? throw new NullJsonDataException();
+        return await GetDeserializedJsonAsync<T>(requestUri, jsonSerializerOptions, requestAction, cancellationToken).ConfigureAwait(false) ?? throw new NullJsonDataException();
     }
 
     /// <summary>
@@ -98,8 +94,7 @@ public partial class HttpArtifactTool
     /// </summary>
     /// <typeparam name="T">Data type.</typeparam>
     /// <param name="requestUri">Request URI.</param>
-    /// <param name="origin">Request origin.</param>
-    /// <param name="referrer">Request referrer.</param>
+    /// <param name="requestAction">Custom configuration callback for the <see cref="HttpRequestMessage"/> created.</param>
     /// <param name="cancellationToken">Cancellation token.</param>
     /// <returns>Task returning deserialized data.</returns>
     /// <exception cref="HttpRequestException">Thrown for issues with request excluding non-success server responses.</exception>
@@ -107,12 +102,12 @@ public partial class HttpArtifactTool
     /// <remarks>
     /// This overload uses <see cref="IArtifactTool.JsonOptions"/> member automatically.
     /// </remarks>
-    public async Task<T?> GetDeserializedJsonAsync<T>(Uri requestUri, string? origin = null, string? referrer = null, CancellationToken cancellationToken = default)
+    public async Task<T?> GetDeserializedJsonAsync<T>(Uri requestUri, Action<HttpRequestMessage>? requestAction = null, CancellationToken cancellationToken = default)
     {
         NotDisposed();
         HttpRequestMessage req = new(HttpMethod.Get, requestUri);
-        SetOriginAndReferrer(req, origin, referrer);
         ConfigureJsonRequest(req);
+        requestAction?.Invoke(req);
         using HttpResponseMessage res = await HttpClient.SendAsync(req, JsonCompletionOption, cancellationToken).ConfigureAwait(false);
         ArtHttpResponseMessageException.EnsureSuccessStatusCode(res);
         return await DeserializeJsonWithDebugAsync<T>(res, cancellationToken).ConfigureAwait(false);
@@ -123,8 +118,7 @@ public partial class HttpArtifactTool
     /// </summary>
     /// <typeparam name="T">Data type.</typeparam>
     /// <param name="requestUri">Request URI.</param>
-    /// <param name="origin">Request origin.</param>
-    /// <param name="referrer">Request referrer.</param>
+    /// <param name="requestAction">Custom configuration callback for the <see cref="HttpRequestMessage"/> created.</param>
     /// <param name="cancellationToken">Cancellation token.</param>
     /// <returns>Task returning deserialized data.</returns>
     /// <exception cref="HttpRequestException">Thrown for issues with request excluding non-success server responses.</exception>
@@ -133,9 +127,9 @@ public partial class HttpArtifactTool
     /// <remarks>
     /// This overload uses <see cref="IArtifactTool.JsonOptions"/> member automatically.
     /// </remarks>
-    public async Task<T> GetDeserializedRequiredJsonAsync<T>(Uri requestUri, string? origin = null, string? referrer = null, CancellationToken cancellationToken = default)
+    public async Task<T> GetDeserializedRequiredJsonAsync<T>(Uri requestUri, Action<HttpRequestMessage>? requestAction = null, CancellationToken cancellationToken = default)
     {
-        return await GetDeserializedJsonAsync<T>(requestUri, origin, referrer, cancellationToken).ConfigureAwait(false) ?? throw new NullJsonDataException();
+        return await GetDeserializedJsonAsync<T>(requestUri, requestAction, cancellationToken).ConfigureAwait(false) ?? throw new NullJsonDataException();
     }
 
     /// <summary>
@@ -144,18 +138,17 @@ public partial class HttpArtifactTool
     /// <typeparam name="T">Data type.</typeparam>
     /// <param name="requestUri">Request URI.</param>
     /// <param name="jsonSerializerOptions">Optional deserialization options.</param>
-    /// <param name="origin">Request origin.</param>
-    /// <param name="referrer">Request referrer.</param>
+    /// <param name="requestAction">Custom configuration callback for the <see cref="HttpRequestMessage"/> created.</param>
     /// <param name="cancellationToken">Cancellation token.</param>
     /// <returns>Task returning deserialized data.</returns>
     /// <exception cref="HttpRequestException">Thrown for issues with request excluding non-success server responses.</exception>
     /// <exception cref="ArtHttpResponseMessageException">Thrown on HTTP response indicating non-successful response.</exception>
-    public async Task<T?> GetDeserializedJsonAsync<T>(Uri requestUri, JsonSerializerOptions? jsonSerializerOptions, string? origin = null, string? referrer = null, CancellationToken cancellationToken = default)
+    public async Task<T?> GetDeserializedJsonAsync<T>(Uri requestUri, JsonSerializerOptions? jsonSerializerOptions, Action<HttpRequestMessage>? requestAction = null, CancellationToken cancellationToken = default)
     {
         NotDisposed();
         HttpRequestMessage req = new(HttpMethod.Get, requestUri);
-        SetOriginAndReferrer(req, origin, referrer);
         ConfigureJsonRequest(req);
+        requestAction?.Invoke(req);
         using HttpResponseMessage res = await HttpClient.SendAsync(req, JsonCompletionOption, cancellationToken).ConfigureAwait(false);
         ArtHttpResponseMessageException.EnsureSuccessStatusCode(res);
         return await DeserializeJsonWithDebugAsync<T>(res, jsonSerializerOptions, cancellationToken).ConfigureAwait(false);
@@ -167,16 +160,15 @@ public partial class HttpArtifactTool
     /// <typeparam name="T">Data type.</typeparam>
     /// <param name="requestUri">Request URI.</param>
     /// <param name="jsonSerializerOptions">Optional deserialization options.</param>
-    /// <param name="origin">Request origin.</param>
-    /// <param name="referrer">Request referrer.</param>
+    /// <param name="requestAction">Custom configuration callback for the <see cref="HttpRequestMessage"/> created.</param>
     /// <param name="cancellationToken">Cancellation token.</param>
     /// <returns>Task returning deserialized data.</returns>
     /// <exception cref="HttpRequestException">Thrown for issues with request excluding non-success server responses.</exception>
     /// <exception cref="ArtHttpResponseMessageException">Thrown on HTTP response indicating non-successful response.</exception>
     /// <exception cref="NullJsonDataException">Thrown for null JSON value.</exception>
-    public async Task<T> GetDeserializedRequiredJsonAsync<T>(Uri requestUri, JsonSerializerOptions? jsonSerializerOptions, string? origin = null, string? referrer = null, CancellationToken cancellationToken = default)
+    public async Task<T> GetDeserializedRequiredJsonAsync<T>(Uri requestUri, JsonSerializerOptions? jsonSerializerOptions, Action<HttpRequestMessage>? requestAction = null, CancellationToken cancellationToken = default)
     {
-        return await GetDeserializedJsonAsync<T>(requestUri, jsonSerializerOptions, origin, referrer, cancellationToken).ConfigureAwait(false) ?? throw new NullJsonDataException();
+        return await GetDeserializedJsonAsync<T>(requestUri, jsonSerializerOptions, requestAction, cancellationToken).ConfigureAwait(false) ?? throw new NullJsonDataException();
     }
 
     /// <summary>

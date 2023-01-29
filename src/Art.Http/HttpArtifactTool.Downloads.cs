@@ -9,18 +9,17 @@ public partial class HttpArtifactTool
     /// </summary>
     /// <param name="requestUri">Uri to download from.</param>
     /// <param name="stream">Target stream.</param>
-    /// <param name="origin">Request origin.</param>
-    /// <param name="referrer">Request referrer.</param>
+    /// <param name="requestAction">Custom configuration callback for the <see cref="HttpRequestMessage"/> created.</param>
     /// <param name="cancellationToken">Cancellation token.</param>
     /// <returns>Task.</returns>
     /// <exception cref="HttpRequestException">Thrown for issues with request excluding non-success server responses.</exception>
     /// <exception cref="ArtHttpResponseMessageException">Thrown on HTTP response indicating non-successful response.</exception>
-    public async Task DownloadResourceAsync(string requestUri, Stream stream, string? origin = null, string? referrer = null, CancellationToken cancellationToken = default)
+    public async Task DownloadResourceAsync(string requestUri, Stream stream, Action<HttpRequestMessage>? requestAction = null, CancellationToken cancellationToken = default)
     {
         NotDisposed();
         HttpRequestMessage req = new(HttpMethod.Get, requestUri);
-        SetOriginAndReferrer(req, origin, referrer);
         ConfigureHttpRequest(req);
+        requestAction?.Invoke(req);
         using HttpResponseMessage res = await HttpClient.SendAsync(req, DownloadCompletionOption, cancellationToken).ConfigureAwait(false);
         ArtHttpResponseMessageException.EnsureSuccessStatusCode(res);
         await res.Content.CopyToAsync(stream, cancellationToken).ConfigureAwait(false);
@@ -31,18 +30,17 @@ public partial class HttpArtifactTool
     /// </summary>
     /// <param name="requestUri">Uri to download from.</param>
     /// <param name="key">Resource key.</param>
-    /// <param name="origin">Request origin.</param>
-    /// <param name="referrer">Request referrer.</param>
+    /// <param name="requestAction">Custom configuration callback for the <see cref="HttpRequestMessage"/> created.</param>
     /// <param name="cancellationToken">Cancellation token.</param>
     /// <returns>Task.</returns>
     /// <exception cref="HttpRequestException">Thrown for issues with request excluding non-success server responses.</exception>
     /// <exception cref="ArtHttpResponseMessageException">Thrown on HTTP response indicating non-successful response.</exception>
-    public async Task DownloadResourceAsync(string requestUri, ArtifactResourceKey key, string? origin = null, string? referrer = null, CancellationToken cancellationToken = default)
+    public async Task DownloadResourceAsync(string requestUri, ArtifactResourceKey key, Action<HttpRequestMessage>? requestAction = null, CancellationToken cancellationToken = default)
     {
         NotDisposed();
         HttpRequestMessage req = new(HttpMethod.Get, requestUri);
-        SetOriginAndReferrer(req, origin, referrer);
         ConfigureHttpRequest(req);
+        requestAction?.Invoke(req);
         await DownloadResourceInternalAsync(req, key, cancellationToken);
     }
 
@@ -53,32 +51,30 @@ public partial class HttpArtifactTool
     /// <param name="file">Target filename.</param>
     /// <param name="key">Artifact key.</param>
     /// <param name="path">File path to prepend.</param>
-    /// <param name="origin">Request origin.</param>
-    /// <param name="referrer">Request referrer.</param>
+    /// <param name="requestAction">Custom configuration callback for the <see cref="HttpRequestMessage"/> created.</param>
     /// <param name="cancellationToken">Cancellation token.</param>
     /// <returns>Task.</returns>
     /// <exception cref="HttpRequestException">Thrown for issues with request excluding non-success server responses.</exception>
     /// <exception cref="ArtHttpResponseMessageException">Thrown on HTTP response indicating non-successful response.</exception>
-    public Task DownloadResourceAsync(string requestUri, string file, ArtifactKey key, string path = "", string? origin = null, string? referrer = null, CancellationToken cancellationToken = default)
-        => DownloadResourceAsync(requestUri, new ArtifactResourceKey(key, file, path), origin, referrer, cancellationToken);
+    public Task DownloadResourceAsync(string requestUri, string file, ArtifactKey key, string path = "", Action<HttpRequestMessage>? requestAction = null, CancellationToken cancellationToken = default)
+        => DownloadResourceAsync(requestUri, new ArtifactResourceKey(key, file, path), requestAction, cancellationToken);
 
     /// <summary>
     /// Downloads a resource.
     /// </summary>
     /// <param name="requestUri"><see cref="Uri"/> to download from.</param>
     /// <param name="stream">Target stream.</param>
-    /// <param name="origin">Request origin.</param>
-    /// <param name="referrer">Request referrer.</param>
+    /// <param name="requestAction">Custom configuration callback for the <see cref="HttpRequestMessage"/> created.</param>
     /// <param name="cancellationToken">Cancellation token.</param>
     /// <returns>Task.</returns>
     /// <exception cref="HttpRequestException">Thrown for issues with request excluding non-success server responses.</exception>
     /// <exception cref="ArtHttpResponseMessageException">Thrown on HTTP response indicating non-successful response.</exception>
-    public async Task DownloadResourceAsync(Uri requestUri, Stream stream, string? origin = null, string? referrer = null, CancellationToken cancellationToken = default)
+    public async Task DownloadResourceAsync(Uri requestUri, Stream stream, Action<HttpRequestMessage>? requestAction = null, CancellationToken cancellationToken = default)
     {
         NotDisposed();
         HttpRequestMessage req = new(HttpMethod.Get, requestUri);
-        SetOriginAndReferrer(req, origin, referrer);
         ConfigureHttpRequest(req);
+        requestAction?.Invoke(req);
         using HttpResponseMessage res = await HttpClient.SendAsync(req, DownloadCompletionOption, cancellationToken).ConfigureAwait(false);
         ArtHttpResponseMessageException.EnsureSuccessStatusCode(res);
         await res.Content.CopyToAsync(stream, cancellationToken).ConfigureAwait(false);
@@ -89,18 +85,17 @@ public partial class HttpArtifactTool
     /// </summary>
     /// <param name="requestUri"><see cref="Uri"/> to download from.</param>
     /// <param name="key">Resource key.</param>
-    /// <param name="origin">Request origin.</param>
-    /// <param name="referrer">Request referrer.</param>
+    /// <param name="requestAction">Custom configuration callback for the <see cref="HttpRequestMessage"/> created.</param>
     /// <param name="cancellationToken">Cancellation token.</param>
     /// <returns>Task.</returns>
     /// <exception cref="HttpRequestException">Thrown for issues with request excluding non-success server responses.</exception>
     /// <exception cref="ArtHttpResponseMessageException">Thrown on HTTP response indicating non-successful response.</exception>
-    public async Task DownloadResourceAsync(Uri requestUri, ArtifactResourceKey key, string? origin = null, string? referrer = null, CancellationToken cancellationToken = default)
+    public async Task DownloadResourceAsync(Uri requestUri, ArtifactResourceKey key, Action<HttpRequestMessage>? requestAction = null, CancellationToken cancellationToken = default)
     {
         NotDisposed();
         HttpRequestMessage req = new(HttpMethod.Get, requestUri);
-        SetOriginAndReferrer(req, origin, referrer);
         ConfigureHttpRequest(req);
+        requestAction?.Invoke(req);
         await DownloadResourceInternalAsync(req, key, cancellationToken);
     }
 
@@ -111,14 +106,13 @@ public partial class HttpArtifactTool
     /// <param name="file">Target filename.</param>
     /// <param name="key">Artifact key.</param>
     /// <param name="path">File path to prepend.</param>
-    /// <param name="origin">Request origin.</param>
-    /// <param name="referrer">Request referrer.</param>
+    /// <param name="requestAction">Custom configuration callback for the <see cref="HttpRequestMessage"/> created.</param>
     /// <param name="cancellationToken">Cancellation token.</param>
     /// <returns>Task.</returns>
     /// <exception cref="HttpRequestException">Thrown for issues with request excluding non-success server responses.</exception>
     /// <exception cref="ArtHttpResponseMessageException">Thrown on HTTP response indicating non-successful response.</exception>
-    public Task DownloadResourceAsync(Uri requestUri, string file, ArtifactKey key, string path = "", string? origin = null, string? referrer = null, CancellationToken cancellationToken = default)
-        => DownloadResourceAsync(requestUri, new ArtifactResourceKey(key, file, path), origin, referrer, cancellationToken);
+    public Task DownloadResourceAsync(Uri requestUri, string file, ArtifactKey key, string path = "", Action<HttpRequestMessage>? requestAction = null, CancellationToken cancellationToken = default)
+        => DownloadResourceAsync(requestUri, new ArtifactResourceKey(key, file, path), requestAction, cancellationToken);
 
     /// <summary>
     /// Downloads a resource.
@@ -191,5 +185,4 @@ public partial class HttpArtifactTool
     }
 
     #endregion
-
 }

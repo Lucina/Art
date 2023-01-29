@@ -10,17 +10,16 @@ public partial class HttpArtifactTool
     /// Sends an HTTP HEAD request.
     /// </summary>
     /// <param name="requestUri">Request.</param>
-    /// <param name="origin">Request origin.</param>
-    /// <param name="referrer">Request referrer.</param>
+    /// <param name="requestAction">Custom configuration callback for the <see cref="HttpRequestMessage"/> created.</param>
     /// <param name="cancellationToken">Cancellation token.</param>
     /// <returns>Task returning response (status left unchecked).</returns>
     /// <exception cref="HttpRequestException">Thrown for issues with request excluding non-success server responses.</exception>
-    public async Task<HttpResponseMessage> HeadAsync(string requestUri, string? origin = null, string? referrer = null, CancellationToken cancellationToken = default)
+    public async Task<HttpResponseMessage> HeadAsync(string requestUri, Action<HttpRequestMessage>? requestAction = null, CancellationToken cancellationToken = default)
     {
         NotDisposed();
         HttpRequestMessage req = new(HttpMethod.Head, requestUri);
-        SetOriginAndReferrer(req, origin, referrer);
         ConfigureHttpRequest(req);
+        requestAction?.Invoke(req);
         return await HttpClient.SendAsync(req, cancellationToken).ConfigureAwait(false);
     }
 
@@ -28,17 +27,16 @@ public partial class HttpArtifactTool
     /// Sends an HTTP HEAD request.
     /// </summary>
     /// <param name="requestUri">Request.</param>
-    /// <param name="origin">Request origin.</param>
-    /// <param name="referrer">Request referrer.</param>
+    /// <param name="requestAction">Custom configuration callback for the <see cref="HttpRequestMessage"/> created.</param>
     /// <param name="cancellationToken">Cancellation token.</param>
     /// <returns>Task returning response (status left unchecked).</returns>
     /// <exception cref="HttpRequestException">Thrown for issues with request excluding non-success server responses.</exception>
-    public async Task<HttpResponseMessage> HeadAsync(Uri requestUri, string? origin = null, string? referrer = null, CancellationToken cancellationToken = default)
+    public async Task<HttpResponseMessage> HeadAsync(Uri requestUri, Action<HttpRequestMessage>? requestAction = null, CancellationToken cancellationToken = default)
     {
         NotDisposed();
         HttpRequestMessage req = new(HttpMethod.Head, requestUri);
-        SetOriginAndReferrer(req, origin, referrer);
         ConfigureHttpRequest(req);
+        requestAction?.Invoke(req);
         return await HttpClient.SendAsync(req, cancellationToken).ConfigureAwait(false);
     }
 
@@ -46,17 +44,16 @@ public partial class HttpArtifactTool
     /// Sends an HTTP GET request.
     /// </summary>
     /// <param name="requestUri">Request.</param>
-    /// <param name="origin">Request origin.</param>
-    /// <param name="referrer">Request referrer.</param>
+    /// <param name="requestAction">Custom configuration callback for the <see cref="HttpRequestMessage"/> created.</param>
     /// <param name="cancellationToken">Cancellation token.</param>
     /// <returns>Task returning response (status left unchecked).</returns>
     /// <exception cref="HttpRequestException">Thrown for issues with request excluding non-success server responses.</exception>
-    public async Task<HttpResponseMessage> GetAsync(string requestUri, string? origin = null, string? referrer = null, CancellationToken cancellationToken = default)
+    public async Task<HttpResponseMessage> GetAsync(string requestUri, Action<HttpRequestMessage>? requestAction = null, CancellationToken cancellationToken = default)
     {
         NotDisposed();
         HttpRequestMessage req = new(HttpMethod.Get, requestUri);
-        SetOriginAndReferrer(req, origin, referrer);
         ConfigureHttpRequest(req);
+        requestAction?.Invoke(req);
         return await HttpClient.SendAsync(req, GenericCompletionOption, cancellationToken).ConfigureAwait(false);
     }
 
@@ -64,17 +61,16 @@ public partial class HttpArtifactTool
     /// Sends an HTTP GET request.
     /// </summary>
     /// <param name="requestUri">Request.</param>
-    /// <param name="origin">Request origin.</param>
-    /// <param name="referrer">Request referrer.</param>
+    /// <param name="requestAction">Custom configuration callback for the <see cref="HttpRequestMessage"/> created.</param>
     /// <param name="cancellationToken">Cancellation token.</param>
     /// <returns>Task returning response (status left unchecked).</returns>
     /// <exception cref="HttpRequestException">Thrown for issues with request excluding non-success server responses.</exception>
-    public async Task<HttpResponseMessage> GetAsync(Uri requestUri, string? origin = null, string? referrer = null, CancellationToken cancellationToken = default)
+    public async Task<HttpResponseMessage> GetAsync(Uri requestUri, Action<HttpRequestMessage>? requestAction = null, CancellationToken cancellationToken = default)
     {
         NotDisposed();
         HttpRequestMessage req = new(HttpMethod.Get, requestUri);
-        SetOriginAndReferrer(req, origin, referrer);
         ConfigureHttpRequest(req);
+        requestAction?.Invoke(req);
         return await HttpClient.SendAsync(req, GenericCompletionOption, cancellationToken).ConfigureAwait(false);
     }
 
