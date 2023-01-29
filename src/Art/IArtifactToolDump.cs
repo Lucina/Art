@@ -3,7 +3,7 @@
 /// <summary>
 /// Represents an artifact tool that dumps.
 /// </summary>
-public interface IArtifactToolDump
+public interface IArtifactToolDump : IArtifactTool
 {
     /// <summary>
     /// Dumps artifacts.

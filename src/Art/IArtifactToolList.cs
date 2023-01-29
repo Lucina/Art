@@ -3,7 +3,7 @@
 /// <summary>
 /// Represents an artifact tool that lists.
 /// </summary>
-public interface IArtifactToolList
+public interface IArtifactToolList : IArtifactTool
 {
     /// <summary>
     /// Lists artifacts.
