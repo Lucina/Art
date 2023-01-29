@@ -4,7 +4,7 @@ using System.Text;
 
 namespace Art.BrowserCookies.Chromium;
 
-internal class ChromiumMacosKeychain : IKeychain
+internal class ChromiumMacosKeychain : IChromiumKeychain
 {
     // https://chromium.googlesource.com/chromium/src/+/refs/heads/main/components/os_crypt/os_crypt_mac.mm
     private readonly Aes _aes;

@@ -17,7 +17,8 @@ public abstract record CookieSource
 
     private static readonly Dictionary<string, Func<string?, CookieSource?>> s_factories = new(StringComparer.InvariantCultureIgnoreCase)
     {
-        { EdgeCookieSource.Name, p => new EdgeCookieSource(p ?? "Default") } // MS Edge
+        { EdgeCookieSource.Name, p => new EdgeCookieSource(p ?? "Default") }, // MS Edge
+        { ChromeCookieSource.Name, p => new ChromeCookieSource(p ?? "Default") } // Chrome
     };
 
     /// <summary>

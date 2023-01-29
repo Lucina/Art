@@ -3,7 +3,7 @@ using System.Text;
 
 namespace Art.BrowserCookies.Chromium;
 
-internal class ChromiumWindowsKeychain : IKeychain
+internal class ChromiumWindowsKeychain : IChromiumKeychain
 {
     // https://chromium.googlesource.com/chromium/src/+/refs/heads/main/components/os_crypt/os_crypt_win.cc
     // https://armmbed.github.io/mbed-crypto/html/api/ops/aead.html

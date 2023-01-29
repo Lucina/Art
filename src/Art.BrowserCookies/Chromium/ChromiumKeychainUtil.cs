@@ -9,7 +9,7 @@ internal static class ChromiumKeychainUtil
 {
     private const int MaxPasswordSize = 1024;
 
-    public static async Task<IKeychain> GetMacosKeychainAsync(string service, CancellationToken cancellationToken = default)
+    public static async Task<IChromiumKeychain> GetMacosKeychainAsync(string service, CancellationToken cancellationToken = default)
     {
         var process = new Process { StartInfo = { FileName = "security", ArgumentList = { "find-generic-password", "-ws", service }, RedirectStandardOutput = true, UseShellExecute = false } };
         process.Start();
@@ -30,7 +30,7 @@ internal static class ChromiumKeychainUtil
         }
     }
 
-    public static async Task<IKeychain> GetWindowsKeychainAsync(string userDataPath, CancellationToken cancellationToken = default)
+    public static async Task<IChromiumKeychain> GetWindowsKeychainAsync(string userDataPath, CancellationToken cancellationToken = default)
     {
         if (!OperatingSystem.IsWindows())
         {

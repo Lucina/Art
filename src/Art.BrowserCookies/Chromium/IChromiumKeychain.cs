@@ -3,7 +3,7 @@
 /// <summary>
 /// Represents a context-specific keychain accessor.
 /// </summary>
-public interface IKeychain : IDisposable
+public interface IChromiumKeychain : IDisposable
 {
     /// <summary>
     /// Gets the decrypted content for a buffer.

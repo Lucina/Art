@@ -15,7 +15,7 @@ public abstract record ChromiumCookieSource : CookieSource
         {
             throw new ArgumentException("domain shouldn't start with leading \".\"");
         }
-        IKeychain? keychain = null;
+        IChromiumKeychain? keychain = null;
         try
         {
             // NT epoch
@@ -78,7 +78,7 @@ public abstract record ChromiumCookieSource : CookieSource
     /// </summary>
     /// <param name="cancellationToken">Cancellation token.</param>
     /// <returns>Task returning a keychain.</returns>
-    public abstract Task<IKeychain> GetKeychainAsync(CancellationToken cancellationToken = default);
+    public abstract Task<IChromiumKeychain> GetKeychainAsync(CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Gets the path to the Chromium cookie file.
