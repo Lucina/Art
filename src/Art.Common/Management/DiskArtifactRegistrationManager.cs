@@ -1,5 +1,4 @@
 ﻿using System.Globalization;
-using System.Linq.Expressions;
 
 namespace Art.Common.Management;
 
@@ -53,16 +52,15 @@ public class DiskArtifactRegistrationManager : IArtifactRegistrationManager
     }
 
     /// <inheritdoc/>
-    public async Task<List<ArtifactInfo>> ListArtifactsAsync(Expression<Func<ArtifactInfoModel, bool>> predicate, CancellationToken cancellationToken = default)
+    public async Task<List<ArtifactInfo>> ListArtifactsAsync(Func<ArtifactInfo, bool> predicate, CancellationToken cancellationToken = default)
     {
-        Func<ArtifactInfoModel, bool> compiled = predicate.Compile();
         string dir = GetArtifactInfoDir();
         List<ArtifactInfo> results = new();
         if (!Directory.Exists(dir)) return results;
         foreach (string toolDir in Directory.EnumerateDirectories(dir))
         foreach (string groupDir in Directory.EnumerateDirectories(toolDir))
         foreach (string file in Directory.EnumerateFiles(groupDir).Where(v => v.EndsWith(ArtifactFileNameEnd)))
-            if (await ArtUtils.LoadFromFileAsync<ArtifactInfo>(file, cancellationToken).ConfigureAwait(false) is { } v && compiled(v))
+            if (await ArtUtils.LoadFromFileAsync<ArtifactInfo>(file, cancellationToken).ConfigureAwait(false) is { } v && predicate(v))
                 results.Add(v);
         return results;
     }

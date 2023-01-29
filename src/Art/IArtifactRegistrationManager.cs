@@ -1,6 +1,4 @@
-﻿using System.Linq.Expressions;
-
-namespace Art;
+﻿namespace Art;
 
 /// <summary>
 /// Represents a manager for artifact data.
@@ -20,7 +18,7 @@ public interface IArtifactRegistrationManager
     /// <param name="predicate">Predicate.</param>
     /// <param name="cancellationToken">Cancellation token.</param>
     /// <returns>Task returning artifacts.</returns>
-    Task<List<ArtifactInfo>> ListArtifactsAsync(Expression<Func<ArtifactInfoModel, bool>> predicate, CancellationToken cancellationToken = default);
+    Task<List<ArtifactInfo>> ListArtifactsAsync(Func<ArtifactInfo, bool> predicate, CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Lists all artifacts for the specified tool.

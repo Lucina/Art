@@ -31,6 +31,18 @@ public class EFArtifactRegistrationManager : IArtifactRegistrationManager, IDisp
     }
 
     /// <inheritdoc />
+    public Task<List<ArtifactInfo>> ListArtifactsAsync(Func<ArtifactInfo, bool> predicate, CancellationToken cancellationToken = default)
+    {
+        EnsureNotDisposed();
+        return Context.ListArtifactsAsync(predicate, cancellationToken);
+    }
+
+    /// <summary>
+    /// Lists all artifacts using the specified predicate.
+    /// </summary>
+    /// <param name="predicate">Predicate.</param>
+    /// <param name="cancellationToken">Cancellation token.</param>
+    /// <returns>Task returning artifacts.</returns>
     public Task<List<ArtifactInfo>> ListArtifactsAsync(Expression<Func<ArtifactInfoModel, bool>> predicate, CancellationToken cancellationToken = default)
     {
         EnsureNotDisposed();

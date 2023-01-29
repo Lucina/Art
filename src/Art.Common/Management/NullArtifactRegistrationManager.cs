@@ -1,5 +1,3 @@
-using System.Linq.Expressions;
-
 namespace Art.Common.Management;
 
 /// <summary>
@@ -16,7 +14,7 @@ public class NullArtifactRegistrationManager : IArtifactRegistrationManager
     public Task<List<ArtifactInfo>> ListArtifactsAsync(CancellationToken cancellationToken = default) => Task.FromResult(new List<ArtifactInfo>());
 
     /// <inheritdoc />
-    public Task<List<ArtifactInfo>> ListArtifactsAsync(Expression<Func<ArtifactInfoModel, bool>> predicate, CancellationToken cancellationToken = default) => Task.FromResult(new List<ArtifactInfo>());
+    public Task<List<ArtifactInfo>> ListArtifactsAsync(Func<ArtifactInfo, bool> predicate, CancellationToken cancellationToken = default) => Task.FromResult(new List<ArtifactInfo>());
 
     /// <inheritdoc />
     public Task<List<ArtifactInfo>> ListArtifactsAsync(string tool, CancellationToken cancellationToken = default) => Task.FromResult(new List<ArtifactInfo>());

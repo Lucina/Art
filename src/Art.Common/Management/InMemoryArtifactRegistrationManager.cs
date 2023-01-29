@@ -1,5 +1,3 @@
-using System.Linq.Expressions;
-
 namespace Art.Common.Management;
 
 /// <summary>
@@ -16,10 +14,9 @@ public class InMemoryArtifactRegistrationManager : IArtifactRegistrationManager
         => Task.FromResult(_artifacts.Values.ToList());
 
     /// <inheritdoc />
-    public Task<List<ArtifactInfo>> ListArtifactsAsync(Expression<Func<ArtifactInfoModel, bool>> predicate, CancellationToken cancellationToken = default)
+    public Task<List<ArtifactInfo>> ListArtifactsAsync(Func<ArtifactInfo, bool> predicate, CancellationToken cancellationToken = default)
     {
-        var x = predicate.Compile();
-        return Task.FromResult(_artifacts.Values.Where(v => x(v)).ToList());
+        return Task.FromResult(_artifacts.Values.Where(predicate).ToList());
     }
 
     /// <inheritdoc />

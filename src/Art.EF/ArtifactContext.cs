@@ -95,6 +95,29 @@ public class ArtifactContext : DbContext
     /// <param name="predicate">Predicate.</param>
     /// <param name="cancellationToken">Cancellation token.</param>
     /// <returns>Task returning artifacts.</returns>
+    public async Task<List<ArtifactInfo>> ListArtifactsAsync(Func<ArtifactInfo, bool> predicate, CancellationToken cancellationToken = default)
+    {
+        if (!_wh.WaitOne(0))
+        {
+            throw new InvalidOperationException($"Concurrent access to {nameof(ArtifactContext)} is disallowed");
+        }
+        try
+        {
+            List<ArtifactInfoModel> results = await ArtifactInfoModels.ToListAsync(cancellationToken);
+            return results.Select(v => (ArtifactInfo)v).Where(predicate).ToList();
+        }
+        finally
+        {
+            _wh.Set();
+        }
+    }
+
+    /// <summary>
+    /// Lists all artifacts using the specified predicate.
+    /// </summary>
+    /// <param name="predicate">Predicate.</param>
+    /// <param name="cancellationToken">Cancellation token.</param>
+    /// <returns>Task returning artifacts.</returns>
     public async Task<List<ArtifactInfo>> ListArtifactsAsync(Expression<Func<ArtifactInfoModel, bool>> predicate, CancellationToken cancellationToken = default)
     {
         if (!_wh.WaitOne(0))
