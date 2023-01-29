@@ -11,8 +11,6 @@ public class ArtifactContext : DbContext
     private readonly AutoResetEvent _wh;
     private bool _disposed;
 
-    /*private static readonly Type[] s_types = { typeof(ArtifactInfoModel), typeof(ArtifactResourceInfoModel) };*/
-
     /// <summary>
     /// Artifact info.
     /// </summary>
@@ -30,10 +28,6 @@ public class ArtifactContext : DbContext
     public ArtifactContext(DbContextOptions<ArtifactContext> options) : base(options)
     {
         _wh = new AutoResetEvent(true);
-        /*MethodInfo baseMethod = typeof(DbContext).GetMethod(nameof(Set), 1, Array.Empty<Type>()) ??
-                                throw new ApplicationException();
-        object[] args = Array.Empty<object>();
-        foreach (Type type in s_types) baseMethod.MakeGenericMethod(type).Invoke(this, args);*/
     }
 
     /// <summary>
@@ -349,11 +343,6 @@ public class ArtifactContext : DbContext
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         EnsureNotDisposed();
-        /*object[] args = { modelBuilder };
-        foreach (Type type in s_types)
-        foreach (MethodInfo method in type.GetMethods(BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic)
-                     .Where(m => m.GetCustomAttribute<ModelBuilderCallbackAttribute>() != null))
-            method.Invoke(null, args);*/
         modelBuilder.Entity<ArtifactInfoModel>(b =>
         {
             b.HasKey(x => new { x.Tool, x.Group, x.Id });
