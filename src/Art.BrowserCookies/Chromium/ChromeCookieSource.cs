@@ -30,7 +30,7 @@ public record ChromeCookieSource(string Profile = "Default") : ChromiumCookieSou
         }
         if (OperatingSystem.IsMacOS())
         {
-            throw new NotImplementedException();
+            return ChromiumKeychainUtil.GetMacosKeychainAsync("Chrome Safe Storage", cancellationToken);
         }
         if (OperatingSystem.IsLinux())
         {
@@ -48,7 +48,7 @@ public record ChromeCookieSource(string Profile = "Default") : ChromiumCookieSou
         }
         if (OperatingSystem.IsMacOS())
         {
-            throw new NotImplementedException();
+            return Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), "Library/Application Support/Google/Chrome", Profile, "Cookies");
         }
         if (OperatingSystem.IsLinux())
         {
