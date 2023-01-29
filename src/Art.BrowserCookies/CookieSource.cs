@@ -10,10 +10,11 @@ namespace Art.BrowserCookies;
 public abstract record CookieSource
 {
     /// <summary>
-    /// Checks if this browser appears to be a valid configuration.
+    /// Attempts to resolve the provided source to a valid configuration.
     /// </summary>
     /// <exception cref="BrowserProfileNotFoundException">Thrown for unknown browser profile name.</exception>
-    public abstract void Validate();
+    /// <remarks>Implementations can, for example, attempt to resolve a user-configured profile name to the profile directory name on the filesystem.</remarks>
+    public abstract CookieSource Resolve();
 
     private static readonly Dictionary<string, Func<string?, CookieSource?>> s_factories = new(StringComparer.InvariantCultureIgnoreCase)
     {
@@ -71,7 +72,7 @@ public abstract record CookieSource
         {
             throw new BrowserNotFoundException(browserName);
         }
-        cookieSource.Validate();
+        cookieSource = cookieSource.Resolve();
         return cookieSource.LoadCookiesAsync(cookieContainer, domain, cancellationToken);
     }
 }

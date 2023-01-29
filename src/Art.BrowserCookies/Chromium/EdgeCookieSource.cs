@@ -1,4 +1,5 @@
-﻿using Art.BrowserCookies.Util;
+﻿using System.Text.Json;
+using Art.BrowserCookies.Util;
 
 namespace Art.BrowserCookies.Chromium;
 
@@ -11,16 +12,85 @@ public record EdgeCookieSource(string Profile = "Default") : ChromiumCookieSourc
     internal const string Name = "Edge";
 
     /// <inheritdoc />
-    public override void Validate()
+    public override EdgeCookieSource Resolve()
     {
         try
         {
-            GetCookieFilePath();
+            string path = GetCookieFilePath();
+            if (!File.Exists(path))
+            {
+                throw new BrowserProfileNotFoundException(Name, Profile);
+            }
+            return this;
         }
         catch
         {
-            throw new BrowserProfileNotFoundException(Name, Profile);
+            foreach (string profileDirectory in Directory.EnumerateDirectories(GetUserDataPath(), "*Profile*"))
+            {
+                string newProfile = Path.GetFileName(profileDirectory);
+                string preferences = GetPath(newProfile, UserDataKind.Preferences);
+                if (File.Exists(preferences))
+                {
+                    using var fs = File.OpenRead(preferences);
+                    string name = (JsonSerializer.Deserialize<ChromiumPreferences>(fs) ?? throw new InvalidDataException()).Profile.Name;
+                    if (name.Equals(Profile, StringComparison.InvariantCultureIgnoreCase))
+                    {
+                        return this with { Profile = newProfile };
+                    }
+                }
+            }
+            throw;
         }
+    }
+
+    private static string GetUserDataPath()
+    {
+        if (OperatingSystem.IsWindows())
+        {
+            return Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "Microsoft/Edge/User Data");
+        }
+        if (OperatingSystem.IsMacOS())
+        {
+            return Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), "Library/Application Support/Microsoft Edge");
+        }
+        if (OperatingSystem.IsLinux())
+        {
+            return Path.Combine(PathUtil.GetXdgConfigHomeOrFallback(), "microsoft-edge");
+        }
+        throw new PlatformNotSupportedException();
+    }
+
+    private static string GetPath(string profile, UserDataKind kind)
+    {
+        string userDataPath = GetUserDataPath();
+        if (OperatingSystem.IsWindows())
+        {
+            return kind switch
+            {
+                UserDataKind.Cookies => Path.Combine(userDataPath, profile, "Network/Cookies"),
+                UserDataKind.Preferences => Path.Combine(userDataPath, profile, "Preferences"),
+                _ => throw new ArgumentOutOfRangeException(nameof(kind), kind, null)
+            };
+        }
+        if (OperatingSystem.IsMacOS())
+        {
+            return kind switch
+            {
+                UserDataKind.Cookies => Path.Combine(userDataPath, profile, "Cookies"),
+                UserDataKind.Preferences => Path.Combine(userDataPath, profile, "Preferences"),
+                _ => throw new ArgumentOutOfRangeException(nameof(kind), kind, null)
+            };
+        }
+        if (OperatingSystem.IsLinux())
+        {
+            return kind switch
+            {
+                UserDataKind.Cookies => Path.Combine(userDataPath, profile, "Cookies"),
+                UserDataKind.Preferences => Path.Combine(userDataPath, profile, "Preferences"),
+                _ => throw new ArgumentOutOfRangeException(nameof(kind), kind, null)
+            };
+        }
+        throw new PlatformNotSupportedException();
     }
 
     /// <inheritdoc />
@@ -44,18 +114,6 @@ public record EdgeCookieSource(string Profile = "Default") : ChromiumCookieSourc
     /// <inheritdoc />
     public override string GetCookieFilePath()
     {
-        if (OperatingSystem.IsWindows())
-        {
-            return Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "Microsoft/Edge/User Data", Profile, "Network/Cookies");
-        }
-        if (OperatingSystem.IsMacOS())
-        {
-            return Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), "Library/Application Support/Microsoft Edge", Profile, "Cookies");
-        }
-        if (OperatingSystem.IsLinux())
-        {
-            return Path.Combine(PathUtil.GetXdgConfigHomeOrFallback(), "microsoft-edge", Profile, "Cookies");
-        }
-        throw new PlatformNotSupportedException();
+        return GetPath(Profile, UserDataKind.Cookies);
     }
 }

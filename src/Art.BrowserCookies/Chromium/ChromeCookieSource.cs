@@ -1,4 +1,6 @@
-﻿namespace Art.BrowserCookies.Chromium;
+﻿using System.Text.Json;
+
+namespace Art.BrowserCookies.Chromium;
 
 /// <summary>
 /// Represents a <see cref="CookieSource"/> for the Google Chrome web browser.
@@ -9,16 +11,80 @@ public record ChromeCookieSource(string Profile = "Default") : ChromiumCookieSou
     internal const string Name = "Chrome";
 
     /// <inheritdoc />
-    public override void Validate()
+    public override ChromeCookieSource Resolve()
     {
+        string path = GetCookieFilePath();
         try
         {
-            GetCookieFilePath();
+            if (!File.Exists(path))
+            {
+                throw new BrowserProfileNotFoundException(Name, Profile);
+            }
+            return this;
         }
         catch
         {
-            throw new BrowserProfileNotFoundException(Name, Profile);
+            foreach (string profileDirectory in Directory.EnumerateDirectories(GetUserDataPath(), "*Profile*"))
+            {
+                string newProfile = Path.GetFileName(profileDirectory);
+                string preferences = GetPath(newProfile, UserDataKind.Preferences);
+                if (File.Exists(preferences))
+                {
+                    using var fs = File.OpenRead(preferences);
+                    string name = (JsonSerializer.Deserialize<ChromiumPreferences>(fs) ?? throw new InvalidDataException()).Profile.Name;
+                    if (name.Equals(Profile, StringComparison.InvariantCultureIgnoreCase))
+                    {
+                        return this with { Profile = newProfile };
+                    }
+                }
+            }
+            throw;
         }
+    }
+
+    private static string GetUserDataPath()
+    {
+        if (OperatingSystem.IsWindows())
+        {
+            return Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "Google/Chrome/User Data");
+        }
+        if (OperatingSystem.IsMacOS())
+        {
+            return Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), "Library/Application Support/Google/Chrome");
+        }
+        if (OperatingSystem.IsLinux())
+        {
+            throw new NotImplementedException();
+        }
+        throw new PlatformNotSupportedException();
+    }
+
+    private static string GetPath(string profile, UserDataKind kind)
+    {
+        string userDataPath = GetUserDataPath();
+        if (OperatingSystem.IsWindows())
+        {
+            return kind switch
+            {
+                UserDataKind.Cookies => Path.Combine(userDataPath, profile, "Network/Cookies"),
+                UserDataKind.Preferences => Path.Combine(userDataPath, profile, "Preferences"),
+                _ => throw new ArgumentOutOfRangeException(nameof(kind), kind, null)
+            };
+        }
+        if (OperatingSystem.IsMacOS())
+        {
+            return kind switch
+            {
+                UserDataKind.Cookies => Path.Combine(userDataPath, profile, "Cookies"),
+                UserDataKind.Preferences => Path.Combine(userDataPath, profile, "Preferences"),
+                _ => throw new ArgumentOutOfRangeException(nameof(kind), kind, null)
+            };
+        }
+        if (OperatingSystem.IsLinux())
+        {
+            throw new NotImplementedException();
+        }
+        throw new PlatformNotSupportedException();
     }
 
     /// <inheritdoc />
@@ -42,18 +108,6 @@ public record ChromeCookieSource(string Profile = "Default") : ChromiumCookieSou
     /// <inheritdoc />
     public override string GetCookieFilePath()
     {
-        if (OperatingSystem.IsWindows())
-        {
-            return Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "Google/Chrome/User Data", Profile, "Network/Cookies");
-        }
-        if (OperatingSystem.IsMacOS())
-        {
-            return Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), "Library/Application Support/Google/Chrome", Profile, "Cookies");
-        }
-        if (OperatingSystem.IsLinux())
-        {
-            throw new NotImplementedException();
-        }
-        throw new PlatformNotSupportedException();
+        return GetPath(Profile, UserDataKind.Cookies);
     }
 }
