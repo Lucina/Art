@@ -10,6 +10,7 @@
 /// <param name="Updated">Updated date.</param>
 /// <param name="Version">Version.</param>
 /// <param name="Checksum">Checksum.</param>
+/// <param name="RequestAction">Custom configuration callback for the <see cref="System.Net.Http.HttpRequestMessage"/> created.</param>
 public record UriArtifactResourceInfo(HttpArtifactTool ArtifactTool, Uri Uri, Action<HttpRequestMessage>? RequestAction, ArtifactResourceKey Key, string? ContentType = "application/octet-stream", DateTimeOffset? Updated = null, string? Version = null, Checksum? Checksum = null)
     : QueryBaseArtifactResourceInfo(Key, ContentType, Updated, Version, Checksum)
 {
