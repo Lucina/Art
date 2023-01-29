@@ -5,14 +5,12 @@
 /// </summary>
 /// <param name="ArtifactTool">Artifact tool.</param>
 /// <param name="Uri">URI.</param>
-/// <param name="Origin">Request origin.</param>
-/// <param name="Referrer">Request referrer.</param>
 /// <param name="Key">Resource key.</param>
 /// <param name="ContentType">MIME content type.</param>
 /// <param name="Updated">Updated date.</param>
 /// <param name="Version">Version.</param>
 /// <param name="Checksum">Checksum.</param>
-public record UriArtifactResourceInfo(HttpArtifactTool ArtifactTool, Uri Uri, string? Origin, string? Referrer, ArtifactResourceKey Key, string? ContentType = "application/octet-stream", DateTimeOffset? Updated = null, string? Version = null, Checksum? Checksum = null)
+public record UriArtifactResourceInfo(HttpArtifactTool ArtifactTool, Uri Uri, Action<HttpRequestMessage>? RequestAction, ArtifactResourceKey Key, string? ContentType = "application/octet-stream", DateTimeOffset? Updated = null, string? Version = null, Checksum? Checksum = null)
     : QueryBaseArtifactResourceInfo(Key, ContentType, Updated, Version, Checksum)
 {
     /// <inheritdoc/>
@@ -21,7 +19,7 @@ public record UriArtifactResourceInfo(HttpArtifactTool ArtifactTool, Uri Uri, st
     /// <inheritdoc/>
     public override async ValueTask ExportStreamAsync(Stream targetStream, CancellationToken cancellationToken = default)
     {
-        await ArtifactTool.DownloadResourceAsync(Uri, targetStream, v => HttpArtifactTool.SetOriginAndReferrer(v, Origin, Referrer), cancellationToken).ConfigureAwait(false);
+        await ArtifactTool.DownloadResourceAsync(Uri, targetStream, RequestAction, cancellationToken).ConfigureAwait(false);
     }
 
     /// <inheritdoc/>
@@ -30,7 +28,7 @@ public record UriArtifactResourceInfo(HttpArtifactTool ArtifactTool, Uri Uri, st
     /// <inheritdoc/>
     public override async ValueTask<ArtifactResourceInfo> WithMetadataAsync(CancellationToken cancellationToken = default)
     {
-        HttpResponseMessage res = await ArtifactTool.HeadAsync(Uri, v => HttpArtifactTool.SetOriginAndReferrer(v, Origin, Referrer), cancellationToken).ConfigureAwait(false);
+        HttpResponseMessage res = await ArtifactTool.HeadAsync(Uri, RequestAction, cancellationToken).ConfigureAwait(false);
         ArtHttpResponseMessageException.EnsureSuccessStatusCode(res);
         return WithMetadata(res);
     }
@@ -49,10 +47,9 @@ public partial class HttpArtifactDataExtensions
     /// <param name="updated">Updated date.</param>
     /// <param name="version">Version.</param>
     /// <param name="checksum">Checksum.</param>
-    /// <param name="origin">Request origin.</param>
-    /// <param name="referrer">Request referrer.</param>
-    public static ArtifactDataResource Uri(this ArtifactData artifactData, HttpArtifactTool artifactTool, Uri uri, ArtifactResourceKey key, string? contentType = "application/octet-stream", DateTimeOffset? updated = null, string? version = null, Checksum? checksum = null, string? origin = null, string? referrer = null)
-        => new(artifactData, new UriArtifactResourceInfo(artifactTool, uri, origin, referrer, key, contentType, updated, version, checksum));
+    /// <param name="requestAction">Custom configuration callback for the <see cref="System.Net.Http.HttpRequestMessage"/> created.</param>
+    public static ArtifactDataResource Uri(this ArtifactData artifactData, HttpArtifactTool artifactTool, Uri uri, ArtifactResourceKey key, string? contentType = "application/octet-stream", DateTimeOffset? updated = null, string? version = null, Checksum? checksum = null, Action<HttpRequestMessage>? requestAction = null)
+        => new(artifactData, new UriArtifactResourceInfo(artifactTool, uri, requestAction, key, contentType, updated, version, checksum));
 
     /// <summary>
     /// Creates a <see cref="UriArtifactResourceInfo"/> resource.
@@ -66,10 +63,9 @@ public partial class HttpArtifactDataExtensions
     /// <param name="updated">Updated date.</param>
     /// <param name="version">Version.</param>
     /// <param name="checksum">Checksum.</param>
-    /// <param name="origin">Request origin.</param>
-    /// <param name="referrer">Request referrer.</param>
-    public static ArtifactDataResource Uri(this ArtifactData artifactData, HttpArtifactTool artifactTool, Uri uri, string file, string path = "", string? contentType = "application/octet-stream", DateTimeOffset? updated = null, string? version = null, Checksum? checksum = null, string? origin = null, string? referrer = null)
-        => new(artifactData, new UriArtifactResourceInfo(artifactTool, uri, origin, referrer, new ArtifactResourceKey(artifactData.Info.Key, file, path), contentType, updated, version, checksum));
+    /// <param name="requestAction">Custom configuration callback for the <see cref="System.Net.Http.HttpRequestMessage"/> created.</param>
+    public static ArtifactDataResource Uri(this ArtifactData artifactData, HttpArtifactTool artifactTool, Uri uri, string file, string path = "", string? contentType = "application/octet-stream", DateTimeOffset? updated = null, string? version = null, Checksum? checksum = null, Action<HttpRequestMessage>? requestAction = null)
+        => new(artifactData, new UriArtifactResourceInfo(artifactTool, uri, requestAction, new ArtifactResourceKey(artifactData.Info.Key, file, path), contentType, updated, version, checksum));
 
     /// <summary>
     /// Creates a <see cref="UriArtifactResourceInfo"/> resource.
@@ -81,10 +77,9 @@ public partial class HttpArtifactDataExtensions
     /// <param name="updated">Updated date.</param>
     /// <param name="version">Version.</param>
     /// <param name="checksum">Checksum.</param>
-    /// <param name="origin">Request origin.</param>
-    /// <param name="referrer">Request referrer.</param>
-    public static ArtifactDataResource Uri(this ArtifactData artifactData, Uri uri, ArtifactResourceKey key, string? contentType = "application/octet-stream", DateTimeOffset? updated = null, string? version = null, Checksum? checksum = null, string? origin = null, string? referrer = null)
-        => artifactData.Uri(artifactData.GetArtifactTool<HttpArtifactTool>(), uri, key, contentType, updated, version, checksum, origin, referrer);
+    /// <param name="requestAction">Custom configuration callback for the <see cref="System.Net.Http.HttpRequestMessage"/> created.</param>
+    public static ArtifactDataResource Uri(this ArtifactData artifactData, Uri uri, ArtifactResourceKey key, string? contentType = "application/octet-stream", DateTimeOffset? updated = null, string? version = null, Checksum? checksum = null, Action<HttpRequestMessage>? requestAction = null)
+        => artifactData.Uri(artifactData.GetArtifactTool<HttpArtifactTool>(), uri, key, contentType, updated, version, checksum, requestAction);
 
     /// <summary>
     /// Creates a <see cref="UriArtifactResourceInfo"/> resource.
@@ -97,10 +92,9 @@ public partial class HttpArtifactDataExtensions
     /// <param name="updated">Updated date.</param>
     /// <param name="version">Version.</param>
     /// <param name="checksum">Checksum.</param>
-    /// <param name="origin">Request origin.</param>
-    /// <param name="referrer">Request referrer.</param>
-    public static ArtifactDataResource Uri(this ArtifactData artifactData, Uri uri, string file, string path = "", string? contentType = "application/octet-stream", DateTimeOffset? updated = null, string? version = null, Checksum? checksum = null, string? origin = null, string? referrer = null)
-        => artifactData.Uri(artifactData.GetArtifactTool<HttpArtifactTool>(), uri, file, path, contentType, updated, version, checksum, origin, referrer);
+    /// <param name="requestAction">Custom configuration callback for the <see cref="System.Net.Http.HttpRequestMessage"/> created.</param>
+    public static ArtifactDataResource Uri(this ArtifactData artifactData, Uri uri, string file, string path = "", string? contentType = "application/octet-stream", DateTimeOffset? updated = null, string? version = null, Checksum? checksum = null, Action<HttpRequestMessage>? requestAction = null)
+        => artifactData.Uri(artifactData.GetArtifactTool<HttpArtifactTool>(), uri, file, path, contentType, updated, version, checksum, requestAction);
 
     /// <summary>
     /// Creates a <see cref="UriArtifactResourceInfo"/> resource.
@@ -113,10 +107,9 @@ public partial class HttpArtifactDataExtensions
     /// <param name="updated">Updated date.</param>
     /// <param name="version">Version.</param>
     /// <param name="checksum">Checksum.</param>
-    /// <param name="origin">Request origin.</param>
-    /// <param name="referrer">Request referrer.</param>
-    public static ArtifactDataResource Uri(this ArtifactData artifactData, HttpArtifactTool artifactTool, string uri, ArtifactResourceKey key, string? contentType = "application/octet-stream", DateTimeOffset? updated = null, string? version = null, Checksum? checksum = null, string? origin = null, string? referrer = null)
-        => new(artifactData, new UriArtifactResourceInfo(artifactTool, new Uri(uri), origin, referrer, key, contentType, updated, version, checksum));
+    /// <param name="requestAction">Custom configuration callback for the <see cref="System.Net.Http.HttpRequestMessage"/> created.</param>
+    public static ArtifactDataResource Uri(this ArtifactData artifactData, HttpArtifactTool artifactTool, string uri, ArtifactResourceKey key, string? contentType = "application/octet-stream", DateTimeOffset? updated = null, string? version = null, Checksum? checksum = null, Action<HttpRequestMessage>? requestAction = null)
+        => new(artifactData, new UriArtifactResourceInfo(artifactTool, new Uri(uri), requestAction, key, contentType, updated, version, checksum));
 
     /// <summary>
     /// Creates a <see cref="UriArtifactResourceInfo"/> resource.
@@ -130,10 +123,9 @@ public partial class HttpArtifactDataExtensions
     /// <param name="updated">Updated date.</param>
     /// <param name="version">Version.</param>
     /// <param name="checksum">Checksum.</param>
-    /// <param name="origin">Request origin.</param>
-    /// <param name="referrer">Request referrer.</param>
-    public static ArtifactDataResource Uri(this ArtifactData artifactData, HttpArtifactTool artifactTool, string uri, string file, string path = "", string? contentType = "application/octet-stream", DateTimeOffset? updated = null, string? version = null, Checksum? checksum = null, string? origin = null, string? referrer = null)
-        => new(artifactData, new UriArtifactResourceInfo(artifactTool, new Uri(uri), origin, referrer, new ArtifactResourceKey(artifactData.Info.Key, file, path), contentType, updated, version, checksum));
+    /// <param name="requestAction">Custom configuration callback for the <see cref="System.Net.Http.HttpRequestMessage"/> created.</param>
+    public static ArtifactDataResource Uri(this ArtifactData artifactData, HttpArtifactTool artifactTool, string uri, string file, string path = "", string? contentType = "application/octet-stream", DateTimeOffset? updated = null, string? version = null, Checksum? checksum = null, Action<HttpRequestMessage>? requestAction = null)
+        => new(artifactData, new UriArtifactResourceInfo(artifactTool, new Uri(uri), requestAction, new ArtifactResourceKey(artifactData.Info.Key, file, path), contentType, updated, version, checksum));
 
     /// <summary>
     /// Creates a <see cref="UriArtifactResourceInfo"/> resource.
@@ -145,10 +137,9 @@ public partial class HttpArtifactDataExtensions
     /// <param name="updated">Updated date.</param>
     /// <param name="version">Version.</param>
     /// <param name="checksum">Checksum.</param>
-    /// <param name="origin">Request origin.</param>
-    /// <param name="referrer">Request referrer.</param>
-    public static ArtifactDataResource Uri(this ArtifactData artifactData, string uri, ArtifactResourceKey key, string? contentType = "application/octet-stream", DateTimeOffset? updated = null, string? version = null, Checksum? checksum = null, string? origin = null, string? referrer = null)
-        => artifactData.Uri(artifactData.GetArtifactTool<HttpArtifactTool>(), uri, key, contentType, updated, version, checksum, origin, referrer);
+    /// <param name="requestAction">Custom configuration callback for the <see cref="System.Net.Http.HttpRequestMessage"/> created.</param>
+    public static ArtifactDataResource Uri(this ArtifactData artifactData, string uri, ArtifactResourceKey key, string? contentType = "application/octet-stream", DateTimeOffset? updated = null, string? version = null, Checksum? checksum = null, Action<HttpRequestMessage>? requestAction = null)
+        => artifactData.Uri(artifactData.GetArtifactTool<HttpArtifactTool>(), uri, key, contentType, updated, version, checksum, requestAction);
 
     /// <summary>
     /// Creates a <see cref="UriArtifactResourceInfo"/> resource.
@@ -161,8 +152,7 @@ public partial class HttpArtifactDataExtensions
     /// <param name="updated">Updated date.</param>
     /// <param name="version">Version.</param>
     /// <param name="checksum">Checksum.</param>
-    /// <param name="origin">Request origin.</param>
-    /// <param name="referrer">Request referrer.</param>
-    public static ArtifactDataResource Uri(this ArtifactData artifactData, string uri, string file, string path = "", string? contentType = "application/octet-stream", DateTimeOffset? updated = null, string? version = null, Checksum? checksum = null, string? origin = null, string? referrer = null)
-        => artifactData.Uri(artifactData.GetArtifactTool<HttpArtifactTool>(), uri, file, path, contentType, updated, version, checksum, origin, referrer);
+    /// <param name="requestAction">Custom configuration callback for the <see cref="System.Net.Http.HttpRequestMessage"/> created.</param>
+    public static ArtifactDataResource Uri(this ArtifactData artifactData, string uri, string file, string path = "", string? contentType = "application/octet-stream", DateTimeOffset? updated = null, string? version = null, Checksum? checksum = null, Action<HttpRequestMessage>? requestAction = null)
+        => artifactData.Uri(artifactData.GetArtifactTool<HttpArtifactTool>(), uri, file, path, contentType, updated, version, checksum, requestAction);
 }

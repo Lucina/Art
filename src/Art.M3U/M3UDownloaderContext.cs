@@ -175,7 +175,7 @@ public class M3UDownloaderContext
             if (Config.SkipExistingSegments) return;
             await Tool.RegistrationManager.RemoveResourceAsync(ark, cancellationToken);
         }
-        ArtifactResourceInfo ari = new UriArtifactResourceInfo(Tool, uri, null, Config.Referrer, ark);
+        ArtifactResourceInfo ari = new UriArtifactResourceInfo(Tool, uri, v => HttpArtifactTool.SetOriginAndReferrer(v, null, Config.Referrer), ark);
         if (file.EncryptionInfo is { Encrypted: true } ei)
         {
             if (mediaSequenceNumber is { } msn) await WriteAncillaryFileAsync($"{fn}.msn.txt", Encoding.UTF8.GetBytes(msn.ToString(CultureInfo.InvariantCulture)), cancellationToken);
