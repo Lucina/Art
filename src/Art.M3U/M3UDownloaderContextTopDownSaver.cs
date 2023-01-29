@@ -8,9 +8,14 @@ namespace Art.M3U;
 /// <summary>
 /// Represents a top-down saver.
 /// </summary>
-public class M3UDownloaderContextTopDownSaver : M3UDownloaderContextSaver
+public partial class M3UDownloaderContextTopDownSaver : M3UDownloaderContextSaver
 {
-    private static readonly Regex s_bitRegex = new(@"(^[\S\s]*[^\d]|)\d+(\.\w+)$");
+    [GeneratedRegex("(^[\\S\\s]*[^\\d]|)\\d+(\\.\\w+)$")]
+    private static partial Regex GetBitRegex();
+
+    [GeneratedRegex("(?<prefix>^[\\S\\s]*[^\\d]|)(?<number>\\d+)(?<suffix>\\.\\w+)$")]
+    private static partial Regex GetBit2Regex();
+
     private readonly long _top;
     private readonly Func<string, long, string> _nameTransform;
 
@@ -48,8 +53,29 @@ public class M3UDownloaderContextTopDownSaver : M3UDownloaderContextSaver
     /// <exception cref="InvalidDataException">Regex match failed.</exception>
     public static string TranslateNameDefault(string name, string i)
     {
-        if (s_bitRegex.Match(name) is not { Success: true } bits) throw new InvalidDataException();
+        if (GetBitRegex().Match(name) is not { Success: true } bits)
+        {
+            throw new InvalidDataException();
+        }
         return $"{bits.Groups[1].Value}{i}{bits.Groups[2].Value}";
+    }
+
+    /// <summary>
+    /// Translates a generic filename, with padding to match the string length of the numeric part.
+    /// </summary>
+    /// <param name="name">Donor filename.</param>
+    /// <param name="i">Index.</param>
+    /// <returns>Generated filename.</returns>
+    /// <exception cref="InvalidDataException">Regex match failed.</exception>
+    public static string TranslateNameMatchLength(string name, string i)
+    {
+        if (GetBit2Regex().Match(name) is not { Success: true } match)
+        {
+            throw new InvalidDataException();
+        }
+        int nameLength = match.Groups["number"].Length;
+        string paddedI = i.PadLeft(nameLength, '0');
+        return match.Groups["prefix"].Value + paddedI + match.Groups["suffix"].Value;
     }
 
     /// <inheritdoc />
