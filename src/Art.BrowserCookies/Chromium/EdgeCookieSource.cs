@@ -1,5 +1,4 @@
-﻿using System.Text.Json;
-using Art.BrowserCookies.Util;
+﻿using Art.BrowserCookies.Util;
 
 namespace Art.BrowserCookies.Chromium;
 
@@ -7,43 +6,13 @@ namespace Art.BrowserCookies.Chromium;
 /// Represents a <see cref="CookieSource"/> for the Microsoft Edge web browser.
 /// </summary>
 /// <param name="Profile">Profile name.</param>
-public record EdgeCookieSource(string Profile = "Default") : ChromiumCookieSource
+public record EdgeCookieSource(string Profile = "Default") : ChromiumProfileCookieSource(Profile)
 {
-    internal const string Name = "Edge";
+    /// <inheritdoc />
+    public override string Name => "Edge";
 
     /// <inheritdoc />
-    public override EdgeCookieSource Resolve()
-    {
-        try
-        {
-            string path = GetCookieFilePath();
-            if (!File.Exists(path))
-            {
-                throw new BrowserProfileNotFoundException(Name, Profile);
-            }
-            return this;
-        }
-        catch
-        {
-            foreach (string profileDirectory in Directory.EnumerateDirectories(GetUserDataPath(), "*Profile*"))
-            {
-                string newProfile = Path.GetFileName(profileDirectory);
-                string preferences = GetPath(newProfile, UserDataKind.Preferences);
-                if (File.Exists(preferences))
-                {
-                    using var fs = File.OpenRead(preferences);
-                    string name = (JsonSerializer.Deserialize<ChromiumPreferences>(fs) ?? throw new InvalidDataException()).Profile.Name;
-                    if (name.Equals(Profile, StringComparison.InvariantCultureIgnoreCase))
-                    {
-                        return this with { Profile = newProfile };
-                    }
-                }
-            }
-            throw;
-        }
-    }
-
-    private static string GetUserDataPath()
+    protected override string GetUserDataDirectory()
     {
         if (OperatingSystem.IsWindows())
         {
@@ -60,9 +29,10 @@ public record EdgeCookieSource(string Profile = "Default") : ChromiumCookieSourc
         throw new PlatformNotSupportedException();
     }
 
-    private static string GetPath(string profile, UserDataKind kind)
+    /// <inheritdoc />
+    protected override string GetPath(UserDataKind kind, string profile)
     {
-        string userDataPath = GetUserDataPath();
+        string userDataPath = GetUserDataDirectory();
         if (OperatingSystem.IsWindows())
         {
             return kind switch
@@ -94,7 +64,7 @@ public record EdgeCookieSource(string Profile = "Default") : ChromiumCookieSourc
     }
 
     /// <inheritdoc />
-    public override Task<IChromiumKeychain> GetKeychainAsync(CancellationToken cancellationToken = default)
+    protected override Task<IChromiumKeychain> GetKeychainAsync(CancellationToken cancellationToken = default)
     {
         if (OperatingSystem.IsWindows())
         {
@@ -109,11 +79,5 @@ public record EdgeCookieSource(string Profile = "Default") : ChromiumCookieSourc
             throw new NotImplementedException();
         }
         throw new PlatformNotSupportedException();
-    }
-
-    /// <inheritdoc />
-    public override string GetCookieFilePath()
-    {
-        return GetPath(Profile, UserDataKind.Cookies);
     }
 }

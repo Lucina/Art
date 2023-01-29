@@ -1,48 +1,16 @@
-﻿using System.Text.Json;
-
-namespace Art.BrowserCookies.Chromium;
+﻿namespace Art.BrowserCookies.Chromium;
 
 /// <summary>
 /// Represents a <see cref="CookieSource"/> for the Google Chrome web browser.
 /// </summary>
 /// <param name="Profile">Profile name.</param>
-public record ChromeCookieSource(string Profile = "Default") : ChromiumCookieSource
+public record ChromeCookieSource(string Profile = "Default") : ChromiumProfileCookieSource(Profile)
 {
-    internal const string Name = "Chrome";
+    /// <inheritdoc />
+    public override string Name => "Chrome";
 
     /// <inheritdoc />
-    public override ChromeCookieSource Resolve()
-    {
-        string path = GetCookieFilePath();
-        try
-        {
-            if (!File.Exists(path))
-            {
-                throw new BrowserProfileNotFoundException(Name, Profile);
-            }
-            return this;
-        }
-        catch
-        {
-            foreach (string profileDirectory in Directory.EnumerateDirectories(GetUserDataPath(), "*Profile*"))
-            {
-                string newProfile = Path.GetFileName(profileDirectory);
-                string preferences = GetPath(newProfile, UserDataKind.Preferences);
-                if (File.Exists(preferences))
-                {
-                    using var fs = File.OpenRead(preferences);
-                    string name = (JsonSerializer.Deserialize<ChromiumPreferences>(fs) ?? throw new InvalidDataException()).Profile.Name;
-                    if (name.Equals(Profile, StringComparison.InvariantCultureIgnoreCase))
-                    {
-                        return this with { Profile = newProfile };
-                    }
-                }
-            }
-            throw;
-        }
-    }
-
-    private static string GetUserDataPath()
+    protected override string GetUserDataDirectory()
     {
         if (OperatingSystem.IsWindows())
         {
@@ -59,9 +27,10 @@ public record ChromeCookieSource(string Profile = "Default") : ChromiumCookieSou
         throw new PlatformNotSupportedException();
     }
 
-    private static string GetPath(string profile, UserDataKind kind)
+    /// <inheritdoc />
+    protected override string GetPath(UserDataKind kind, string profile)
     {
-        string userDataPath = GetUserDataPath();
+        string userDataPath = GetUserDataDirectory();
         if (OperatingSystem.IsWindows())
         {
             return kind switch
@@ -82,13 +51,18 @@ public record ChromeCookieSource(string Profile = "Default") : ChromiumCookieSou
         }
         if (OperatingSystem.IsLinux())
         {
-            throw new NotImplementedException();
+            return kind switch
+            {
+                UserDataKind.Cookies => Path.Combine(userDataPath, profile, "Cookies"),
+                UserDataKind.Preferences => Path.Combine(userDataPath, profile, "Preferences"),
+                _ => throw new ArgumentOutOfRangeException(nameof(kind), kind, null)
+            };
         }
         throw new PlatformNotSupportedException();
     }
 
     /// <inheritdoc />
-    public override Task<IChromiumKeychain> GetKeychainAsync(CancellationToken cancellationToken = default)
+    protected override Task<IChromiumKeychain> GetKeychainAsync(CancellationToken cancellationToken = default)
     {
         if (OperatingSystem.IsWindows())
         {
@@ -103,11 +77,5 @@ public record ChromeCookieSource(string Profile = "Default") : ChromiumCookieSou
             throw new NotImplementedException();
         }
         throw new PlatformNotSupportedException();
-    }
-
-    /// <inheritdoc />
-    public override string GetCookieFilePath()
-    {
-        return GetPath(Profile, UserDataKind.Cookies);
     }
 }

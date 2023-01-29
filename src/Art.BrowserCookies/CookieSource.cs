@@ -10,6 +10,11 @@ namespace Art.BrowserCookies;
 public abstract record CookieSource
 {
     /// <summary>
+    /// A simple name that identifies this browser type.
+    /// </summary>
+    public abstract string Name { get; }
+
+    /// <summary>
     /// Attempts to resolve the provided source to a valid configuration.
     /// </summary>
     /// <exception cref="BrowserProfileNotFoundException">Thrown for unknown browser profile name.</exception>
@@ -18,8 +23,8 @@ public abstract record CookieSource
 
     private static readonly Dictionary<string, Func<string?, CookieSource?>> s_factories = new(StringComparer.InvariantCultureIgnoreCase)
     {
-        { EdgeCookieSource.Name, p => new EdgeCookieSource(p ?? "Default") }, // MS Edge
-        { ChromeCookieSource.Name, p => new ChromeCookieSource(p ?? "Default") } // Chrome
+        { "edge", p => new EdgeCookieSource(p ?? "Default") }, // MS Edge
+        { "chrome", p => new ChromeCookieSource(p ?? "Default") } // Chrome
     };
 
     /// <summary>

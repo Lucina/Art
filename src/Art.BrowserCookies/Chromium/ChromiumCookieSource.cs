@@ -24,7 +24,7 @@ public abstract record ChromiumCookieSource : CookieSource
             string temp = Path.GetTempFileName();
             try
             {
-                File.Copy(sourceFileName: GetCookieFilePath(), destFileName: temp, overwrite: true);
+                File.Copy(sourceFileName: GetPath(UserDataKind.Cookies), destFileName: temp, overwrite: true);
                 await using var connection = new SqliteConnection($"Data Source={temp};Pooling=False;");
                 connection.Open();
 
@@ -79,13 +79,20 @@ public abstract record ChromiumCookieSource : CookieSource
     /// </summary>
     /// <param name="cancellationToken">Cancellation token.</param>
     /// <returns>Task returning a keychain.</returns>
-    public abstract Task<IChromiumKeychain> GetKeychainAsync(CancellationToken cancellationToken = default);
+    protected abstract Task<IChromiumKeychain> GetKeychainAsync(CancellationToken cancellationToken = default);
 
     /// <summary>
-    /// Gets the path to the Chromium cookie file.
+    /// Gets the primary user data directory.
     /// </summary>
-    /// <returns>Path to Chromium cookie file.</returns>
-    public abstract string GetCookieFilePath();
+    /// <returns>Retrieved path.</returns>
+    protected abstract string GetUserDataDirectory();
+
+    /// <summary>
+    /// Gets a path with the current configuration.
+    /// </summary>
+    /// <param name="kind">Kind of path to get.</param>
+    /// <returns>Retrieved path.</returns>
+    protected abstract string GetPath(UserDataKind kind);
 
     /// <summary>
     /// Represents Chromium preferences file.
