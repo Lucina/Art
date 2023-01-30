@@ -193,7 +193,8 @@ public class M3UDownloaderContext
             if (Config.SkipExistingSegments) return;
             await Tool.RegistrationManager.RemoveResourceAsync(ark, cancellationToken);
         }
-        ArtifactResourceInfo ari = new UriArtifactResourceInfo(Tool, uri, v => v.SetOriginAndReferrer(null, Config.Referrer), ark);
+        // Use ResponseHeadersRead to make timeout only count up to headers
+        ArtifactResourceInfo ari = new UriArtifactResourceInfo(Tool, uri, v => v.SetOriginAndReferrer(null, Config.Referrer), HttpCompletionOption.ResponseHeadersRead, ark);
         if (file.EncryptionInfo is { Encrypted: true } ei)
         {
             if (mediaSequenceNumber is { } msn) await WriteAncillaryFileAsync($"{fn}.msn.txt", Encoding.UTF8.GetBytes(msn.ToString(CultureInfo.InvariantCulture)), cancellationToken);

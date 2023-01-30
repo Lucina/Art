@@ -5,12 +5,21 @@
 /// </summary>
 /// <param name="ArtifactTool">Artifact tool.</param>
 /// <param name="Request">Request.</param>
+/// <param name="HttpCompletionOption">Custom <see cref="System.Net.Http.HttpCompletionOption"/>.</param>
 /// <param name="Key">Resource key.</param>
 /// <param name="ContentType">MIME content type.</param>
 /// <param name="Updated">Updated date.</param>
 /// <param name="Version">Version.</param>
 /// <param name="Checksum">Checksum.</param>
-public record HttpRequestMessageArtifactResourceInfo(HttpArtifactTool ArtifactTool, HttpRequestMessage Request, ArtifactResourceKey Key, string? ContentType = "application/octet-stream", DateTimeOffset? Updated = null, string? Version = null, Checksum? Checksum = null)
+public record HttpRequestMessageArtifactResourceInfo(
+        HttpArtifactTool ArtifactTool,
+        HttpRequestMessage Request,
+        HttpCompletionOption? HttpCompletionOption,
+        ArtifactResourceKey Key,
+        string? ContentType = "application/octet-stream",
+        DateTimeOffset? Updated = null,
+        string? Version = null,
+        Checksum? Checksum = null)
     : QueryBaseArtifactResourceInfo(Key, ContentType, Updated, Version, Checksum)
 {
     /// <inheritdoc/>
@@ -19,7 +28,7 @@ public record HttpRequestMessageArtifactResourceInfo(HttpArtifactTool ArtifactTo
     /// <inheritdoc/>
     public override async ValueTask ExportStreamAsync(Stream targetStream, CancellationToken cancellationToken = default)
     {
-        await ArtifactTool.DownloadResourceAsync(Request, targetStream, cancellationToken).ConfigureAwait(false);
+        await ArtifactTool.DownloadResourceAsync(Request, targetStream, HttpCompletionOption, cancellationToken).ConfigureAwait(false);
     }
 }
 
@@ -36,8 +45,17 @@ public partial class HttpArtifactDataExtensions
     /// <param name="updated">Updated date.</param>
     /// <param name="version">Version.</param>
     /// <param name="checksum">Checksum.</param>
-    public static ArtifactDataResource HttpRequestMessage(this ArtifactData artifactData, HttpArtifactTool artifactTool, HttpRequestMessage request, ArtifactResourceKey key, string? contentType = "application/octet-stream", DateTimeOffset? updated = null, string? version = null, Checksum? checksum = null)
-        => new(artifactData, new HttpRequestMessageArtifactResourceInfo(artifactTool, request, key, contentType, updated, version, checksum));
+    /// <param name="httpCompletionOption">Custom <see cref="System.Net.Http.HttpCompletionOption"/>.</param>
+    public static ArtifactDataResource HttpRequestMessage(this ArtifactData artifactData,
+        HttpArtifactTool artifactTool,
+        HttpRequestMessage request,
+        ArtifactResourceKey key,
+        string? contentType = "application/octet-stream",
+        DateTimeOffset? updated = null,
+        string? version = null,
+        Checksum? checksum = null,
+        HttpCompletionOption? httpCompletionOption = null)
+        => new(artifactData, new HttpRequestMessageArtifactResourceInfo(artifactTool, request, httpCompletionOption, key, contentType, updated, version, checksum));
 
     /// <summary>
     /// Creates a <see cref="HttpRequestMessageArtifactResourceInfo"/> resource.
@@ -51,8 +69,18 @@ public partial class HttpArtifactDataExtensions
     /// <param name="updated">Updated date.</param>
     /// <param name="version">Version.</param>
     /// <param name="checksum">Checksum.</param>
-    public static ArtifactDataResource HttpRequestMessage(this ArtifactData artifactData, HttpArtifactTool artifactTool, HttpRequestMessage request, string file, string path = "", string? contentType = "application/octet-stream", DateTimeOffset? updated = null, string? version = null, Checksum? checksum = null)
-        => new(artifactData, new HttpRequestMessageArtifactResourceInfo(artifactTool, request, new ArtifactResourceKey(artifactData.Info.Key, file, path), contentType, updated, version, checksum));
+    /// <param name="httpCompletionOption">Custom <see cref="System.Net.Http.HttpCompletionOption"/>.</param>
+    public static ArtifactDataResource HttpRequestMessage(this ArtifactData artifactData,
+        HttpArtifactTool artifactTool,
+        HttpRequestMessage request,
+        string file,
+        string path = "",
+        string? contentType = "application/octet-stream",
+        DateTimeOffset? updated = null,
+        string? version = null,
+        Checksum? checksum = null,
+        HttpCompletionOption? httpCompletionOption = null)
+        => new(artifactData, new HttpRequestMessageArtifactResourceInfo(artifactTool, request, httpCompletionOption, new ArtifactResourceKey(artifactData.Info.Key, file, path), contentType, updated, version, checksum));
 
     /// <summary>
     /// Creates a <see cref="HttpRequestMessageArtifactResourceInfo"/> resource.
