@@ -37,6 +37,7 @@ public class M3UDownloaderContext
         Config = config;
         MainUri = mainUri;
         StreamInfo = streamInfo;
+        ValidateConfig();
     }
 
     private static async Task<Uri> SelectSubStreamAsync(HttpArtifactTool tool, M3UDownloaderConfig config, CancellationToken cancellationToken = default)
@@ -59,6 +60,23 @@ public class M3UDownloaderContext
         Uri mainUri = await SelectSubStreamAsync(Tool, config, cancellationToken);
         MainUri = mainUri;
         Config = config;
+        ValidateConfig();
+    }
+
+    private void ValidateConfig()
+    {
+        if (Config.MaxFails < 0)
+        {
+            Config = Config with { MaxFails = 0 };
+        }
+        if (Config.RequestTimeoutRetries < 0)
+        {
+            Config = Config with { RequestTimeoutRetries = 0 };
+        }
+        if (Config.RequestTimeout <= 0)
+        {
+            Config = Config with { RequestTimeout = 1 };
+        }
     }
 
     /// <summary>
@@ -183,8 +201,41 @@ public class M3UDownloaderContext
         }
         await using (CommittableStream oStream = await Tool.DataManager.CreateOutputStreamAsync(ari.Key, OutputStreamOptions.Default, cancellationToken))
         {
-            await ari.ExportStreamAsync(oStream, cancellationToken).ConfigureAwait(false);
-            oStream.ShouldCommit = true;
+            // It should be good to restore timeout so unreasonable values don't cause problems later
+            TimeSpan previousTimeout = Tool.HttpClient.Timeout;
+            try
+            {
+                Tool.HttpClient.Timeout = TimeSpan.FromMilliseconds(Config.RequestTimeout);
+                int retries = 0;
+                do
+                {
+                    try
+                    {
+                        await ari.ExportStreamAsync(oStream, cancellationToken).ConfigureAwait(false);
+                    }
+                    catch (TaskCanceledException e)
+                    {
+                        // .NET Core, .NET 5 throw TaskCanceledException with TimeoutException inner exception
+                        if (e.InnerException is not TimeoutException)
+                        {
+                            throw;
+                        }
+                        if (retries >= Config.RequestTimeoutRetries)
+                        {
+                            throw;
+                        }
+                        retries++;
+                        Tool.LogWarning($"timeout, retrying {retries}/{Config.RequestTimeoutRetries}");
+                        continue;
+                    }
+                    oStream.ShouldCommit = true;
+                    break;
+                } while (true);
+            }
+            finally
+            {
+                Tool.HttpClient.Timeout = previousTimeout;
+            }
         }
         await Tool.AddResourceAsync(ari, cancellationToken);
     }

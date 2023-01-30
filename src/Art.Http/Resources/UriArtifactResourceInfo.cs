@@ -20,6 +20,7 @@ public record UriArtifactResourceInfo(HttpArtifactTool ArtifactTool, Uri Uri, Ac
     /// <inheritdoc/>
     public override async ValueTask ExportStreamAsync(Stream targetStream, CancellationToken cancellationToken = default)
     {
+        // M3U behaviour depends on calling this member, or any overload targeting the contained HttpClient. Don't change this.
         await ArtifactTool.DownloadResourceAsync(Uri, targetStream, RequestAction, cancellationToken).ConfigureAwait(false);
     }
 

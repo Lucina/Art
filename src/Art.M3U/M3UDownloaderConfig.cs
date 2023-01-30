@@ -10,4 +10,15 @@ namespace Art.M3U;
 /// <param name="PrioritizeResolution">Prioritize resolution in stream selection.</param>
 /// <param name="MaxFails">Maximum allowed consecutive failures.</param>
 /// <param name="Referrer">Stream download referrer.</param>
-public record M3UDownloaderConfig(string URL, ArtifactKey ArtifactKey, bool SkipExistingSegments = true, bool Decrypt = false, bool PrioritizeResolution = false, int MaxFails = 1, string? Referrer = null);
+/// <param name="RequestTimeout">Timeout for requests, in milliseconds.</param>
+/// <param name="RequestTimeoutRetries">Number of consecutive retries before attempting recovery.</param>
+public record M3UDownloaderConfig(
+    string URL,
+    ArtifactKey ArtifactKey,
+    bool SkipExistingSegments = true,
+    bool Decrypt = false,
+    bool PrioritizeResolution = false,
+    int MaxFails = 1,
+    string? Referrer = null,
+    int RequestTimeout = 5000,
+    int RequestTimeoutRetries = 10);
