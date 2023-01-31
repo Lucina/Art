@@ -13,17 +13,6 @@ namespace Art;
 public record ArtifactResourceInfo(ArtifactResourceKey Key, string? ContentType = "application/octet-stream", DateTimeOffset? Updated = null, string? Version = null, Checksum? Checksum = null)
 {
     /// <summary>
-    /// Checks if non-identifying metadata (i.e. everything but key, updated date, version) is different.
-    /// </summary>
-    /// <param name="other">Resource to compare to.</param>
-    /// <returns>True if any metadata is different or if other is null.</returns>
-    public bool IsMetadataDifferent(ArtifactResourceInfo? other)
-    {
-        if (other == null) return true;
-        return ContentType != other.ContentType;
-    }
-
-    /// <summary>
     /// If true, this resource is a file-exportable reference.
     /// </summary>
     [JsonIgnore]
@@ -59,16 +48,4 @@ public record ArtifactResourceInfo(ArtifactResourceKey Key, string? ContentType 
     public virtual void AugmentOutputStreamOptions(ref OutputStreamOptions options)
     {
     }
-
-    /// <summary>
-    /// Gets informational path string.
-    /// </summary>
-    /// <returns>Info path string.</returns>
-    public virtual string GetInfoPathString() => $"{Key.Path}/{Key.File}";
-
-    /// <summary>
-    /// Gets informational string.
-    /// </summary>
-    /// <returns>Info string.</returns>
-    public virtual string GetInfoString() => $"Path: {GetInfoPathString()}{(ContentType != null ? $"\nContent type: {ContentType}" : "")}{(Updated != null ? $"\nUpdated: {Updated}" : "")}{(Version != null ? $"\nVersion: {Version}" : "")}{(Checksum != null ? $"\nChecksum: {Checksum.Id}:{Convert.ToHexString(Checksum.Value)}" : "")}";
 }
