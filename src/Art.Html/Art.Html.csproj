@@ -6,8 +6,8 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Art.Http" Version="0.45.0" />
-    <!--<ProjectReference Include="..\Art.Http\Art.Http.csproj" />-->
+    <!--<PackageReference Include="Art.Http" Version="0.46.0" />-->
+    <ProjectReference Include="..\Art.Http\Art.Http.csproj" />
   </ItemGroup>
 
   <ItemGroup>

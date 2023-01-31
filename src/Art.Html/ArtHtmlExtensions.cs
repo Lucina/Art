@@ -13,7 +13,7 @@ public static class ArtHtmlExtensions
     /// </summary>
     /// <param name="url">Url to convert.</param>
     /// <returns>Uri.</returns>
-    public static Uri ToUri(this Url url) => new UriBuilder()
+    public static Uri ToUri(this Url url) => new UriBuilder
     {
         Scheme = url.Scheme,
         Host = url.HostName,
