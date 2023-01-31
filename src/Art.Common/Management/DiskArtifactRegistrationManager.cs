@@ -1,4 +1,5 @@
 ﻿using System.Globalization;
+using System.Text.Json;
 
 namespace Art.Common.Management;
 
@@ -34,7 +35,7 @@ public class DiskArtifactRegistrationManager : IArtifactRegistrationManager
         string dir = GetArtifactInfoDir(artifactInfo.Key);
         if (!Directory.Exists(dir)) Directory.CreateDirectory(dir);
         string path = GetArtifactInfoFilePath(dir, artifactInfo.Key);
-        await artifactInfo.WriteToFileAsync(path, cancellationToken).ConfigureAwait(false);
+        await WriteToFileAsync(artifactInfo, path, cancellationToken).ConfigureAwait(false);
     }
 
     /// <inheritdoc/>
@@ -96,7 +97,7 @@ public class DiskArtifactRegistrationManager : IArtifactRegistrationManager
         string dir = GetResourceInfoDir(artifactResourceInfo.Key);
         if (!Directory.Exists(dir)) Directory.CreateDirectory(dir);
         string path = GetResourceInfoFilePath(dir, artifactResourceInfo.Key);
-        await artifactResourceInfo.WriteToFileAsync(path, cancellationToken).ConfigureAwait(false);
+        await WriteToFileAsync(artifactResourceInfo, path, cancellationToken).ConfigureAwait(false);
     }
 
     /// <inheritdoc/>
@@ -196,4 +197,18 @@ public class DiskArtifactRegistrationManager : IArtifactRegistrationManager
 
     private static string GetResourceInfoFilePath(string dir, ArtifactResourceKey key)
         => Path.Combine(dir, string.Format(CultureInfo.InvariantCulture, ResourceFileName, key.File.SafeifyFileName()));
+
+    /// <summary>
+    /// Writes an object to a JSON file.
+    /// </summary>
+    /// <typeparam name="T">Data type.</typeparam>
+    /// <param name="value">Value to write.</param>
+    /// <param name="file">File path to write to.</param>
+    /// <param name="cancellationToken">Cancellation token.</param>
+    /// <returns>Task.</returns>
+    private static async ValueTask WriteToFileAsync<T>(T value, string file, CancellationToken cancellationToken = default)
+    {
+        await using FileStream fs = File.Create(file);
+        await JsonSerializer.SerializeAsync(fs, value, cancellationToken: cancellationToken).ConfigureAwait(false);
+    }
 }

@@ -188,7 +188,7 @@ public class M3UDownloaderContext
     {
         string fn = GetFileName(uri);
         ArtifactResourceKey ark = new(Config.ArtifactKey, fn, Config.ArtifactKey.Id);
-        if (await Tool.TryGetResourceAsync(ark, cancellationToken) != null)
+        if (await Tool.RegistrationManager.TryGetResourceAsync(ark, cancellationToken) != null)
         {
             if (Config.SkipExistingSegments) return;
             await Tool.RegistrationManager.RemoveResourceAsync(ark, cancellationToken);
@@ -236,7 +236,7 @@ public class M3UDownloaderContext
                 break;
             } while (true);
         }
-        await Tool.AddResourceAsync(ari, cancellationToken);
+        await Tool.RegistrationManager.AddResourceAsync(ari, cancellationToken);
     }
 
     /// <summary>

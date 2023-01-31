@@ -1,4 +1,5 @@
-﻿using System.Globalization;
+﻿using System.ComponentModel;
+using System.Globalization;
 using System.Runtime.CompilerServices;
 using System.Text.Json;
 using Art.Common.Async;
@@ -10,33 +11,6 @@ namespace Art.Common;
 /// </summary>
 public static class ArtCommonExtensions
 {
-    /// <summary>
-    /// Writes an object to a JSON file.
-    /// </summary>
-    /// <typeparam name="T">Data type.</typeparam>
-    /// <param name="value">Value to write.</param>
-    /// <param name="file">File path to write to.</param>
-    public static void WriteToFile<T>(this T value, string file)
-    {
-        using FileStream fs = File.Create(file);
-        JsonSerializer.Serialize(fs, value);
-    }
-
-    /// <summary>
-    /// Writes an object to a JSON file.
-    /// </summary>
-    /// <typeparam name="T">Data type.</typeparam>
-    /// <param name="value">Value to write.</param>
-    /// <param name="file">File path to write to.</param>
-    /// <param name="cancellationToken">Cancellation token.</param>
-    /// <returns>Task.</returns>
-    public static async ValueTask WriteToFileAsync<T>(this T value, string file, CancellationToken cancellationToken = default)
-    {
-        await using FileStream fs = File.Create(file);
-        await JsonSerializer.SerializeAsync(fs, value, cancellationToken: cancellationToken).ConfigureAwait(false);
-    }
-
-
     private static readonly char[] s_invalid = Path.GetInvalidFileNameChars().Append(':').ToArray();
 
     /// <summary>
@@ -148,6 +122,8 @@ public static class ArtCommonExtensions
     /// <typeparam name="T">Value type.</typeparam>
     /// <param name="value">Value.</param>
     /// <returns>JSON element.</returns>
+    [EditorBrowsable(EditorBrowsableState.Never)]
+    [Obsolete("Use JsonSerializer.SerializeToElement<T> instead.")]
     public static JsonElement J<T>(this T value) => JsonSerializer.SerializeToElement(value);
 
     /// <summary>

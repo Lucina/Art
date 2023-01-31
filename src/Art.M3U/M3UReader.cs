@@ -45,6 +45,18 @@ public static class M3UReader
     {
         if (data == null) throw new ArgumentNullException(nameof(data));
         using StringReader reader = new(data);
+        return Parse(reader);
+    }
+
+    /// <summary>
+    /// Parses M3U content.
+    /// </summary>
+    /// <param name="reader">Text reader.</param>
+    /// <returns>Parsed structure.</returns>
+    /// <exception cref="ArgumentNullException">Thrown if <paramref name="reader"/> is null.</exception>
+    /// <exception cref="InvalidDataException">Thrown for incorrect M3U structure.</exception>
+    public static M3UFile Parse(TextReader reader)
+    {
         string? line = reader.ReadLine();
         if (!FILE_HEADER.Equals(line)) throw new InvalidDataException("Invalid header.");
 
