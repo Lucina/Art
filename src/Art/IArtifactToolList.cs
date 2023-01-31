@@ -10,5 +10,5 @@ public interface IArtifactToolList : IArtifactTool
     /// </summary>
     /// <param name="cancellationToken">Cancellation token.</param>
     /// <returns>Async-enumerable artifacts.</returns>
-    IAsyncEnumerable<ArtifactData> ListAsync(CancellationToken cancellationToken = default);
+    IAsyncEnumerable<IArtifactData> ListAsync(CancellationToken cancellationToken = default);
 }

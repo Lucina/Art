@@ -1,17 +1,17 @@
 ﻿using System.Collections;
 using System.Diagnostics.CodeAnalysis;
 
-namespace Art;
+namespace Art.Common;
 
 /// <summary>
 /// Stores data relevant to an artifact.
 /// </summary>
-public class ArtifactData : IReadOnlyDictionary<ArtifactResourceKey, ArtifactResourceInfo>
+public class ArtifactData : IArtifactData
 {
     /// <summary>
     /// Info for this artifact.
     /// </summary>
-    public readonly ArtifactInfo Info;
+    public ArtifactInfo Info { get; }
 
     /// <summary>
     /// Tool associated with this instance.

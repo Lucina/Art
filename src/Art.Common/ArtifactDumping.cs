@@ -99,7 +99,7 @@ public static class ArtifactDumping
     /// <param name="logHandler">Log handler.</param>
     /// <param name="cancellationToken">Cancellation token.</param>
     /// <exception cref="ArgumentOutOfRangeException">Thrown if <paramref name="resourceUpdate"/> is invalid.</exception>
-    public static async Task DumpArtifactAsync(this IArtifactTool artifactTool, ArtifactData artifactData, ResourceUpdateMode resourceUpdate = ResourceUpdateMode.Soft, string? checksumId = null, EagerFlags eagerFlags = EagerFlags.None, IToolLogHandler? logHandler = null, CancellationToken cancellationToken = default)
+    public static async Task DumpArtifactAsync(this IArtifactTool artifactTool, IArtifactData artifactData, ResourceUpdateMode resourceUpdate = ResourceUpdateMode.Soft, string? checksumId = null, EagerFlags eagerFlags = EagerFlags.None, IToolLogHandler? logHandler = null, CancellationToken cancellationToken = default)
     {
         switch (resourceUpdate)
         {

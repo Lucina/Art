@@ -1,4 +1,4 @@
-﻿namespace Art;
+﻿namespace Art.Common;
 
 /// <summary>
 /// Pending <see cref="ArtifactResourceInfo"/> relative to a <see cref="ArtifactData"/>.

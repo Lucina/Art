@@ -14,7 +14,7 @@ public record ArtifactToolFindProxy(IArtifactTool ArtifactTool)
     /// <param name="id"></param>
     /// <param name="cancellationToken">Cancellation token.</param>
     /// <returns>Async-enumerable artifacts.</returns>
-    public async Task<ArtifactData?> FindAsync(string id, CancellationToken cancellationToken = default)
+    public async Task<IArtifactData?> FindAsync(string id, CancellationToken cancellationToken = default)
     {
         if (ArtifactTool is IArtifactToolFind findTool)
             return await findTool.FindAsync(id, cancellationToken).ConfigureAwait(false);

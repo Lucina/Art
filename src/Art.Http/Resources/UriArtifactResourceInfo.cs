@@ -1,4 +1,6 @@
-﻿namespace Art.Http.Resources;
+﻿using Art.Common;
+
+namespace Art.Http.Resources;
 
 /// <summary>
 /// Provides artifact information.

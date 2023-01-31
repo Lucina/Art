@@ -59,12 +59,12 @@ public record ArtifactToolDumpProxy
         }
         if (ArtifactTool is IArtifactToolList listTool)
         {
-            IAsyncEnumerable<ArtifactData> enumerable = listTool.ListAsync(cancellationToken);
+            IAsyncEnumerable<IArtifactData> enumerable = listTool.ListAsync(cancellationToken);
             if ((Options.EagerFlags & ArtifactTool.AllowedEagerModes & EagerFlags.ArtifactList) != 0) enumerable = enumerable.EagerAsync();
             if ((Options.EagerFlags & ArtifactTool.AllowedEagerModes & EagerFlags.ArtifactDump) != 0)
             {
                 List<Task> tasks = new();
-                await foreach (ArtifactData data in enumerable.ConfigureAwait(false))
+                await foreach (IArtifactData data in enumerable.ConfigureAwait(false))
                 {
                     switch (Options.SkipMode)
                     {
@@ -111,7 +111,7 @@ public record ArtifactToolDumpProxy
             }
             else
             {
-                await foreach (ArtifactData data in enumerable.ConfigureAwait(false))
+                await foreach (IArtifactData data in enumerable.ConfigureAwait(false))
                 {
                     switch (Options.SkipMode)
                     {

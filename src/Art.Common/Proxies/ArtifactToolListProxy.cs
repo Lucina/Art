@@ -42,15 +42,15 @@ public record ArtifactToolListProxy
     /// <param name="cancellationToken">Cancellation token.</param>
     /// <returns>Async-enumerable artifacts.</returns>
     /// <exception cref="InvalidOperationException">Thrown when an invalid configuration is detected.</exception>
-    public async IAsyncEnumerable<ArtifactData> ListAsync([EnumeratorCancellation] CancellationToken cancellationToken = default)
+    public async IAsyncEnumerable<IArtifactData> ListAsync([EnumeratorCancellation] CancellationToken cancellationToken = default)
     {
         ArtifactToolListOptions.Validate(Options, false);
         if (LogHandler != null) ArtifactTool.LogHandler = LogHandler;
         if (ArtifactTool is IArtifactToolList listTool)
         {
-            IAsyncEnumerable<ArtifactData> enumerable = listTool.ListAsync(cancellationToken);
+            IAsyncEnumerable<IArtifactData> enumerable = listTool.ListAsync(cancellationToken);
             if ((Options.EagerFlags & ArtifactTool.AllowedEagerModes & EagerFlags.ArtifactList) != 0) enumerable = enumerable.EagerAsync();
-            await foreach (ArtifactData data in enumerable.ConfigureAwait(false))
+            await foreach (IArtifactData data in enumerable.ConfigureAwait(false))
             {
                 switch (Options.SkipMode)
                 {
