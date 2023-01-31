@@ -9,24 +9,22 @@ public partial class HttpArtifactTool
     /// </summary>
     /// <param name="requestUri">Uri to download from.</param>
     /// <param name="stream">Target stream.</param>
-    /// <param name="requestAction">Custom configuration callback for the <see cref="HttpRequestMessage"/> created.</param>
-    /// <param name="httpCompletionOption">Custom <see cref="System.Net.Http.HttpCompletionOption"/>.</param>
+    /// <param name="httpRequestConfig">Custom request configuration.</param>
     /// <param name="cancellationToken">Cancellation token.</param>
     /// <returns>Task.</returns>
+    /// <exception cref="TaskCanceledException">Thrown with <see cref="TimeoutException"/> <see cref="Exception.InnerException"/> for a timeout.</exception>
     /// <exception cref="HttpRequestException">Thrown for issues with request excluding non-success server responses.</exception>
     /// <exception cref="ArtHttpResponseMessageException">Thrown on HTTP response indicating non-successful response.</exception>
     public async Task DownloadResourceAsync(
         string requestUri,
         Stream stream,
-        Action<HttpRequestMessage>? requestAction = null,
-        HttpCompletionOption? httpCompletionOption = null,
+        HttpRequestConfig? httpRequestConfig = null,
         CancellationToken cancellationToken = default)
     {
         NotDisposed();
         HttpRequestMessage req = new(HttpMethod.Get, requestUri);
         ConfigureHttpRequest(req);
-        requestAction?.Invoke(req);
-        using HttpResponseMessage res = await HttpClient.SendAsync(req, httpCompletionOption ?? DownloadCompletionOption, cancellationToken).ConfigureAwait(false);
+        using HttpResponseMessage res = await HttpRequestConfig.SendConfiguredAsync(httpRequestConfig, HttpClient, req, DownloadCompletionOption, cancellationToken).ConfigureAwait(false);
         ArtHttpResponseMessageException.EnsureSuccessStatusCode(res);
         await res.Content.CopyToAsync(stream, cancellationToken).ConfigureAwait(false);
     }
@@ -36,24 +34,22 @@ public partial class HttpArtifactTool
     /// </summary>
     /// <param name="requestUri">Uri to download from.</param>
     /// <param name="key">Resource key.</param>
-    /// <param name="requestAction">Custom configuration callback for the <see cref="HttpRequestMessage"/> created.</param>
-    /// <param name="httpCompletionOption">Custom <see cref="System.Net.Http.HttpCompletionOption"/>.</param>
+    /// <param name="httpRequestConfig">Custom request configuration.</param>
     /// <param name="cancellationToken">Cancellation token.</param>
     /// <returns>Task.</returns>
+    /// <exception cref="TaskCanceledException">Thrown with <see cref="TimeoutException"/> <see cref="Exception.InnerException"/> for a timeout.</exception>
     /// <exception cref="HttpRequestException">Thrown for issues with request excluding non-success server responses.</exception>
     /// <exception cref="ArtHttpResponseMessageException">Thrown on HTTP response indicating non-successful response.</exception>
     public async Task DownloadResourceAsync(
         string requestUri,
         ArtifactResourceKey key,
-        Action<HttpRequestMessage>? requestAction = null,
-        HttpCompletionOption? httpCompletionOption = null,
+        HttpRequestConfig? httpRequestConfig = null,
         CancellationToken cancellationToken = default)
     {
         NotDisposed();
         HttpRequestMessage req = new(HttpMethod.Get, requestUri);
         ConfigureHttpRequest(req);
-        requestAction?.Invoke(req);
-        await DownloadResourceInternalAsync(req, httpCompletionOption, key, cancellationToken);
+        await DownloadResourceInternalAsync(req, httpRequestConfig, key, cancellationToken);
     }
 
     /// <summary>
@@ -63,10 +59,10 @@ public partial class HttpArtifactTool
     /// <param name="file">Target filename.</param>
     /// <param name="key">Artifact key.</param>
     /// <param name="path">File path to prepend.</param>
-    /// <param name="requestAction">Custom configuration callback for the <see cref="HttpRequestMessage"/> created.</param>
-    /// <param name="httpCompletionOption">Custom <see cref="System.Net.Http.HttpCompletionOption"/>.</param>
+    /// <param name="httpRequestConfig">Custom request configuration.</param>
     /// <param name="cancellationToken">Cancellation token.</param>
     /// <returns>Task.</returns>
+    /// <exception cref="TaskCanceledException">Thrown with <see cref="TimeoutException"/> <see cref="Exception.InnerException"/> for a timeout.</exception>
     /// <exception cref="HttpRequestException">Thrown for issues with request excluding non-success server responses.</exception>
     /// <exception cref="ArtHttpResponseMessageException">Thrown on HTTP response indicating non-successful response.</exception>
     public Task DownloadResourceAsync(
@@ -74,35 +70,32 @@ public partial class HttpArtifactTool
         string file,
         ArtifactKey key,
         string path = "",
-        Action<HttpRequestMessage>? requestAction = null,
-        HttpCompletionOption? httpCompletionOption = null,
+        HttpRequestConfig? httpRequestConfig = null,
         CancellationToken cancellationToken = default)
-        => DownloadResourceAsync(requestUri, new ArtifactResourceKey(key, file, path), requestAction, httpCompletionOption, cancellationToken);
+        => DownloadResourceAsync(requestUri, new ArtifactResourceKey(key, file, path), httpRequestConfig, cancellationToken);
 
     /// <summary>
     /// Downloads a resource.
     /// </summary>
     /// <param name="requestUri"><see cref="Uri"/> to download from.</param>
     /// <param name="stream">Target stream.</param>
-    /// <param name="requestAction">Custom configuration callback for the <see cref="HttpRequestMessage"/> created.</param>
+    /// <param name="httpRequestConfig">Custom request configuration.</param>
     /// <param name="cancellationToken">Cancellation token.</param>
     /// <returns>Task.</returns>
+    /// <exception cref="TaskCanceledException">Thrown with <see cref="TimeoutException"/> <see cref="Exception.InnerException"/> for a timeout.</exception>
     /// <exception cref="HttpRequestException">Thrown for issues with request excluding non-success server responses.</exception>
     /// <exception cref="ArtHttpResponseMessageException">Thrown on HTTP response indicating non-successful response.</exception>
-    /// <param name="httpCompletionOption">Custom <see cref="System.Net.Http.HttpCompletionOption"/>.</param>
     public async Task DownloadResourceAsync(
         Uri requestUri,
         Stream stream,
-        Action<HttpRequestMessage>? requestAction = null,
-        HttpCompletionOption? httpCompletionOption = null,
+        HttpRequestConfig? httpRequestConfig = null,
         CancellationToken cancellationToken = default)
     {
         NotDisposed();
         HttpRequestMessage req = new(HttpMethod.Get, requestUri);
         ConfigureHttpRequest(req);
-        requestAction?.Invoke(req);
         // M3U behaviour depends on members always using this instance's HttpClient.
-        using HttpResponseMessage res = await HttpClient.SendAsync(req, httpCompletionOption ?? DownloadCompletionOption, cancellationToken).ConfigureAwait(false);
+        using HttpResponseMessage res = await HttpRequestConfig.SendConfiguredAsync(httpRequestConfig, HttpClient, req, DownloadCompletionOption, cancellationToken).ConfigureAwait(false);
         ArtHttpResponseMessageException.EnsureSuccessStatusCode(res);
         await res.Content.CopyToAsync(stream, cancellationToken).ConfigureAwait(false);
     }
@@ -112,24 +105,22 @@ public partial class HttpArtifactTool
     /// </summary>
     /// <param name="requestUri"><see cref="Uri"/> to download from.</param>
     /// <param name="key">Resource key.</param>
-    /// <param name="requestAction">Custom configuration callback for the <see cref="HttpRequestMessage"/> created.</param>
-    /// <param name="httpCompletionOption">Custom <see cref="System.Net.Http.HttpCompletionOption"/>.</param>
+    /// <param name="httpRequestConfig">Custom request configuration.</param>
     /// <param name="cancellationToken">Cancellation token.</param>
     /// <returns>Task.</returns>
+    /// <exception cref="TaskCanceledException">Thrown with <see cref="TimeoutException"/> <see cref="Exception.InnerException"/> for a timeout.</exception>
     /// <exception cref="HttpRequestException">Thrown for issues with request excluding non-success server responses.</exception>
     /// <exception cref="ArtHttpResponseMessageException">Thrown on HTTP response indicating non-successful response.</exception>
     public async Task DownloadResourceAsync(
         Uri requestUri,
         ArtifactResourceKey key,
-        Action<HttpRequestMessage>? requestAction = null,
-        HttpCompletionOption? httpCompletionOption = null,
+        HttpRequestConfig? httpRequestConfig = null,
         CancellationToken cancellationToken = default)
     {
         NotDisposed();
         HttpRequestMessage req = new(HttpMethod.Get, requestUri);
         ConfigureHttpRequest(req);
-        requestAction?.Invoke(req);
-        await DownloadResourceInternalAsync(req, httpCompletionOption, key, cancellationToken);
+        await DownloadResourceInternalAsync(req, httpRequestConfig, key, cancellationToken);
     }
 
     /// <summary>
@@ -139,10 +130,10 @@ public partial class HttpArtifactTool
     /// <param name="file">Target filename.</param>
     /// <param name="key">Artifact key.</param>
     /// <param name="path">File path to prepend.</param>
-    /// <param name="requestAction">Custom configuration callback for the <see cref="HttpRequestMessage"/> created.</param>
-    /// <param name="httpCompletionOption">Custom <see cref="System.Net.Http.HttpCompletionOption"/>.</param>
+    /// <param name="httpRequestConfig">Custom request configuration.</param>
     /// <param name="cancellationToken">Cancellation token.</param>
     /// <returns>Task.</returns>
+    /// <exception cref="TaskCanceledException">Thrown with <see cref="TimeoutException"/> <see cref="Exception.InnerException"/> for a timeout.</exception>
     /// <exception cref="HttpRequestException">Thrown for issues with request excluding non-success server responses.</exception>
     /// <exception cref="ArtHttpResponseMessageException">Thrown on HTTP response indicating non-successful response.</exception>
     public Task DownloadResourceAsync(
@@ -150,30 +141,30 @@ public partial class HttpArtifactTool
         string file,
         ArtifactKey key,
         string path = "",
-        Action<HttpRequestMessage>? requestAction = null,
-        HttpCompletionOption? httpCompletionOption = null,
+        HttpRequestConfig? httpRequestConfig = null,
         CancellationToken cancellationToken = default)
-        => DownloadResourceAsync(requestUri, new ArtifactResourceKey(key, file, path), requestAction, httpCompletionOption, cancellationToken);
+        => DownloadResourceAsync(requestUri, new ArtifactResourceKey(key, file, path), httpRequestConfig, cancellationToken);
 
     /// <summary>
     /// Downloads a resource.
     /// </summary>
     /// <param name="requestMessage">Request to send.</param>
     /// <param name="stream">Target stream.</param>
-    /// <param name="httpCompletionOption">Custom <see cref="System.Net.Http.HttpCompletionOption"/>.</param>
+    /// <param name="httpRequestConfig">Custom request configuration.</param>
     /// <param name="cancellationToken">Cancellation token.</param>
     /// <returns>Task.</returns>
+    /// <exception cref="TaskCanceledException">Thrown with <see cref="TimeoutException"/> <see cref="Exception.InnerException"/> for a timeout.</exception>
     /// <exception cref="HttpRequestException">Thrown for issues with request excluding non-success server responses.</exception>
     /// <exception cref="ArtHttpResponseMessageException">Thrown on HTTP response indicating non-successful response.</exception>
     public async Task DownloadResourceAsync(
         HttpRequestMessage requestMessage,
         Stream stream,
-        HttpCompletionOption? httpCompletionOption = null,
+        HttpRequestConfig? httpRequestConfig = null,
         CancellationToken cancellationToken = default)
     {
         NotDisposed();
         // M3U behaviour depends on members always using this instance's HttpClient.
-        using HttpResponseMessage res = await HttpClient.SendAsync(requestMessage, httpCompletionOption ?? DownloadCompletionOption, cancellationToken).ConfigureAwait(false);
+        using HttpResponseMessage res = await HttpRequestConfig.SendConfiguredAsync(httpRequestConfig, HttpClient, requestMessage, DownloadCompletionOption, cancellationToken).ConfigureAwait(false);
         ArtHttpResponseMessageException.EnsureSuccessStatusCode(res);
         await res.Content.CopyToAsync(stream, cancellationToken).ConfigureAwait(false);
     }
@@ -183,19 +174,20 @@ public partial class HttpArtifactTool
     /// </summary>
     /// <param name="requestMessage">Request to send.</param>
     /// <param name="key">Resource key.</param>
-    /// <param name="httpCompletionOption">Custom <see cref="System.Net.Http.HttpCompletionOption"/>.</param>
+    /// <param name="httpRequestConfig">Custom request configuration.</param>
     /// <param name="cancellationToken">Cancellation token.</param>
     /// <returns>Task.</returns>
+    /// <exception cref="TaskCanceledException">Thrown with <see cref="TimeoutException"/> <see cref="Exception.InnerException"/> for a timeout.</exception>
     /// <exception cref="HttpRequestException">Thrown for issues with request excluding non-success server responses.</exception>
     /// <exception cref="ArtHttpResponseMessageException">Thrown on HTTP response indicating non-successful response.</exception>
     public async Task DownloadResourceAsync(
         HttpRequestMessage requestMessage,
         ArtifactResourceKey key,
-        HttpCompletionOption? httpCompletionOption = null,
+        HttpRequestConfig? httpRequestConfig = null,
         CancellationToken cancellationToken = default)
     {
         NotDisposed();
-        await DownloadResourceInternalAsync(requestMessage, httpCompletionOption, key, cancellationToken);
+        await DownloadResourceInternalAsync(requestMessage, httpRequestConfig, key, cancellationToken);
     }
 
     /// <summary>
@@ -205,9 +197,10 @@ public partial class HttpArtifactTool
     /// <param name="file">Target filename.</param>
     /// <param name="key">Artifact key.</param>
     /// <param name="path">File path to prepend.</param>
-    /// <param name="httpCompletionOption">Custom <see cref="System.Net.Http.HttpCompletionOption"/>.</param>
+    /// <param name="httpRequestConfig">Custom request configuration.</param>
     /// <param name="cancellationToken">Cancellation token.</param>
     /// <returns>Task.</returns>
+    /// <exception cref="TaskCanceledException">Thrown with <see cref="TimeoutException"/> <see cref="Exception.InnerException"/> for a timeout.</exception>
     /// <exception cref="HttpRequestException">Thrown for issues with request excluding non-success server responses.</exception>
     /// <exception cref="ArtHttpResponseMessageException">Thrown on HTTP response indicating non-successful response.</exception>
     public Task DownloadResourceAsync(
@@ -215,11 +208,11 @@ public partial class HttpArtifactTool
         string file,
         ArtifactKey key,
         string path = "",
-        HttpCompletionOption? httpCompletionOption = null,
+        HttpRequestConfig? httpRequestConfig = null,
         CancellationToken cancellationToken = default)
     {
         NotDisposed();
-        return DownloadResourceInternalAsync(requestMessage, httpCompletionOption, new ArtifactResourceKey(key, file, path), cancellationToken);
+        return DownloadResourceInternalAsync(requestMessage, httpRequestConfig, new ArtifactResourceKey(key, file, path), cancellationToken);
     }
 
     /// <summary>
@@ -227,9 +220,9 @@ public partial class HttpArtifactTool
     /// </summary>
     public virtual HttpCompletionOption DownloadCompletionOption => HttpCompletionOption.ResponseHeadersRead;
 
-    private async Task DownloadResourceInternalAsync(HttpRequestMessage requestMessage, HttpCompletionOption? httpCompletionOption, ArtifactResourceKey key, CancellationToken cancellationToken = default)
+    private async Task DownloadResourceInternalAsync(HttpRequestMessage requestMessage, HttpRequestConfig? httpRequestConfig, ArtifactResourceKey key, CancellationToken cancellationToken = default)
     {
-        using HttpResponseMessage res = await HttpClient.SendAsync(requestMessage, httpCompletionOption ?? DownloadCompletionOption, cancellationToken).ConfigureAwait(false);
+        using HttpResponseMessage res = await HttpRequestConfig.SendConfiguredAsync(httpRequestConfig, HttpClient, requestMessage, DownloadCompletionOption, cancellationToken).ConfigureAwait(false);
         ArtHttpResponseMessageException.EnsureSuccessStatusCode(res);
         await StreamDownloadAsync(res, key, cancellationToken);
     }

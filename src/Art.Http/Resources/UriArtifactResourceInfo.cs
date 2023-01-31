@@ -10,13 +10,11 @@
 /// <param name="Updated">Updated date.</param>
 /// <param name="Version">Version.</param>
 /// <param name="Checksum">Checksum.</param>
-/// <param name="RequestAction">Custom configuration callback for the <see cref="System.Net.Http.HttpRequestMessage"/> created.</param>
-/// <param name="HttpCompletionOption">Custom <see cref="System.Net.Http.HttpCompletionOption"/>.</param>
+/// <param name="HttpRequestConfig">Custom request configuration.</param>
 public record UriArtifactResourceInfo(
         HttpArtifactTool ArtifactTool,
         Uri Uri,
-        Action<HttpRequestMessage>? RequestAction,
-        HttpCompletionOption? HttpCompletionOption,
+        HttpRequestConfig? HttpRequestConfig,
         ArtifactResourceKey Key,
         string? ContentType = "application/octet-stream",
         DateTimeOffset? Updated = null,
@@ -28,19 +26,21 @@ public record UriArtifactResourceInfo(
     public override bool Exportable => true;
 
     /// <inheritdoc/>
+    /// <exception cref="TaskCanceledException">Thrown with <see cref="TimeoutException"/> <see cref="Exception.InnerException"/> for a timeout.</exception>
     public override async ValueTask ExportStreamAsync(Stream targetStream, CancellationToken cancellationToken = default)
     {
         // M3U behaviour depends on calling this member, or any overload targeting the contained HttpClient. Don't change this.
-        await ArtifactTool.DownloadResourceAsync(Uri, targetStream, RequestAction, HttpCompletionOption, cancellationToken).ConfigureAwait(false);
+        await ArtifactTool.DownloadResourceAsync(Uri, targetStream, HttpRequestConfig, cancellationToken).ConfigureAwait(false);
     }
 
     /// <inheritdoc/>
     public override bool UsesMetadata => true;
 
     /// <inheritdoc/>
+    /// <exception cref="TaskCanceledException">Thrown with <see cref="TimeoutException"/> <see cref="Exception.InnerException"/> for a timeout.</exception>
     public override async ValueTask<ArtifactResourceInfo> WithMetadataAsync(CancellationToken cancellationToken = default)
     {
-        HttpResponseMessage res = await ArtifactTool.HeadAsync(Uri, RequestAction, cancellationToken).ConfigureAwait(false);
+        HttpResponseMessage res = await ArtifactTool.HeadAsync(Uri, HttpRequestConfig, cancellationToken).ConfigureAwait(false);
         ArtHttpResponseMessageException.EnsureSuccessStatusCode(res);
         return WithMetadata(res);
     }
@@ -59,8 +59,7 @@ public partial class HttpArtifactDataExtensions
     /// <param name="updated">Updated date.</param>
     /// <param name="version">Version.</param>
     /// <param name="checksum">Checksum.</param>
-    /// <param name="requestAction">Custom configuration callback for the <see cref="System.Net.Http.HttpRequestMessage"/> created.</param>
-    /// <param name="httpCompletionOption">Custom <see cref="System.Net.Http.HttpCompletionOption"/>.</param>
+    /// <param name="httpRequestConfig">Custom request configuration.</param>
     public static ArtifactDataResource Uri(this ArtifactData artifactData,
         HttpArtifactTool artifactTool,
         Uri uri,
@@ -69,9 +68,8 @@ public partial class HttpArtifactDataExtensions
         DateTimeOffset? updated = null,
         string? version = null,
         Checksum? checksum = null,
-        Action<HttpRequestMessage>? requestAction = null,
-        HttpCompletionOption? httpCompletionOption = null)
-        => new(artifactData, new UriArtifactResourceInfo(artifactTool, uri, requestAction, httpCompletionOption, key, contentType, updated, version, checksum));
+        HttpRequestConfig? httpRequestConfig = null)
+        => new(artifactData, new UriArtifactResourceInfo(artifactTool, uri, httpRequestConfig, key, contentType, updated, version, checksum));
 
     /// <summary>
     /// Creates a <see cref="UriArtifactResourceInfo"/> resource.
@@ -85,8 +83,7 @@ public partial class HttpArtifactDataExtensions
     /// <param name="updated">Updated date.</param>
     /// <param name="version">Version.</param>
     /// <param name="checksum">Checksum.</param>
-    /// <param name="requestAction">Custom configuration callback for the <see cref="System.Net.Http.HttpRequestMessage"/> created.</param>
-    /// <param name="httpCompletionOption">Custom <see cref="System.Net.Http.HttpCompletionOption"/>.</param>
+    /// <param name="httpRequestConfig">Custom request configuration.</param>
     public static ArtifactDataResource Uri(this ArtifactData artifactData,
         HttpArtifactTool artifactTool,
         Uri uri,
@@ -96,9 +93,8 @@ public partial class HttpArtifactDataExtensions
         DateTimeOffset? updated = null,
         string? version = null,
         Checksum? checksum = null,
-        Action<HttpRequestMessage>? requestAction = null,
-        HttpCompletionOption? httpCompletionOption = null)
-        => new(artifactData, new UriArtifactResourceInfo(artifactTool, uri, requestAction, httpCompletionOption, new ArtifactResourceKey(artifactData.Info.Key, file, path), contentType, updated, version, checksum));
+        HttpRequestConfig? httpRequestConfig = null)
+        => new(artifactData, new UriArtifactResourceInfo(artifactTool, uri, httpRequestConfig, new ArtifactResourceKey(artifactData.Info.Key, file, path), contentType, updated, version, checksum));
 
     /// <summary>
     /// Creates a <see cref="UriArtifactResourceInfo"/> resource.
@@ -110,9 +106,16 @@ public partial class HttpArtifactDataExtensions
     /// <param name="updated">Updated date.</param>
     /// <param name="version">Version.</param>
     /// <param name="checksum">Checksum.</param>
-    /// <param name="requestAction">Custom configuration callback for the <see cref="System.Net.Http.HttpRequestMessage"/> created.</param>
-    public static ArtifactDataResource Uri(this ArtifactData artifactData, Uri uri, ArtifactResourceKey key, string? contentType = "application/octet-stream", DateTimeOffset? updated = null, string? version = null, Checksum? checksum = null, Action<HttpRequestMessage>? requestAction = null)
-        => artifactData.Uri(artifactData.GetArtifactTool<HttpArtifactTool>(), uri, key, contentType, updated, version, checksum, requestAction);
+    /// <param name="httpRequestConfig">Custom request configuration.</param>
+    public static ArtifactDataResource Uri(this ArtifactData artifactData,
+        Uri uri,
+        ArtifactResourceKey key,
+        string? contentType = "application/octet-stream",
+        DateTimeOffset? updated = null,
+        string? version = null,
+        Checksum? checksum = null,
+        HttpRequestConfig? httpRequestConfig = null)
+        => artifactData.Uri(artifactData.GetArtifactTool<HttpArtifactTool>(), uri, key, contentType, updated, version, checksum, httpRequestConfig);
 
     /// <summary>
     /// Creates a <see cref="UriArtifactResourceInfo"/> resource.
@@ -125,9 +128,17 @@ public partial class HttpArtifactDataExtensions
     /// <param name="updated">Updated date.</param>
     /// <param name="version">Version.</param>
     /// <param name="checksum">Checksum.</param>
-    /// <param name="requestAction">Custom configuration callback for the <see cref="System.Net.Http.HttpRequestMessage"/> created.</param>
-    public static ArtifactDataResource Uri(this ArtifactData artifactData, Uri uri, string file, string path = "", string? contentType = "application/octet-stream", DateTimeOffset? updated = null, string? version = null, Checksum? checksum = null, Action<HttpRequestMessage>? requestAction = null)
-        => artifactData.Uri(artifactData.GetArtifactTool<HttpArtifactTool>(), uri, file, path, contentType, updated, version, checksum, requestAction);
+    /// <param name="httpRequestConfig">Custom request configuration.</param>
+    public static ArtifactDataResource Uri(this ArtifactData artifactData,
+        Uri uri,
+        string file,
+        string path = "",
+        string? contentType = "application/octet-stream",
+        DateTimeOffset? updated = null,
+        string? version = null,
+        Checksum? checksum = null,
+        HttpRequestConfig? httpRequestConfig = null)
+        => artifactData.Uri(artifactData.GetArtifactTool<HttpArtifactTool>(), uri, file, path, contentType, updated, version, checksum, httpRequestConfig);
 
     /// <summary>
     /// Creates a <see cref="UriArtifactResourceInfo"/> resource.
@@ -140,8 +151,7 @@ public partial class HttpArtifactDataExtensions
     /// <param name="updated">Updated date.</param>
     /// <param name="version">Version.</param>
     /// <param name="checksum">Checksum.</param>
-    /// <param name="requestAction">Custom configuration callback for the <see cref="System.Net.Http.HttpRequestMessage"/> created.</param>
-    /// <param name="httpCompletionOption">Custom <see cref="System.Net.Http.HttpCompletionOption"/>.</param>
+    /// <param name="httpRequestConfig">Custom request configuration.</param>
     public static ArtifactDataResource Uri(this ArtifactData artifactData,
         HttpArtifactTool artifactTool,
         string uri,
@@ -150,9 +160,8 @@ public partial class HttpArtifactDataExtensions
         DateTimeOffset? updated = null,
         string? version = null,
         Checksum? checksum = null,
-        Action<HttpRequestMessage>? requestAction = null,
-        HttpCompletionOption? httpCompletionOption = null)
-        => new(artifactData, new UriArtifactResourceInfo(artifactTool, new Uri(uri), requestAction, httpCompletionOption, key, contentType, updated, version, checksum));
+        HttpRequestConfig? httpRequestConfig = null)
+        => new(artifactData, new UriArtifactResourceInfo(artifactTool, new Uri(uri), httpRequestConfig, key, contentType, updated, version, checksum));
 
     /// <summary>
     /// Creates a <see cref="UriArtifactResourceInfo"/> resource.
@@ -166,8 +175,7 @@ public partial class HttpArtifactDataExtensions
     /// <param name="updated">Updated date.</param>
     /// <param name="version">Version.</param>
     /// <param name="checksum">Checksum.</param>
-    /// <param name="requestAction">Custom configuration callback for the <see cref="System.Net.Http.HttpRequestMessage"/> created.</param>
-    /// <param name="httpCompletionOption">Custom <see cref="System.Net.Http.HttpCompletionOption"/>.</param>
+    /// <param name="httpRequestConfig">Custom request configuration.</param>
     public static ArtifactDataResource Uri(this ArtifactData artifactData,
         HttpArtifactTool artifactTool,
         string uri,
@@ -177,9 +185,8 @@ public partial class HttpArtifactDataExtensions
         DateTimeOffset? updated = null,
         string? version = null,
         Checksum? checksum = null,
-        Action<HttpRequestMessage>? requestAction = null,
-        HttpCompletionOption? httpCompletionOption = null)
-        => new(artifactData, new UriArtifactResourceInfo(artifactTool, new Uri(uri), requestAction, httpCompletionOption, new ArtifactResourceKey(artifactData.Info.Key, file, path), contentType, updated, version, checksum));
+        HttpRequestConfig? httpRequestConfig = null)
+        => new(artifactData, new UriArtifactResourceInfo(artifactTool, new Uri(uri), httpRequestConfig, new ArtifactResourceKey(artifactData.Info.Key, file, path), contentType, updated, version, checksum));
 
     /// <summary>
     /// Creates a <see cref="UriArtifactResourceInfo"/> resource.
@@ -191,9 +198,16 @@ public partial class HttpArtifactDataExtensions
     /// <param name="updated">Updated date.</param>
     /// <param name="version">Version.</param>
     /// <param name="checksum">Checksum.</param>
-    /// <param name="requestAction">Custom configuration callback for the <see cref="System.Net.Http.HttpRequestMessage"/> created.</param>
-    public static ArtifactDataResource Uri(this ArtifactData artifactData, string uri, ArtifactResourceKey key, string? contentType = "application/octet-stream", DateTimeOffset? updated = null, string? version = null, Checksum? checksum = null, Action<HttpRequestMessage>? requestAction = null)
-        => artifactData.Uri(artifactData.GetArtifactTool<HttpArtifactTool>(), uri, key, contentType, updated, version, checksum, requestAction);
+    /// <param name="httpRequestConfig">Custom request configuration.</param>
+    public static ArtifactDataResource Uri(this ArtifactData artifactData,
+        string uri,
+        ArtifactResourceKey key,
+        string? contentType = "application/octet-stream",
+        DateTimeOffset? updated = null,
+        string? version = null,
+        Checksum? checksum = null,
+        HttpRequestConfig? httpRequestConfig = null)
+        => artifactData.Uri(artifactData.GetArtifactTool<HttpArtifactTool>(), uri, key, contentType, updated, version, checksum, httpRequestConfig);
 
     /// <summary>
     /// Creates a <see cref="UriArtifactResourceInfo"/> resource.
@@ -206,7 +220,15 @@ public partial class HttpArtifactDataExtensions
     /// <param name="updated">Updated date.</param>
     /// <param name="version">Version.</param>
     /// <param name="checksum">Checksum.</param>
-    /// <param name="requestAction">Custom configuration callback for the <see cref="System.Net.Http.HttpRequestMessage"/> created.</param>
-    public static ArtifactDataResource Uri(this ArtifactData artifactData, string uri, string file, string path = "", string? contentType = "application/octet-stream", DateTimeOffset? updated = null, string? version = null, Checksum? checksum = null, Action<HttpRequestMessage>? requestAction = null)
-        => artifactData.Uri(artifactData.GetArtifactTool<HttpArtifactTool>(), uri, file, path, contentType, updated, version, checksum, requestAction);
+    /// <param name="httpRequestConfig">Custom request configuration.</param>
+    public static ArtifactDataResource Uri(this ArtifactData artifactData,
+        string uri,
+        string file,
+        string path = "",
+        string? contentType = "application/octet-stream",
+        DateTimeOffset? updated = null,
+        string? version = null,
+        Checksum? checksum = null,
+        HttpRequestConfig? httpRequestConfig = null)
+        => artifactData.Uri(artifactData.GetArtifactTool<HttpArtifactTool>(), uri, file, path, contentType, updated, version, checksum, httpRequestConfig);
 }
