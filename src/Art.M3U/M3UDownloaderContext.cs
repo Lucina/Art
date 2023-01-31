@@ -224,6 +224,12 @@ public class M3UDownloaderContext
                     }
                     retries++;
                     Tool.LogWarning($"timeout, retrying {retries}/{Config.RequestTimeoutRetries}");
+                    if (!oStream.CanSeek)
+                    {
+                        throw new IOException("Cannot retry operation: output stream is not seekable.");
+                    }
+                    oStream.Position = 0;
+                    oStream.SetLength(0);
                     continue;
                 }
                 oStream.ShouldCommit = true;
