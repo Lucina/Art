@@ -29,7 +29,7 @@ public partial class HttpArtifactTool
         NotDisposed();
         HttpRequestMessage req = new(HttpMethod.Get, requestUri);
         ConfigureJsonRequest(req);
-        using HttpResponseMessage res = await HttpRequestConfig.SendConfiguredAsync(httpRequestConfig, HttpClient, req, JsonCompletionOption, cancellationToken).ConfigureAwait(false);
+        using HttpResponseMessage res = await HttpClient.SendAsync(req, JsonCompletionOption, httpRequestConfig, cancellationToken).ConfigureAwait(false);
         ArtHttpResponseMessageException.EnsureSuccessStatusCode(res);
         return await DeserializeJsonWithDebugAsync<T>(res, cancellationToken).ConfigureAwait(false);
     }
@@ -78,7 +78,7 @@ public partial class HttpArtifactTool
         NotDisposed();
         HttpRequestMessage req = new(HttpMethod.Get, requestUri);
         ConfigureJsonRequest(req);
-        using HttpResponseMessage res = await HttpRequestConfig.SendConfiguredAsync(httpRequestConfig, HttpClient, req, JsonCompletionOption, cancellationToken).ConfigureAwait(false);
+        using HttpResponseMessage res = await HttpClient.SendAsync(req, JsonCompletionOption, httpRequestConfig, cancellationToken).ConfigureAwait(false);
         ArtHttpResponseMessageException.EnsureSuccessStatusCode(res);
         return await DeserializeJsonWithDebugAsync<T>(res, jsonSerializerOptions, cancellationToken).ConfigureAwait(false);
     }
@@ -127,7 +127,7 @@ public partial class HttpArtifactTool
         NotDisposed();
         HttpRequestMessage req = new(HttpMethod.Get, requestUri);
         ConfigureJsonRequest(req);
-        using HttpResponseMessage res = await HttpRequestConfig.SendConfiguredAsync(httpRequestConfig, HttpClient, req, JsonCompletionOption, cancellationToken).ConfigureAwait(false);
+        using HttpResponseMessage res = await HttpClient.SendAsync(req, JsonCompletionOption, httpRequestConfig, cancellationToken).ConfigureAwait(false);
         ArtHttpResponseMessageException.EnsureSuccessStatusCode(res);
         return await DeserializeJsonWithDebugAsync<T>(res, cancellationToken).ConfigureAwait(false);
     }
@@ -176,7 +176,7 @@ public partial class HttpArtifactTool
         NotDisposed();
         HttpRequestMessage req = new(HttpMethod.Get, requestUri);
         ConfigureJsonRequest(req);
-        using HttpResponseMessage res = await HttpRequestConfig.SendConfiguredAsync(httpRequestConfig, HttpClient, req, JsonCompletionOption, cancellationToken).ConfigureAwait(false);
+        using HttpResponseMessage res = await HttpClient.SendAsync(req, JsonCompletionOption, httpRequestConfig, cancellationToken).ConfigureAwait(false);
         ArtHttpResponseMessageException.EnsureSuccessStatusCode(res);
         return await DeserializeJsonWithDebugAsync<T>(res, jsonSerializerOptions, cancellationToken).ConfigureAwait(false);
     }
@@ -223,7 +223,7 @@ public partial class HttpArtifactTool
         CancellationToken cancellationToken = default)
     {
         NotDisposed();
-        using HttpResponseMessage res = await HttpRequestConfig.SendConfiguredAsync(httpRequestConfig, HttpClient, requestMessage, JsonCompletionOption, cancellationToken).ConfigureAwait(false);
+        using HttpResponseMessage res = await HttpClient.SendAsync(requestMessage, JsonCompletionOption, httpRequestConfig, cancellationToken).ConfigureAwait(false);
         ArtHttpResponseMessageException.EnsureSuccessStatusCode(res);
         return await DeserializeJsonAsync<T>(await res.Content.ReadAsStreamAsync(cancellationToken).ConfigureAwait(false), JsonOptions, cancellationToken).ConfigureAwait(false);
     }
@@ -270,7 +270,7 @@ public partial class HttpArtifactTool
         CancellationToken cancellationToken = default)
     {
         NotDisposed();
-        using HttpResponseMessage res = await HttpRequestConfig.SendConfiguredAsync(httpRequestConfig, HttpClient, requestMessage, JsonCompletionOption, cancellationToken).ConfigureAwait(false);
+        using HttpResponseMessage res = await HttpClient.SendAsync(requestMessage, JsonCompletionOption, httpRequestConfig, cancellationToken).ConfigureAwait(false);
         ArtHttpResponseMessageException.EnsureSuccessStatusCode(res);
         return await DeserializeJsonAsync<T>(await res.Content.ReadAsStreamAsync(cancellationToken).ConfigureAwait(false), jsonSerializerOptions, cancellationToken).ConfigureAwait(false);
     }

@@ -24,7 +24,7 @@ public partial class HttpArtifactTool
         NotDisposed();
         HttpRequestMessage req = new(HttpMethod.Get, requestUri);
         ConfigureTextRequest(req);
-        using HttpResponseMessage res = await HttpRequestConfig.SendConfiguredAsync(httpRequestConfig, HttpClient, req, TextCompletionOption, cancellationToken).ConfigureAwait(false);
+        using HttpResponseMessage res = await HttpClient.SendAsync(req, TextCompletionOption, httpRequestConfig, cancellationToken).ConfigureAwait(false);
         ArtHttpResponseMessageException.EnsureSuccessStatusCode(res);
         return await res.Content.ReadAsStringAsync(cancellationToken).ConfigureAwait(false);
     }
@@ -47,7 +47,7 @@ public partial class HttpArtifactTool
         NotDisposed();
         HttpRequestMessage req = new(HttpMethod.Get, requestUri);
         ConfigureTextRequest(req);
-        using HttpResponseMessage res = await HttpRequestConfig.SendConfiguredAsync(httpRequestConfig, HttpClient, req, TextCompletionOption, cancellationToken).ConfigureAwait(false);
+        using HttpResponseMessage res = await HttpClient.SendAsync(req, TextCompletionOption, httpRequestConfig, cancellationToken).ConfigureAwait(false);
         ArtHttpResponseMessageException.EnsureSuccessStatusCode(res);
         return await res.Content.ReadAsStringAsync(cancellationToken).ConfigureAwait(false);
     }
@@ -68,7 +68,7 @@ public partial class HttpArtifactTool
         CancellationToken cancellationToken = default)
     {
         NotDisposed();
-        using HttpResponseMessage res = await HttpRequestConfig.SendConfiguredAsync(httpRequestConfig, HttpClient, requestMessage, TextCompletionOption, cancellationToken).ConfigureAwait(false);
+        using HttpResponseMessage res = await HttpClient.SendAsync(requestMessage, TextCompletionOption, httpRequestConfig, cancellationToken).ConfigureAwait(false);
         ArtHttpResponseMessageException.EnsureSuccessStatusCode(res);
         return await res.Content.ReadAsStringAsync(cancellationToken).ConfigureAwait(false);
     }

@@ -24,7 +24,7 @@ public partial class HttpArtifactTool
         NotDisposed();
         HttpRequestMessage req = new(HttpMethod.Get, requestUri);
         ConfigureHttpRequest(req);
-        using HttpResponseMessage res = await HttpRequestConfig.SendConfiguredAsync(httpRequestConfig, HttpClient, req, DownloadCompletionOption, cancellationToken).ConfigureAwait(false);
+        using HttpResponseMessage res = await HttpClient.SendAsync(req, DownloadCompletionOption, httpRequestConfig, cancellationToken).ConfigureAwait(false);
         ArtHttpResponseMessageException.EnsureSuccessStatusCode(res);
         await res.Content.CopyToAsync(stream, cancellationToken).ConfigureAwait(false);
     }
@@ -95,7 +95,7 @@ public partial class HttpArtifactTool
         HttpRequestMessage req = new(HttpMethod.Get, requestUri);
         ConfigureHttpRequest(req);
         // M3U behaviour depends on members always using this instance's HttpClient.
-        using HttpResponseMessage res = await HttpRequestConfig.SendConfiguredAsync(httpRequestConfig, HttpClient, req, DownloadCompletionOption, cancellationToken).ConfigureAwait(false);
+        using HttpResponseMessage res = await HttpClient.SendAsync(req, DownloadCompletionOption, httpRequestConfig, cancellationToken).ConfigureAwait(false);
         ArtHttpResponseMessageException.EnsureSuccessStatusCode(res);
         await res.Content.CopyToAsync(stream, cancellationToken).ConfigureAwait(false);
     }
@@ -164,7 +164,7 @@ public partial class HttpArtifactTool
     {
         NotDisposed();
         // M3U behaviour depends on members always using this instance's HttpClient.
-        using HttpResponseMessage res = await HttpRequestConfig.SendConfiguredAsync(httpRequestConfig, HttpClient, requestMessage, DownloadCompletionOption, cancellationToken).ConfigureAwait(false);
+        using HttpResponseMessage res = await HttpClient.SendAsync(requestMessage, DownloadCompletionOption, httpRequestConfig, cancellationToken).ConfigureAwait(false);
         ArtHttpResponseMessageException.EnsureSuccessStatusCode(res);
         await res.Content.CopyToAsync(stream, cancellationToken).ConfigureAwait(false);
     }
@@ -222,7 +222,7 @@ public partial class HttpArtifactTool
 
     private async Task DownloadResourceInternalAsync(HttpRequestMessage requestMessage, HttpRequestConfig? httpRequestConfig, ArtifactResourceKey key, CancellationToken cancellationToken = default)
     {
-        using HttpResponseMessage res = await HttpRequestConfig.SendConfiguredAsync(httpRequestConfig, HttpClient, requestMessage, DownloadCompletionOption, cancellationToken).ConfigureAwait(false);
+        using HttpResponseMessage res = await HttpClient.SendAsync(requestMessage, DownloadCompletionOption, httpRequestConfig, cancellationToken).ConfigureAwait(false);
         ArtHttpResponseMessageException.EnsureSuccessStatusCode(res);
         await StreamDownloadAsync(res, key, cancellationToken);
     }

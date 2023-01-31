@@ -23,7 +23,7 @@ public partial class HttpArtifactTool
         NotDisposed();
         HttpRequestMessage req = new(HttpMethod.Head, requestUri);
         ConfigureHttpRequest(req);
-        return await HttpRequestConfig.SendConfiguredAsync(httpRequestConfig, HttpClient, req, GenericCompletionOption, cancellationToken).ConfigureAwait(false);
+        return await HttpClient.SendAsync(req, GenericCompletionOption, httpRequestConfig, cancellationToken).ConfigureAwait(false);
     }
 
     /// <summary>
@@ -43,7 +43,7 @@ public partial class HttpArtifactTool
         NotDisposed();
         HttpRequestMessage req = new(HttpMethod.Head, requestUri);
         ConfigureHttpRequest(req);
-        return await HttpRequestConfig.SendConfiguredAsync(httpRequestConfig, HttpClient, req, GenericCompletionOption, cancellationToken).ConfigureAwait(false);
+        return await HttpClient.SendAsync(req, GenericCompletionOption, httpRequestConfig, cancellationToken).ConfigureAwait(false);
     }
 
     /// <summary>
@@ -63,7 +63,7 @@ public partial class HttpArtifactTool
         NotDisposed();
         HttpRequestMessage req = new(HttpMethod.Get, requestUri);
         ConfigureHttpRequest(req);
-        return await HttpRequestConfig.SendConfiguredAsync(httpRequestConfig, HttpClient, req, GenericCompletionOption, cancellationToken).ConfigureAwait(false);
+        return await HttpClient.SendAsync(req, GenericCompletionOption, httpRequestConfig, cancellationToken).ConfigureAwait(false);
     }
 
     /// <summary>
@@ -83,7 +83,7 @@ public partial class HttpArtifactTool
         NotDisposed();
         HttpRequestMessage req = new(HttpMethod.Get, requestUri);
         ConfigureHttpRequest(req);
-        return await HttpRequestConfig.SendConfiguredAsync(httpRequestConfig, HttpClient, req, GenericCompletionOption, cancellationToken).ConfigureAwait(false);
+        return await HttpClient.SendAsync(req, GenericCompletionOption, httpRequestConfig, cancellationToken).ConfigureAwait(false);
     }
 
     /// <summary>
@@ -101,7 +101,7 @@ public partial class HttpArtifactTool
         CancellationToken cancellationToken = default)
     {
         NotDisposed();
-        return await HttpRequestConfig.SendConfiguredAsync(httpRequestConfig, HttpClient, requestMessage, GenericCompletionOption, cancellationToken).ConfigureAwait(false);
+        return await HttpClient.SendAsync(requestMessage, GenericCompletionOption, httpRequestConfig, cancellationToken).ConfigureAwait(false);
     }
 
     /// <summary>
