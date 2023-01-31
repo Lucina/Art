@@ -13,6 +13,7 @@ public record HttpRequestConfig(
     HttpCompletionOption? HttpCompletionOption = null,
     TimeSpan? Timeout = null)
 {
+#if NET5_0_OR_GREATER
     internal static async Task<HttpResponseMessage> SendConfiguredAsync(HttpRequestConfig? httpRequestConfig, HttpClient httpClient, HttpRequestMessage httpRequestMessage, HttpCompletionOption defaultCompletionOption, CancellationToken cancellationToken = default)
     {
         if (httpRequestConfig != null)
@@ -30,20 +31,34 @@ public record HttpRequestConfig(
                 }
                 catch (TaskCanceledException)
                 {
+                    // HttpClient can timeout, on .NET 5 this will be InnerException TimeoutException
                     // Prioritize the passed cancellation token
                     cancellationToken.ThrowIfCancellationRequested();
-                    // Cancel from local timeout if necessary, use same TaskCanceledException->TimeoutException semantics as HttpClient
-                    if (localCancellationToken.IsCancellationRequested)
+                    // Cancel from local timeout if applicable, using same TaskCanceledException->TimeoutException semantics as HttpClient
+                    try
                     {
-                        var timeoutException = new TimeoutException($"An HTTP request timed out based on a {nameof(HttpRequestConfig)} timeout of {timeout}.");
-                        throw new TaskCanceledException("An HTTP request timed out.", timeoutException);
+                        ThrowForTimeout(timeout, localCancellationToken);
                     }
-                    // Fallback to the other cancellation (could be HttpClient timeout with InnerException TimeoutException on .NET 5)
+                    catch (Exception e)
+                    {
+                        throw new TaskCanceledException("An HTTP request timed out.", e);
+                    }
+                    // Fallback to the inner exception
                     throw;
                 }
             }
             return await httpClient.SendAsync(httpRequestMessage, httpRequestConfig.HttpCompletionOption ?? defaultCompletionOption, cancellationToken).ConfigureAwait(false);
         }
         return await httpClient.SendAsync(httpRequestMessage, defaultCompletionOption, cancellationToken).ConfigureAwait(false);
+    }
+#endif
+
+    private static void ThrowForTimeout(TimeSpan timeSpan, CancellationToken cancellationToken)
+    {
+        // This has to throw TimeoutException, for matching TaskCanceledException->TimeoutException
+        if (cancellationToken.IsCancellationRequested)
+        {
+            throw new TimeoutException($"A request timed out after {timeSpan.TotalSeconds} seconds.");
+        }
     }
 }
