@@ -40,6 +40,14 @@
     <Company>Lucina</Company>
   </PropertyGroup>
 
+  <PropertyGroup>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <None Include="../../README.md" Pack="true" PackagePath="\" />
+  </ItemGroup>
+
   <ItemGroup>
     <Content Include="NOTICE.Art.Html.md">
       <Link>NOTICE.Art.Html.md</Link>
