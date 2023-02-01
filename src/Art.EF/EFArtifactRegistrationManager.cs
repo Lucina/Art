@@ -138,7 +138,7 @@ public class EFArtifactRegistrationManager : IArtifactRegistrationManager, IDisp
     {
         if (_disposed) return;
         _disposed = true;
-        await Context.DisposeAsync();
+        await Context.DisposeAsync().ConfigureAwait(false);
         Context = null!;
         GC.SuppressFinalize(this);
     }

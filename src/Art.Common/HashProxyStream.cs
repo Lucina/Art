@@ -83,7 +83,7 @@ public sealed class HashProxyStream : Stream
     public override async Task<int> ReadAsync(byte[] buffer, int offset, int count, CancellationToken cancellationToken)
     {
         AssignMode(HashMode.Read);
-        int read = await _stream.ReadAsync(buffer, offset, count, cancellationToken);
+        int read = await _stream.ReadAsync(buffer, offset, count, cancellationToken).ConfigureAwait(false);
         _pos += read;
         if (_hashComputed) return read;
         if (read != 0) UpdateHash(buffer, offset, read);

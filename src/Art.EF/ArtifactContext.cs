@@ -46,11 +46,11 @@ public class ArtifactContext : DbContext
         try
         {
             ((string tool, string group, string id), string? _, DateTimeOffset? date, DateTimeOffset? updateDate, bool full) = artifactInfo;
-            ArtifactInfoModel? model = await ArtifactInfoModels.FindAsync(new object?[] { tool, group, id }, cancellationToken);
+            ArtifactInfoModel? model = await ArtifactInfoModels.FindAsync(new object?[] { tool, group, id }, cancellationToken).ConfigureAwait(false);
             if (model == null)
             {
                 ArtifactInfoModels.Add(artifactInfo);
-                await SaveChangesAsync(cancellationToken);
+                await SaveChangesAsync(cancellationToken).ConfigureAwait(false);
             }
             else
             {
@@ -58,7 +58,7 @@ public class ArtifactContext : DbContext
                 model.UpdateDate = updateDate;
                 model.Full = full;
                 ArtifactInfoModels.Update(model);
-                await SaveChangesAsync(cancellationToken);
+                await SaveChangesAsync(cancellationToken).ConfigureAwait(false);
             }
         }
         finally
@@ -80,7 +80,7 @@ public class ArtifactContext : DbContext
         }
         try
         {
-            List<ArtifactInfoModel> results = await ArtifactInfoModels.ToListAsync(cancellationToken);
+            List<ArtifactInfoModel> results = await ArtifactInfoModels.ToListAsync(cancellationToken).ConfigureAwait(false);
             return results.Select(v => (ArtifactInfo)v).ToList();
         }
         finally
@@ -103,7 +103,7 @@ public class ArtifactContext : DbContext
         }
         try
         {
-            List<ArtifactInfoModel> results = await ArtifactInfoModels.ToListAsync(cancellationToken);
+            List<ArtifactInfoModel> results = await ArtifactInfoModels.ToListAsync(cancellationToken).ConfigureAwait(false);
             return results.Select(v => (ArtifactInfo)v).Where(predicate).ToList();
         }
         finally
@@ -126,7 +126,7 @@ public class ArtifactContext : DbContext
         }
         try
         {
-            List<ArtifactInfoModel> results = await ArtifactInfoModels.Where(predicate).ToListAsync(cancellationToken);
+            List<ArtifactInfoModel> results = await ArtifactInfoModels.Where(predicate).ToListAsync(cancellationToken).ConfigureAwait(false);
             return results.Select(v => (ArtifactInfo)v).ToList();
         }
         finally
@@ -149,7 +149,7 @@ public class ArtifactContext : DbContext
         }
         try
         {
-            List<ArtifactInfoModel> results = await ArtifactInfoModels.Where(v => v.Tool == tool).ToListAsync(cancellationToken);
+            List<ArtifactInfoModel> results = await ArtifactInfoModels.Where(v => v.Tool == tool).ToListAsync(cancellationToken).ConfigureAwait(false);
             return results.Select(v => (ArtifactInfo)v).ToList();
         }
         finally
@@ -173,7 +173,7 @@ public class ArtifactContext : DbContext
         }
         try
         {
-            List<ArtifactInfoModel> results = await ArtifactInfoModels.Where(v => v.Tool == tool && v.Group == group).ToListAsync(cancellationToken);
+            List<ArtifactInfoModel> results = await ArtifactInfoModels.Where(v => v.Tool == tool && v.Group == group).ToListAsync(cancellationToken).ConfigureAwait(false);
             return results.Select(v => (ArtifactInfo)v).ToList();
         }
         finally
@@ -198,13 +198,13 @@ public class ArtifactContext : DbContext
         try
         {
             (((string tool, string group, string id), string file, string? path), string? contentType, DateTimeOffset? updated, string? version, Checksum? checksum) = artifactResourceInfo;
-            ArtifactInfoModel? model = await ArtifactInfoModels.FindAsync(new object?[] { tool, group, id }, cancellationToken);
+            ArtifactInfoModel? model = await ArtifactInfoModels.FindAsync(new object?[] { tool, group, id }, cancellationToken).ConfigureAwait(false);
             if (model == null) throw new InvalidOperationException("Can't add resource for missing artifact");
-            ArtifactResourceInfoModel? model2 = await ArtifactResourceInfoModels.FindAsync(new object?[] { tool, group, id, file, path }, cancellationToken);
+            ArtifactResourceInfoModel? model2 = await ArtifactResourceInfoModels.FindAsync(new object?[] { tool, group, id, file, path }, cancellationToken).ConfigureAwait(false);
             if (model2 == null)
             {
                 ArtifactResourceInfoModels.Add(artifactResourceInfo);
-                await SaveChangesAsync(cancellationToken);
+                await SaveChangesAsync(cancellationToken).ConfigureAwait(false);
             }
             else
             {
@@ -214,7 +214,7 @@ public class ArtifactContext : DbContext
                 model2.ChecksumId = checksum?.Id;
                 model2.ChecksumValue = checksum?.Value;
                 ArtifactResourceInfoModels.Update(model2);
-                await SaveChangesAsync(cancellationToken);
+                await SaveChangesAsync(cancellationToken).ConfigureAwait(false);
             }
         }
         finally
@@ -238,7 +238,7 @@ public class ArtifactContext : DbContext
         (string? tool, string? group, string? id) = key;
         try
         {
-            List<ArtifactResourceInfoModel> results = await ArtifactResourceInfoModels.Where(v => v.ArtifactTool == tool && v.ArtifactGroup == group && v.ArtifactId == id).ToListAsync(cancellationToken);
+            List<ArtifactResourceInfoModel> results = await ArtifactResourceInfoModels.Where(v => v.ArtifactTool == tool && v.ArtifactGroup == group && v.ArtifactId == id).ToListAsync(cancellationToken).ConfigureAwait(false);
             return results.Select(v => (ArtifactResourceInfo)v).ToList();
         }
         finally
@@ -263,7 +263,7 @@ public class ArtifactContext : DbContext
         try
         {
             (string tool, string group, string id) = key;
-            ArtifactInfoModel? model = await ArtifactInfoModels.FindAsync(new object?[] { tool, group, id }, cancellationToken);
+            ArtifactInfoModel? model = await ArtifactInfoModels.FindAsync(new object?[] { tool, group, id }, cancellationToken).ConfigureAwait(false);
             return model != null ? (ArtifactInfo)model : null;
         }
         finally
@@ -288,7 +288,7 @@ public class ArtifactContext : DbContext
         try
         {
             ((string tool, string group, string id), string file, string? path) = key;
-            ArtifactResourceInfoModel? model = await ArtifactResourceInfoModels.FindAsync(new object?[] { tool, group, id, file, path }, cancellationToken);
+            ArtifactResourceInfoModel? model = await ArtifactResourceInfoModels.FindAsync(new object?[] { tool, group, id, file, path }, cancellationToken).ConfigureAwait(false);
             return model != null ? (ArtifactResourceInfo)model : null;
         }
         finally
@@ -313,11 +313,11 @@ public class ArtifactContext : DbContext
         try
         {
             (string tool, string group, string id) = key;
-            ArtifactInfoModel? model = await ArtifactInfoModels.FindAsync(new object?[] { tool, group, id }, cancellationToken);
+            ArtifactInfoModel? model = await ArtifactInfoModels.FindAsync(new object?[] { tool, group, id }, cancellationToken).ConfigureAwait(false);
             if (model != null)
             {
                 ArtifactInfoModels.Remove(model);
-                await SaveChangesAsync(cancellationToken);
+                await SaveChangesAsync(cancellationToken).ConfigureAwait(false);
             }
         }
         finally
@@ -342,11 +342,11 @@ public class ArtifactContext : DbContext
         try
         {
             ((string tool, string group, string id), string file, string? path) = key;
-            ArtifactResourceInfoModel? model = await ArtifactResourceInfoModels.FindAsync(new object?[] { tool, group, id, file, path }, cancellationToken);
+            ArtifactResourceInfoModel? model = await ArtifactResourceInfoModels.FindAsync(new object?[] { tool, group, id, file, path }, cancellationToken).ConfigureAwait(false);
             if (model != null)
             {
                 ArtifactResourceInfoModels.Remove(model);
-                await SaveChangesAsync(cancellationToken);
+                await SaveChangesAsync(cancellationToken).ConfigureAwait(false);
             }
         }
         finally
@@ -404,7 +404,7 @@ public class ArtifactContext : DbContext
     public override async ValueTask DisposeAsync()
     {
         _wh.WaitOne();
-        await base.DisposeAsync();
+        await base.DisposeAsync().ConfigureAwait(false);
         if (_disposed) return;
         _disposed = true;
         _wh.Dispose();

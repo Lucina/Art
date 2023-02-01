@@ -17,9 +17,9 @@ public static class ArtifactRegistrationManagerExtensions
     {
         IEnumerable<ArtifactInfo> enumerable;
         if (tool != null)
-            enumerable = group != null ? await artifactRegistrationManager.ListArtifactsAsync(tool, group, cancellationToken) : await artifactRegistrationManager.ListArtifactsAsync(tool, cancellationToken);
+            enumerable = group != null ? await artifactRegistrationManager.ListArtifactsAsync(tool, group, cancellationToken).ConfigureAwait(false) : await artifactRegistrationManager.ListArtifactsAsync(tool, cancellationToken).ConfigureAwait(false);
         else
-            enumerable = group != null ? (await artifactRegistrationManager.ListArtifactsAsync(cancellationToken)).Where(v => v.Key.Group == group) : await artifactRegistrationManager.ListArtifactsAsync(cancellationToken);
+            enumerable = group != null ? (await artifactRegistrationManager.ListArtifactsAsync(cancellationToken).ConfigureAwait(false)).Where(v => v.Key.Group == group) : await artifactRegistrationManager.ListArtifactsAsync(cancellationToken).ConfigureAwait(false);
         return enumerable;
     }
 }

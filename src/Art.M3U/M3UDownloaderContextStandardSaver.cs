@@ -27,10 +27,10 @@ public class M3UDownloaderContextStandardSaver : M3UDownloaderContextSaver
         {
             try
             {
-                if (HeartbeatCallback != null) await HeartbeatCallback();
+                if (HeartbeatCallback != null) await HeartbeatCallback().ConfigureAwait(false);
                 Context.Tool.LogInformation("Reading main...");
                 HashSet<string> entries = new();
-                M3UFile m3 = await Context.GetAsync(cancellationToken);
+                M3UFile m3 = await Context.GetAsync(cancellationToken).ConfigureAwait(false);
                 if (Context.StreamInfo.EncryptionInfo is { Encrypted: true } ei && m3.EncryptionInfo is { Encrypted: true } ei2 && ei.Method == ei2.Method)
                 {
                     ei2.Key ??= ei.Key; // assume key kept if it was supplied in the first place
@@ -52,17 +52,17 @@ public class M3UDownloaderContextStandardSaver : M3UDownloaderContextSaver
                 foreach (string entry in entries)
                 {
                     Context.Tool.LogInformation($"Downloading segment {entry}...");
-                    await Context.DownloadSegmentAsync(new Uri(Context.MainUri, entry), m3, m3.FirstMediaSequenceNumber + i, cancellationToken);
+                    await Context.DownloadSegmentAsync(new Uri(Context.MainUri, entry), m3, m3.FirstMediaSequenceNumber + i, cancellationToken).ConfigureAwait(false);
                     i++;
                 }
                 hs.UnionWith(entries);
                 if (_oneOff) break;
-                await Task.Delay(1000, cancellationToken);
+                await Task.Delay(1000, cancellationToken).ConfigureAwait(false);
                 FailCounter = 0;
             }
             catch (ArtHttpResponseMessageException e)
             {
-                await HandleRequestExceptionAsync(e, cancellationToken);
+                await HandleRequestExceptionAsync(e, cancellationToken).ConfigureAwait(false);
             }
         }
     }

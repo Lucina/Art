@@ -76,18 +76,18 @@ public abstract class M3UDownloaderContextSaver
         {
             case HttpStatusCode.Forbidden: // 403
                 ThrowForExceedFails(exception);
-                await GetRecoveryCallbackOrThrow(exception)(exception);
+                await GetRecoveryCallbackOrThrow(exception)(exception).ConfigureAwait(false);
                 return;
             case HttpStatusCode.InternalServerError: // 500
                 ThrowForExceedFails(exception);
-                await DelayOrThrowAsync(exception, Timeout500, null, cancellationToken);
+                await DelayOrThrowAsync(exception, Timeout500, null, cancellationToken).ConfigureAwait(false);
                 return;
             case HttpStatusCode.ServiceUnavailable: // 503
                 ThrowForExceedFails(exception);
-                await DelayOrThrowAsync(exception, Timeout503, null, cancellationToken);
+                await DelayOrThrowAsync(exception, Timeout503, null, cancellationToken).ConfigureAwait(false);
                 return;
         }
-        await GetRecoveryCallbackOrThrow(exception)(exception);
+        await GetRecoveryCallbackOrThrow(exception)(exception).ConfigureAwait(false);
     }
 
     private void ThrowForExceedFails(Exception exception)
@@ -105,6 +105,6 @@ public abstract class M3UDownloaderContextSaver
     {
         TimeSpan? delayMake = delay ?? responseMessageException?.RetryCondition?.Delta;
         if (delayMake is not { } delayActual) throw new AggregateException($"No retry delay specified for HTTP response {exception.StatusCode?.ToString() ?? "<unknown>"} and no default value provided", exception);
-        await Task.Delay(delayActual, cancellationToken);
+        await Task.Delay(delayActual, cancellationToken).ConfigureAwait(false);
     }
 }

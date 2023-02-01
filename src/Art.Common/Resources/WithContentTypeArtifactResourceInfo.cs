@@ -20,7 +20,7 @@ public record WithContentTypeArtifactResourceInfo(string? ContentTypeValue, Arti
     /// <inheritdoc/>
     public override async ValueTask<ArtifactResourceInfo> WithMetadataAsync(CancellationToken cancellationToken = default)
     {
-        ArtifactResourceInfo b = await BaseArtifactResourceInfo.WithMetadataAsync(cancellationToken);
+        ArtifactResourceInfo b = await BaseArtifactResourceInfo.WithMetadataAsync(cancellationToken).ConfigureAwait(false);
         return this with
         {
             BaseArtifactResourceInfo = b,

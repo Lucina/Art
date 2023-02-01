@@ -174,8 +174,8 @@ public class CommittableFileStream : CommittableWrappingStream
     /// <inheritdoc />
     public override async ValueTask DisposeAsync()
     {
-        await DisposeStreamAsync();
-        await base.DisposeAsync();
+        await DisposeStreamAsync().ConfigureAwait(false);
+        await base.DisposeAsync().ConfigureAwait(false);
     }
 
     /// <inheritdoc />
@@ -192,7 +192,7 @@ public class CommittableFileStream : CommittableWrappingStream
     {
         if (_committed) return;
         _committed = true;
-        await DisposeStreamAsync();
+        await DisposeStreamAsync().ConfigureAwait(false);
         CommitCore(shouldCommit);
     }
 

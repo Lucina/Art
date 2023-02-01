@@ -107,7 +107,7 @@ public abstract partial class HttpArtifactTool : ArtifactTool
     /// <inheritdoc/>
     public override async Task ConfigureAsync(CancellationToken cancellationToken = default)
     {
-        _cookieContainer = await CreateCookieContainerAsync(cancellationToken);
+        _cookieContainer = await CreateCookieContainerAsync(cancellationToken).ConfigureAwait(false);
         _httpMessageHandler = CreateHttpMessageHandler();
         _httpClient = CreateHttpClient(_httpMessageHandler);
         _httpClient.DefaultRequestHeaders.UserAgent.TryParseAdd(DefaultUserAgent);
@@ -125,8 +125,8 @@ public abstract partial class HttpArtifactTool : ArtifactTool
     public virtual async Task<CookieContainer> CreateCookieContainerAsync(CancellationToken cancellationToken = default)
     {
         CookieContainer cookies = new();
-        await TryLoadBrowserCookiesFromOptionAsync(cookies, OptCookieBrowser, OptCookieBrowserDomains, OptCookieBrowserProfile, cancellationToken);
-        await TryLoadCookieFileFromOptionAsync(cookies, OptCookieFile, cancellationToken);
+        await TryLoadBrowserCookiesFromOptionAsync(cookies, OptCookieBrowser, OptCookieBrowserDomains, OptCookieBrowserProfile, cancellationToken).ConfigureAwait(false);
+        await TryLoadCookieFileFromOptionAsync(cookies, OptCookieFile, cancellationToken).ConfigureAwait(false);
         return cookies;
     }
 
@@ -146,7 +146,7 @@ public abstract partial class HttpArtifactTool : ArtifactTool
             string? profile = optKeyProfile != null && TryGetOption(optKeyProfile, out string? profileValue) ? profileValue : null;
             foreach (string domain in domains)
             {
-                await CookieSource.LoadCookiesAsync(cookies, domain, browserName, profile, cancellationToken: cancellationToken);
+                await CookieSource.LoadCookiesAsync(cookies, domain, browserName, profile, cancellationToken: cancellationToken).ConfigureAwait(false);
             }
         }
         return false;
@@ -164,7 +164,7 @@ public abstract partial class HttpArtifactTool : ArtifactTool
         if (TryGetOption(optKey, out string? cookieFile))
         {
             using StreamReader f = File.OpenText(cookieFile);
-            await cookies.LoadCookieFileAsync(f, cancellationToken);
+            await cookies.LoadCookieFileAsync(f, cancellationToken).ConfigureAwait(false);
             return true;
         }
         return false;

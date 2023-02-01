@@ -49,7 +49,7 @@ public partial class HttpArtifactTool
         NotDisposed();
         HttpRequestMessage req = new(HttpMethod.Get, requestUri);
         ConfigureHttpRequest(req);
-        await DownloadResourceInternalAsync(req, httpRequestConfig, key, cancellationToken);
+        await DownloadResourceInternalAsync(req, httpRequestConfig, key, cancellationToken).ConfigureAwait(false);
     }
 
     /// <summary>
@@ -120,7 +120,7 @@ public partial class HttpArtifactTool
         NotDisposed();
         HttpRequestMessage req = new(HttpMethod.Get, requestUri);
         ConfigureHttpRequest(req);
-        await DownloadResourceInternalAsync(req, httpRequestConfig, key, cancellationToken);
+        await DownloadResourceInternalAsync(req, httpRequestConfig, key, cancellationToken).ConfigureAwait(false);
     }
 
     /// <summary>
@@ -187,7 +187,7 @@ public partial class HttpArtifactTool
         CancellationToken cancellationToken = default)
     {
         NotDisposed();
-        await DownloadResourceInternalAsync(requestMessage, httpRequestConfig, key, cancellationToken);
+        await DownloadResourceInternalAsync(requestMessage, httpRequestConfig, key, cancellationToken).ConfigureAwait(false);
     }
 
     /// <summary>
@@ -224,7 +224,7 @@ public partial class HttpArtifactTool
     {
         using HttpResponseMessage res = await HttpClient.SendAsync(requestMessage, DownloadCompletionOption, httpRequestConfig, cancellationToken).ConfigureAwait(false);
         ArtHttpResponseMessageException.EnsureSuccessStatusCode(res);
-        await StreamDownloadAsync(res, key, cancellationToken);
+        await StreamDownloadAsync(res, key, cancellationToken).ConfigureAwait(false);
     }
 
     private async Task StreamDownloadAsync(HttpResponseMessage response, ArtifactResourceKey key, CancellationToken cancellationToken)

@@ -64,8 +64,8 @@ public static class ArtifactDumping
     public static async Task DumpAsync(ArtifactToolProfile artifactToolProfile, IArtifactRegistrationManager artifactRegistrationManager, IArtifactDataManager artifactDataManager, ArtifactToolDumpOptions? dumpOptions = null, IToolLogHandler? toolLogHandler = null, CancellationToken cancellationToken = default)
     {
         if (artifactToolProfile.Group == null) throw new ArgumentException("Group not specified in profile");
-        using IArtifactTool tool = await ArtifactTool.PrepareToolAsync(artifactToolProfile, artifactRegistrationManager, artifactDataManager, cancellationToken);
-        await new ArtifactToolDumpProxy(tool, dumpOptions ?? new ArtifactToolDumpOptions(), toolLogHandler).DumpAsync(cancellationToken);
+        using IArtifactTool tool = await ArtifactTool.PrepareToolAsync(artifactToolProfile, artifactRegistrationManager, artifactDataManager, cancellationToken).ConfigureAwait(false);
+        await new ArtifactToolDumpProxy(tool, dumpOptions ?? new ArtifactToolDumpOptions(), toolLogHandler).DumpAsync(cancellationToken).ConfigureAwait(false);
     }
 
     /// <summary>
@@ -84,8 +84,8 @@ public static class ArtifactDumping
     public static async Task DumpAsync(AssemblyLoadContext assemblyLoadContext, ArtifactToolProfile artifactToolProfile, IArtifactRegistrationManager artifactRegistrationManager, IArtifactDataManager artifactDataManager, ArtifactToolDumpOptions? dumpOptions = null, IToolLogHandler? toolLogHandler = null, CancellationToken cancellationToken = default)
     {
         if (artifactToolProfile.Group == null) throw new ArgumentException("Group not specified in profile");
-        using IArtifactTool tool = await ArtifactTool.PrepareToolAsync(assemblyLoadContext, artifactToolProfile, artifactRegistrationManager, artifactDataManager, cancellationToken);
-        await new ArtifactToolDumpProxy(tool, dumpOptions ?? new ArtifactToolDumpOptions(), toolLogHandler).DumpAsync(cancellationToken);
+        using IArtifactTool tool = await ArtifactTool.PrepareToolAsync(assemblyLoadContext, artifactToolProfile, artifactRegistrationManager, artifactDataManager, cancellationToken).ConfigureAwait(false);
+        await new ArtifactToolDumpProxy(tool, dumpOptions ?? new ArtifactToolDumpOptions(), toolLogHandler).DumpAsync(cancellationToken).ConfigureAwait(false);
     }
 
     /// <summary>
@@ -130,15 +130,15 @@ public static class ArtifactDumping
             case EagerFlags.ResourceMetadata | EagerFlags.ResourceObtain:
                 {
                     Task[] tasks = artifactData.Values.Select(async v =>
-                        await UpdateResourceAsync(artifactTool, await artifactTool.DetermineUpdatedResourceAsync(v, resourceUpdate, cancellationToken), logHandler, checksumId, cancellationToken)).ToArray();
-                    await Task.WhenAll(tasks);
+                        await UpdateResourceAsync(artifactTool, await artifactTool.DetermineUpdatedResourceAsync(v, resourceUpdate, cancellationToken).ConfigureAwait(false), logHandler, checksumId, cancellationToken).ConfigureAwait(false)).ToArray();
+                    await Task.WhenAll(tasks).ConfigureAwait(false);
                     break;
                 }
             case EagerFlags.ResourceMetadata:
                 Task<ArtifactResourceInfoWithState>[] updateTasks = artifactData.Values.Select(v => artifactTool.DetermineUpdatedResourceAsync(v, resourceUpdate, cancellationToken)).ToArray();
-                ArtifactResourceInfoWithState[] items = await Task.WhenAll(updateTasks);
+                ArtifactResourceInfoWithState[] items = await Task.WhenAll(updateTasks).ConfigureAwait(false);
                 foreach (ArtifactResourceInfoWithState aris in items)
-                    await UpdateResourceAsync(artifactTool, aris, logHandler, checksumId, cancellationToken);
+                    await UpdateResourceAsync(artifactTool, aris, logHandler, checksumId, cancellationToken).ConfigureAwait(false);
                 break;
             case EagerFlags.ResourceObtain:
                 {
@@ -148,13 +148,13 @@ public static class ArtifactDumping
                         ArtifactResourceInfoWithState aris = await artifactTool.DetermineUpdatedResourceAsync(resource, resourceUpdate, cancellationToken).ConfigureAwait(false);
                         tasks.Add(UpdateResourceAsync(artifactTool, aris, logHandler, checksumId, cancellationToken));
                     }
-                    await Task.WhenAll(tasks);
+                    await Task.WhenAll(tasks).ConfigureAwait(false);
                     break;
                 }
             default:
                 {
                     foreach (ArtifactResourceInfo resource in artifactData.Values)
-                        await UpdateResourceAsync(artifactTool, await artifactTool.DetermineUpdatedResourceAsync(resource, resourceUpdate, cancellationToken).ConfigureAwait(false), logHandler, checksumId, cancellationToken);
+                        await UpdateResourceAsync(artifactTool, await artifactTool.DetermineUpdatedResourceAsync(resource, resourceUpdate, cancellationToken).ConfigureAwait(false), logHandler, checksumId, cancellationToken).ConfigureAwait(false);
                     break;
                 }
         }
@@ -174,7 +174,7 @@ public static class ArtifactDumping
     /// <param name="cancellationToken">Cancellation token.</param>
     public static async Task DumpResourceAsync(this IArtifactTool artifactTool, ArtifactResourceInfo resource, ResourceUpdateMode resourceUpdate, IToolLogHandler? logHandler, string? checksumId, CancellationToken cancellationToken = default)
     {
-        await UpdateResourceAsync(artifactTool, await artifactTool.DetermineUpdatedResourceAsync(resource, resourceUpdate, cancellationToken).ConfigureAwait(false), logHandler, checksumId, cancellationToken);
+        await UpdateResourceAsync(artifactTool, await artifactTool.DetermineUpdatedResourceAsync(resource, resourceUpdate, cancellationToken).ConfigureAwait(false), logHandler, checksumId, cancellationToken).ConfigureAwait(false);
     }
 
     private static async Task UpdateResourceAsync(IArtifactTool artifactTool, ArtifactResourceInfoWithState aris, IToolLogHandler? logHandler, string? checksumId, CancellationToken cancellationToken)

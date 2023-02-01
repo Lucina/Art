@@ -52,7 +52,7 @@ public static class CookieFile
     public static async Task LoadCookieFileAsync(this CookieContainer cc, TextReader tr, CancellationToken cancellationToken = default)
     {
         int i = 0;
-        while (await tr.ReadLineAsync(cancellationToken) is { } line)
+        while (await tr.ReadLineAsync(cancellationToken).ConfigureAwait(false) is { } line)
         {
             i++;
             string[] elem = line.Split(new[] { ' ', '\t' }, StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);

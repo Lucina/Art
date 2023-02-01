@@ -36,13 +36,13 @@ public abstract record ChromiumCookieSource : CookieSource
                         """;
                 command.Parameters.AddWithValue("$hostKey", domain);
                 command.Parameters.AddWithValue("$dotHostKey", "." + domain);
-                await using var reader = await command.ExecuteReaderAsync(cancellationToken);
+                await using var reader = await command.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
                 while (reader.Read())
                 {
                     string value = reader.GetString(1);
                     if (string.IsNullOrWhiteSpace(value))
                     {
-                        value = (keychain ??= await GetKeychainAsync(cancellationToken)).Unlock(ReadBytes(reader.GetStream(2)));
+                        value = (keychain ??= await GetKeychainAsync(cancellationToken).ConfigureAwait(false)).Unlock(ReadBytes(reader.GetStream(2)));
                     }
                     cookieContainer.Add(new Cookie
                     {

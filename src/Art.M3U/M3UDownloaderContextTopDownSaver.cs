@@ -88,9 +88,9 @@ public partial class M3UDownloaderContextTopDownSaver : M3UDownloaderContextSave
             try
             {
                 if (top < 0) break;
-                if (HeartbeatCallback != null) await HeartbeatCallback();
+                if (HeartbeatCallback != null) await HeartbeatCallback().ConfigureAwait(false);
                 Context.Tool.LogInformation("Reading main...");
-                M3UFile m3 = await Context.GetAsync(cancellationToken);
+                M3UFile m3 = await Context.GetAsync(cancellationToken).ConfigureAwait(false);
                 string str = m3.DataLines.First();
                 Uri origUri = new(Context.MainUri, str);
                 int idx = str.IndexOf('?');
@@ -101,7 +101,7 @@ public partial class M3UDownloaderContextTopDownSaver : M3UDownloaderContextSave
                 {
                     // Don't assume MSN, and just accept failure (exception) when trying to decrypt with no IV
                     // Also don't depend on current file since it probably won't do us good anyway for this use case
-                    await Context.DownloadSegmentAsync(uri, null, null, cancellationToken);
+                    await Context.DownloadSegmentAsync(uri, null, null, cancellationToken).ConfigureAwait(false);
                     top--;
                 }
                 catch (ArtHttpResponseMessageException e)
@@ -111,14 +111,14 @@ public partial class M3UDownloaderContextTopDownSaver : M3UDownloaderContextSave
                         Context.Tool.LogInformation("HTTP NotFound returned, ending operation");
                         return;
                     }
-                    await HandleRequestExceptionAsync(e, cancellationToken);
+                    await HandleRequestExceptionAsync(e, cancellationToken).ConfigureAwait(false);
                 }
-                await Task.Delay(500, cancellationToken);
+                await Task.Delay(500, cancellationToken).ConfigureAwait(false);
                 FailCounter = 0;
             }
             catch (ArtHttpResponseMessageException e)
             {
-                await HandleRequestExceptionAsync(e, cancellationToken);
+                await HandleRequestExceptionAsync(e, cancellationToken).ConfigureAwait(false);
             }
         }
     }

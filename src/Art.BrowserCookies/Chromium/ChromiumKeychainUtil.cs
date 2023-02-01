@@ -16,12 +16,12 @@ internal static class ChromiumKeychainUtil
         Memory<char> buf = new char[MaxPasswordSize];
         try
         {
-            int n = await process.StandardOutput.ReadBlockAsync(buf, cancellationToken);
+            int n = await process.StandardOutput.ReadBlockAsync(buf, cancellationToken).ConfigureAwait(false);
             if (n == MaxPasswordSize && process.StandardOutput.Peek() != -1)
             {
                 throw new InvalidDataException("Password exceeds max length");
             }
-            await process.WaitForExitAsync(cancellationToken);
+            await process.WaitForExitAsync(cancellationToken).ConfigureAwait(false);
             return new ChromiumMacosKeychain(buf.Span[..n].Trim());
         }
         finally
@@ -40,7 +40,7 @@ internal static class ChromiumKeychainUtil
         string encryptedKey;
         using (var stream = File.OpenRead(file))
         {
-            encryptedKey = (await JsonSerializer.DeserializeAsync<WindowsLocalState>(stream, cancellationToken: cancellationToken) ?? throw new InvalidDataException()).OsCrypt.EncryptedKey;
+            encryptedKey = (await JsonSerializer.DeserializeAsync<WindowsLocalState>(stream, cancellationToken: cancellationToken).ConfigureAwait(false) ?? throw new InvalidDataException()).OsCrypt.EncryptedKey;
         }
         byte[] data = Convert.FromBase64String(encryptedKey)[5..];
         byte[] res = ProtectedData.Unprotect(data, null, DataProtectionScope.CurrentUser);

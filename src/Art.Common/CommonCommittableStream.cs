@@ -29,11 +29,11 @@ public abstract class CommonCommittableStream : CommittableStream
     {
         try
         {
-            await CommitInternalAsync(ShouldCommit);
+            await CommitInternalAsync(ShouldCommit).ConfigureAwait(false);
         }
         finally
         {
-            await base.DisposeAsync();
+            await base.DisposeAsync().ConfigureAwait(false);
         }
     }
 
@@ -48,7 +48,7 @@ public abstract class CommonCommittableStream : CommittableStream
     {
         if (Committed) return;
         Committed = true;
-        await CommitAsync(shouldCommit);
+        await CommitAsync(shouldCommit).ConfigureAwait(false);
     }
 
     /// <summary>

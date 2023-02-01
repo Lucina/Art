@@ -44,7 +44,7 @@ public partial class ArtifactTool
     public async Task LoggedDelayAsync(double delaySeconds, CancellationToken cancellationToken = default)
     {
         LogInformation($"Delay {delaySeconds}s...");
-        await Task.Delay(TimeSpan.FromSeconds(delaySeconds), cancellationToken);
+        await Task.Delay(TimeSpan.FromSeconds(delaySeconds), cancellationToken).ConfigureAwait(false);
     }
 
     /// <summary>
@@ -98,7 +98,7 @@ public partial class ArtifactTool
     public async Task LoggedDelayAsync(TimeSpan delay, CancellationToken cancellationToken = default)
     {
         LogInformation($"Delay {delay}s...");
-        await Task.Delay(delay, cancellationToken);
+        await Task.Delay(delay, cancellationToken).ConfigureAwait(false);
     }
 
     /// <summary>

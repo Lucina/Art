@@ -19,10 +19,10 @@ public static class ArtHttpExtensions
     public static async ValueTask DownloadResourceToFileAsync(this HttpClient client, string url, string file, long? lengthCheck = null, CancellationToken cancellationToken = default)
     {
         if (lengthCheck != null && File.Exists(file) && new FileInfo(file).Length == lengthCheck) return;
-        using HttpResponseMessage fr = await client.GetAsync(url, cancellationToken);
+        using HttpResponseMessage fr = await client.GetAsync(url, cancellationToken).ConfigureAwait(false);
         ArtHttpResponseMessageException.EnsureSuccessStatusCode(fr);
         await using FileStream fs = File.Create(file);
-        await fr.Content.CopyToAsync(fs, cancellationToken);
+        await fr.Content.CopyToAsync(fs, cancellationToken).ConfigureAwait(false);
     }
 
     /// <summary>

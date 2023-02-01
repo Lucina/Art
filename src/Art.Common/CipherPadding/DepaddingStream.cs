@@ -65,8 +65,8 @@ public class DepaddingStream : Stream
     {
         if (_handler.TryUpdate(buffer.AsMemory(offset, count), out var a, out var b))
         {
-            if (a.Length != 0) await _targetStream.WriteAsync(a, cancellationToken);
-            if (b.Length != 0) await _targetStream.WriteAsync(b, cancellationToken);
+            if (a.Length != 0) await _targetStream.WriteAsync(a, cancellationToken).ConfigureAwait(false);
+            if (b.Length != 0) await _targetStream.WriteAsync(b, cancellationToken).ConfigureAwait(false);
         }
     }
 
@@ -75,8 +75,8 @@ public class DepaddingStream : Stream
     {
         if (_handler.TryUpdate(buffer, out var a, out var b))
         {
-            if (a.Length != 0) await _targetStream.WriteAsync(a, cancellationToken);
-            if (b.Length != 0) await _targetStream.WriteAsync(b, cancellationToken);
+            if (a.Length != 0) await _targetStream.WriteAsync(a, cancellationToken).ConfigureAwait(false);
+            if (b.Length != 0) await _targetStream.WriteAsync(b, cancellationToken).ConfigureAwait(false);
         }
     }
 
@@ -98,11 +98,11 @@ public class DepaddingStream : Stream
         try
         {
             _handler.DoFinal(out var buf);
-            if (buf.Length != 0) await _targetStream.WriteAsync(buf);
+            if (buf.Length != 0) await _targetStream.WriteAsync(buf).ConfigureAwait(false);
         }
         finally
         {
-            if (!_keepOpen) await _targetStream.DisposeAsync();
+            if (!_keepOpen) await _targetStream.DisposeAsync().ConfigureAwait(false);
         }
     }
 

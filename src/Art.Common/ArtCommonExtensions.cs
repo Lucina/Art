@@ -161,7 +161,7 @@ public static class ArtCommonExtensions
     /// <returns>Task returning count of elements.</returns>
     public static async IAsyncEnumerable<T> WhereAsync<T>(this IAsyncEnumerable<T> enumerable, Predicate<T> predicate)
     {
-        await foreach (T v in enumerable)
+        await foreach (T v in enumerable.ConfigureAwait(false))
             if (predicate(v))
                 yield return v;
     }
@@ -176,7 +176,7 @@ public static class ArtCommonExtensions
     /// <returns>Task returning count of elements.</returns>
     public static async IAsyncEnumerable<TTo> SelectAsync<TFrom, TTo>(this IAsyncEnumerable<TFrom> enumerable, Func<TFrom, TTo> func)
     {
-        await foreach (TFrom from in enumerable)
+        await foreach (TFrom from in enumerable.ConfigureAwait(false))
             yield return func(from);
     }
 

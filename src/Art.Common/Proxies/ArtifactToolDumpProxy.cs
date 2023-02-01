@@ -89,7 +89,7 @@ public record ArtifactToolDumpProxy
                     tasks.Add(ArtifactTool.DumpArtifactAsync(data, Options.ResourceUpdate, Options.ChecksumId, Options.EagerFlags, LogHandler, cancellationToken));
                 }
                 E_ArtifactDump_WaitForTasks:
-                await Task.WhenAll(tasks);
+                await Task.WhenAll(tasks).ConfigureAwait(false);
                 var exc = tasks
                     .Where(v => v.IsFaulted && v.Exception != null)
                     .SelectMany(v => v.Exception!.InnerExceptions)
@@ -135,7 +135,7 @@ public record ArtifactToolDumpProxy
                     if (!data.Info.Full && !Options.IncludeNonFull) continue;
                     try
                     {
-                        await ArtifactTool.DumpArtifactAsync(data, Options.ResourceUpdate, Options.ChecksumId, Options.EagerFlags, LogHandler, cancellationToken);
+                        await ArtifactTool.DumpArtifactAsync(data, Options.ResourceUpdate, Options.ChecksumId, Options.EagerFlags, LogHandler, cancellationToken).ConfigureAwait(false);
                     }
                     catch (Exception e)
                     {

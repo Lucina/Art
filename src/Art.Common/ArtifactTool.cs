@@ -82,7 +82,7 @@ public partial class ArtifactTool : IArtifactTool
     {
         EnsureNotDisposed();
         InitializeCore(config, profile);
-        await ConfigureAsync(cancellationToken);
+        await ConfigureAsync(cancellationToken).ConfigureAwait(false);
         //_initialized = true;
     }
 

@@ -31,10 +31,10 @@ public static class ChecksumUtility
     {
         if (!ChecksumSource.TryGetHashAlgorithm(checksumId, out HashAlgorithm? hashAlgorithm))
             throw new ArgumentException("Unknown checksum ID", nameof(checksumId));
-        await using Stream sourceStream = await artifactDataManager.OpenInputStreamAsync(key, cancellationToken);
+        await using Stream sourceStream = await artifactDataManager.OpenInputStreamAsync(key, cancellationToken).ConfigureAwait(false);
         await using HashProxyStream hps = new(sourceStream, hashAlgorithm, true);
         await using MemoryStream ms = new();
-        await hps.CopyToAsync(ms, cancellationToken);
+        await hps.CopyToAsync(ms, cancellationToken).ConfigureAwait(false);
         return new Checksum(checksumId, hps.GetHash());
     }
 

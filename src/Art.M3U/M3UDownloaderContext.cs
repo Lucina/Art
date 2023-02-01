@@ -42,7 +42,7 @@ public class M3UDownloaderContext
 
     private static async Task<Uri> SelectSubStreamAsync(HttpArtifactTool tool, M3UDownloaderConfig config, CancellationToken cancellationToken = default)
     {
-        StreamInfo highestStream = await SelectStreamAsync(tool, config, cancellationToken);
+        StreamInfo highestStream = await SelectStreamAsync(tool, config, cancellationToken).ConfigureAwait(false);
         long bw = highestStream.AverageBandwidth == 0 ? highestStream.Bandwidth : highestStream.AverageBandwidth;
         tool.LogInformation($"Selected {highestStream.Path} ({bw} b/s, {highestStream.ResolutionWidth}x{highestStream.ResolutionHeight})");
         return new Uri(new Uri(config.URL), highestStream.Path);
@@ -57,7 +57,7 @@ public class M3UDownloaderContext
     /// <exception cref="ArtHttpResponseMessageException">Thrown on HTTP response indicating non-successful response.</exception>
     public async Task SetConfigAsync(M3UDownloaderConfig config, CancellationToken cancellationToken = default)
     {
-        Uri mainUri = await SelectSubStreamAsync(Tool, config, cancellationToken);
+        Uri mainUri = await SelectSubStreamAsync(Tool, config, cancellationToken).ConfigureAwait(false);
         MainUri = mainUri;
         Config = config;
         ValidateConfig();
@@ -92,14 +92,14 @@ public class M3UDownloaderContext
     {
         string? referrer = config.Referrer;
         tool.LogInformation("Getting stream info...");
-        Uri mainUri = await SelectSubStreamAsync(tool, config, cancellationToken);
+        Uri mainUri = await SelectSubStreamAsync(tool, config, cancellationToken).ConfigureAwait(false);
         tool.LogInformation("Getting sub stream info...");
         M3UFile m3;
         M3UEncryptionInfo? ei;
-        using (var res = await tool.GetAsync(mainUri, new HttpRequestConfig(Referrer: referrer), cancellationToken: cancellationToken))
+        using (var res = await tool.GetAsync(mainUri, new HttpRequestConfig(Referrer: referrer), cancellationToken: cancellationToken).ConfigureAwait(false))
         {
             ArtHttpResponseMessageException.EnsureSuccessStatusCode(res);
-            m3 = M3UReader.Parse(await res.Content.ReadAsStringAsync(cancellationToken));
+            m3 = M3UReader.Parse(await res.Content.ReadAsStringAsync(cancellationToken).ConfigureAwait(false));
             ei = m3.EncryptionInfo;
         }
         if (ei != null) tool.LogInformation($"Encrypted with {ei.Method}");
@@ -107,9 +107,9 @@ public class M3UDownloaderContext
         if (ei is { Uri: { } })
         {
             tool.LogInformation("Downloading enc key...");
-            using var res = await tool.GetAsync(new Uri(mainUri, ei.Uri), new HttpRequestConfig(Referrer: referrer), cancellationToken: cancellationToken);
+            using var res = await tool.GetAsync(new Uri(mainUri, ei.Uri), new HttpRequestConfig(Referrer: referrer), cancellationToken: cancellationToken).ConfigureAwait(false);
             ArtHttpResponseMessageException.EnsureSuccessStatusCode(res);
-            ei.Key = await res.Content.ReadAsByteArrayAsync(cancellationToken);
+            ei.Key = await res.Content.ReadAsByteArrayAsync(cancellationToken).ConfigureAwait(false);
             tool.LogInformation($"KEY {Convert.ToHexString(ei.Key)}");
         }
         return new M3UDownloaderContext(tool, config, mainUri, m3);
@@ -122,17 +122,17 @@ public class M3UDownloaderContext
     public async Task WriteKeyMaterialAsync(CancellationToken cancellationToken = default)
     {
         if (StreamInfo.EncryptionInfo is not { } ei) return;
-        await WriteAncillaryFileAsync("keyformat.txt", Encoding.UTF8.GetBytes(ei.KeyFormat), cancellationToken);
-        await WriteAncillaryFileAsync("method.txt", Encoding.UTF8.GetBytes(ei.Method), cancellationToken);
-        if (ei.Key is not null) await WriteAncillaryFileAsync("key.bin", ei.Key, cancellationToken);
-        if (ei.Iv is not null) await WriteAncillaryFileAsync("iv.bin", ei.Iv, cancellationToken);
+        await WriteAncillaryFileAsync("keyformat.txt", Encoding.UTF8.GetBytes(ei.KeyFormat), cancellationToken).ConfigureAwait(false);
+        await WriteAncillaryFileAsync("method.txt", Encoding.UTF8.GetBytes(ei.Method), cancellationToken).ConfigureAwait(false);
+        if (ei.Key is not null) await WriteAncillaryFileAsync("key.bin", ei.Key, cancellationToken).ConfigureAwait(false);
+        if (ei.Iv is not null) await WriteAncillaryFileAsync("iv.bin", ei.Iv, cancellationToken).ConfigureAwait(false);
     }
 
     private async Task WriteAncillaryFileAsync(string file, ReadOnlyMemory<byte> data, CancellationToken cancellationToken)
     {
         ArtifactResourceKey keyFormatArk = new(Config.ArtifactKey, file, Config.ArtifactKey.Id);
-        await using CommittableStream keyFormatStream = await Tool.DataManager.CreateOutputStreamAsync(keyFormatArk, OutputStreamOptions.Default, cancellationToken);
-        await keyFormatStream.WriteAsync(data, cancellationToken);
+        await using CommittableStream keyFormatStream = await Tool.DataManager.CreateOutputStreamAsync(keyFormatArk, OutputStreamOptions.Default, cancellationToken).ConfigureAwait(false);
+        await keyFormatStream.WriteAsync(data, cancellationToken).ConfigureAwait(false);
         keyFormatStream.ShouldCommit = true;
     }
 
@@ -188,20 +188,20 @@ public class M3UDownloaderContext
     {
         string fn = GetFileName(uri);
         ArtifactResourceKey ark = new(Config.ArtifactKey, fn, Config.ArtifactKey.Id);
-        if (await Tool.RegistrationManager.TryGetResourceAsync(ark, cancellationToken) != null)
+        if (await Tool.RegistrationManager.TryGetResourceAsync(ark, cancellationToken).ConfigureAwait(false) != null)
         {
             if (Config.SkipExistingSegments) return;
-            await Tool.RegistrationManager.RemoveResourceAsync(ark, cancellationToken);
+            await Tool.RegistrationManager.RemoveResourceAsync(ark, cancellationToken).ConfigureAwait(false);
         }
         // Use ResponseHeadersRead to make timeout only count up to headers
         var httpRequestConfig = new HttpRequestConfig(Referrer: Config.Referrer, HttpCompletionOption: HttpCompletionOption.ResponseHeadersRead, Timeout: TimeSpan.FromMilliseconds(Config.RequestTimeout));
         ArtifactResourceInfo ari = new UriArtifactResourceInfo(Tool, uri, httpRequestConfig, ark);
         if (file.EncryptionInfo is { Encrypted: true } ei)
         {
-            if (mediaSequenceNumber is { } msn) await WriteAncillaryFileAsync($"{fn}.msn.txt", Encoding.UTF8.GetBytes(msn.ToString(CultureInfo.InvariantCulture)), cancellationToken);
+            if (mediaSequenceNumber is { } msn) await WriteAncillaryFileAsync($"{fn}.msn.txt", Encoding.UTF8.GetBytes(msn.ToString(CultureInfo.InvariantCulture)), cancellationToken).ConfigureAwait(false);
             if (Config.Decrypt) ari = new EncryptedArtifactResourceInfo(ei.ToEncryptionInfo(mediaSequenceNumber), ari);
         }
-        await using (CommittableStream oStream = await Tool.DataManager.CreateOutputStreamAsync(ari.Key, OutputStreamOptions.Default, cancellationToken))
+        await using (CommittableStream oStream = await Tool.DataManager.CreateOutputStreamAsync(ari.Key, OutputStreamOptions.Default, cancellationToken).ConfigureAwait(false))
         {
             int retries = 0;
             do
@@ -236,7 +236,7 @@ public class M3UDownloaderContext
                 break;
             } while (true);
         }
-        await Tool.RegistrationManager.AddResourceAsync(ari, cancellationToken);
+        await Tool.RegistrationManager.AddResourceAsync(ari, cancellationToken).ConfigureAwait(false);
     }
 
     /// <summary>
@@ -255,17 +255,17 @@ public class M3UDownloaderContext
     /// <exception cref="ArtHttpResponseMessageException">Thrown on HTTP response indicating non-successful response.</exception>
     public async Task<M3UFile> GetAsync(CancellationToken cancellationToken = default)
     {
-        using var res = await Tool.GetAsync(MainUri, new HttpRequestConfig(Referrer: Config.Referrer), cancellationToken: cancellationToken);
+        using var res = await Tool.GetAsync(MainUri, new HttpRequestConfig(Referrer: Config.Referrer), cancellationToken: cancellationToken).ConfigureAwait(false);
         ArtHttpResponseMessageException.EnsureSuccessStatusCode(res);
-        return M3UReader.Parse(await res.Content.ReadAsStringAsync(cancellationToken));
+        return M3UReader.Parse(await res.Content.ReadAsStringAsync(cancellationToken).ConfigureAwait(false));
     }
 
     private static async Task<StreamInfo> SelectStreamAsync(HttpArtifactTool tool, M3UDownloaderConfig config, CancellationToken cancellationToken = default)
     {
         Uri liveUrlUri = new(config.URL);
-        using var res = await tool.GetAsync(liveUrlUri, new HttpRequestConfig(Referrer: config.Referrer), cancellationToken: cancellationToken);
+        using var res = await tool.GetAsync(liveUrlUri, new HttpRequestConfig(Referrer: config.Referrer), cancellationToken: cancellationToken).ConfigureAwait(false);
         ArtHttpResponseMessageException.EnsureSuccessStatusCode(res);
-        var ff = M3UReader.Parse(await res.Content.ReadAsStringAsync(cancellationToken));
+        var ff = M3UReader.Parse(await res.Content.ReadAsStringAsync(cancellationToken).ConfigureAwait(false));
         if (ff.Streams.All(v => v.AverageBandwidth != 0))
             return config.PrioritizeResolution
                 ? ff.Streams.OrderByDescending(v => (v.ResolutionWidth * v.ResolutionHeight, v.AverageBandwidth)).First()
