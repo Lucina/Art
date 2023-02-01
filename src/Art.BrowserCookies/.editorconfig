@@ -1,0 +1,6 @@
+# editorconfig.org
+
+# C# files
+[*.cs]
+# ConfigureAwait
+configure_await_analysis_mode = library
