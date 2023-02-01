@@ -50,7 +50,7 @@ public abstract class HtmlArtifactTool : HttpArtifactTool
     /// <inheritdoc/>
     public override async Task ConfigureAsync(CancellationToken cancellationToken = default)
     {
-        await base.ConfigureAsync(cancellationToken);
+        await base.ConfigureAsync(cancellationToken).ConfigureAwait(false);
         IConfiguration configuration = Configuration.Default.WithDefaultLoader().WithOnly<ICookieProvider>(new OpenMemoryCookieProvider(CookieContainer));
         _browser = BrowsingContext.New(configuration);
     }
