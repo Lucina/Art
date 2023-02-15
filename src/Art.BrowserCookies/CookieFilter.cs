@@ -18,4 +18,11 @@ public record struct CookieFilter(string Domain, bool IncludeSubdomains = true)
             throw new ArgumentException("Domain for cookie filter should not start with leading '.'");
         }
     }
+
+    /// <summary>
+    /// Provides implicit conversion from <see cref="System.String"/> to <see cref="CookieFilter"/>.
+    /// </summary>
+    /// <param name="domain">Primary domain.</param>
+    /// <returns>Search filter.</returns>
+    public static implicit operator CookieFilter(string domain) => new(domain);
 }
