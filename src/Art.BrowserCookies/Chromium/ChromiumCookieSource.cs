@@ -10,11 +10,17 @@ namespace Art.BrowserCookies.Chromium;
 public abstract record ChromiumCookieSource : CookieSource
 {
     /// <inheritdoc />
-    public override async Task LoadCookiesAsync(CookieContainer cookieContainer, string domain, CancellationToken cancellationToken = default)
+    public override Task LoadCookiesAsync(CookieContainer cookieContainer, CookieFilter domain, CancellationToken cancellationToken = default)
     {
-        if (domain.StartsWith('.'))
+        return LoadCookiesAsync(cookieContainer, new[] { domain }, cancellationToken);
+    }
+
+    /// <inheritdoc />
+    public override async Task LoadCookiesAsync(CookieContainer cookieContainer, IReadOnlyCollection<CookieFilter> domains, CancellationToken cancellationToken = default)
+    {
+        foreach (var domain in domains)
         {
-            throw new ArgumentException("domain shouldn't start with leading \".\"");
+            domain.Validate();
         }
         IChromiumKeychain? keychain = null;
         try
@@ -27,32 +33,54 @@ public abstract record ChromiumCookieSource : CookieSource
                 File.Copy(sourceFileName: GetPath(UserDataKind.Cookies), destFileName: temp, overwrite: true);
                 await using var connection = new SqliteConnection($"Data Source={temp};Pooling=False;");
                 connection.Open();
-
-                var command = connection.CreateCommand();
-                command.CommandText = """
+                foreach ((string domain, bool includeSubdomains) in domains)
+                {
+                    var command = connection.CreateCommand();
+                    if (includeSubdomains)
+                    {
+                        command.CommandText = """
+                        SELECT name, "value", encrypted_value, path, expires_utc, is_secure, host_key
+                        FROM cookies
+                        WHERE host_key = $hostKey OR host_key LIKE $dotHostKey
+                        """;
+                        command.Parameters.AddWithValue("$dotHostKey", "%." + domain);
+                    }
+                    else
+                    {
+                        command.CommandText = """
                         SELECT name, "value", encrypted_value, path, expires_utc, is_secure, host_key
                         FROM cookies
                         WHERE host_key = $hostKey OR host_key = $dotHostKey
                         """;
-                command.Parameters.AddWithValue("$hostKey", domain);
-                command.Parameters.AddWithValue("$dotHostKey", "." + domain);
-                await using var reader = await command.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
-                while (reader.Read())
-                {
-                    string value = reader.GetString(1);
-                    if (string.IsNullOrWhiteSpace(value))
-                    {
-                        value = (keychain ??= await GetKeychainAsync(cancellationToken).ConfigureAwait(false)).Unlock(ReadBytes(reader.GetStream(2)));
+                        command.Parameters.AddWithValue("$dotHostKey", "." + domain);
                     }
-                    cookieContainer.Add(new Cookie
+                    command.Parameters.AddWithValue("$hostKey", domain);
+                    await using var reader = await command.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
+                    while (reader.Read())
                     {
-                        Expires = expiryBase.AddMicroseconds(reader.GetInt64(4)),
-                        Secure = reader.GetBoolean(5),
-                        Name = reader.GetString(0),
-                        Value = value,
-                        Path = reader.GetString(3),
-                        Domain = reader.GetString(6)
-                    });
+                        string value = reader.GetString(1);
+                        if (string.IsNullOrWhiteSpace(value))
+                        {
+                            byte[] buf = ReadBytes(reader.GetStream(2));
+                            if (buf.Length != 0)
+                            {
+                                value = (keychain ??= await GetKeychainAsync(cancellationToken).ConfigureAwait(false)).Unlock(buf);
+                            }
+                            else
+                            {
+                                value = "";
+                            }
+                        }
+                        cookieContainer.Add(new Cookie
+                        {
+                            Expires = expiryBase.AddMicroseconds(reader.GetInt64(4)),
+                            Secure = reader.GetBoolean(5),
+                            Name = reader.GetString(0),
+                            Value = value,
+                            Path = reader.GetString(3),
+                            Domain = reader.GetString(6)
+                        });
+                    }
                 }
             }
             finally

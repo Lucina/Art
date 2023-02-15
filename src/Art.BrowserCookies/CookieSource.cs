@@ -35,7 +35,17 @@ public abstract record CookieSource
     /// <param name="cancellationToken">Cancellation token.</param>
     /// <returns>Task.</returns>
     /// <exception cref="ArgumentException">Thrown for invalid domain specification.</exception>
-    public abstract Task LoadCookiesAsync(CookieContainer cookieContainer, string domain, CancellationToken cancellationToken = default);
+    public abstract Task LoadCookiesAsync(CookieContainer cookieContainer, CookieFilter domain, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Loads cookies for a domain into the specified <see cref="CookieContainer"/>.
+    /// </summary>
+    /// <param name="cookieContainer">Container to populate.</param>
+    /// <param name="domains">Target domains.</param>
+    /// <param name="cancellationToken">Cancellation token.</param>
+    /// <returns>Task.</returns>
+    /// <exception cref="ArgumentException">Thrown for invalid domain specification.</exception>
+    public abstract Task LoadCookiesAsync(CookieContainer cookieContainer, IReadOnlyCollection<CookieFilter> domains, CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Attempts to get a <see cref="CookieSource"/> for the specified browser.
@@ -71,7 +81,7 @@ public abstract record CookieSource
     /// <exception cref="ArgumentException">Thrown for invalid domain specification.</exception>
     /// <exception cref="BrowserNotFoundException">Thrown for unknown browser name.</exception>
     /// <exception cref="BrowserProfileNotFoundException">Thrown for unknown browser profile name.</exception>
-    public static Task LoadCookiesAsync(CookieContainer cookieContainer, string domain, string browserName, string? profile = null, CancellationToken cancellationToken = default)
+    public static Task LoadCookiesAsync(CookieContainer cookieContainer, CookieFilter domain, string browserName, string? profile = null, CancellationToken cancellationToken = default)
     {
         if (!TryGetBrowserFromName(browserName, out var cookieSource, profile))
         {
@@ -79,5 +89,27 @@ public abstract record CookieSource
         }
         cookieSource = cookieSource.Resolve();
         return cookieSource.LoadCookiesAsync(cookieContainer, domain, cancellationToken);
+    }
+
+    /// <summary>
+    /// Loads cookies for a domain into the specified <see cref="CookieContainer"/>.
+    /// </summary>
+    /// <param name="cookieContainer">Container to populate.</param>
+    /// <param name="domains">Target domains.</param>
+    /// <param name="profile">Optional browser profile name.</param>
+    /// <param name="cancellationToken">Cancellation token.</param>
+    /// <param name="browserName">Browser name.</param>
+    /// <returns>Task.</returns>
+    /// <exception cref="ArgumentException">Thrown for invalid domain specification.</exception>
+    /// <exception cref="BrowserNotFoundException">Thrown for unknown browser name.</exception>
+    /// <exception cref="BrowserProfileNotFoundException">Thrown for unknown browser profile name.</exception>
+    public static Task LoadCookiesAsync(CookieContainer cookieContainer, IReadOnlyCollection<CookieFilter> domains, string browserName, string? profile = null, CancellationToken cancellationToken = default)
+    {
+        if (!TryGetBrowserFromName(browserName, out var cookieSource, profile))
+        {
+            throw new BrowserNotFoundException(browserName);
+        }
+        cookieSource = cookieSource.Resolve();
+        return cookieSource.LoadCookiesAsync(cookieContainer, domains, cancellationToken);
     }
 }

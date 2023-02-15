@@ -144,10 +144,8 @@ public abstract partial class HttpArtifactTool : ArtifactTool
         if (TryGetOption(optKeyBrowserName, out string? browserName) && TryGetOption(optKeyBrowserDomains, out string[]? domains))
         {
             string? profile = optKeyProfile != null && TryGetOption(optKeyProfile, out string? profileValue) ? profileValue : null;
-            foreach (string domain in domains)
-            {
-                await CookieSource.LoadCookiesAsync(cookies, domain, browserName, profile, cancellationToken: cancellationToken).ConfigureAwait(false);
-            }
+            var mappedDomains = domains.Select(v => new CookieFilter(v)).ToList();
+            await CookieSource.LoadCookiesAsync(cookies, mappedDomains, browserName, profile, cancellationToken: cancellationToken).ConfigureAwait(false);
         }
         return false;
     }
