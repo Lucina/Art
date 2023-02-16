@@ -3,7 +3,7 @@
 /// <summary>
 /// Extensions for <see cref="ArtifactInfo"/>.
 /// </summary>
-internal static class ArtifactInfoExtensions
+public static class ArtifactInfoExtensions
 {
     /// <summary>
     /// Gets informational title string.
