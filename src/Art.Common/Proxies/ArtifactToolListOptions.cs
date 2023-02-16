@@ -34,9 +34,10 @@ public record ArtifactToolListOptions(
                 break;
             default:
                 if (constructor)
+                {
                     throw new ArgumentException($"Invalid {nameof(ArtifactToolListOptions)}.{nameof(SkipMode)}");
-                else
-                    throw new InvalidOperationException($"Invalid {nameof(ArtifactToolListOptions)}.{nameof(SkipMode)}");
+                }
+                throw new InvalidOperationException($"Invalid {nameof(ArtifactToolListOptions)}.{nameof(SkipMode)}");
         }
     }
 }

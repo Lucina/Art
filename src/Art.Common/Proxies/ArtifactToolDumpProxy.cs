@@ -50,6 +50,8 @@ public record ArtifactToolDumpProxy
     /// <exception cref="InvalidOperationException">Thrown when an invalid configuration is detected.</exception>
     public async ValueTask DumpAsync(CancellationToken cancellationToken = default)
     {
+        if (ArtifactTool == null) throw new InvalidOperationException("Artifact tool cannot be null");
+        if (Options == null) throw new InvalidOperationException("Options cannot be null");
         Validate(Options, false);
         if (LogHandler != null) ArtifactTool.LogHandler = LogHandler;
         if (ArtifactTool is IArtifactToolDump dumpTool)

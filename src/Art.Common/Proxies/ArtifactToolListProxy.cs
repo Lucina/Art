@@ -44,6 +44,8 @@ public record ArtifactToolListProxy
     /// <exception cref="InvalidOperationException">Thrown when an invalid configuration is detected.</exception>
     public async IAsyncEnumerable<IArtifactData> ListAsync([EnumeratorCancellation] CancellationToken cancellationToken = default)
     {
+        if (ArtifactTool == null) throw new InvalidOperationException("Artifact tool cannot be null");
+        if (Options == null) throw new InvalidOperationException("Options cannot be null");
         ArtifactToolListOptions.Validate(Options, false);
         if (LogHandler != null) ArtifactTool.LogHandler = LogHandler;
         if (ArtifactTool is IArtifactToolList listTool)

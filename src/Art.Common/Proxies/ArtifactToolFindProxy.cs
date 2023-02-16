@@ -3,9 +3,18 @@
 /// <summary>
 /// Proxy to run artifact tool as a find tool.
 /// </summary>
-/// <param name="ArtifactTool">Artifact tool.</param>
-public record ArtifactToolFindProxy(IArtifactTool ArtifactTool)
+public record ArtifactToolFindProxy
 {
+    /// <summary>
+    /// Proxy to run artifact tool as a find tool.
+    /// </summary>
+    /// <param name="artifactTool">Artifact tool.</param>
+    public ArtifactToolFindProxy(IArtifactTool artifactTool)
+    {
+        if (artifactTool == null) throw new ArgumentNullException(nameof(artifactTool));
+        ArtifactTool = artifactTool;
+    }
+
     #region API
 
     /// <summary>
@@ -16,10 +25,14 @@ public record ArtifactToolFindProxy(IArtifactTool ArtifactTool)
     /// <returns>Async-enumerable artifacts.</returns>
     public async Task<IArtifactData?> FindAsync(string id, CancellationToken cancellationToken = default)
     {
+        if (ArtifactTool == null) throw new InvalidOperationException("Artifact tool cannot be null");
         if (ArtifactTool is IArtifactToolFind findTool)
             return await findTool.FindAsync(id, cancellationToken).ConfigureAwait(false);
         throw new NotSupportedException("Artifact tool is not a supported type");
     }
 
     #endregion
+
+    /// <summary>Artifact tool.</summary>
+    public IArtifactTool ArtifactTool { get; init; }
 }
