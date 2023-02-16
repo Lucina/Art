@@ -1,6 +1,9 @@
 ﻿namespace Art.Common;
 
-internal static class ArtifactResourceInfoExtensions
+/// <summary>
+/// Extensions for <see cref="ArtifactResourceInfo"/>.
+/// </summary>
+public static class ArtifactResourceInfoExtensions
 {
     /// <summary>
     /// Checks if non-identifying metadata (i.e. everything but key, updated date, version) is different.
@@ -10,7 +13,7 @@ internal static class ArtifactResourceInfoExtensions
     /// <returns>True if any metadata is different or if other is null.</returns>
     public static bool IsMetadataDifferent(this ArtifactResourceInfo artifactResourceInfo, ArtifactResourceInfo? other)
     {
-        if (other == null) return true;
+        if (other == null) return artifactResourceInfo == null;
         return artifactResourceInfo.ContentType != other.ContentType;
     }
 

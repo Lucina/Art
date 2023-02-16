@@ -1,5 +1,8 @@
 ﻿namespace Art.Common;
 
+/// <summary>
+/// Extensions for <see cref="ArtifactInfo"/>.
+/// </summary>
 internal static class ArtifactInfoExtensions
 {
     /// <summary>
