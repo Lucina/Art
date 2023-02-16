@@ -33,6 +33,11 @@ public abstract partial class HttpArtifactTool : ArtifactTool
     public const string OptCookieFile = "cookieFile";
 
     /// <summary>
+    /// Option used to specify custom user agent string.
+    /// </summary>
+    public const string OptUserAgent = "userAgent";
+
+    /// <summary>
     /// HTTP cookie container used by this instance.
     /// </summary>
     public CookieContainer CookieContainer
@@ -110,7 +115,8 @@ public abstract partial class HttpArtifactTool : ArtifactTool
         _cookieContainer = await CreateCookieContainerAsync(cancellationToken).ConfigureAwait(false);
         _httpMessageHandler = CreateHttpMessageHandler();
         _httpClient = CreateHttpClient(_httpMessageHandler);
-        _httpClient.DefaultRequestHeaders.UserAgent.TryParseAdd(DefaultUserAgent);
+        string userAgent = TryGetOption(OptUserAgent, out string? customUserAgent) ? customUserAgent : DefaultUserAgent;
+        _httpClient.DefaultRequestHeaders.UserAgent.TryParseAdd(userAgent);
     }
 
     #endregion
@@ -118,10 +124,13 @@ public abstract partial class HttpArtifactTool : ArtifactTool
     #region Http client configuration
 
     /// <summary>
-    /// Creates a cookie container (by default using the <see cref="OptCookieFile"/> configuration option).
+    /// Creates a cookie container.
     /// </summary>
     /// <param name="cancellationToken">Cancellation token.</param>
     /// <returns>A cookie container.</returns>
+    /// <remarks>
+    /// By default, this uses the <see cref="OptCookieBrowser"/>, <see cref="OptCookieBrowserDomains"/> <see cref="OptCookieBrowserProfile"/>, and <see cref="OptCookieFile"/> configuration options.
+    /// </remarks>
     public virtual async Task<CookieContainer> CreateCookieContainerAsync(CancellationToken cancellationToken = default)
     {
         CookieContainer cookies = new();
