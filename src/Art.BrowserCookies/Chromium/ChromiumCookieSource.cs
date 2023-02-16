@@ -1,5 +1,4 @@
 ﻿using System.Net;
-using System.Text.Json.Serialization;
 using Microsoft.Data.Sqlite;
 
 namespace Art.BrowserCookies.Chromium;
@@ -123,18 +122,6 @@ public abstract record ChromiumCookieSource : CookieSource
     /// <param name="kind">Kind of path to get.</param>
     /// <returns>Retrieved path.</returns>
     protected abstract string GetPath(UserDataKind kind);
-
-    /// <summary>
-    /// Represents Chromium preferences file.
-    /// </summary>
-    /// <param name="Profile">Profile.</param>
-    protected record ChromiumPreferences([property: JsonPropertyName("profile")] ChromiumPreferencesProfile Profile);
-
-    /// <summary>
-    /// Represents Chromium preferences profile.
-    /// </summary>
-    /// <param name="Name">Profile name.</param>
-    protected record ChromiumPreferencesProfile([property: JsonPropertyName("name")] string Name);
 
     /// <summary>
     /// Kind of user data.

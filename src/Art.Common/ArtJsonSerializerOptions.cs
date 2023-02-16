@@ -10,7 +10,9 @@ public static class ArtJsonSerializerOptions
 {
     static ArtJsonSerializerOptions()
     {
-        s_jsonOptions = new JsonSerializerOptions { PropertyNameCaseInsensitive = true };
+        s_jsonOptions = SourceGenerationContext.Default.Options;
+        s_jsonOptions.PropertyNameCaseInsensitive = true;
+        s_jsonOptions.WriteIndented = true;
         s_jsonOptions.Converters.Add(new JsonStringEnumConverter());
     }
 

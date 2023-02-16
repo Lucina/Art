@@ -1,7 +1,5 @@
-﻿using System.ComponentModel;
-using System.Globalization;
+﻿using System.Globalization;
 using System.Runtime.CompilerServices;
-using System.Text.Json;
 using Art.Common.Async;
 
 namespace Art.Common;
@@ -83,48 +81,6 @@ public static class ArtCommonExtensions
     /// <param name="enumerable">Enumerable.</param>
     /// <returns>Nonnull enumerable.</returns>
     public static IEnumerable<T> FallbackEmpty<T>(this IEnumerable<T>? enumerable) => enumerable ?? Array.Empty<T>();
-
-    /// <summary>
-    /// Shorthand for ConfigureAwait(false).
-    /// </summary>
-    /// <param name="task">Task to wrap.</param>
-    /// <returns>Wrapped task.</returns>
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static ConfiguredTaskAwaitable Caf(this Task task) => task.ConfigureAwait(false);
-
-    /// <summary>
-    /// Shorthand for ConfigureAwait(false).
-    /// </summary>
-    /// <param name="task">Task to wrap.</param>
-    /// <returns>Wrapped task.</returns>
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static ConfiguredTaskAwaitable<T> Caf<T>(this Task<T> task) => task.ConfigureAwait(false);
-
-    /// <summary>
-    /// Shorthand for ConfigureAwait(false).
-    /// </summary>
-    /// <param name="task">Task to wrap.</param>
-    /// <returns>Wrapped task.</returns>
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static ConfiguredValueTaskAwaitable Caf(this ValueTask task) => task.ConfigureAwait(false);
-
-    /// <summary>
-    /// Shorthand for ConfigureAwait(false).
-    /// </summary>
-    /// <param name="task">Task to wrap.</param>
-    /// <returns>Wrapped task.</returns>
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static ConfiguredValueTaskAwaitable<T> Caf<T>(this ValueTask<T> task) => task.ConfigureAwait(false);
-
-    /// <summary>
-    /// Creates a <see cref="JsonElement"/> from this value.
-    /// </summary>
-    /// <typeparam name="T">Value type.</typeparam>
-    /// <param name="value">Value.</param>
-    /// <returns>JSON element.</returns>
-    [EditorBrowsable(EditorBrowsableState.Never)]
-    [Obsolete("Use JsonSerializer.SerializeToElement<T> instead.")]
-    public static JsonElement J<T>(this T value) => JsonSerializer.SerializeToElement(value);
 
     /// <summary>
     /// Produces task returning true if any elements are contained in this enumerable.
