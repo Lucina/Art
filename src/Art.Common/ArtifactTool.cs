@@ -9,8 +9,6 @@ namespace Art.Common;
 /// </summary>
 public partial class ArtifactTool : IArtifactTool
 {
-    private static readonly HashSet<string> s_yesLower = new() { "y", "yes", "" };
-
     #region Fields
 
     /// <inheritdoc />

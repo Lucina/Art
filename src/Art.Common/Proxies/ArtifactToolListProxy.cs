@@ -8,6 +8,8 @@ namespace Art.Common.Proxies;
 /// </summary>
 public record ArtifactToolListProxy
 {
+    private const string OptArtifactList = "artifactList";
+
     /// <summary>Artifact tool.</summary>
     public IArtifactTool ArtifactTool { get; init; }
 
@@ -47,11 +49,16 @@ public record ArtifactToolListProxy
         if (ArtifactTool == null) throw new InvalidOperationException("Artifact tool cannot be null");
         if (Options == null) throw new InvalidOperationException("Options cannot be null");
         ArtifactToolListOptions.Validate(Options, false);
-        if (LogHandler != null) ArtifactTool.LogHandler = LogHandler;
-        if (ArtifactTool is IArtifactToolList listTool)
+        IArtifactTool artifactTool = ArtifactTool;
+        if (artifactTool.Profile.Options.TryGetOption(OptArtifactList, out string[]? artifactList) && artifactTool is IArtifactToolFind findTool)
+        {
+            artifactTool = new FindAsListTool(findTool, artifactList);
+        }
+        if (LogHandler != null) artifactTool.LogHandler = LogHandler;
+        if (artifactTool is IArtifactToolList listTool)
         {
             IAsyncEnumerable<IArtifactData> enumerable = listTool.ListAsync(cancellationToken);
-            if ((Options.EagerFlags & ArtifactTool.AllowedEagerModes & EagerFlags.ArtifactList) != 0) enumerable = enumerable.EagerAsync();
+            if ((Options.EagerFlags & artifactTool.AllowedEagerModes & EagerFlags.ArtifactList) != 0) enumerable = enumerable.EagerAsync();
             await foreach (IArtifactData data in enumerable.ConfigureAwait(false))
             {
                 switch (Options.SkipMode)
@@ -60,14 +67,14 @@ public record ArtifactToolListProxy
                         break;
                     case ArtifactSkipMode.FastExit:
                         {
-                            ArtifactInfo? info = await ArtifactTool.RegistrationManager.TryGetArtifactAsync(new ArtifactKey(ArtifactTool.Profile.Tool, ArtifactTool.Profile.Group, data.Info.Key.Id), cancellationToken).ConfigureAwait(false);
+                            ArtifactInfo? info = await artifactTool.RegistrationManager.TryGetArtifactAsync(new ArtifactKey(artifactTool.Profile.Tool, artifactTool.Profile.Group, data.Info.Key.Id), cancellationToken).ConfigureAwait(false);
                             if (info != null)
                                 yield break;
                             break;
                         }
                     case ArtifactSkipMode.Known:
                         {
-                            ArtifactInfo? info = await ArtifactTool.RegistrationManager.TryGetArtifactAsync(new ArtifactKey(ArtifactTool.Profile.Tool, ArtifactTool.Profile.Group, data.Info.Key.Id), cancellationToken).ConfigureAwait(false);
+                            ArtifactInfo? info = await artifactTool.RegistrationManager.TryGetArtifactAsync(new ArtifactKey(artifactTool.Profile.Tool, artifactTool.Profile.Group, data.Info.Key.Id), cancellationToken).ConfigureAwait(false);
                             if (info != null)
                                 continue;
                             break;
@@ -78,16 +85,16 @@ public record ArtifactToolListProxy
             }
             yield break;
         }
-        if (ArtifactTool is IArtifactToolDump dumpTool)
+        if (artifactTool is IArtifactToolDump dumpTool)
         {
-            IArtifactDataManager previous = ArtifactTool.DataManager;
+            IArtifactDataManager previous = artifactTool.DataManager;
             try
             {
                 InMemoryArtifactDataManager im = new();
                 await dumpTool.DumpAsync(cancellationToken).ConfigureAwait(false);
                 foreach ((ArtifactKey ak, List<ArtifactResourceInfo> resources) in im.Artifacts)
                 {
-                    if (await ArtifactTool.RegistrationManager.TryGetArtifactAsync(ak, cancellationToken).ConfigureAwait(false) is not { } info) continue;
+                    if (await artifactTool.RegistrationManager.TryGetArtifactAsync(ak, cancellationToken).ConfigureAwait(false) is not { } info) continue;
                     ArtifactData data = new(info);
                     data.AddRange(resources);
                     yield return data;
@@ -95,7 +102,7 @@ public record ArtifactToolListProxy
             }
             finally
             {
-                ArtifactTool.DataManager = previous;
+                artifactTool.DataManager = previous;
             }
             yield break;
         }
