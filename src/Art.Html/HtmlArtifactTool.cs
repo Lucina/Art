@@ -250,7 +250,7 @@ public abstract class HtmlArtifactTool : HttpArtifactTool
     /// This overload usees <see cref="IArtifactTool.JsonOptions"/> member automatically.
     /// </remarks>
     public Task<T> GetDeserializedRequiredJsonAsync<T>(Url url, JsonTypeInfo<T> jsonTypeInfo, CancellationToken cancellationToken = default)
-        => GetDeserializedRequiredJsonAsync<T>(url.ToUri(), jsonTypeInfo, cancellationToken: cancellationToken);
+        => GetDeserializedRequiredJsonAsync(url.ToUri(), jsonTypeInfo, cancellationToken: cancellationToken);
 
     /// <summary>
     /// Retrieve deserialized JSON using a <see cref="Url"/> and <see cref="JsonSerializerOptions"/>.
