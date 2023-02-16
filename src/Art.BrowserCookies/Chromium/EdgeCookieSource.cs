@@ -6,7 +6,7 @@ namespace Art.BrowserCookies.Chromium;
 /// Represents a <see cref="CookieSource"/> for the Microsoft Edge web browser.
 /// </summary>
 /// <param name="Profile">Profile name.</param>
-public record EdgeCookieSource(string Profile = "Default") : ChromiumProfileCookieSource(Profile)
+public record EdgeCookieSource(string Profile = "Default") : ChromiumProfileCookieSource(Profile), IPlatformSupportCheck, ICookieSourceFactory
 {
     /// <inheritdoc />
     public override string Name => "Edge";
@@ -79,5 +79,30 @@ public record EdgeCookieSource(string Profile = "Default") : ChromiumProfileCook
             throw new NotImplementedException();
         }
         throw new PlatformNotSupportedException();
+    }
+
+    static bool IPlatformSupportCheck.IsSupported
+    {
+        get
+        {
+            if (OperatingSystem.IsWindows())
+            {
+                return true;
+            }
+            if (OperatingSystem.IsMacOS())
+            {
+                return true;
+            }
+            if (OperatingSystem.IsLinux())
+            {
+                return false;
+            }
+            return false;
+        }
+    }
+
+    static CookieSource ICookieSourceFactory.CreateCookieSource(string? profile)
+    {
+        return profile != null ? new EdgeCookieSource(profile) : new EdgeCookieSource();
     }
 }

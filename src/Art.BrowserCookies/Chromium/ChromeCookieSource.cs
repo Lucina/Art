@@ -4,7 +4,7 @@
 /// Represents a <see cref="CookieSource"/> for the Google Chrome web browser.
 /// </summary>
 /// <param name="Profile">Profile name.</param>
-public record ChromeCookieSource(string Profile = "Default") : ChromiumProfileCookieSource(Profile)
+public record ChromeCookieSource(string Profile = "Default") : ChromiumProfileCookieSource(Profile), IPlatformSupportCheck, ICookieSourceFactory
 {
     /// <inheritdoc />
     public override string Name => "Chrome";
@@ -77,5 +77,30 @@ public record ChromeCookieSource(string Profile = "Default") : ChromiumProfileCo
             throw new NotImplementedException();
         }
         throw new PlatformNotSupportedException();
+    }
+
+    static bool IPlatformSupportCheck.IsSupported
+    {
+        get
+        {
+            if (OperatingSystem.IsWindows())
+            {
+                return true;
+            }
+            if (OperatingSystem.IsMacOS())
+            {
+                return true;
+            }
+            if (OperatingSystem.IsLinux())
+            {
+                return false;
+            }
+            return false;
+        }
+    }
+
+    static CookieSource ICookieSourceFactory.CreateCookieSource(string? profile)
+    {
+        return profile != null ? new ChromeCookieSource(profile) : new ChromeCookieSource();
     }
 }

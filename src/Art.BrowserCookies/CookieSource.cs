@@ -21,11 +21,21 @@ public abstract record CookieSource
     /// <remarks>Implementations can, for example, attempt to resolve a user-configured profile name to the profile directory name on the filesystem.</remarks>
     public abstract CookieSource Resolve();
 
-    private static readonly Dictionary<string, Func<string?, CookieSource?>> s_factories = new(StringComparer.InvariantCultureIgnoreCase)
+    private static readonly Dictionary<string, BrowserInfo> s_info = new(StringComparer.InvariantCultureIgnoreCase);
+
+    static CookieSource()
     {
-        { "edge", p => new EdgeCookieSource(p ?? "Default") }, // MS Edge
-        { "chrome", p => new ChromeCookieSource(p ?? "Default") } // Chrome
-    };
+        AddBrowserInfo<EdgeCookieSource>("edge"); // MS Edge
+        AddBrowserInfo<ChromeCookieSource>("chrome"); // Chrome
+    }
+
+    private static void AddBrowserInfo<T>(string name) where T : IPlatformSupportCheck, ICookieSourceFactory
+    {
+        if (T.IsSupported)
+        {
+            s_info.Add(name, new BrowserInfo<T>(name));
+        }
+    }
 
     /// <summary>
     /// Loads cookies for a domain into the specified <see cref="CookieContainer"/>.
@@ -48,6 +58,15 @@ public abstract record CookieSource
     public abstract Task LoadCookiesAsync(CookieContainer cookieContainer, IReadOnlyCollection<CookieFilter> domains, CancellationToken cancellationToken = default);
 
     /// <summary>
+    /// Gets supported browser names.
+    /// </summary>
+    /// <returns>Supported browser names.</returns>
+    public static string[] GetSupportedBrowserNames()
+    {
+        return s_info.Keys.ToArray();
+    }
+
+    /// <summary>
     /// Attempts to get a <see cref="CookieSource"/> for the specified browser.
     /// </summary>
     /// <param name="browserName">Browser name.</param>
@@ -60,7 +79,7 @@ public abstract record CookieSource
     /// </remarks>
     public static bool TryGetBrowserFromName(string browserName, [NotNullWhen(true)] out CookieSource? cookieSource, string? profile = null)
     {
-        if (s_factories.TryGetValue(browserName, out var factory) && factory.Invoke(profile) is { } source)
+        if (s_info.TryGetValue(browserName, out var info) && info.CreateCookieSource(profile) is { } source)
         {
             cookieSource = source;
             return true;
