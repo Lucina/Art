@@ -57,7 +57,7 @@ public record ArtifactToolDumpProxy
         if (Options == null) throw new InvalidOperationException("Options cannot be null");
         Validate(Options, false);
         IArtifactTool artifactTool = ArtifactTool;
-        if (artifactTool.Profile.Options.TryGetOption(OptArtifactList, out string[]? artifactList) && artifactTool is IArtifactToolFind findTool)
+        if (artifactTool.Profile.Options.TryGetOption(OptArtifactList, out string[]? artifactList, SourceGenerationContext.Default.StringArray) && artifactTool is IArtifactToolFind findTool)
         {
             artifactTool = new FindAsListTool(findTool, artifactList);
         }

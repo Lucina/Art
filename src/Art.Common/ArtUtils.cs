@@ -1,4 +1,6 @@
-﻿using System.Text.Json;
+﻿using System.Diagnostics.CodeAnalysis;
+using System.Text.Json;
+using System.Text.Json.Serialization.Metadata;
 
 namespace Art.Common;
 
@@ -61,7 +63,17 @@ public static class ArtUtils
     /// <typeparam name="T">Data type.</typeparam>
     /// <param name="stream">Stream to load from.</param>
     /// <returns>Read data.</returns>
+    [RequiresUnreferencedCode("JSON serialization and deserialization might require types that cannot be statically analyzed. Use the overload that takes a JsonTypeInfo or JsonSerializerContext, or make sure all of the required types are preserved.")]
     public static T? LoadFromUtf8Stream<T>(Stream stream) => JsonSerializer.Deserialize<T>(stream, ArtJsonSerializerOptions.s_jsonOptions);
+
+    /// <summary>
+    /// Loads an object from a UTF-8 JSON stream.
+    /// </summary>
+    /// <typeparam name="T">Data type.</typeparam>
+    /// <param name="stream">Stream to load from.</param>
+    /// <param name="jsonTypeInfo">JSON type info.</param>
+    /// <returns>Read data.</returns>
+    public static T? LoadFromUtf8Stream<T>(Stream stream, JsonTypeInfo<T> jsonTypeInfo) => JsonSerializer.Deserialize(stream, jsonTypeInfo);
 
     /// <summary>
     /// Loads an object from a UTF-8 JSON stream.
@@ -70,7 +82,18 @@ public static class ArtUtils
     /// <param name="stream">Stream to load from.</param>
     /// <param name="cancellationToken">Cancellation token.</param>
     /// <returns>Task returning read data.</returns>
+    [RequiresUnreferencedCode("JSON serialization and deserialization might require types that cannot be statically analyzed. Use the overload that takes a JsonTypeInfo or JsonSerializerContext, or make sure all of the required types are preserved.")]
     public static async Task<T?> LoadFromUtf8StreamAsync<T>(Stream stream, CancellationToken cancellationToken = default) => await JsonSerializer.DeserializeAsync<T>(stream, ArtJsonSerializerOptions.s_jsonOptions, cancellationToken).ConfigureAwait(false);
+
+    /// <summary>
+    /// Loads an object from a UTF-8 JSON stream.
+    /// </summary>
+    /// <typeparam name="T">Data type.</typeparam>
+    /// <param name="stream">Stream to load from.</param>
+    /// <param name="jsonTypeInfo">JSON type info.</param>
+    /// <param name="cancellationToken">Cancellation token.</param>
+    /// <returns>Task returning read data.</returns>
+    public static async Task<T?> LoadFromUtf8StreamAsync<T>(Stream stream, JsonTypeInfo<T> jsonTypeInfo, CancellationToken cancellationToken = default) => await JsonSerializer.DeserializeAsync(stream, jsonTypeInfo, cancellationToken).ConfigureAwait(false);
 
     /// <summary>
     /// Loads an object from a JSON file.
@@ -78,6 +101,7 @@ public static class ArtUtils
     /// <typeparam name="T">Data type.</typeparam>
     /// <param name="file">File path to load from.</param>
     /// <returns>Read data.</returns>
+    [RequiresUnreferencedCode("JSON serialization and deserialization might require types that cannot be statically analyzed. Use the overload that takes a JsonTypeInfo or JsonSerializerContext, or make sure all of the required types are preserved.")]
     public static T? LoadFromFile<T>(string file) => JsonSerializer.Deserialize<T>(File.ReadAllText(file), ArtJsonSerializerOptions.s_jsonOptions);
 
     /// <summary>
@@ -85,7 +109,27 @@ public static class ArtUtils
     /// </summary>
     /// <typeparam name="T">Data type.</typeparam>
     /// <param name="file">File path to load from.</param>
+    /// <param name="jsonTypeInfo">JSON type info.</param>
+    /// <returns>Read data.</returns>
+    public static T? LoadFromFile<T>(string file, JsonTypeInfo<T> jsonTypeInfo) => JsonSerializer.Deserialize(File.ReadAllText(file), jsonTypeInfo);
+
+    /// <summary>
+    /// Loads an object from a JSON file.
+    /// </summary>
+    /// <typeparam name="T">Data type.</typeparam>
+    /// <param name="file">File path to load from.</param>
     /// <param name="cancellationToken">Cancellation token.</param>
-    /// <returns>Task returning ead data.</returns>
+    /// <returns>Task returning read data.</returns>
+    [RequiresUnreferencedCode("JSON serialization and deserialization might require types that cannot be statically analyzed. Use the overload that takes a JsonTypeInfo or JsonSerializerContext, or make sure all of the required types are preserved.")]
     public static async Task<T?> LoadFromFileAsync<T>(string file, CancellationToken cancellationToken = default) => JsonSerializer.Deserialize<T>(await File.ReadAllTextAsync(file, cancellationToken).ConfigureAwait(false), ArtJsonSerializerOptions.s_jsonOptions);
+
+    /// <summary>
+    /// Loads an object from a JSON file.
+    /// </summary>
+    /// <typeparam name="T">Data type.</typeparam>
+    /// <param name="file">File path to load from.</param>
+    /// <param name="jsonTypeInfo">JSON type info.</param>
+    /// <param name="cancellationToken">Cancellation token.</param>
+    /// <returns>Task returning read data.</returns>
+    public static async Task<T?> LoadFromFileAsync<T>(string file, JsonTypeInfo<T> jsonTypeInfo, CancellationToken cancellationToken = default) => JsonSerializer.Deserialize(await File.ReadAllTextAsync(file, cancellationToken).ConfigureAwait(false), jsonTypeInfo);
 }

@@ -1,4 +1,5 @@
-﻿using System.Text.Json;
+﻿using System.Diagnostics.CodeAnalysis;
+using System.Text.Json;
 using AngleSharp;
 using AngleSharp.Dom;
 using AngleSharp.Io;
@@ -204,6 +205,7 @@ public abstract class HtmlArtifactTool : HttpArtifactTool
     /// <remarks>
     /// This overload usees <see cref="IArtifactTool.JsonOptions"/> member automatically.
     /// </remarks>
+    [RequiresUnreferencedCode("JSON serialization and deserialization might require types that cannot be statically analyzed. Use the overload that takes a JsonTypeInfo or JsonSerializerContext, or make sure all of the required types are preserved.")] // TODO alt
     public Task<T?> GetDeserializedJsonAsync<T>(Url url, CancellationToken cancellationToken = default)
         => GetDeserializedJsonAsync<T>(url.ToUri(), cancellationToken: cancellationToken);
 
@@ -217,6 +219,7 @@ public abstract class HtmlArtifactTool : HttpArtifactTool
     /// <remarks>
     /// This overload usees <see cref="IArtifactTool.JsonOptions"/> member automatically.
     /// </remarks>
+    [RequiresUnreferencedCode("JSON serialization and deserialization might require types that cannot be statically analyzed. Use the overload that takes a JsonTypeInfo or JsonSerializerContext, or make sure all of the required types are preserved.")] // TODO alt
     public Task<T> GetDeserializedRequiredJsonAsync<T>(Url url, CancellationToken cancellationToken = default)
         => GetDeserializedRequiredJsonAsync<T>(url.ToUri(), cancellationToken: cancellationToken);
 
@@ -228,6 +231,7 @@ public abstract class HtmlArtifactTool : HttpArtifactTool
     /// <param name="jsonSerializerOptions">Optional deserialization options.</param>
     /// <param name="cancellationToken">Cancellation token.</param>
     /// <returns>Task returning deserialized data.</returns>
+    [RequiresUnreferencedCode("JSON serialization and deserialization might require types that cannot be statically analyzed. Use the overload that takes a JsonTypeInfo or JsonSerializerContext, or make sure all of the required types are preserved.")] // TODO alt
     public Task<T?> GetDeserializedJsonAsync<T>(Url url, JsonSerializerOptions? jsonSerializerOptions, CancellationToken cancellationToken = default)
         => GetDeserializedJsonAsync<T>(url.ToUri(), jsonSerializerOptions, cancellationToken: cancellationToken);
 
@@ -239,6 +243,7 @@ public abstract class HtmlArtifactTool : HttpArtifactTool
     /// <param name="jsonSerializerOptions">Optional deserialization options.</param>
     /// <param name="cancellationToken">Cancellation token.</param>
     /// <returns>Task returning deserialized data.</returns>
+    [RequiresUnreferencedCode("JSON serialization and deserialization might require types that cannot be statically analyzed. Use the overload that takes a JsonTypeInfo or JsonSerializerContext, or make sure all of the required types are preserved.")] // TODO alt
     public Task<T> GetDeserializedRequiredJsonAsync<T>(Url url, JsonSerializerOptions? jsonSerializerOptions, CancellationToken cancellationToken = default)
         => GetDeserializedRequiredJsonAsync<T>(url.ToUri(), jsonSerializerOptions, cancellationToken: cancellationToken);
 

@@ -18,7 +18,7 @@ public static class ArtifactToolProfileUtil
     public static ArtifactToolProfile[] DeserializeProfilesFromFile(string path)
     {
         if (path == null) throw new ArgumentNullException(nameof(path));
-        return DeserializeProfiles(JsonSerializer.Deserialize<JsonElement>(File.ReadAllText(path)));
+        return DeserializeProfiles(JsonSerializer.Deserialize(File.ReadAllText(path), SourceGenerationContext.Default.JsonElement));
     }
 
     /// <summary>
@@ -33,7 +33,8 @@ public static class ArtifactToolProfileUtil
     {
         if (path == null) throw new ArgumentNullException(nameof(path));
         if (options == null) throw new ArgumentNullException(nameof(options));
-        return DeserializeProfiles(JsonSerializer.Deserialize<JsonElement>(File.ReadAllText(path)), options);
+        var re = new SourceGenerationContext(options);
+        return DeserializeProfiles(JsonSerializer.Deserialize(File.ReadAllText(path), re.JsonElement), options);
     }
 
     /// <summary>
@@ -58,7 +59,8 @@ public static class ArtifactToolProfileUtil
         if (options == null) throw new ArgumentNullException(nameof(options));
         if (profiles == null) throw new ArgumentNullException(nameof(profiles));
         using var fs = File.Create(path);
-        JsonSerializer.Serialize(fs, profiles, options);
+        var re = new SourceGenerationContext(options);
+        JsonSerializer.Serialize(fs, profiles, re.ArtifactToolProfileArray);
     }
 
     /// <summary>
@@ -69,7 +71,7 @@ public static class ArtifactToolProfileUtil
     /// <exception cref="InvalidDataException">Thrown if null value encountered.</exception>
     public static ArtifactToolProfile[] DeserializeProfiles(Stream utf8Stream)
     {
-        return DeserializeProfiles(JsonSerializer.Deserialize<JsonElement>(utf8Stream));
+        return DeserializeProfiles(JsonSerializer.Deserialize(utf8Stream, SourceGenerationContext.Default.JsonElement));
     }
 
     /// <summary>
@@ -83,7 +85,8 @@ public static class ArtifactToolProfileUtil
     public static ArtifactToolProfile[] DeserializeProfiles(Stream utf8Stream, JsonSerializerOptions options)
     {
         if (options == null) throw new ArgumentNullException(nameof(options));
-        return DeserializeProfiles(JsonSerializer.Deserialize<JsonElement>(utf8Stream), options);
+        var re = new SourceGenerationContext(options);
+        return DeserializeProfiles(JsonSerializer.Deserialize(utf8Stream, re.JsonElement), options);
     }
 
     /// <summary>
@@ -107,7 +110,8 @@ public static class ArtifactToolProfileUtil
     {
         if (options == null) throw new ArgumentNullException(nameof(options));
         if (profiles == null) throw new ArgumentNullException(nameof(profiles));
-        JsonSerializer.Serialize(utf8Stream, profiles, options);
+        var re = new SourceGenerationContext(options);
+        JsonSerializer.Serialize(utf8Stream, profiles, re.ArtifactToolProfileArray);
     }
 
     /// <summary>
@@ -129,9 +133,10 @@ public static class ArtifactToolProfileUtil
     public static ArtifactToolProfile[] DeserializeProfiles(JsonElement element, JsonSerializerOptions options)
     {
         if (options == null) throw new ArgumentNullException(nameof(options));
+        var re = new SourceGenerationContext(options);
         if (element.ValueKind == JsonValueKind.Object)
-            return new[] { element.Deserialize<ArtifactToolProfile>(options) ?? throw new InvalidDataException() };
-        return element.Deserialize<ArtifactToolProfile[]>(options) ?? throw new InvalidDataException();
+            return new[] { element.Deserialize(re.ArtifactToolProfile) ?? throw new InvalidDataException() };
+        return element.Deserialize(re.ArtifactToolProfileArray) ?? throw new InvalidDataException();
     }
 
     /// <summary>
@@ -153,7 +158,8 @@ public static class ArtifactToolProfileUtil
     {
         if (options == null) throw new ArgumentNullException(nameof(options));
         if (profiles == null) throw new ArgumentNullException(nameof(profiles));
-        return JsonSerializer.SerializeToElement(profiles, options);
+        var re = new SourceGenerationContext(options);
+        return JsonSerializer.SerializeToElement(profiles, re.ArtifactToolProfileArray);
     }
 
     private static readonly Regex s_toolRegex = new(@"^([\S\s]+)::([\S\s]+)$");

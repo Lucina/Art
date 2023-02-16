@@ -1,7 +1,6 @@
 using System.Diagnostics;
 using System.Security.Cryptography;
 using System.Text.Json;
-using System.Text.Json.Serialization;
 
 namespace Art.BrowserCookies.Chromium;
 
@@ -40,7 +39,7 @@ internal static class ChromiumKeychainUtil
         string encryptedKey;
         using (var stream = File.OpenRead(file))
         {
-            encryptedKey = (await JsonSerializer.DeserializeAsync<WindowsLocalState>(stream, cancellationToken: cancellationToken).ConfigureAwait(false) ?? throw new InvalidDataException()).OsCrypt.EncryptedKey;
+            encryptedKey = (await JsonSerializer.DeserializeAsync(stream, SourceGenerationContext.Default.ChromiumWindowsLocalState, cancellationToken: cancellationToken).ConfigureAwait(false) ?? throw new InvalidDataException()).OsCrypt.EncryptedKey;
         }
         byte[] data = Convert.FromBase64String(encryptedKey)[5..];
         byte[] res = ProtectedData.Unprotect(data, null, DataProtectionScope.CurrentUser);
@@ -49,8 +48,4 @@ internal static class ChromiumKeychainUtil
         res.AsSpan().Clear();
         return keychain;
     }
-
-    private record WindowsLocalState([property: JsonPropertyName("os_crypt")] WindowsLocalStateOsCrypt OsCrypt);
-
-    private record WindowsLocalStateOsCrypt([property: JsonPropertyName("encrypted_key")] string EncryptedKey);
 }

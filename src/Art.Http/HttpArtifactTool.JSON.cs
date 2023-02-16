@@ -1,4 +1,5 @@
-﻿using System.Net.Http.Headers;
+﻿using System.Diagnostics.CodeAnalysis;
+using System.Net.Http.Headers;
 using System.Text.Json;
 
 namespace Art.Http;
@@ -21,6 +22,7 @@ public partial class HttpArtifactTool
     /// <remarks>
     /// This overload uses <see cref="IArtifactTool.JsonOptions"/> member automatically.
     /// </remarks>
+    [RequiresUnreferencedCode("JSON serialization and deserialization might require types that cannot be statically analyzed. Use the overload that takes a JsonTypeInfo or JsonSerializerContext, or make sure all of the required types are preserved.")] // TODO alt
     public async Task<T?> GetDeserializedJsonAsync<T>(
         string requestUri,
         HttpRequestConfig? httpRequestConfig = null,
@@ -49,6 +51,7 @@ public partial class HttpArtifactTool
     /// <remarks>
     /// This overload uses <see cref="IArtifactTool.JsonOptions"/> member automatically.
     /// </remarks>
+    [RequiresUnreferencedCode("JSON serialization and deserialization might require types that cannot be statically analyzed. Use the overload that takes a JsonTypeInfo or JsonSerializerContext, or make sure all of the required types are preserved.")] // TODO alt
     public async Task<T> GetDeserializedRequiredJsonAsync<T>(
         string requestUri,
         HttpRequestConfig? httpRequestConfig = null,
@@ -69,6 +72,7 @@ public partial class HttpArtifactTool
     /// <exception cref="TaskCanceledException">Thrown with <see cref="TimeoutException"/> <see cref="Exception.InnerException"/> for a timeout.</exception>
     /// <exception cref="HttpRequestException">Thrown for issues with request excluding non-success server responses.</exception>
     /// <exception cref="ArtHttpResponseMessageException">Thrown on HTTP response indicating non-successful response.</exception>
+    [RequiresUnreferencedCode("JSON serialization and deserialization might require types that cannot be statically analyzed. Use the overload that takes a JsonTypeInfo or JsonSerializerContext, or make sure all of the required types are preserved.")] // TODO alt
     public async Task<T?> GetDeserializedJsonAsync<T>(
         string requestUri,
         JsonSerializerOptions? jsonSerializerOptions,
@@ -96,6 +100,7 @@ public partial class HttpArtifactTool
     /// <exception cref="HttpRequestException">Thrown for issues with request excluding non-success server responses.</exception>
     /// <exception cref="ArtHttpResponseMessageException">Thrown on HTTP response indicating non-successful response.</exception>
     /// <exception cref="NullJsonDataException">Thrown for null JSON value.</exception>
+    [RequiresUnreferencedCode("JSON serialization and deserialization might require types that cannot be statically analyzed. Use the overload that takes a JsonTypeInfo or JsonSerializerContext, or make sure all of the required types are preserved.")] // TODO alt
     public async Task<T> GetDeserializedRequiredJsonAsync<T>(
         string requestUri,
         JsonSerializerOptions? jsonSerializerOptions,
@@ -119,6 +124,7 @@ public partial class HttpArtifactTool
     /// <remarks>
     /// This overload uses <see cref="IArtifactTool.JsonOptions"/> member automatically.
     /// </remarks>
+    [RequiresUnreferencedCode("JSON serialization and deserialization might require types that cannot be statically analyzed. Use the overload that takes a JsonTypeInfo or JsonSerializerContext, or make sure all of the required types are preserved.")] // TODO alt
     public async Task<T?> GetDeserializedJsonAsync<T>(
         Uri requestUri,
         HttpRequestConfig? httpRequestConfig = null,
@@ -147,6 +153,7 @@ public partial class HttpArtifactTool
     /// <remarks>
     /// This overload uses <see cref="IArtifactTool.JsonOptions"/> member automatically.
     /// </remarks>
+    [RequiresUnreferencedCode("JSON serialization and deserialization might require types that cannot be statically analyzed. Use the overload that takes a JsonTypeInfo or JsonSerializerContext, or make sure all of the required types are preserved.")] // TODO alt
     public async Task<T> GetDeserializedRequiredJsonAsync<T>(
         Uri requestUri,
         HttpRequestConfig? httpRequestConfig = null,
@@ -167,6 +174,7 @@ public partial class HttpArtifactTool
     /// <exception cref="TaskCanceledException">Thrown with <see cref="TimeoutException"/> <see cref="Exception.InnerException"/> for a timeout.</exception>
     /// <exception cref="HttpRequestException">Thrown for issues with request excluding non-success server responses.</exception>
     /// <exception cref="ArtHttpResponseMessageException">Thrown on HTTP response indicating non-successful response.</exception>
+    [RequiresUnreferencedCode("JSON serialization and deserialization might require types that cannot be statically analyzed. Use the overload that takes a JsonTypeInfo or JsonSerializerContext, or make sure all of the required types are preserved.")] // TODO alt
     public async Task<T?> GetDeserializedJsonAsync<T>(
         Uri requestUri,
         JsonSerializerOptions? jsonSerializerOptions,
@@ -194,6 +202,7 @@ public partial class HttpArtifactTool
     /// <exception cref="HttpRequestException">Thrown for issues with request excluding non-success server responses.</exception>
     /// <exception cref="ArtHttpResponseMessageException">Thrown on HTTP response indicating non-successful response.</exception>
     /// <exception cref="NullJsonDataException">Thrown for null JSON value.</exception>
+    [RequiresUnreferencedCode("JSON serialization and deserialization might require types that cannot be statically analyzed. Use the overload that takes a JsonTypeInfo or JsonSerializerContext, or make sure all of the required types are preserved.")] // TODO alt
     public async Task<T> GetDeserializedRequiredJsonAsync<T>(
         Uri requestUri,
         JsonSerializerOptions? jsonSerializerOptions,
@@ -217,6 +226,7 @@ public partial class HttpArtifactTool
     /// <remarks>
     /// This overload uses <see cref="IArtifactTool.JsonOptions"/> member automatically.
     /// </remarks>
+    [RequiresUnreferencedCode("JSON serialization and deserialization might require types that cannot be statically analyzed. Use the overload that takes a JsonTypeInfo or JsonSerializerContext, or make sure all of the required types are preserved.")] // TODO alt
     public async Task<T?> RetrieveDeserializedJsonAsync<T>(
         HttpRequestMessage requestMessage,
         HttpRequestConfig? httpRequestConfig = null,
@@ -243,6 +253,7 @@ public partial class HttpArtifactTool
     /// <remarks>
     /// This overload uses <see cref="IArtifactTool.JsonOptions"/> member automatically.
     /// </remarks>
+    [RequiresUnreferencedCode("JSON serialization and deserialization might require types that cannot be statically analyzed. Use the overload that takes a JsonTypeInfo or JsonSerializerContext, or make sure all of the required types are preserved.")] // TODO alt
     public async Task<T> RetrieveDeserializedRequiredJsonAsync<T>(
         HttpRequestMessage requestMessage,
         HttpRequestConfig? httpRequestConfig = null,
@@ -263,6 +274,7 @@ public partial class HttpArtifactTool
     /// <exception cref="TaskCanceledException">Thrown with <see cref="TimeoutException"/> <see cref="Exception.InnerException"/> for a timeout.</exception>
     /// <exception cref="HttpRequestException">Thrown for issues with request excluding non-success server responses.</exception>
     /// <exception cref="ArtHttpResponseMessageException">Thrown on HTTP response indicating non-successful response.</exception>
+    [RequiresUnreferencedCode("JSON serialization and deserialization might require types that cannot be statically analyzed. Use the overload that takes a JsonTypeInfo or JsonSerializerContext, or make sure all of the required types are preserved.")] // TODO alt
     public async Task<T?> RetrieveDeserializedJsonAsync<T>(
         HttpRequestMessage requestMessage,
         JsonSerializerOptions? jsonSerializerOptions,
@@ -288,6 +300,7 @@ public partial class HttpArtifactTool
     /// <exception cref="HttpRequestException">Thrown for issues with request excluding non-success server responses.</exception>
     /// <exception cref="ArtHttpResponseMessageException">Thrown on HTTP response indicating non-successful response.</exception>
     /// <exception cref="NullJsonDataException">Thrown for null JSON value.</exception>
+    [RequiresUnreferencedCode("JSON serialization and deserialization might require types that cannot be statically analyzed. Use the overload that takes a JsonTypeInfo or JsonSerializerContext, or make sure all of the required types are preserved.")] // TODO alt
     public async Task<T> RetrieveDeserializedRequiredJsonAsync<T>(
         HttpRequestMessage requestMessage,
         JsonSerializerOptions? jsonSerializerOptions,
@@ -309,6 +322,7 @@ public partial class HttpArtifactTool
     /// <remarks>
     /// This overload uses <see cref="IArtifactTool.JsonOptions"/> member automatically.
     /// </remarks>
+    [RequiresUnreferencedCode("JSON serialization and deserialization might require types that cannot be statically analyzed. Use the overload that takes a JsonTypeInfo or JsonSerializerContext, or make sure all of the required types are preserved.")] // TODO alt
     public Task<T?> DeserializeJsonWithDebugAsync<T>(
         HttpResponseMessage response,
         CancellationToken cancellationToken = default)
@@ -329,6 +343,7 @@ public partial class HttpArtifactTool
     /// <remarks>
     /// This overload uses <see cref="IArtifactTool.JsonOptions"/> member automatically.
     /// </remarks>
+    [RequiresUnreferencedCode("JSON serialization and deserialization might require types that cannot be statically analyzed. Use the overload that takes a JsonTypeInfo or JsonSerializerContext, or make sure all of the required types are preserved.")] // TODO alt
     public Task<T> DeserializeRequiredJsonWithDebugAsync<T>(
         HttpResponseMessage response,
         CancellationToken cancellationToken = default)
@@ -346,6 +361,7 @@ public partial class HttpArtifactTool
     /// <returns>Task returning value.</returns>
     /// <exception cref="HttpRequestException">Thrown for issues with request excluding non-success server responses.</exception>
     /// <exception cref="ArtHttpResponseMessageException">Thrown on HTTP response indicating non-successful response.</exception>
+    [RequiresUnreferencedCode("JSON serialization and deserialization might require types that cannot be statically analyzed. Use the overload that takes a JsonTypeInfo or JsonSerializerContext, or make sure all of the required types are preserved.")] // TODO alt
     public async Task<T?> DeserializeJsonWithDebugAsync<T>(
         HttpResponseMessage response,
         JsonSerializerOptions? jsonSerializerOptions,
@@ -370,6 +386,7 @@ public partial class HttpArtifactTool
     /// <exception cref="HttpRequestException">Thrown for issues with request excluding non-success server responses.</exception>
     /// <exception cref="ArtHttpResponseMessageException">Thrown on HTTP response indicating non-successful response.</exception>
     /// <exception cref="NullJsonDataException">Thrown for null JSON value.</exception>
+    [RequiresUnreferencedCode("JSON serialization and deserialization might require types that cannot be statically analyzed. Use the overload that takes a JsonTypeInfo or JsonSerializerContext, or make sure all of the required types are preserved.")] // TODO alt
     public async Task<T> DeserializeRequiredJsonWithDebugAsync<T>(
         HttpResponseMessage response,
         JsonSerializerOptions? jsonSerializerOptions,

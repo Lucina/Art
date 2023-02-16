@@ -1,13 +1,13 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <PackageVersion>0.47.2</PackageVersion>
+    <PackageVersion>0.48.0</PackageVersion>
     <AssemblyVersion>1.0.0</AssemblyVersion>
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Art" Version="0.47.0" />
-    <!--<ProjectReference Include="..\Art\Art.csproj" />-->
+    <!--<PackageReference Include="Art" Version="0.48.0" />-->
+    <ProjectReference Include="..\Art\Art.csproj" />
   </ItemGroup>
 
   <PropertyGroup>
@@ -16,6 +16,7 @@
     <Nullable>enable</Nullable>
     <NoWarn>NU5105</NoWarn>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <IsTrimmable>true</IsTrimmable>
   </PropertyGroup>
 
   <PropertyGroup>

@@ -115,7 +115,7 @@ public abstract partial class HttpArtifactTool : ArtifactTool
         _cookieContainer = await CreateCookieContainerAsync(cancellationToken).ConfigureAwait(false);
         _httpMessageHandler = CreateHttpMessageHandler();
         _httpClient = CreateHttpClient(_httpMessageHandler);
-        string userAgent = TryGetOption(OptUserAgent, out string? customUserAgent) ? customUserAgent : DefaultUserAgent;
+        string userAgent = TryGetOption(OptUserAgent, out string? customUserAgent, SourceGenerationContext.Default.String) ? customUserAgent : DefaultUserAgent;
         _httpClient.DefaultRequestHeaders.UserAgent.TryParseAdd(userAgent);
     }
 
@@ -150,9 +150,9 @@ public abstract partial class HttpArtifactTool : ArtifactTool
     /// <returns>True if necessary keys were found.</returns>
     public async Task<bool> TryLoadBrowserCookiesFromOptionAsync(CookieContainer cookies, string optKeyBrowserName, string optKeyBrowserDomains, string? optKeyProfile, CancellationToken cancellationToken = default)
     {
-        if (TryGetOption(optKeyBrowserName, out string? browserName) && TryGetOption(optKeyBrowserDomains, out string[]? domains))
+        if (TryGetOption(optKeyBrowserName, out string? browserName, SourceGenerationContext.Default.String) && TryGetOption(optKeyBrowserDomains, out string[]? domains, SourceGenerationContext.Default.StringArray))
         {
-            string? profile = optKeyProfile != null && TryGetOption(optKeyProfile, out string? profileValue) ? profileValue : null;
+            string? profile = optKeyProfile != null && TryGetOption(optKeyProfile, out string? profileValue, SourceGenerationContext.Default.String) ? profileValue : null;
             var mappedDomains = domains.Select(v => new CookieFilter(v)).ToList();
             await CookieSource.LoadCookiesAsync(cookies, mappedDomains, browserName, profile, cancellationToken: cancellationToken).ConfigureAwait(false);
         }
@@ -168,7 +168,7 @@ public abstract partial class HttpArtifactTool : ArtifactTool
     /// <returns>True if option key was found.</returns>
     public async Task<bool> TryLoadCookieFileFromOptionAsync(CookieContainer cookies, string optKey, CancellationToken cancellationToken = default)
     {
-        if (TryGetOption(optKey, out string? cookieFile))
+        if (TryGetOption(optKey, out string? cookieFile, SourceGenerationContext.Default.String))
         {
             using StreamReader f = File.OpenText(cookieFile);
             await cookies.LoadCookieFileAsync(f, cancellationToken).ConfigureAwait(false);

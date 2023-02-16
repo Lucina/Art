@@ -1,3 +1,4 @@
+using System.Diagnostics.CodeAnalysis;
 using System.Text.Json;
 
 namespace Art.Common;
@@ -38,6 +39,7 @@ public partial class ArtifactTool
     /// <param name="options">Output options.</param>
     /// <param name="cancellationToken">Cancellation token.</param>
     /// <returns>Task.</returns>
+    [RequiresUnreferencedCode("JSON serialization and deserialization might require types that cannot be statically analyzed. Use the overload that takes a JsonTypeInfo or JsonSerializerContext, or make sure all of the required types are preserved.")] // TODO alt
     public async Task OutputJsonAsync<T>(T data, ArtifactResourceKey key, OutputStreamOptions? options = null, CancellationToken cancellationToken = default)
         => await DataManager.OutputJsonAsync(data, JsonOptions, key, options, cancellationToken).ConfigureAwait(false);
 
@@ -51,6 +53,7 @@ public partial class ArtifactTool
     /// <param name="options">Output options.</param>
     /// <param name="cancellationToken">Cancellation token.</param>
     /// <returns>Task.</returns>
+    [RequiresUnreferencedCode("JSON serialization and deserialization might require types that cannot be statically analyzed. Use the overload that takes a JsonTypeInfo or JsonSerializerContext, or make sure all of the required types are preserved.")] // TODO alt
     public async Task OutputJsonAsync<T>(T data, ArtifactKey key, string file, string path = "", OutputStreamOptions? options = null, CancellationToken cancellationToken = default)
         => await OutputJsonAsync(data, JsonOptions, new ArtifactResourceKey(key, file, path), options, cancellationToken).ConfigureAwait(false);
 
@@ -63,6 +66,7 @@ public partial class ArtifactTool
     /// <param name="options">Output options.</param>
     /// <param name="cancellationToken">Cancellation token.</param>
     /// <returns>Task.</returns>
+    [RequiresUnreferencedCode("JSON serialization and deserialization might require types that cannot be statically analyzed. Use the overload that takes a JsonTypeInfo or JsonSerializerContext, or make sure all of the required types are preserved.")] // TODO alt
     public async Task OutputJsonAsync<T>(T data, JsonSerializerOptions jsonSerializerOptions, ArtifactResourceKey key, OutputStreamOptions? options = null, CancellationToken cancellationToken = default)
         => await DataManager.OutputJsonAsync(data, jsonSerializerOptions, key, options, cancellationToken).ConfigureAwait(false);
 
@@ -77,6 +81,7 @@ public partial class ArtifactTool
     /// <param name="options">Output options.</param>
     /// <param name="cancellationToken">Cancellation token.</param>
     /// <returns>Task.</returns>
+    [RequiresUnreferencedCode("JSON serialization and deserialization might require types that cannot be statically analyzed. Use the overload that takes a JsonTypeInfo or JsonSerializerContext, or make sure all of the required types are preserved.")] // TODO alt
     public async Task OutputJsonAsync<T>(T data, JsonSerializerOptions jsonSerializerOptions, ArtifactKey key, string file, string path = "", OutputStreamOptions? options = null, CancellationToken cancellationToken = default)
         => await OutputJsonAsync(data, jsonSerializerOptions, new ArtifactResourceKey(key, file, path), options, cancellationToken).ConfigureAwait(false);
 

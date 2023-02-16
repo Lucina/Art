@@ -1,4 +1,5 @@
-﻿using System.Text.Json;
+﻿using System.Diagnostics.CodeAnalysis;
+using System.Text.Json;
 
 namespace Art.Common.Resources;
 
@@ -12,6 +13,7 @@ namespace Art.Common.Resources;
 /// <param name="Updated">Updated date.</param>
 /// <param name="Version">Version.</param>
 /// <param name="Checksum">Checksum.</param>
+[RequiresUnreferencedCode("JSON serialization and deserialization might require types that cannot be statically analyzed. Use the overload that takes a JsonTypeInfo or JsonSerializerContext, or make sure all of the required types are preserved.")] // TODO alt
 public record JsonArtifactResourceInfo<T>(T Resource, JsonSerializerOptions? SerializerOptions, ArtifactResourceKey Key, string? ContentType = "application/json", DateTimeOffset? Updated = null, string? Version = null, Checksum? Checksum = null)
     : ArtifactResourceInfo(Key, ContentType, Updated, Version, Checksum)
 {
@@ -38,6 +40,7 @@ public partial class ArtifactDataExtensions
     /// <param name="updated">Updated date.</param>
     /// <param name="version">Version.</param>
     /// <param name="checksum">Checksum.</param>
+    [RequiresUnreferencedCode("JSON serialization and deserialization might require types that cannot be statically analyzed. Use the overload that takes a JsonTypeInfo or JsonSerializerContext, or make sure all of the required types are preserved.")] // TODO alt
     public static ArtifactDataResource Json<T>(this ArtifactData artifactData, T resource, JsonSerializerOptions? serializerOptions, ArtifactResourceKey key, string? contentType = "application/json", DateTimeOffset? updated = null, string? version = null, Checksum? checksum = null)
         => new(artifactData, new JsonArtifactResourceInfo<T>(resource, serializerOptions, key, contentType, updated, version, checksum));
 
@@ -53,6 +56,7 @@ public partial class ArtifactDataExtensions
     /// <param name="updated">Updated date.</param>
     /// <param name="version">Version.</param>
     /// <param name="checksum">Checksum.</param>
+    [RequiresUnreferencedCode("JSON serialization and deserialization might require types that cannot be statically analyzed. Use the overload that takes a JsonTypeInfo or JsonSerializerContext, or make sure all of the required types are preserved.")] // TODO alt
     public static ArtifactDataResource Json<T>(this ArtifactData artifactData, T resource, JsonSerializerOptions? serializerOptions, string file, string path = "", string? contentType = "application/json", DateTimeOffset? updated = null, string? version = null, Checksum? checksum = null)
         => new(artifactData, new JsonArtifactResourceInfo<T>(resource, serializerOptions, new ArtifactResourceKey(artifactData.Info.Key, file, path), contentType, updated, version, checksum));
 
@@ -66,6 +70,7 @@ public partial class ArtifactDataExtensions
     /// <param name="updated">Updated date.</param>
     /// <param name="version">Version.</param>
     /// <param name="checksum">Checksum.</param>
+    [RequiresUnreferencedCode("JSON serialization and deserialization might require types that cannot be statically analyzed. Use the overload that takes a JsonTypeInfo or JsonSerializerContext, or make sure all of the required types are preserved.")] // TODO alt
     public static ArtifactDataResource Json<T>(this ArtifactData artifactData, T resource, ArtifactResourceKey key, string? contentType = "application/json", DateTimeOffset? updated = null, string? version = null, Checksum? checksum = null)
         => new(artifactData, new JsonArtifactResourceInfo<T>(resource, artifactData.Tool?.JsonOptions, key, contentType, updated, version, checksum));
 
@@ -80,6 +85,7 @@ public partial class ArtifactDataExtensions
     /// <param name="updated">Updated date.</param>
     /// <param name="version">Version.</param>
     /// <param name="checksum">Checksum.</param>
+    [RequiresUnreferencedCode("JSON serialization and deserialization might require types that cannot be statically analyzed. Use the overload that takes a JsonTypeInfo or JsonSerializerContext, or make sure all of the required types are preserved.")] // TODO alt
     public static ArtifactDataResource Json<T>(this ArtifactData artifactData, T resource, string file, string path = "", string? contentType = "application/json", DateTimeOffset? updated = null, string? version = null, Checksum? checksum = null)
         => new(artifactData, new JsonArtifactResourceInfo<T>(resource, artifactData.Tool?.JsonOptions, new ArtifactResourceKey(artifactData.Info.Key, file, path), contentType, updated, version, checksum));
 }

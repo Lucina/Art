@@ -1,5 +1,6 @@
 using System.Diagnostics.CodeAnalysis;
 using System.Text.Json;
+using System.Text.Json.Serialization.Metadata;
 
 namespace Art.Common;
 
@@ -19,9 +20,26 @@ public partial class ArtifactTool
     /// <exception cref="JsonException">Thrown when conversion failed.</exception>
     /// <exception cref="NotSupportedException">Thrown when type not supported.</exception>
     /// <exception cref="NullJsonDataException">Thrown for null JSON.</exception>
+    [RequiresUnreferencedCode("JSON serialization and deserialization might require types that cannot be statically analyzed. Use the overload that takes a JsonTypeInfo or JsonSerializerContext, or make sure all of the required types are preserved.")]
     public T GetOption<T>(string optKey)
     {
         return Profile.Options.GetOption<T>(optKey);
+    }
+
+    /// <summary>
+    /// Attempts to get option or throw exception if not found or if null.
+    /// </summary>
+    /// <typeparam name="T">Value type.</typeparam>
+    /// <param name="optKey">Key to search.</param>
+    /// <param name="jsonTypeInfo">JSON type info.</param>
+    /// <returns>Value, if located and nonnull.</returns>
+    /// <exception cref="ArtifactToolOptionNotFoundException">Thrown when option is not found.</exception>
+    /// <exception cref="JsonException">Thrown when conversion failed.</exception>
+    /// <exception cref="NotSupportedException">Thrown when type not supported.</exception>
+    /// <exception cref="NullJsonDataException">Thrown for null JSON.</exception>
+    public T GetOption<T>(string optKey, JsonTypeInfo<T> jsonTypeInfo)
+    {
+        return Profile.Options.GetOption(optKey, jsonTypeInfo);
     }
 
     /// <summary>
@@ -34,9 +52,26 @@ public partial class ArtifactTool
     /// <exception cref="JsonException">Thrown when conversion failed.</exception>
     /// <exception cref="NotSupportedException">Thrown when type not supported.</exception>
     /// <exception cref="NullJsonDataException">Thrown for null JSON.</exception>
+    [RequiresUnreferencedCode("JSON serialization and deserialization might require types that cannot be statically analyzed. Use the overload that takes a JsonTypeInfo or JsonSerializerContext, or make sure all of the required types are preserved.")]
     public void GetOption<T>(string optKey, ref T value, bool throwIfIncorrectType = false)
     {
         Profile.Options.GetOption(optKey, ref value, throwIfIncorrectType);
+    }
+
+    /// <summary>
+    /// Attempts to get option or throw exception if not found or if null.
+    /// </summary>
+    /// <typeparam name="T">Value type.</typeparam>
+    /// <param name="optKey">Key to search.</param>
+    /// <param name="value">Value to set.</param>
+    /// <param name="jsonTypeInfo">JSON type info.</param>
+    /// <param name="throwIfIncorrectType">If true, throw a <see cref="JsonException"/> if type is wrong.</param>
+    /// <exception cref="JsonException">Thrown when conversion failed.</exception>
+    /// <exception cref="NotSupportedException">Thrown when type not supported.</exception>
+    /// <exception cref="NullJsonDataException">Thrown for null JSON.</exception>
+    public void GetOption<T>(string optKey, ref T value, JsonTypeInfo<T> jsonTypeInfo, bool throwIfIncorrectType = false)
+    {
+        Profile.Options.GetOption(optKey, ref value, jsonTypeInfo, throwIfIncorrectType);
     }
 
     /// <summary>
@@ -47,9 +82,24 @@ public partial class ArtifactTool
     /// <param name="value">Value, if located and nonnull.</param>
     /// <param name="throwIfIncorrectType">If true, throw a <see cref="JsonException"/> if type is wrong.</param>
     /// <returns>True if value is located and of the right type.</returns>
+    [RequiresUnreferencedCode("JSON serialization and deserialization might require types that cannot be statically analyzed. Use the overload that takes a JsonTypeInfo or JsonSerializerContext, or make sure all of the required types are preserved.")]
     public bool TryGetOption<T>(string optKey, [NotNullWhen(true)] out T? value, bool throwIfIncorrectType = false)
     {
         return Profile.Options.TryGetOption(optKey, out value, throwIfIncorrectType);
+    }
+
+    /// <summary>
+    /// Attempts to get option.
+    /// </summary>
+    /// <typeparam name="T">Value type.</typeparam>
+    /// <param name="optKey">Key to search.</param>
+    /// <param name="value">Value, if located and nonnull.</param>
+    /// <param name="jsonTypeInfo">JSON type info.</param>
+    /// <param name="throwIfIncorrectType">If true, throw a <see cref="JsonException"/> if type is wrong.</param>
+    /// <returns>True if value is located and of the right type.</returns>
+    public bool TryGetOption<T>(string optKey, [NotNullWhen(true)] out T? value, JsonTypeInfo<T> jsonTypeInfo, bool throwIfIncorrectType = false)
+    {
+        return Profile.Options.TryGetOption(optKey, out value, jsonTypeInfo, throwIfIncorrectType);
     }
 
     #endregion
