@@ -71,9 +71,11 @@ public abstract record ChromiumCookieSource : CookieSource
                                 value = "";
                             }
                         }
+                        long expiry = reader.GetInt64(4);
+                        DateTime expires = expiry == 0 ? DateTime.MinValue : expiryBase.AddMicroseconds(expiry);
                         cookieContainer.Add(new Cookie
                         {
-                            Expires = expiryBase.AddMicroseconds(reader.GetInt64(4)),
+                            Expires = expires,
                             Secure = reader.GetBoolean(5),
                             Name = reader.GetString(0),
                             Value = value,
