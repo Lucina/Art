@@ -1,13 +1,13 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <PackageVersion>0.47.0</PackageVersion>
+    <PackageVersion>0.47.1</PackageVersion>
     <AssemblyVersion>1.0.0</AssemblyVersion>
   </PropertyGroup>
 
   <ItemGroup>
-    <!--<PackageReference Include="Art.Http" Version="0.47.0" />-->
-    <ProjectReference Include="..\Art.Http\Art.Http.csproj" />
+    <PackageReference Include="Art.Http" Version="0.47.0" />
+    <!--<ProjectReference Include="..\Art.Http\Art.Http.csproj" />-->
   </ItemGroup>
 
   <PropertyGroup>
