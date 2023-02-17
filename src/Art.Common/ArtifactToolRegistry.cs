@@ -7,6 +7,11 @@ namespace Art.Common;
 /// </summary>
 public class ArtifactToolRegistry : IArtifactToolRegistry
 {
+    /// <summary>
+    /// Mapping of entries.
+    /// </summary>
+    public IReadOnlyDictionary<ArtifactToolID, ArtifactToolRegistryEntry> Entries => _entries;
+
     private readonly Dictionary<ArtifactToolID, ArtifactToolRegistryEntry> _entries = new();
 
     /// <summary>
@@ -51,6 +56,30 @@ public class ArtifactToolRegistry : IArtifactToolRegistry
     public bool TryAdd<T>() where T : IArtifactToolFactory
     {
         return TryAdd(new ArtifactToolRegistryEntry<T>(T.GetArtifactToolId()));
+    }
+
+    /// <inheritdoc />
+    public bool Contains(ArtifactToolID artifactToolId)
+    {
+        return _entries.ContainsKey(artifactToolId);
+    }
+
+    /// <summary>
+    /// Attempts to remove an entry from the registry.
+    /// </summary>
+    /// <param name="artifactToolId">Artifact tool ID.</param>
+    /// <returns>True if successfully removed.</returns>
+    public bool Remove(ArtifactToolID artifactToolId)
+    {
+        return _entries.Remove(artifactToolId);
+    }
+
+    /// <summary>
+    /// Removes all contained entries.
+    /// </summary>
+    public void Clear()
+    {
+        _entries.Clear();
     }
 
     /// <summary>

@@ -1,0 +1,101 @@
+﻿using System.Diagnostics.CodeAnalysis;
+
+namespace Art.Common;
+
+/// <summary>
+/// Represents an aggregate registry that tries registries in LIFO order.
+/// </summary>
+public class AggregateArtifactToolRegistry : IArtifactToolRegistry
+{
+    /// <summary>
+    /// Contained registries.
+    /// </summary>
+    public IReadOnlyList<IArtifactToolRegistry> Registries => _registries;
+
+    private readonly List<IArtifactToolRegistry> _registries = new();
+
+    /// <summary>
+    /// Adds a registry.
+    /// </summary>
+    /// <param name="registry">Registry to add.</param>
+    /// <exception cref="ArgumentException">Thrown if registry was already added.</exception>
+    public void Add(IArtifactToolRegistry registry)
+    {
+        if (_registries.Contains(registry))
+        {
+            throw new ArgumentException("Cannot add existing registry. It must first be removed.");
+        }
+        _registries.Add(registry);
+    }
+
+    /// <summary>
+    /// Attempts to add a registry.
+    /// </summary>
+    /// <param name="registry">Registry to add.</param>
+    /// <returns>True if registry was added.</returns>
+    /// <remarks>This method can return false if the registry was already added - entries must be removed before they are added again.</remarks>
+    public bool TryAdd(IArtifactToolRegistry registry)
+    {
+        if (_registries.Contains(registry))
+        {
+            return false;
+        }
+        _registries.Add(registry);
+        return true;
+    }
+
+    /// <summary>
+    /// Checks if registry is contained in this registry.
+    /// </summary>
+    /// <param name="registry">Registry.</param>
+    /// <returns>True if contained.</returns>
+    public bool Contains(ArtifactToolRegistry registry)
+    {
+        return _registries.Contains(registry);
+    }
+
+    /// <summary>
+    /// Attempts to remove a registry.
+    /// </summary>
+    /// <param name="registry">Registry to remove.</param>
+    /// <returns>True if successfully removed.</returns>
+    public bool Remove(IArtifactToolRegistry registry)
+    {
+        return _registries.Remove(registry);
+    }
+
+    /// <summary>
+    /// Removes all contained registries.
+    /// </summary>
+    public void Clear()
+    {
+        _registries.Clear();
+    }
+
+    /// <inheritdoc />
+    public bool Contains(ArtifactToolID artifactToolId)
+    {
+        foreach (var registry in _registries)
+        {
+            if (registry.Contains(artifactToolId))
+            {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /// <inheritdoc />
+    public bool TryLoad(ArtifactToolID artifactToolId, [NotNullWhen(true)] out IArtifactTool? tool)
+    {
+        for (int i = _registries.Count - 1; i >= 0; i--)
+        {
+            if (_registries[i].TryLoad(artifactToolId, out tool))
+            {
+                return true;
+            }
+        }
+        tool = null;
+        return false;
+    }
+}

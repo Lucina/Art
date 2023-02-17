@@ -8,6 +8,13 @@ namespace Art.Common;
 public interface IArtifactToolRegistry
 {
     /// <summary>
+    /// Checks if tool entry with specified name is contained in this registry.
+    /// </summary>
+    /// <param name="artifactToolId">Artifact tool ID.</param>
+    /// <returns>True if tool entry exists..</returns>
+    bool Contains(ArtifactToolID artifactToolId);
+
+    /// <summary>
     /// Attempts to create an artifact tool for the specified name.
     /// </summary>
     /// <param name="artifactToolId">Artifact tool ID.</param>
