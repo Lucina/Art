@@ -21,7 +21,7 @@ public static class ArtifactDumping
     /// <param name="cancellationToken">Cancellation token.</param>
     /// <returns>Task.</returns>
     /// <exception cref="ArtifactToolNotFoundException">Thrown when tool is not found.</exception>
-    [RequiresUnreferencedCode("Loading artifact tools might require types that cannot be statically analyzed.")]
+    [RequiresUnreferencedCode($"Loading artifact tools might require types that cannot be statically analyzed. Consider making use of the overload that takes {nameof(IArtifactToolRegistry)} when possible.")]
     public static async Task DumpAsync(string artifactToolProfilePath, string targetDirectory, ArtifactToolDumpOptions? dumpOptions = null, IToolLogHandler? toolLogHandler = null, CancellationToken cancellationToken = default)
     {
         dumpOptions ??= new ArtifactToolDumpOptions();
@@ -42,7 +42,7 @@ public static class ArtifactDumping
     /// <param name="cancellationToken">Cancellation token.</param>
     /// <returns>Task.</returns>
     /// <exception cref="ArtifactToolNotFoundException">Thrown when tool is not found.</exception>
-    [RequiresUnreferencedCode("Loading artifact tools might require types that cannot be statically analyzed.")]
+    [RequiresUnreferencedCode($"Loading artifact tools might require types that cannot be statically analyzed. Consider making use of the overload that takes {nameof(IArtifactToolRegistry)} when possible.")]
     public static async Task DumpAsync(AssemblyLoadContext assemblyLoadContext, string artifactToolProfilePath, string targetDirectory, ArtifactToolDumpOptions? dumpOptions = null, IToolLogHandler? toolLogHandler = null, CancellationToken cancellationToken = default)
     {
         dumpOptions ??= new ArtifactToolDumpOptions();
@@ -50,6 +50,26 @@ public static class ArtifactDumping
         var sdm = new DiskArtifactDataManager(targetDirectory);
         foreach (ArtifactToolProfile profile in ArtifactToolProfileUtil.DeserializeProfilesFromFile(artifactToolProfilePath))
             await DumpAsync(assemblyLoadContext, profile, srm, sdm, dumpOptions, toolLogHandler, cancellationToken).ConfigureAwait(false);
+    }
+
+    /// <summary>
+    /// Directly dumps using a tool profile stored on disk.
+    /// </summary>
+    /// <param name="artifactToolRegistry">Custom <see cref="IArtifactToolRegistry"/>.</param>
+    /// <param name="artifactToolProfilePath">Path to tool profile.</param>
+    /// <param name="targetDirectory">Base directory.</param>
+    /// <param name="dumpOptions">Dump options.</param>
+    /// <param name="toolLogHandler">Tool log handler.</param>
+    /// <param name="cancellationToken">Cancellation token.</param>
+    /// <returns>Task.</returns>
+    /// <exception cref="ArtifactToolNotFoundException">Thrown when tool is not found.</exception>
+    public static async Task DumpAsync(IArtifactToolRegistry artifactToolRegistry, string artifactToolProfilePath, string targetDirectory, ArtifactToolDumpOptions? dumpOptions = null, IToolLogHandler? toolLogHandler = null, CancellationToken cancellationToken = default)
+    {
+        dumpOptions ??= new ArtifactToolDumpOptions();
+        var srm = new DiskArtifactRegistrationManager(targetDirectory);
+        var sdm = new DiskArtifactDataManager(targetDirectory);
+        foreach (ArtifactToolProfile profile in ArtifactToolProfileUtil.DeserializeProfilesFromFile(artifactToolProfilePath))
+            await DumpAsync(artifactToolRegistry, profile, srm, sdm, dumpOptions, toolLogHandler, cancellationToken).ConfigureAwait(false);
     }
 
     /// <summary>
@@ -64,7 +84,7 @@ public static class ArtifactDumping
     /// <returns>Task.</returns>
     /// <exception cref="ArgumentException">Thrown when an invalid profile is provided.</exception>
     /// <exception cref="ArtifactToolNotFoundException">Thrown when tool is not found.</exception>
-    [RequiresUnreferencedCode("Loading artifact tools might require types that cannot be statically analyzed.")]
+    [RequiresUnreferencedCode($"Loading artifact tools might require types that cannot be statically analyzed. Consider making use of the overload that takes {nameof(IArtifactToolRegistry)} when possible.")]
     public static async Task DumpAsync(ArtifactToolProfile artifactToolProfile, IArtifactRegistrationManager artifactRegistrationManager, IArtifactDataManager artifactDataManager, ArtifactToolDumpOptions? dumpOptions = null, IToolLogHandler? toolLogHandler = null, CancellationToken cancellationToken = default)
     {
         if (artifactToolProfile.Group == null) throw new ArgumentException("Group not specified in profile");
@@ -85,11 +105,31 @@ public static class ArtifactDumping
     /// <returns>Task.</returns>
     /// <exception cref="ArgumentException">Thrown when an invalid profile is provided.</exception>
     /// <exception cref="ArtifactToolNotFoundException">Thrown when tool is not found.</exception>
-    [RequiresUnreferencedCode("Loading artifact tools might require types that cannot be statically analyzed.")]
+    [RequiresUnreferencedCode($"Loading artifact tools might require types that cannot be statically analyzed. Consider making use of the overload that takes {nameof(IArtifactToolRegistry)} when possible.")]
     public static async Task DumpAsync(AssemblyLoadContext assemblyLoadContext, ArtifactToolProfile artifactToolProfile, IArtifactRegistrationManager artifactRegistrationManager, IArtifactDataManager artifactDataManager, ArtifactToolDumpOptions? dumpOptions = null, IToolLogHandler? toolLogHandler = null, CancellationToken cancellationToken = default)
     {
         if (artifactToolProfile.Group == null) throw new ArgumentException("Group not specified in profile");
         using IArtifactTool tool = await ArtifactTool.PrepareToolAsync(assemblyLoadContext, artifactToolProfile, artifactRegistrationManager, artifactDataManager, cancellationToken).ConfigureAwait(false);
+        await new ArtifactToolDumpProxy(tool, dumpOptions ?? new ArtifactToolDumpOptions(), toolLogHandler).DumpAsync(cancellationToken).ConfigureAwait(false);
+    }
+
+    /// <summary>
+    /// Directly dumps to disk using a tool profile.
+    /// </summary>
+    /// <param name="artifactToolRegistry">Custom <see cref="IArtifactToolRegistry"/>.</param>
+    /// <param name="artifactToolProfile">Tool profile.</param>
+    /// <param name="artifactRegistrationManager">Registration manager.</param>
+    /// <param name="artifactDataManager">Data manager.</param>
+    /// <param name="dumpOptions">Dump options.</param>
+    /// <param name="toolLogHandler">Tool log handler.</param>
+    /// <param name="cancellationToken">Cancellation token.</param>
+    /// <returns>Task.</returns>
+    /// <exception cref="ArgumentException">Thrown when an invalid profile is provided.</exception>
+    /// <exception cref="ArtifactToolNotFoundException">Thrown when tool is not found.</exception>
+    public static async Task DumpAsync(IArtifactToolRegistry artifactToolRegistry, ArtifactToolProfile artifactToolProfile, IArtifactRegistrationManager artifactRegistrationManager, IArtifactDataManager artifactDataManager, ArtifactToolDumpOptions? dumpOptions = null, IToolLogHandler? toolLogHandler = null, CancellationToken cancellationToken = default)
+    {
+        if (artifactToolProfile.Group == null) throw new ArgumentException("Group not specified in profile");
+        using IArtifactTool tool = await ArtifactTool.PrepareToolAsync(artifactToolRegistry, artifactToolProfile, artifactRegistrationManager, artifactDataManager, cancellationToken).ConfigureAwait(false);
         await new ArtifactToolDumpProxy(tool, dumpOptions ?? new ArtifactToolDumpOptions(), toolLogHandler).DumpAsync(cancellationToken).ConfigureAwait(false);
     }
 

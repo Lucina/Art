@@ -165,16 +165,13 @@ public partial class ArtifactTool : IArtifactTool
     /// <returns>Task.</returns>
     /// <exception cref="ArgumentException">Thrown when an invalid profile is provided.</exception>
     /// <exception cref="ArtifactToolNotFoundException">Thrown when tool is not found.</exception>
-    [RequiresUnreferencedCode("Loading artifact tools might require types that cannot be statically analyzed.")]
-    public static async Task<IArtifactTool> PrepareToolAsync(ArtifactToolProfile artifactToolProfile, IArtifactRegistrationManager artifactRegistrationManager, IArtifactDataManager artifactDataManager, CancellationToken cancellationToken = default)
+    [RequiresUnreferencedCode($"Loading artifact tools might require types that cannot be statically analyzed. Consider making use of the overload that takes {nameof(IArtifactToolRegistry)} when possible.")]
+    public static Task<IArtifactTool> PrepareToolAsync(ArtifactToolProfile artifactToolProfile, IArtifactRegistrationManager artifactRegistrationManager, IArtifactDataManager artifactDataManager, CancellationToken cancellationToken = default)
     {
         if (artifactToolProfile.Group == null) throw new ArgumentException("Group not specified in profile");
         if (!ArtifactToolLoader.TryLoad(artifactToolProfile.Tool, out IArtifactTool? t))
             throw new ArtifactToolNotFoundException(artifactToolProfile.Tool);
-        ArtifactToolConfig config = new(artifactRegistrationManager, artifactDataManager);
-        artifactToolProfile = artifactToolProfile.WithCoreTool(t);
-        await t.InitializeAsync(config, artifactToolProfile, cancellationToken).ConfigureAwait(false);
-        return t;
+        return PrepareToolInternalAsync(t, artifactToolProfile, artifactRegistrationManager, artifactDataManager, cancellationToken);
     }
 
     /// <summary>
@@ -188,15 +185,39 @@ public partial class ArtifactTool : IArtifactTool
     /// <returns>Task.</returns>
     /// <exception cref="ArgumentException">Thrown when an invalid profile is provided.</exception>
     /// <exception cref="ArtifactToolNotFoundException">Thrown when tool is not found.</exception>
-    [RequiresUnreferencedCode("Loading artifact tools might require types that cannot be statically analyzed.")]
-    public static async Task<IArtifactTool> PrepareToolAsync(AssemblyLoadContext assemblyLoadContext, ArtifactToolProfile artifactToolProfile, IArtifactRegistrationManager artifactRegistrationManager, IArtifactDataManager artifactDataManager, CancellationToken cancellationToken = default)
+    [RequiresUnreferencedCode($"Loading artifact tools might require types that cannot be statically analyzed. Consider making use of the overload that takes {nameof(IArtifactToolRegistry)} when possible.")]
+    public static Task<IArtifactTool> PrepareToolAsync(AssemblyLoadContext assemblyLoadContext, ArtifactToolProfile artifactToolProfile, IArtifactRegistrationManager artifactRegistrationManager, IArtifactDataManager artifactDataManager, CancellationToken cancellationToken = default)
     {
         if (artifactToolProfile.Group == null) throw new ArgumentException("Group not specified in profile");
         if (!ArtifactToolLoader.TryLoad(assemblyLoadContext, artifactToolProfile.Tool, out IArtifactTool? t))
             throw new ArtifactToolNotFoundException(artifactToolProfile.Tool);
+        return PrepareToolInternalAsync(t, artifactToolProfile, artifactRegistrationManager, artifactDataManager, cancellationToken);
+    }
+
+    /// <summary>
+    /// Prepares a tool for the specified profile.
+    /// </summary>
+    /// <param name="artifactToolRegistry">Custom <see cref="IArtifactToolRegistry"/>.</param>
+    /// <param name="artifactToolProfile">Tool profile.</param>
+    /// <param name="artifactRegistrationManager">Registration manager.</param>
+    /// <param name="artifactDataManager">Data manager.</param>
+    /// <param name="cancellationToken">Cancellation token.</param>
+    /// <returns>Task.</returns>
+    /// <exception cref="ArgumentException">Thrown when an invalid profile is provided.</exception>
+    /// <exception cref="ArtifactToolNotFoundException">Thrown when tool is not found.</exception>
+    public static Task<IArtifactTool> PrepareToolAsync(IArtifactToolRegistry artifactToolRegistry, ArtifactToolProfile artifactToolProfile, IArtifactRegistrationManager artifactRegistrationManager, IArtifactDataManager artifactDataManager, CancellationToken cancellationToken = default)
+    {
+        if (artifactToolProfile.Group == null) throw new ArgumentException("Group not specified in profile");
+        if (!artifactToolRegistry.TryLoad(ArtifactToolProfileUtil.GetID(artifactToolProfile.Tool), out IArtifactTool? t))
+            throw new ArtifactToolNotFoundException(artifactToolProfile.Tool);
+        return PrepareToolInternalAsync(t, artifactToolProfile, artifactRegistrationManager, artifactDataManager, cancellationToken);
+    }
+
+    private static async Task<IArtifactTool> PrepareToolInternalAsync(IArtifactTool tool, ArtifactToolProfile artifactToolProfile, IArtifactRegistrationManager artifactRegistrationManager, IArtifactDataManager artifactDataManager, CancellationToken cancellationToken = default)
+    {
         ArtifactToolConfig config = new(artifactRegistrationManager, artifactDataManager);
-        artifactToolProfile = artifactToolProfile.WithCoreTool(t);
-        await t.InitializeAsync(config, artifactToolProfile, cancellationToken).ConfigureAwait(false);
-        return t;
+        artifactToolProfile = artifactToolProfile.WithCoreTool(tool);
+        await tool.InitializeAsync(config, artifactToolProfile, cancellationToken).ConfigureAwait(false);
+        return tool;
     }
 }
