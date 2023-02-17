@@ -213,6 +213,23 @@ public partial class ArtifactTool : IArtifactTool
         return PrepareToolInternalAsync(t, artifactToolProfile, artifactRegistrationManager, artifactDataManager, cancellationToken);
     }
 
+    /// <summary>
+    /// Prepares a tool for the specified profile.
+    /// </summary>
+    /// <typeparam name="T">Artifact tool factory type.</typeparam>
+    /// <param name="artifactToolProfile">Tool profile.</param>
+    /// <param name="artifactRegistrationManager">Registration manager.</param>
+    /// <param name="artifactDataManager">Data manager.</param>
+    /// <param name="cancellationToken">Cancellation token.</param>
+    /// <returns>Task.</returns>
+    /// <exception cref="ArgumentException">Thrown when an invalid profile is provided.</exception>
+    public static Task<IArtifactTool> PrepareToolAsync<T>(ArtifactToolProfile artifactToolProfile, IArtifactRegistrationManager artifactRegistrationManager, IArtifactDataManager artifactDataManager, CancellationToken cancellationToken = default) where T : IArtifactToolFactory
+    {
+        if (artifactToolProfile.Group == null) throw new ArgumentException("Group not specified in profile");
+        var t = T.CreateArtifactTool();
+        return PrepareToolInternalAsync(t, artifactToolProfile, artifactRegistrationManager, artifactDataManager, cancellationToken);
+    }
+
     private static async Task<IArtifactTool> PrepareToolInternalAsync(IArtifactTool tool, ArtifactToolProfile artifactToolProfile, IArtifactRegistrationManager artifactRegistrationManager, IArtifactDataManager artifactDataManager, CancellationToken cancellationToken = default)
     {
         ArtifactToolConfig config = new(artifactRegistrationManager, artifactDataManager);
