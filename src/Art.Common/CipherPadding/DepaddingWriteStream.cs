@@ -3,7 +3,7 @@ namespace Art.Common.CipherPadding;
 /// <summary>
 /// Represents a stream that uses a <see cref="DepaddingHandler"/> to write de-padded content to a target stream.
 /// </summary>
-public class DepaddingStream : Stream
+public class DepaddingWriteStream : Stream
 {
     private readonly DepaddingHandler _handler;
     private readonly Stream _targetStream;
@@ -12,12 +12,12 @@ public class DepaddingStream : Stream
     private bool _disposed;
 
     /// <summary>
-    /// Initializes a new instance of <see cref="DepaddingStream"/>.
+    /// Initializes a new instance of <see cref="DepaddingWriteStream"/>.
     /// </summary>
     /// <param name="handler">Depadding handler.</param>
     /// <param name="targetStream">Target stream.</param>
     /// <param name="keepOpen">If true, keeps <paramref name="targetStream"/> open after disposal.</param>
-    public DepaddingStream(DepaddingHandler handler, Stream targetStream, bool keepOpen = false)
+    public DepaddingWriteStream(DepaddingHandler handler, Stream targetStream, bool keepOpen = false)
     {
         _handler = handler;
         _targetStream = targetStream;
@@ -32,6 +32,15 @@ public class DepaddingStream : Stream
 
     /// <inheritdoc />
     public override int Read(byte[] buffer, int offset, int count) => throw new NotSupportedException();
+
+    /// <inheritdoc />
+    public override int Read(Span<byte> buffer) => throw new NotSupportedException();
+
+    /// <inheritdoc />
+    public override Task<int> ReadAsync(byte[] buffer, int offset, int count, CancellationToken cancellationToken) => throw new NotSupportedException();
+
+    /// <inheritdoc />
+    public override ValueTask<int> ReadAsync(Memory<byte> buffer, CancellationToken cancellationToken = default) => throw new NotSupportedException();
 
     /// <inheritdoc />
     public override long Seek(long offset, SeekOrigin origin) => throw new NotSupportedException();
@@ -71,7 +80,7 @@ public class DepaddingStream : Stream
     }
 
     /// <inheritdoc />
-    public override async ValueTask WriteAsync(ReadOnlyMemory<byte> buffer, CancellationToken cancellationToken = new CancellationToken())
+    public override async ValueTask WriteAsync(ReadOnlyMemory<byte> buffer, CancellationToken cancellationToken = default)
     {
         if (_handler.TryUpdate(buffer, out var a, out var b))
         {

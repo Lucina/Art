@@ -9,7 +9,7 @@ namespace Art.Common.Tests.CipherPadding;
 public class DepaddingTests
 {
     [Test, Combinatorial]
-    public async Task DepaddingStream_CopyToAsync_Pkcs5Blocks_Valid([Values(0, 1, 1024, 64 * 1024 - 1, 64 * 1024)] int blockCount)
+    public async Task DepaddingWriteStream_CopyToAsync_Pkcs5Blocks_Valid([Values(0, 1, 1024, 64 * 1024 - 1, 64 * 1024)] int blockCount)
     {
         byte[] buf = new byte[blockCount * 8];
         Random.Shared.NextBytes(buf);
@@ -21,7 +21,7 @@ public class DepaddingTests
     }
 
     [Test, Combinatorial]
-    public async Task DepaddingStream_CopyToAsync_Pkcs7Blocks_Valid([Values(0, 1, 1024, 64 * 1024 - 1, 64 * 1024)] int blockCount, [Values(1, 2, 127, 128)] int blockSize)
+    public async Task DepaddingWriteStream_CopyToAsync_Pkcs7Blocks_Valid([Values(0, 1, 1024, 64 * 1024 - 1, 64 * 1024)] int blockCount, [Values(1, 2, 127, 128)] int blockSize)
     {
         byte[] buf = new byte[blockCount * blockSize];
         Random.Shared.NextBytes(buf);
@@ -33,7 +33,7 @@ public class DepaddingTests
     }
 
     [Test]
-    public void DepaddingStream_CopyToAsync_Pkcs5BadPad_InvalidDataException()
+    public void DepaddingWriteStream_CopyToAsync_Pkcs5BadPad_InvalidDataException()
     {
         byte[] buf = new byte[10 * 8];
         Random.Shared.NextBytes(buf);
@@ -43,7 +43,7 @@ public class DepaddingTests
     }
 
     [Test]
-    public void DepaddingStream_CopyToAsync_Pkcs7BadPad_InvalidDataException()
+    public void DepaddingWriteStream_CopyToAsync_Pkcs7BadPad_InvalidDataException()
     {
         byte[] buf = new byte[10 * 17];
         Random.Shared.NextBytes(buf);
@@ -53,7 +53,7 @@ public class DepaddingTests
     }
 
     [Test, Combinatorial]
-    public void DepaddingStream_CopyToAsync_Pkcs5BadLength_InvalidDataException([Range(1, 7)] int sub)
+    public void DepaddingWriteStream_CopyToAsync_Pkcs5BadLength_InvalidDataException([Range(1, 7)] int sub)
     {
         byte[] buf = new byte[10 * 8 - sub];
         Random.Shared.NextBytes(buf);
@@ -62,7 +62,7 @@ public class DepaddingTests
     }
 
     [Test, Combinatorial]
-    public void DepaddingStream_CopyToAsync_Pkcs7BadLength_InvalidDataException([Range(1, 16)] int sub)
+    public void DepaddingWriteStream_CopyToAsync_Pkcs7BadLength_InvalidDataException([Range(1, 16)] int sub)
     {
         byte[] buf = new byte[10 * 17 - sub];
         Random.Shared.NextBytes(buf);
@@ -81,7 +81,7 @@ public class DepaddingTests
     private static async Task<ArraySegment<byte>> CopyToAsync(byte[] buf, DepaddingHandler handler)
     {
         MemoryStream ms = new();
-        using (DepaddingStream ds = new(handler, ms, true))
+        using (DepaddingWriteStream ds = new(handler, ms, true))
             await new MemoryStream(buf).CopyToAsync(ds);
         ms.TryGetBuffer(out var bb);
         return bb;

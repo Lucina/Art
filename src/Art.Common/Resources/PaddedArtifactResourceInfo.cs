@@ -48,7 +48,7 @@ public record PaddedArtifactResourceInfo(ArtPaddingMode ArtPaddingMode, int? Blo
 
     private async Task ExportStreamWithDepaddingHandlerAsync(DepaddingHandler handler, Stream targetStream, CancellationToken cancellationToken)
     {
-        await using DepaddingStream ds = new(handler, targetStream, true);
+        await using DepaddingWriteStream ds = new(handler, targetStream, true);
         await BaseArtifactResourceInfo.ExportStreamAsync(ds, cancellationToken).ConfigureAwait(false);
     }
 
