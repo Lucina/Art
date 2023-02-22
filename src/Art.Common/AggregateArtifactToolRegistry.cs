@@ -5,7 +5,7 @@ namespace Art.Common;
 /// <summary>
 /// Represents an aggregate registry that tries registries in LIFO order.
 /// </summary>
-public class AggregateArtifactToolRegistry : IArtifactToolRegistry
+public class AggregateArtifactToolRegistry : IArtifactToolSelectableRegistry<string>
 {
     /// <summary>
     /// Contained registries.
@@ -96,6 +96,21 @@ public class AggregateArtifactToolRegistry : IArtifactToolRegistry
             }
         }
         tool = null;
+        return false;
+    }
+
+    /// <inheritdoc />
+    public bool TryIdentify(string key, out ArtifactToolID artifactToolId, [NotNullWhen(true)] out string? artifactId)
+    {
+        for (int i = _registries.Count - 1; i >= 0; i--)
+        {
+            if (_registries[i] is IArtifactToolSelectableRegistry<string> selectorRegistry && selectorRegistry.TryIdentify(key, out artifactToolId, out artifactId))
+            {
+                return true;
+            }
+        }
+        artifactToolId = default;
+        artifactId = null;
         return false;
     }
 }

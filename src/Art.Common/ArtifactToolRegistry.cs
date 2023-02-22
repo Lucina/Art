@@ -5,7 +5,7 @@ namespace Art.Common;
 /// <summary>
 /// Provides a registry of artifact tools which can be created as needed.
 /// </summary>
-public class ArtifactToolRegistry : IArtifactToolRegistry
+public class ArtifactToolRegistry : IArtifactToolSelectableRegistry<string>
 {
     /// <summary>
     /// Mapping of entries.
@@ -18,12 +18,12 @@ public class ArtifactToolRegistry : IArtifactToolRegistry
     /// Adds an entry to the registry.
     /// </summary>
     /// <param name="entry">Entry to add.</param>
-    /// <exception cref="ArgumentException">Thrown if entry for name already exists.</exception>
+    /// <exception cref="ArgumentException">Thrown if entry for artifact tool ID already exists.</exception>
     public void Add(ArtifactToolRegistryEntry entry)
     {
         if (_entries.ContainsKey(entry.Id))
         {
-            throw new ArgumentException($"Registry already has an entry by the name {entry}");
+            throw new ArgumentException($"Registry already has an entry for artifact tool ID {entry.Id}");
         }
         _entries.Add(entry.Id, entry);
     }
@@ -36,6 +36,16 @@ public class ArtifactToolRegistry : IArtifactToolRegistry
     public void Add<T>() where T : IArtifactToolFactory
     {
         Add(new ArtifactToolRegistryEntry<T>(T.GetArtifactToolId()));
+    }
+
+    /// <summary>
+    /// Adds an entry to the registry.
+    /// </summary>
+    /// <typeparam name="T">Factory type.</typeparam>
+    /// <exception cref="ArgumentException">Thrown if entry for name already exists.</exception>
+    public void AddSelectable<T>() where T : IArtifactToolFactory, IArtifactToolSelector<string>
+    {
+        Add(new ArtifactToolSelectableRegistryEntry<T>(T.GetArtifactToolId()));
     }
 
     /// <summary>
@@ -96,6 +106,21 @@ public class ArtifactToolRegistry : IArtifactToolRegistry
             return true;
         }
         tool = null;
+        return false;
+    }
+
+    /// <inheritdoc />
+    public bool TryIdentify(string key, out ArtifactToolID artifactToolId, [NotNullWhen(true)] out string? artifactId)
+    {
+        foreach (var entry in _entries.Values)
+        {
+            if (entry is ArtifactToolSelectableRegistryEntry selectorEntry && selectorEntry.TryIdentify(key, out artifactToolId, out artifactId))
+            {
+                return true;
+            }
+        }
+        artifactToolId = default;
+        artifactId = null;
         return false;
     }
 }

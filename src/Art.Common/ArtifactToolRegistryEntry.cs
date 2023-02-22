@@ -25,5 +25,8 @@ public abstract record ArtifactToolRegistryEntry(ArtifactToolID Id)
 public record ArtifactToolRegistryEntry<T>(ArtifactToolID Id) : ArtifactToolRegistryEntry(Id) where T : IArtifactToolFactory
 {
     /// <inheritdoc />
-    public override IArtifactTool CreateArtifactTool() => T.CreateArtifactTool();
+    public override IArtifactTool CreateArtifactTool()
+    {
+        return T.CreateArtifactTool();
+    }
 }
