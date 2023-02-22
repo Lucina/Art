@@ -64,7 +64,6 @@ public class EagerTests
         }
     }
 
-
     private static async IAsyncEnumerable<int> CounterAsync(int start, int count, double delay)
     {
         foreach (int value in Enumerable.Range(start, count))
