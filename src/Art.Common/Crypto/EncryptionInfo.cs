@@ -30,10 +30,41 @@ public record EncryptionInfo(CryptoAlgorithm Algorithm, ReadOnlyMemory<byte> Enc
     public static readonly ReadOnlyMemory<byte> Empty256 = new byte[256 / 8];
 
     /// <summary>
+    /// Gets block size in bits for these encryption settings.
+    /// </summary>
+    /// <returns>Block size in bits, or null if not specified.</returns>
+    /// <exception cref="NotSupportedException">Thrown for unsupported algorithm.</exception>
+    public virtual int? GetBlockSize()
+    {
+        return BlockSize ?? GetAlgorithmBlockSize(Algorithm);
+    }
+
+    /// <summary>
+    /// Gets block size in bits for the specified algorithm.
+    /// </summary>
+    /// <param name="algorithm">Algorithm.</param>
+    /// <returns>Known block size in bits, or null if not specified.</returns>
+    /// <exception cref="NotSupportedException">Thrown for unsupported algorithm.</exception>
+    public static int? GetAlgorithmBlockSize(CryptoAlgorithm algorithm)
+    {
+        return algorithm switch
+        {
+            CryptoAlgorithm.Aes => 128,
+            CryptoAlgorithm.Blowfish => 64,
+            CryptoAlgorithm.Xor => null,
+            CryptoAlgorithm.DES => 64,
+            CryptoAlgorithm.TripleDES => 64,
+            CryptoAlgorithm.RC2 => 64,
+            _ => throw new NotSupportedException(algorithm.ToString()),
+        };
+    }
+
+    /// <summary>
     /// Creates new instance of <see cref="SymmetricAlgorithm"/> configured for these encryption settings.
     /// </summary>
     /// <returns>Symmetric algorithm.</returns>
-    public SymmetricAlgorithm CreateSymmetricAlgorithm()
+    /// <exception cref="NotSupportedException">Thrown for unsupported algorithm.</exception>
+    public virtual SymmetricAlgorithm CreateSymmetricAlgorithm()
     {
         SymmetricAlgorithm alg = Algorithm switch
         {

@@ -51,19 +51,35 @@ public record PaddedArtifactResourceInfo(ArtPaddingMode ArtPaddingMode, int? Blo
     {
         if (BlockSize is { } blockSize)
         {
-            blockSizeBytes = blockSize / 8;
+            blockSizeBytes = GetBlockSizeBytes(blockSize);
         }
         else if (BaseArtifactResourceInfo is EncryptedArtifactResourceInfo({ PaddingMode: System.Security.Cryptography.PaddingMode.None } encryptionInfo, _))
         {
             // Fallback to trying to retrieve block size from base encrypted resource
-            // Only do this if the base resource isn't configured to pad (doesn't make sense to depad a depadded output)
-            using var alg = encryptionInfo.CreateSymmetricAlgorithm();
-            blockSizeBytes = alg.BlockSize / 8;
+            // Only do this if the base resource isn't configured to depad, it doesn't make sense to depad a depadded output
+            // If nested depadding is *really* needed, explicitly set block size in the first place
+            if (encryptionInfo.GetBlockSize() is { } encryptionInfoBlockSize)
+            {
+                blockSizeBytes = GetBlockSizeBytes(encryptionInfoBlockSize);
+            }
+            else
+            {
+                blockSizeBytes = null;
+            }
         }
         else
         {
             blockSizeBytes = null;
         }
+    }
+
+    private static int GetBlockSizeBytes(int blockSizeBits)
+    {
+        if (blockSizeBits % 8 != 0)
+        {
+            throw new NotSupportedException($"Non-byte-aligned block size {blockSizeBits} is not supported");
+        }
+        return blockSizeBits / 8;
     }
 
     private async ValueTask ExportStreamWithDepaddingHandlerAsync(DepaddingHandler handler, Stream targetStream, CancellationToken cancellationToken)
