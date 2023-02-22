@@ -204,8 +204,11 @@ public static class ArtCommonExtensions
     /// Executes enumerable's enumerator independently of move-next calls.
     /// </summary>
     /// <param name="asyncEnumerable">Enumerable.</param>
+    /// <param name="maxPreemptiveAccesses">Maximum number of preemptive accesses (-1 for infinite).</param>
     /// <typeparam name="T">Value type.</typeparam>
     /// <returns>Enumerable.</returns>
-    public static IAsyncEnumerable<T> EagerAsync<T>(this IAsyncEnumerable<T> asyncEnumerable)
-        => new EagerAsyncEnumerable<T>(asyncEnumerable);
+    public static IAsyncEnumerable<T> EagerAsync<T>(this IAsyncEnumerable<T> asyncEnumerable, int maxPreemptiveAccesses = -1)
+    {
+        return new EagerAsyncEnumerable<T>(asyncEnumerable, maxPreemptiveAccesses);
+    }
 }
