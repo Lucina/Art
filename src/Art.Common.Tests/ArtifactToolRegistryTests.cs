@@ -1,4 +1,5 @@
-﻿using System.Text.RegularExpressions;
+﻿using System;
+using System.Text.RegularExpressions;
 using NUnit.Framework;
 
 namespace Art.Common.Tests;
@@ -6,6 +7,7 @@ namespace Art.Common.Tests;
 public class ArtifactToolRegistryTests
 {
     private static readonly ArtifactToolID s_dummyToolId = new("Art.Common.Tests", "Art.Common.Tests.ArtifactToolRegistryTestsDummyTool");
+    private static readonly ArtifactToolID s_customToolId = new("CustomAssembly", "CustomType");
 
     private ArtifactToolRegistry _registry = null!;
 
@@ -16,7 +18,52 @@ public class ArtifactToolRegistryTests
     }
 
     [Test]
-    public void Add_DisallowsSelectionOfSelectable()
+    public void Add_Generic_AllowsLoad()
+    {
+        _registry.AddSelectable<ArtifactToolRegistryTestsDummyTool>();
+        bool success = _registry.TryLoad(s_dummyToolId, out IArtifactTool? artifactTool);
+        Assert.That(success, Is.True);
+        Assert.That(artifactTool, Is.InstanceOf<ArtifactToolRegistryTestsDummyTool>());
+        artifactTool?.Dispose();
+    }
+
+    [Test]
+    public void AddSelectable_Generic_AllowsLoad()
+    {
+        _registry.AddSelectable<ArtifactToolRegistryTestsDummyTool>();
+        bool success = _registry.TryLoad(s_dummyToolId, out IArtifactTool? artifactTool);
+        Assert.That(success, Is.True);
+        Assert.That(artifactTool, Is.InstanceOf<ArtifactToolRegistryTestsDummyTool>());
+        artifactTool?.Dispose();
+    }
+
+    [Test]
+    public void Add_DuplicateButCustomId_AllowsLoad()
+    {
+        _registry.AddSelectable<ArtifactToolRegistryTestsDummyTool>();
+        _registry.Add(new ArtifactToolSelectableRegistryEntry<ArtifactToolRegistryTestsDummyTool>(s_customToolId));
+        bool success = _registry.TryLoad(s_dummyToolId, out IArtifactTool? artifactTool);
+        Assert.That(success, Is.True);
+        Assert.That(artifactTool, Is.InstanceOf<ArtifactToolRegistryTestsDummyTool>());
+        artifactTool?.Dispose();
+    }
+
+    [Test]
+    public void Add_DuplicateGeneric_ThrowsArgumentException()
+    {
+        _registry.AddSelectable<ArtifactToolRegistryTestsDummyTool>();
+        Assert.That(() => _registry.AddSelectable<ArtifactToolRegistryTestsDummyTool>(), Throws.InstanceOf<ArgumentException>());
+    }
+
+    [Test]
+    public void AddSelectable_DuplicateGeneric_ThrowsArgumentException()
+    {
+        _registry.AddSelectable<ArtifactToolRegistryTestsDummyTool>();
+        Assert.That(() => _registry.AddSelectable<ArtifactToolRegistryTestsDummyTool>(), Throws.InstanceOf<ArgumentException>());
+    }
+
+    [Test]
+    public void Add_WithSelectableType_DisallowsSelectionOfSelectable()
     {
         _registry.Add<ArtifactToolRegistryTestsDummyTool>();
         bool success = _registry.TryIdentifyAndLoad("ID_1234", out IArtifactTool? artifactTool, out string? artifactId);
@@ -26,7 +73,7 @@ public class ArtifactToolRegistryTests
     }
 
     [Test]
-    public void AddSelectable_AllowsSelectionOfSelectable()
+    public void AddSelectable_WithSelectableType_AllowsSelectionOfSelectable()
     {
         _registry.AddSelectable<ArtifactToolRegistryTestsDummyTool>();
         bool success = _registry.TryIdentifyAndLoad("ID_1234", out IArtifactTool? artifactTool, out string? artifactId);
@@ -41,6 +88,16 @@ public class ArtifactToolRegistryTests
     {
         _registry.AddSelectable<ArtifactToolRegistryTestsDummyTool>();
         bool success = _registry.TryLoad(s_dummyToolId, out IArtifactTool? artifactTool);
+        Assert.That(success, Is.True);
+        Assert.That(artifactTool, Is.InstanceOf<ArtifactToolRegistryTestsDummyTool>());
+        artifactTool?.Dispose();
+    }
+
+    [Test]
+    public void TryLoad_CustomToolId_Succeeds()
+    {
+        _registry.Add(new ArtifactToolSelectableRegistryEntry<ArtifactToolRegistryTestsDummyTool>(s_customToolId));
+        bool success = _registry.TryLoad(s_customToolId, out IArtifactTool? artifactTool);
         Assert.That(success, Is.True);
         Assert.That(artifactTool, Is.InstanceOf<ArtifactToolRegistryTestsDummyTool>());
         artifactTool?.Dispose();
@@ -66,6 +123,16 @@ public class ArtifactToolRegistryTests
     }
 
     [Test]
+    public void TryIdentify_CustomToolId_ValidKey_Succeeds()
+    {
+        _registry.Add(new ArtifactToolSelectableRegistryEntry<ArtifactToolRegistryTestsDummyTool>(s_customToolId));
+        bool success = _registry.TryIdentify("ID_1234", out ArtifactToolID artifactToolId, out string? artifactId);
+        Assert.That(success, Is.True);
+        Assert.That(artifactToolId, Is.EqualTo(s_dummyToolId));
+        Assert.That(artifactId, Is.EqualTo("1234"));
+    }
+
+    [Test]
     public void TryIdentify_InvalidKey_Fails()
     {
         _registry.AddSelectable<ArtifactToolRegistryTestsDummyTool>();
@@ -84,6 +151,16 @@ public class ArtifactToolRegistryTests
         Assert.That(artifactTool, Is.InstanceOf<ArtifactToolRegistryTestsDummyTool>());
         Assert.That(artifactId, Is.EqualTo("1234"));
         artifactTool?.Dispose();
+    }
+
+    [Test]
+    public void TryIdentifyAndLoad_CustomToolId_ValidKey_Fails()
+    {
+        _registry.Add(new ArtifactToolSelectableRegistryEntry<ArtifactToolRegistryTestsDummyTool>(s_customToolId));
+        bool success = _registry.TryIdentifyAndLoad("ID_1234", out IArtifactTool? artifactTool, out string? artifactId);
+        Assert.That(success, Is.False);
+        Assert.That(artifactTool, Is.Null);
+        Assert.That(artifactId, Is.Null);
     }
 
     [Test]

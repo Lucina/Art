@@ -21,6 +21,10 @@ public class ArtifactToolRegistry : IArtifactToolSelectableRegistry<string>
     /// <exception cref="ArgumentException">Thrown if entry for artifact tool ID already exists.</exception>
     public void Add(ArtifactToolRegistryEntry entry)
     {
+        if (entry == null)
+        {
+            throw new ArgumentNullException(nameof(entry));
+        }
         if (_entries.ContainsKey(entry.Id))
         {
             throw new ArgumentException($"Registry already has an entry for artifact tool ID {entry.Id}");
@@ -55,6 +59,11 @@ public class ArtifactToolRegistry : IArtifactToolSelectableRegistry<string>
     /// <returns>True if successfully added entry.</returns>
     public bool TryAdd(ArtifactToolRegistryEntry entry)
     {
+        // BCL collections can throw for null, do likewise on these
+        if (entry == null)
+        {
+            throw new ArgumentNullException(nameof(entry));
+        }
         return _entries.TryAdd(entry.Id, entry);
     }
 

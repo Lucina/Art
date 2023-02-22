@@ -21,6 +21,10 @@ public class AggregateArtifactToolRegistry : IArtifactToolSelectableRegistry<str
     /// <exception cref="ArgumentException">Thrown if registry was already added.</exception>
     public void Add(IArtifactToolRegistry registry)
     {
+        if (registry == null)
+        {
+            throw new ArgumentNullException(nameof(registry));
+        }
         if (_registries.Contains(registry))
         {
             throw new ArgumentException("Cannot add existing registry. It must first be removed.");
@@ -36,6 +40,11 @@ public class AggregateArtifactToolRegistry : IArtifactToolSelectableRegistry<str
     /// <remarks>This method can return false if the registry was already added - entries must be removed before they are added again.</remarks>
     public bool TryAdd(IArtifactToolRegistry registry)
     {
+        // BCL collections can throw for null, do likewise on these
+        if (registry == null)
+        {
+            throw new ArgumentNullException(nameof(registry));
+        }
         if (_registries.Contains(registry))
         {
             return false;
