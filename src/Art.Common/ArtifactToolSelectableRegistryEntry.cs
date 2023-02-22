@@ -6,10 +6,6 @@ namespace Art.Common;
 /// Represents an entry for a <see cref="IArtifactToolRegistry"/>.
 /// </summary>
 /// <param name="Id">Tool name.</param>
-/// <summary>
-/// Represents an entry for a <see cref="IArtifactToolRegistry"/>.
-/// </summary>
-/// <param name="Id">Tool name.</param>
 public abstract record ArtifactToolSelectableRegistryEntry(ArtifactToolID Id) : ArtifactToolRegistryEntry(Id)
 {
     /// <summary>

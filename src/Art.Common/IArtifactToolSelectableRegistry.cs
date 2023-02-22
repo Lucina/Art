@@ -23,14 +23,5 @@ public interface IArtifactToolSelectableRegistry<in TKey> : IArtifactToolRegistr
     /// <param name="tool">Artifact tool, if successful.</param>
     /// <param name="artifactId">Artifact ID, if successful.</param>
     /// <returns>True if successful.</returns>
-    bool TryIdentifyAndLoad(TKey key, [NotNullWhen(true)] out IArtifactTool? tool, [NotNullWhen(true)] out string? artifactId)
-    {
-        if (TryIdentify(key, out ArtifactToolID artifactToolId, out artifactId) && TryLoad(artifactToolId, out tool))
-        {
-            return true;
-        }
-        tool = null;
-        artifactId = null;
-        return false;
-    }
+    bool TryIdentifyAndLoad(TKey key, [NotNullWhen(true)] out IArtifactTool? tool, [NotNullWhen(true)] out string? artifactId);
 }

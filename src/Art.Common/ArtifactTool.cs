@@ -93,7 +93,7 @@ public partial class ArtifactTool : IArtifactTool
         Config = config;
         RegistrationManager = config.RegistrationManager;
         DataManager = config.DataManager;
-        Profile = profile ?? new ArtifactToolProfile(ArtifactToolStringUtil.CreateToolString(GetType()), "default", ImmutableDictionary<string, JsonElement>.Empty);
+        Profile = profile ?? new ArtifactToolProfile(ArtifactToolIdUtil.CreateToolString(GetType()), "default", ImmutableDictionary<string, JsonElement>.Empty);
         if (Profile.Options != null)
             ConfigureOptions();
     }
