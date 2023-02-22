@@ -28,7 +28,7 @@ public abstract class DepaddingHandler
     /// <summary>
     /// Updates padding state and returns buffers if any data is available.
     /// </summary>
-    /// <param name="data"></param>
+    /// <param name="data">Data buffer to process.</param>
     /// <param name="a">First buffer, must be used first.</param>
     /// <param name="b">Second buffer (sub-span of <paramref name="data"/>), must be used second.</param>
     /// <returns>True if any data is to be written.</returns>
@@ -37,7 +37,7 @@ public abstract class DepaddingHandler
     /// <summary>
     /// Updates padding state and returns buffers if any data is available.
     /// </summary>
-    /// <param name="data"></param>
+    /// <param name="data">Data buffer to process.</param>
     /// <param name="a">First buffer, must be used first.</param>
     /// <param name="b">Second buffer (sub-span of <paramref name="data"/>), must be used second.</param>
     /// <returns>True if any data is to be written.</returns>
