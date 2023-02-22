@@ -75,6 +75,31 @@ public partial class HttpArtifactTool
         => DownloadResourceAsync(requestUri, new ArtifactResourceKey(key, file, path), httpRequestConfig, cancellationToken);
 
     /// <summary>
+    /// Gets a download stream for a resource.
+    /// </summary>
+    /// <param name="requestUri"><see cref="Uri"/> to download from.</param>
+    /// <param name="httpRequestConfig">Custom request configuration.</param>
+    /// <param name="cancellationToken">Cancellation token.</param>
+    /// <returns>Task returning stream.</returns>
+    /// <exception cref="TaskCanceledException">Thrown with <see cref="TimeoutException"/> <see cref="Exception.InnerException"/> for a timeout.</exception>
+    /// <exception cref="HttpRequestException">Thrown for issues with request excluding non-success server responses.</exception>
+    /// <exception cref="ArtHttpResponseMessageException">Thrown on HTTP response indicating non-successful response.</exception>
+    public async Task<Stream> GetResourceDownloadStreamAsync(
+        Uri requestUri,
+        HttpRequestConfig? httpRequestConfig = null,
+        CancellationToken cancellationToken = default)
+    {
+        NotDisposed();
+        HttpRequestMessage req = new(HttpMethod.Get, requestUri);
+        ConfigureHttpRequest(req);
+        // M3U behaviour depends on members always using this instance's HttpClient.
+        HttpResponseMessage res = await HttpClient.SendAsync(req, DownloadCompletionOption, httpRequestConfig, cancellationToken).ConfigureAwait(false);
+        ArtHttpResponseMessageException.EnsureSuccessStatusCode(res);
+        var stream = await res.Content.ReadAsStreamAsync(cancellationToken).ConfigureAwait(false);
+        return new DelegatingStreamWithDisposableContext(stream, res);
+    }
+
+    /// <summary>
     /// Downloads a resource.
     /// </summary>
     /// <param name="requestUri"><see cref="Uri"/> to download from.</param>
@@ -144,6 +169,29 @@ public partial class HttpArtifactTool
         HttpRequestConfig? httpRequestConfig = null,
         CancellationToken cancellationToken = default)
         => DownloadResourceAsync(requestUri, new ArtifactResourceKey(key, file, path), httpRequestConfig, cancellationToken);
+
+    /// <summary>
+    /// Gets a download stream for a resource.
+    /// </summary>
+    /// <param name="requestMessage">Request to send.</param>
+    /// <param name="httpRequestConfig">Custom request configuration.</param>
+    /// <param name="cancellationToken">Cancellation token.</param>
+    /// <returns>Task returning stream.</returns>
+    /// <exception cref="TaskCanceledException">Thrown with <see cref="TimeoutException"/> <see cref="Exception.InnerException"/> for a timeout.</exception>
+    /// <exception cref="HttpRequestException">Thrown for issues with request excluding non-success server responses.</exception>
+    /// <exception cref="ArtHttpResponseMessageException">Thrown on HTTP response indicating non-successful response.</exception>
+    public async Task<Stream> GetResourceDownloadStreamAsync(
+        HttpRequestMessage requestMessage,
+        HttpRequestConfig? httpRequestConfig = null,
+        CancellationToken cancellationToken = default)
+    {
+        NotDisposed();
+        // M3U behaviour depends on members always using this instance's HttpClient.
+        HttpResponseMessage res = await HttpClient.SendAsync(requestMessage, DownloadCompletionOption, httpRequestConfig, cancellationToken).ConfigureAwait(false);
+        ArtHttpResponseMessageException.EnsureSuccessStatusCode(res);
+        var stream = await res.Content.ReadAsStreamAsync(cancellationToken).ConfigureAwait(false);
+        return new DelegatingStreamWithDisposableContext(stream, res);
+    }
 
     /// <summary>
     /// Downloads a resource.

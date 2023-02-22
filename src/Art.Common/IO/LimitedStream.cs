@@ -13,7 +13,7 @@ namespace Art.Common.IO;
 /// <summary>
 /// Represents a stream that acts as a limited-range proxy for another stream.
 /// </summary>
-public class SStream : Stream
+public class LimitedStream : Stream
 {
     /// <summary>
     /// Base stream for this wrapper stream.
@@ -41,7 +41,7 @@ public class SStream : Stream
     /// <param name="baseStream">Stream to wrap.</param>
     /// <param name="length">Length of proxy.</param>
     /// <param name="isolate">If true, enforces stream position for object before reads.</param>
-    public SStream(Stream baseStream, long length, bool isolate = true)
+    public LimitedStream(Stream baseStream, long length, bool isolate = true)
     {
         if (isolate && !baseStream.CanSeek)
             throw new ArgumentException("Cannot set isolate if stream is not seekable");

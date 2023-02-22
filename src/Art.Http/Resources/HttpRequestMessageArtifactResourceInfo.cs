@@ -25,13 +25,27 @@ public record HttpRequestMessageArtifactResourceInfo(
     : QueryBaseArtifactResourceInfo(Key, ContentType, Updated, Version, Checksum)
 {
     /// <inheritdoc/>
-    public override bool Exportable => true;
+    public override bool CanExportStream => true;
+
+    /// <inheritdoc />
+    public override bool CanGetStream => true;
 
     /// <inheritdoc/>
     /// <exception cref="TaskCanceledException">Thrown with <see cref="TimeoutException"/> <see cref="Exception.InnerException"/> for a timeout.</exception>
+    /// <exception cref="HttpRequestException">Thrown for issues with request excluding non-success server responses.</exception>
+    /// <exception cref="ArtHttpResponseMessageException">Thrown on HTTP response indicating non-successful response.</exception>
     public override async ValueTask ExportStreamAsync(Stream targetStream, CancellationToken cancellationToken = default)
     {
         await ArtifactTool.DownloadResourceAsync(Request, targetStream, HttpRequestConfig, cancellationToken).ConfigureAwait(false);
+    }
+
+    /// <inheritdoc/>
+    /// <exception cref="TaskCanceledException">Thrown with <see cref="TimeoutException"/> <see cref="Exception.InnerException"/> for a timeout.</exception>
+    /// <exception cref="HttpRequestException">Thrown for issues with request excluding non-success server responses.</exception>
+    /// <exception cref="ArtHttpResponseMessageException">Thrown on HTTP response indicating non-successful response.</exception>
+    public override async ValueTask<Stream> GetStreamAsync(CancellationToken cancellationToken = default)
+    {
+        return await ArtifactTool.GetResourceDownloadStreamAsync(Request, HttpRequestConfig, cancellationToken).ConfigureAwait(false);
     }
 }
 

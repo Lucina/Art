@@ -8,11 +8,18 @@
 public record WithUpdatedArtifactResourceInfo(DateTimeOffset? UpdatedValue, ArtifactResourceInfo BaseArtifactResourceInfo) : ArtifactResourceInfo(BaseArtifactResourceInfo.Key, BaseArtifactResourceInfo.ContentType, UpdatedValue, BaseArtifactResourceInfo.Version)
 {
     /// <inheritdoc/>
-    public override bool Exportable => BaseArtifactResourceInfo.Exportable;
+    public override bool CanExportStream => BaseArtifactResourceInfo.CanExportStream;
+
+    /// <inheritdoc />
+    public override bool CanGetStream => BaseArtifactResourceInfo.CanGetStream;
 
     /// <inheritdoc/>
     public override ValueTask ExportStreamAsync(Stream targetStream, CancellationToken cancellationToken = default)
         => BaseArtifactResourceInfo.ExportStreamAsync(targetStream, cancellationToken);
+
+    /// <inheritdoc/>
+    public override ValueTask<Stream> GetStreamAsync(CancellationToken cancellationToken = default)
+        => BaseArtifactResourceInfo.GetStreamAsync(cancellationToken);
 
     /// <inheritdoc/>
     public override bool UsesMetadata => BaseArtifactResourceInfo.UsesMetadata;

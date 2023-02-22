@@ -12,7 +12,7 @@ namespace Art.Common.Resources;
 public record PaddedArtifactResourceInfo(ArtPaddingMode ArtPaddingMode, int? BlockSize, ArtifactResourceInfo BaseArtifactResourceInfo) : ArtifactResourceInfo(BaseArtifactResourceInfo.Key, BaseArtifactResourceInfo.ContentType, BaseArtifactResourceInfo.Updated, BaseArtifactResourceInfo.Version, BaseArtifactResourceInfo.Checksum)
 {
     /// <inheritdoc/>
-    public override bool Exportable => BaseArtifactResourceInfo.Exportable;
+    public override bool CanExportStream => BaseArtifactResourceInfo.CanExportStream;
 
     /// <inheritdoc/>
     public override async ValueTask ExportStreamAsync(Stream targetStream, CancellationToken cancellationToken = default)
@@ -31,6 +31,8 @@ public record PaddedArtifactResourceInfo(ArtPaddingMode ArtPaddingMode, int? Blo
         };
         await ExportStreamWithDepaddingHandlerAsync(dp, targetStream, cancellationToken).ConfigureAwait(false);
     }
+
+    // TODO really, really need a read-mode implementation of depadding stream so GetStreamAsync can work
 
     private void GetParameters(out int? blockSizeBytes)
     {

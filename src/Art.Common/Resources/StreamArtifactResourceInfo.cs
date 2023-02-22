@@ -1,4 +1,6 @@
-﻿namespace Art.Common.Resources;
+﻿using Art.Common.IO;
+
+namespace Art.Common.Resources;
 
 /// <summary>
 /// Provides artifact information.
@@ -13,7 +15,17 @@ public record StreamArtifactResourceInfo(Stream Resource, ArtifactResourceKey Ke
     : ArtifactResourceInfo(Key, ContentType, Updated, Version, Checksum)
 {
     /// <inheritdoc/>
-    public override bool Exportable => true;
+    public override bool CanExportStream => Resource.CanRead;
+
+    /// <inheritdoc />
+    public override bool CanGetStream
+    {
+        get
+        {
+            // Require CanSeek so repeatability is always possible
+            return Resource.CanRead && Resource.CanSeek;
+        }
+    }
 
     /// <inheritdoc/>
     public override async ValueTask ExportStreamAsync(Stream targetStream, CancellationToken cancellationToken = default)
@@ -27,6 +39,15 @@ public record StreamArtifactResourceInfo(Stream Resource, ArtifactResourceKey Ke
         {
             if (position is { } p) Resource.Position = p;
         }
+    }
+
+    /// <inheritdoc />
+    public override ValueTask<Stream> GetStreamAsync(CancellationToken cancellationToken = default)
+    {
+        Resource.Position = 0;
+        // Critically, record behaviour should be reusability, so wrap it in a non-disposing wrapper
+        // ??? should NonDisposingStream also have isolation behaviour like LimitedStream?
+        return new ValueTask<Stream>(new NonDisposingStream(Resource));
     }
 
     /// <inheritdoc />

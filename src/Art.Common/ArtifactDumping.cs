@@ -245,7 +245,7 @@ public static class ArtifactDumping
     private static async Task UpdateResourceAsync(IArtifactTool artifactTool, ArtifactResourceInfoWithState aris, IToolLogHandler? logHandler, string? checksumId, CancellationToken cancellationToken)
     {
         (ArtifactResourceInfo versionedResource, ItemStateFlags rF) = aris;
-        if ((rF & ItemStateFlags.NewerIdentityMask) != 0 && versionedResource.Exportable)
+        if ((rF & ItemStateFlags.NewerIdentityMask) != 0 && versionedResource.CanExportStream)
         {
             OutputStreamOptions options = OutputStreamOptions.Default;
             versionedResource.AugmentOutputStreamOptions(ref options);

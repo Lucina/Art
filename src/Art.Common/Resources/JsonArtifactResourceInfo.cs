@@ -19,12 +19,25 @@ public record JsonArtifactResourceInfo<T>(T Resource, JsonSerializerOptions? Ser
     : ArtifactResourceInfo(Key, ContentType, Updated, Version, Checksum)
 {
     /// <inheritdoc/>
-    public override bool Exportable => true;
+    public override bool CanExportStream => true;
+
+    /// <inheritdoc />
+    public override bool CanGetStream => true;
 
     /// <inheritdoc/>
     public override async ValueTask ExportStreamAsync(Stream targetStream, CancellationToken cancellationToken = default)
     {
         await JsonSerializer.SerializeAsync(targetStream, Resource, SerializerOptions, cancellationToken).ConfigureAwait(false);
+    }
+
+    /// <inheritdoc />
+    public override async ValueTask<Stream> GetStreamAsync(CancellationToken cancellationToken = default)
+    {
+        // streaming serialization is not supported, just https://www.youtube.com/watch?v=VQqO20pVhpk it
+        var ms = new MemoryStream();
+        await ExportStreamAsync(ms, cancellationToken).ConfigureAwait(false);
+        ms.Position = 0;
+        return ms;
     }
 }
 
@@ -42,12 +55,25 @@ public record JsonWithJsonTypeInfoArtifactResourceInfo<T>(T Resource, JsonTypeIn
     : ArtifactResourceInfo(Key, ContentType, Updated, Version, Checksum)
 {
     /// <inheritdoc/>
-    public override bool Exportable => true;
+    public override bool CanExportStream => true;
+
+    /// <inheritdoc />
+    public override bool CanGetStream => true;
 
     /// <inheritdoc/>
     public override async ValueTask ExportStreamAsync(Stream targetStream, CancellationToken cancellationToken = default)
     {
         await JsonSerializer.SerializeAsync(targetStream, Resource, JsonTypeInfo, cancellationToken).ConfigureAwait(false);
+    }
+
+    /// <inheritdoc />
+    public override async ValueTask<Stream> GetStreamAsync(CancellationToken cancellationToken = default)
+    {
+        // streaming serialization is not supported, just https://www.youtube.com/watch?v=VQqO20pVhpk it
+        var ms = new MemoryStream();
+        await ExportStreamAsync(ms, cancellationToken).ConfigureAwait(false);
+        ms.Position = 0;
+        return ms;
     }
 }
 
