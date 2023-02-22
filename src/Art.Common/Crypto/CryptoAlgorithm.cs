@@ -1,32 +1,36 @@
 ﻿namespace Art.Common.Crypto;
 
 /// <summary>
-/// Represents crypto algorithm.
+/// Represents crypto algorithm identity.
 /// </summary>
 public enum CryptoAlgorithm
 {
     /// <summary>
-    /// <see cref="System.Security.Cryptography.Aes"/>.
+    /// AES block cipher family.
     /// </summary>
+    /// <seealso cref="System.Security.Cryptography.Aes"/>
     Aes,
     /// <summary>
-    /// Blowfish.
+    /// Blowfish block cipher.
     /// </summary>
     Blowfish,
     /// <summary>
-    /// <see cref="System.Security.Cryptography.DES"/>.
+    /// DES block cipher.
     /// </summary>
+    /// <seealso cref="System.Security.Cryptography.DES"/>
     DES,
     /// <summary>
-    /// <see cref="System.Security.Cryptography.TripleDES"/>.
+    /// Triple DES block cipher.
     /// </summary>
+    /// <seealso cref="System.Security.Cryptography.TripleDES"/>
     TripleDES,
     /// <summary>
-    /// <see cref="System.Security.Cryptography.RC2"/>.
+    /// RC2 block cipher.
     /// </summary>
+    /// <seealso cref="System.Security.Cryptography.RC2"/>
     RC2,
     /// <summary>
-    /// XOR.
+    /// XOR key cipher.
     /// </summary>
     Xor
 }
