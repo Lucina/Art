@@ -15,7 +15,7 @@ public static class ArtifactToolLoader
     /// <param name="toolId">Artifact tool target string (assembly::toolType).</param>
     /// <param name="tool">Tool.</param>
     /// <returns>True if successfully located and created a tool.</returns>
-    [RequiresUnreferencedCode($"Loading artifact tools might require types that cannot be statically analyzed. Consider using {nameof(IArtifactToolRegistry)} when possible.")]
+    [RequiresUnreferencedCode($"Loading artifact tools might require types that cannot be statically analyzed. Consider using {nameof(IArtifactToolRegistry)} where possible.")]
     public static bool TryLoad(string toolId, [NotNullWhen(true)] out IArtifactTool? tool)
     {
         return TryLoad(ArtifactToolProfileUtil.GetID(toolId), out tool);
@@ -28,7 +28,7 @@ public static class ArtifactToolLoader
     /// <param name="toolId">Artifact tool target string (assembly::toolType).</param>
     /// <param name="tool">Tool.</param>
     /// <returns>True if successfully located and created a tool.</returns>
-    [RequiresUnreferencedCode($"Loading artifact tools might require types that cannot be statically analyzed. Consider using {nameof(IArtifactToolRegistry)} when possible.")]
+    [RequiresUnreferencedCode($"Loading artifact tools might require types that cannot be statically analyzed. Consider using {nameof(IArtifactToolRegistry)} where possible.")]
     public static bool TryLoad(AssemblyLoadContext assemblyLoadContext, string toolId, [NotNullWhen(true)] out IArtifactTool? tool)
     {
         return TryLoad(assemblyLoadContext, ArtifactToolProfileUtil.GetID(toolId), out tool);
@@ -41,7 +41,7 @@ public static class ArtifactToolLoader
     /// <param name="toolId">Artifact tool target string (assembly::toolType).</param>
     /// <param name="tool">Tool.</param>
     /// <returns>True if successfully located and created a tool.</returns>
-    [RequiresUnreferencedCode($"Loading artifact tools might require types that cannot be statically analyzed. Consider using {nameof(IArtifactToolRegistry)} when possible.")]
+    [RequiresUnreferencedCode($"Loading artifact tools might require types that cannot be statically analyzed. Consider using {nameof(IArtifactToolRegistry)} where possible.")]
     public static bool TryLoad(Assembly assembly, string toolId, [NotNullWhen(true)] out IArtifactTool? tool)
     {
         return TryLoad(assembly, ArtifactToolProfileUtil.GetID(toolId), out tool);
@@ -53,7 +53,7 @@ public static class ArtifactToolLoader
     /// <param name="artifactToolId">Artifact tool ID.</param>
     /// <param name="tool">Tool.</param>
     /// <returns>True if successfully located and created a tool.</returns>
-    [RequiresUnreferencedCode($"Loading artifact tools might require types that cannot be statically analyzed. Consider using {nameof(IArtifactToolRegistry)} when possible.")]
+    [RequiresUnreferencedCode($"Loading artifact tools might require types that cannot be statically analyzed. Consider using {nameof(IArtifactToolRegistry)} where possible.")]
     public static bool TryLoad(ArtifactToolID artifactToolId, [NotNullWhen(true)] out IArtifactTool? tool)
     {
         try
@@ -75,7 +75,7 @@ public static class ArtifactToolLoader
     /// <param name="artifactToolId">Artifact tool ID.</param>
     /// <param name="tool">Tool.</param>
     /// <returns>True if successfully located and created a tool.</returns>
-    [RequiresUnreferencedCode($"Loading artifact tools might require types that cannot be statically analyzed. Consider using {nameof(IArtifactToolRegistry)} when possible.")]
+    [RequiresUnreferencedCode($"Loading artifact tools might require types that cannot be statically analyzed. Consider using {nameof(IArtifactToolRegistry)} where possible.")]
     public static bool TryLoad(AssemblyLoadContext assemblyLoadContext, ArtifactToolID artifactToolId, [NotNullWhen(true)] out IArtifactTool? tool)
     {
         try
@@ -97,7 +97,7 @@ public static class ArtifactToolLoader
     /// <param name="artifactToolId">Artifact tool ID.</param>
     /// <param name="tool">Tool.</param>
     /// <returns>True if successfully located and created a tool.</returns>
-    [RequiresUnreferencedCode($"Loading artifact tools might require types that cannot be statically analyzed. Consider using {nameof(IArtifactToolRegistry)} when possible.")]
+    [RequiresUnreferencedCode($"Loading artifact tools might require types that cannot be statically analyzed. Consider using {nameof(IArtifactToolRegistry)} where possible.")]
     public static bool TryLoad(Assembly assembly, ArtifactToolID artifactToolId, [NotNullWhen(true)] out IArtifactTool? tool)
     {
         try

@@ -165,7 +165,7 @@ public partial class ArtifactTool : IArtifactTool
     /// <returns>Task.</returns>
     /// <exception cref="ArgumentException">Thrown when an invalid profile is provided.</exception>
     /// <exception cref="ArtifactToolNotFoundException">Thrown when tool is not found.</exception>
-    [RequiresUnreferencedCode($"Loading artifact tools might require types that cannot be statically analyzed. Consider making use of the overload that takes {nameof(IArtifactToolRegistry)} when possible.")]
+    [RequiresUnreferencedCode($"Loading artifact tools might require types that cannot be statically analyzed. Consider making use of the overload that takes {nameof(IArtifactToolRegistry)} where possible.")]
     public static Task<IArtifactTool> PrepareToolAsync(ArtifactToolProfile artifactToolProfile, IArtifactRegistrationManager artifactRegistrationManager, IArtifactDataManager artifactDataManager, CancellationToken cancellationToken = default)
     {
         if (artifactToolProfile.Group == null) throw new ArgumentException("Group not specified in profile");
@@ -185,7 +185,7 @@ public partial class ArtifactTool : IArtifactTool
     /// <returns>Task.</returns>
     /// <exception cref="ArgumentException">Thrown when an invalid profile is provided.</exception>
     /// <exception cref="ArtifactToolNotFoundException">Thrown when tool is not found.</exception>
-    [RequiresUnreferencedCode($"Loading artifact tools might require types that cannot be statically analyzed. Consider making use of the overload that takes {nameof(IArtifactToolRegistry)} when possible.")]
+    [RequiresUnreferencedCode($"Loading artifact tools might require types that cannot be statically analyzed. Consider making use of the overload that takes {nameof(IArtifactToolRegistry)} where possible.")]
     public static Task<IArtifactTool> PrepareToolAsync(AssemblyLoadContext assemblyLoadContext, ArtifactToolProfile artifactToolProfile, IArtifactRegistrationManager artifactRegistrationManager, IArtifactDataManager artifactDataManager, CancellationToken cancellationToken = default)
     {
         if (artifactToolProfile.Group == null) throw new ArgumentException("Group not specified in profile");
