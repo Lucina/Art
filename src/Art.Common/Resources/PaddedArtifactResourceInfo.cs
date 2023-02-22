@@ -14,12 +14,28 @@ public record PaddedArtifactResourceInfo(ArtPaddingMode ArtPaddingMode, int? Blo
     /// <inheritdoc/>
     public override bool CanExportStream => BaseArtifactResourceInfo.CanExportStream;
 
+    /// <inheritdoc />
+    public override bool CanGetStream => BaseArtifactResourceInfo.CanGetStream;
+
     /// <inheritdoc/>
-    public override async ValueTask ExportStreamAsync(Stream targetStream, CancellationToken cancellationToken = default)
+    public override ValueTask ExportStreamAsync(Stream targetStream, CancellationToken cancellationToken = default)
+    {
+        var dp = GetDepaddingHandler();
+        return ExportStreamWithDepaddingHandlerAsync(dp, targetStream, cancellationToken);
+    }
+
+    /// <inheritdoc />
+    public override async ValueTask<Stream> GetStreamAsync(CancellationToken cancellationToken = default)
+    {
+        var dp = GetDepaddingHandler();
+        return new DepaddingReadStream(dp, await BaseArtifactResourceInfo.GetStreamAsync(cancellationToken).ConfigureAwait(false));
+    }
+
+    private DepaddingHandler GetDepaddingHandler()
     {
         GetParameters(out int? blockSizeBytesV);
         if (blockSizeBytesV is not { } blockSizeBytes) throw new InvalidOperationException("No block size provided");
-        DepaddingHandler dp = ArtPaddingMode switch
+        return ArtPaddingMode switch
         {
             ArtPaddingMode.Zero => new ZeroDepaddingHandler(blockSizeBytes),
             ArtPaddingMode.AnsiX9_23 => new AnsiX9_23DepaddingHandler(blockSizeBytes),
@@ -29,24 +45,28 @@ public record PaddedArtifactResourceInfo(ArtPaddingMode ArtPaddingMode, int? Blo
             ArtPaddingMode.Iso_Iec_7816_4 => new Iso_Iec_7816_4DepaddingHandler(blockSizeBytes),
             _ => throw new InvalidOperationException("Invalid padding mode")
         };
-        await ExportStreamWithDepaddingHandlerAsync(dp, targetStream, cancellationToken).ConfigureAwait(false);
     }
-
-    // TODO really, really need a read-mode implementation of depadding stream so GetStreamAsync can work
 
     private void GetParameters(out int? blockSizeBytes)
     {
-        blockSizeBytes = BlockSize is { } blockSize ? blockSize / 8 : null;
-        if (BaseArtifactResourceInfo is EncryptedArtifactResourceInfo({ } encryptionInfo, _))
+        if (BlockSize is { } blockSize)
         {
+            blockSizeBytes = blockSize / 8;
+        }
+        else if (BaseArtifactResourceInfo is EncryptedArtifactResourceInfo({ PaddingMode: System.Security.Cryptography.PaddingMode.None } encryptionInfo, _))
+        {
+            // Fallback to trying to retrieve block size from base encrypted resource
+            // Only do this if the base resource isn't configured to pad (doesn't make sense to depad a depadded output)
             using var alg = encryptionInfo.CreateSymmetricAlgorithm();
-            if (alg.Padding == System.Security.Cryptography.PaddingMode.None) // Pass through block size if source didn't pad
-                blockSizeBytes ??= alg.BlockSize / 8;
-            // It's possible for base to specify its own padding method and actual data was padded even before that (nest), so allow this kind of stuff too
+            blockSizeBytes = alg.BlockSize / 8;
+        }
+        else
+        {
+            blockSizeBytes = null;
         }
     }
 
-    private async Task ExportStreamWithDepaddingHandlerAsync(DepaddingHandler handler, Stream targetStream, CancellationToken cancellationToken)
+    private async ValueTask ExportStreamWithDepaddingHandlerAsync(DepaddingHandler handler, Stream targetStream, CancellationToken cancellationToken)
     {
         await using DepaddingWriteStream ds = new(handler, targetStream, true);
         await BaseArtifactResourceInfo.ExportStreamAsync(ds, cancellationToken).ConfigureAwait(false);
