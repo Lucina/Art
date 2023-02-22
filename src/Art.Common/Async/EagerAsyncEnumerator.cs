@@ -13,7 +13,7 @@ internal class EagerAsyncEnumerator<T> : IAsyncEnumerator<T>
 
     public EagerAsyncEnumerator(IAsyncEnumerator<T> e, int maxPreemptiveAccesses = -1, CancellationToken cancellationToken = default)
     {
-        if (maxPreemptiveAccesses is not (-1 or >= 0))
+        if (maxPreemptiveAccesses is not (-1 or > 0))
         {
             throw new ArgumentOutOfRangeException(nameof(maxPreemptiveAccesses));
         }
