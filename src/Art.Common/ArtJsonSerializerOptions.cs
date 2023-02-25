@@ -10,12 +10,10 @@ public static class ArtJsonSerializerOptions
 {
     static ArtJsonSerializerOptions()
     {
-        s_jsonOptions = new JsonSerializerOptions { PropertyNameCaseInsensitive = true, WriteIndented = true };
-        s_jsonOptions.Converters.Add(new JsonStringEnumConverter());
-        s_context = new SourceGenerationContext(s_jsonOptions);
+        var options = new JsonSerializerOptions { PropertyNameCaseInsensitive = true, WriteIndented = true };
+        options.Converters.Add(new JsonStringEnumConverter());
+        s_context = new SourceGenerationContext(options);
     }
-
-    internal static readonly JsonSerializerOptions s_jsonOptions;
 
     internal static readonly SourceGenerationContext s_context;
 
@@ -23,5 +21,5 @@ public static class ArtJsonSerializerOptions
     /// Creates default JSON serializer options.
     /// </summary>
     /// <returns>New, preconfigured configured instance.</returns>
-    public static JsonSerializerOptions CreateDefault() => new(s_jsonOptions);
+    public static JsonSerializerOptions CreateDefault() => new(s_context.Options);
 }
