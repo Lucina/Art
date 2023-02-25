@@ -18,7 +18,7 @@ public static class ArtifactToolProfileUtil
     public static ArtifactToolProfile[] DeserializeProfilesFromFile(string path)
     {
         if (path == null) throw new ArgumentNullException(nameof(path));
-        return DeserializeProfilesFromFileInternal(path, SourceGenerationContext.Default);
+        return DeserializeProfilesFromFileInternal(path, ArtJsonSerializerOptions.s_context);
     }
 
     /// <summary>
@@ -51,7 +51,7 @@ public static class ArtifactToolProfileUtil
     public static void SerializeProfilesToFile(string path, params ArtifactToolProfile[] profiles)
     {
         if (profiles == null) throw new ArgumentNullException(nameof(profiles));
-        SerializeProfilesToFileInternal(path, SourceGenerationContext.Default, profiles);
+        SerializeProfilesToFileInternal(path, ArtJsonSerializerOptions.s_context, profiles);
     }
 
     /// <summary>
@@ -84,7 +84,7 @@ public static class ArtifactToolProfileUtil
     public static ArtifactToolProfile[] DeserializeProfiles(Stream utf8Stream)
     {
         if (utf8Stream == null) throw new ArgumentNullException(nameof(utf8Stream));
-        return DeserializeProfilesInternal(utf8Stream, SourceGenerationContext.Default);
+        return DeserializeProfilesInternal(utf8Stream, ArtJsonSerializerOptions.s_context);
     }
 
     /// <summary>
@@ -113,7 +113,7 @@ public static class ArtifactToolProfileUtil
     {
         if (utf8Stream == null) throw new ArgumentNullException(nameof(utf8Stream));
         if (profiles == null) throw new ArgumentNullException(nameof(profiles));
-        SerializeProfilesInternal(utf8Stream, SourceGenerationContext.Default, profiles);
+        SerializeProfilesInternal(utf8Stream, ArtJsonSerializerOptions.s_context, profiles);
     }
 
     /// <summary>
@@ -145,7 +145,7 @@ public static class ArtifactToolProfileUtil
     /// <exception cref="InvalidDataException">Thrown if null value encountered.</exception>
     public static ArtifactToolProfile[] DeserializeProfiles(JsonElement element)
     {
-        return DeserializeProfilesInternal(element, SourceGenerationContext.Default);
+        return DeserializeProfilesInternal(element, ArtJsonSerializerOptions.s_context);
     }
 
     /// <summary>
@@ -183,7 +183,7 @@ public static class ArtifactToolProfileUtil
     public static JsonElement SerializeProfiles(params ArtifactToolProfile[] profiles)
     {
         if (profiles == null) throw new ArgumentNullException(nameof(profiles));
-        return SerializeProfilesInternal(SourceGenerationContext.Default, profiles);
+        return SerializeProfilesInternal(ArtJsonSerializerOptions.s_context, profiles);
     }
 
     /// <summary>

@@ -10,13 +10,14 @@ public static class ArtJsonSerializerOptions
 {
     static ArtJsonSerializerOptions()
     {
-        s_jsonOptions = SourceGenerationContext.Default.Options;
-        s_jsonOptions.PropertyNameCaseInsensitive = true;
-        s_jsonOptions.WriteIndented = true;
+        s_jsonOptions = new JsonSerializerOptions { PropertyNameCaseInsensitive = true, WriteIndented = true };
         s_jsonOptions.Converters.Add(new JsonStringEnumConverter());
+        s_context = new SourceGenerationContext(s_jsonOptions);
     }
 
     internal static readonly JsonSerializerOptions s_jsonOptions;
+
+    internal static readonly SourceGenerationContext s_context;
 
     /// <summary>
     /// Creates default JSON serializer options.
