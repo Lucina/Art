@@ -1,6 +1,7 @@
 ﻿using System.CommandLine;
 using System.CommandLine.Invocation;
 using System.CommandLine.Parsing;
+using System.Text.Json;
 using Art.Common;
 using Art.Common.Management;
 using Art.Common.Proxies;
@@ -27,6 +28,8 @@ internal class ArcCommand<TPluginStore> : ToolCommandBase<TPluginStore> where TP
     protected Option<bool> FastExitOption;
 
     protected Option<bool> NullOutputOption;
+
+    private List<IArtifactToolSelectableRegistry<string>>? _selectableRegistries;
 
     public ArcCommand(TPluginStore pluginStore) : this(pluginStore, "arc", "Execute archival artifact tools.")
     {
@@ -80,7 +83,9 @@ internal class ArcCommand<TPluginStore> : ToolCommandBase<TPluginStore> where TP
         IToolLogHandler l = Common.GetDefaultToolLogHandler();
         List<ArtifactToolProfile> profiles = new();
         foreach (string profileFile in context.ParseResult.GetValueForArgument(ProfileFilesArg))
-            profiles.AddRange(ArtifactToolProfileUtil.DeserializeProfilesFromFile(profileFile));
+        {
+            LoadProfiles(profiles, profileFile);
+        }
         string? cookieFile = context.ParseResult.HasOption(CookieFileOption) ? context.ParseResult.GetValueForOption(CookieFileOption) : null;
         string? userAgent = context.ParseResult.HasOption(UserAgentOption) ? context.ParseResult.GetValueForOption(UserAgentOption) : null;
         IEnumerable<string> properties = context.ParseResult.HasOption(PropertiesOption) ? context.ParseResult.GetValueForOption(PropertiesOption)! : Array.Empty<string>();
@@ -91,5 +96,39 @@ internal class ArcCommand<TPluginStore> : ToolCommandBase<TPluginStore> where TP
             await ArtifactDumping.DumpAsync(plugin, profile, arm, adm, options, l).ConfigureAwait(false);
         }
         return 0;
+    }
+
+    private void LoadProfiles(List<ArtifactToolProfile> profiles, string profileFile)
+    {
+        if (File.Exists(profileFile))
+        {
+            profiles.AddRange(ArtifactToolProfileUtil.DeserializeProfilesFromFile(profileFile));
+        }
+        else
+        {
+            if (_selectableRegistries == null)
+            {
+                _selectableRegistries = new List<IArtifactToolSelectableRegistry<string>>();
+                foreach (var registry in PluginStore.LoadAllRegistries())
+                {
+                    // TODO make modular registry selectable
+                    if (registry is IArtifactToolSelectableRegistry<string> selectableRegistry)
+                    {
+                        _selectableRegistries.Add(selectableRegistry);
+                    }
+                }
+            }
+            foreach (var registry in _selectableRegistries)
+            {
+                if (registry.TryIdentify(profileFile, out var artifactToolId, out string? artifactId))
+                {
+                    var opts = new Dictionary<string, JsonElement> { { "artifactList", JsonSerializer.SerializeToElement(new List<string> { artifactId }, SourceGenerationContext.Default.ListString) } };
+                    var profile = new ArtifactToolProfile(artifactToolId.GetToolString(), "default", opts);
+                    profiles.Add(profile);
+                    return;
+                }
+            }
+            throw new FileNotFoundException(null, profileFile);
+        }
     }
 }

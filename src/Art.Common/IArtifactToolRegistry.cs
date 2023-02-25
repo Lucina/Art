@@ -11,7 +11,7 @@ public interface IArtifactToolRegistry
     /// Checks if tool entry with specified name is contained in this registry.
     /// </summary>
     /// <param name="artifactToolId">Artifact tool ID.</param>
-    /// <returns>True if tool entry exists..</returns>
+    /// <returns>True if tool entry exists.</returns>
     bool Contains(ArtifactToolID artifactToolId);
 
     /// <summary>
