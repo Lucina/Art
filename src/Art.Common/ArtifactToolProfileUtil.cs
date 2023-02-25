@@ -18,7 +18,7 @@ public static class ArtifactToolProfileUtil
     public static ArtifactToolProfile[] DeserializeProfilesFromFile(string path)
     {
         if (path == null) throw new ArgumentNullException(nameof(path));
-        return DeserializeProfiles(JsonSerializer.Deserialize(File.ReadAllText(path), SourceGenerationContext.Default.JsonElement));
+        return DeserializeProfilesFromFileInternal(path, SourceGenerationContext.Default);
     }
 
     /// <summary>
@@ -33,8 +33,12 @@ public static class ArtifactToolProfileUtil
     {
         if (path == null) throw new ArgumentNullException(nameof(path));
         if (options == null) throw new ArgumentNullException(nameof(options));
-        var re = new SourceGenerationContext(options);
-        return DeserializeProfiles(JsonSerializer.Deserialize(File.ReadAllText(path), re.JsonElement), options);
+        return DeserializeProfilesFromFileInternal(path, new SourceGenerationContext(options));
+    }
+
+    private static ArtifactToolProfile[] DeserializeProfilesFromFileInternal(string path, SourceGenerationContext sourceGenerationContext)
+    {
+        return DeserializeProfilesInternal(JsonSerializer.Deserialize(File.ReadAllText(path), sourceGenerationContext.JsonElement), sourceGenerationContext);
     }
 
     /// <summary>
@@ -44,7 +48,11 @@ public static class ArtifactToolProfileUtil
     /// <param name="profiles">Array of profiles.</param>
     /// <exception cref="ArgumentNullException">Thrown if <paramref name="profiles"/> is null.</exception>
     /// <exception cref="InvalidDataException">Thrown if null value encountered.</exception>
-    public static void SerializeProfilesToFile(string path, params ArtifactToolProfile[] profiles) => SerializeProfilesToFile(path, ArtJsonSerializerOptions.s_jsonOptions, profiles);
+    public static void SerializeProfilesToFile(string path, params ArtifactToolProfile[] profiles)
+    {
+        if (profiles == null) throw new ArgumentNullException(nameof(profiles));
+        SerializeProfilesToFileInternal(path, SourceGenerationContext.Default, profiles);
+    }
 
     /// <summary>
     /// Serializes profiles.
@@ -58,9 +66,13 @@ public static class ArtifactToolProfileUtil
     {
         if (options == null) throw new ArgumentNullException(nameof(options));
         if (profiles == null) throw new ArgumentNullException(nameof(profiles));
+        SerializeProfilesToFileInternal(path, new SourceGenerationContext(options), profiles);
+    }
+
+    private static void SerializeProfilesToFileInternal(string path, SourceGenerationContext sourceGenerationContext, params ArtifactToolProfile[] profiles)
+    {
         using var fs = File.Create(path);
-        var re = new SourceGenerationContext(options);
-        JsonSerializer.Serialize(fs, profiles, re.ArtifactToolProfileArray);
+        JsonSerializer.Serialize(fs, profiles, sourceGenerationContext.ArtifactToolProfileArray);
     }
 
     /// <summary>
@@ -71,7 +83,8 @@ public static class ArtifactToolProfileUtil
     /// <exception cref="InvalidDataException">Thrown if null value encountered.</exception>
     public static ArtifactToolProfile[] DeserializeProfiles(Stream utf8Stream)
     {
-        return DeserializeProfiles(JsonSerializer.Deserialize(utf8Stream, SourceGenerationContext.Default.JsonElement));
+        if (utf8Stream == null) throw new ArgumentNullException(nameof(utf8Stream));
+        return DeserializeProfilesInternal(utf8Stream, SourceGenerationContext.Default);
     }
 
     /// <summary>
@@ -84,9 +97,9 @@ public static class ArtifactToolProfileUtil
     /// <exception cref="InvalidDataException">Thrown if null value encountered.</exception>
     public static ArtifactToolProfile[] DeserializeProfiles(Stream utf8Stream, JsonSerializerOptions options)
     {
+        if (utf8Stream == null) throw new ArgumentNullException(nameof(utf8Stream));
         if (options == null) throw new ArgumentNullException(nameof(options));
-        var re = new SourceGenerationContext(options);
-        return DeserializeProfiles(JsonSerializer.Deserialize(utf8Stream, re.JsonElement), options);
+        return DeserializeProfilesInternal(utf8Stream, new SourceGenerationContext(options));
     }
 
     /// <summary>
@@ -96,7 +109,12 @@ public static class ArtifactToolProfileUtil
     /// <param name="profiles">Array of profiles.</param>
     /// <exception cref="ArgumentNullException">Thrown if <paramref name="profiles"/> is null.</exception>
     /// <exception cref="InvalidDataException">Thrown if null value encountered.</exception>
-    public static void SerializeProfiles(Stream utf8Stream, params ArtifactToolProfile[] profiles) => SerializeProfiles(utf8Stream, ArtJsonSerializerOptions.s_jsonOptions, profiles);
+    public static void SerializeProfiles(Stream utf8Stream, params ArtifactToolProfile[] profiles)
+    {
+        if (utf8Stream == null) throw new ArgumentNullException(nameof(utf8Stream));
+        if (profiles == null) throw new ArgumentNullException(nameof(profiles));
+        SerializeProfilesInternal(utf8Stream, SourceGenerationContext.Default, profiles);
+    }
 
     /// <summary>
     /// Serializes profiles.
@@ -108,10 +126,15 @@ public static class ArtifactToolProfileUtil
     /// <exception cref="InvalidDataException">Thrown if null value encountered.</exception>
     public static void SerializeProfiles(Stream utf8Stream, JsonSerializerOptions options, params ArtifactToolProfile[] profiles)
     {
+        if (utf8Stream == null) throw new ArgumentNullException(nameof(utf8Stream));
         if (options == null) throw new ArgumentNullException(nameof(options));
         if (profiles == null) throw new ArgumentNullException(nameof(profiles));
-        var re = new SourceGenerationContext(options);
-        JsonSerializer.Serialize(utf8Stream, profiles, re.ArtifactToolProfileArray);
+        SerializeProfilesInternal(utf8Stream, new SourceGenerationContext(options), profiles);
+    }
+
+    private static void SerializeProfilesInternal(Stream utf8Stream, SourceGenerationContext sourceGenerationContext, params ArtifactToolProfile[] profiles)
+    {
+        JsonSerializer.Serialize(utf8Stream, profiles, sourceGenerationContext.ArtifactToolProfileArray);
     }
 
     /// <summary>
@@ -120,7 +143,10 @@ public static class ArtifactToolProfileUtil
     /// <param name="element">Element containing profile or profile array.</param>
     /// <returns>Array of profiles.</returns>
     /// <exception cref="InvalidDataException">Thrown if null value encountered.</exception>
-    public static ArtifactToolProfile[] DeserializeProfiles(JsonElement element) => DeserializeProfiles(element, ArtJsonSerializerOptions.s_jsonOptions);
+    public static ArtifactToolProfile[] DeserializeProfiles(JsonElement element)
+    {
+        return DeserializeProfilesInternal(element, SourceGenerationContext.Default);
+    }
 
     /// <summary>
     /// Deserializes profiles.
@@ -133,10 +159,19 @@ public static class ArtifactToolProfileUtil
     public static ArtifactToolProfile[] DeserializeProfiles(JsonElement element, JsonSerializerOptions options)
     {
         if (options == null) throw new ArgumentNullException(nameof(options));
-        var re = new SourceGenerationContext(options);
+        return DeserializeProfilesInternal(element, new SourceGenerationContext(options));
+    }
+
+    private static ArtifactToolProfile[] DeserializeProfilesInternal(Stream utf8Stream, SourceGenerationContext sourceGenerationContext)
+    {
+        return DeserializeProfilesInternal(JsonSerializer.Deserialize(utf8Stream, sourceGenerationContext.JsonElement), sourceGenerationContext);
+    }
+
+    private static ArtifactToolProfile[] DeserializeProfilesInternal(JsonElement element, SourceGenerationContext sourceGenerationContext)
+    {
         if (element.ValueKind == JsonValueKind.Object)
-            return new[] { element.Deserialize(re.ArtifactToolProfile) ?? throw new InvalidDataException() };
-        return element.Deserialize(re.ArtifactToolProfileArray) ?? throw new InvalidDataException();
+            return new[] { element.Deserialize(sourceGenerationContext.ArtifactToolProfile) ?? throw new InvalidDataException() };
+        return element.Deserialize(sourceGenerationContext.ArtifactToolProfileArray) ?? throw new InvalidDataException();
     }
 
     /// <summary>
@@ -145,7 +180,11 @@ public static class ArtifactToolProfileUtil
     /// <param name="profiles">Array of profiles.</param>
     /// <returns>Serialized profiles.</returns>
     /// <exception cref="ArgumentNullException">Thrown if <paramref name="profiles"/> is null.</exception>
-    public static JsonElement SerializeProfiles(params ArtifactToolProfile[] profiles) => SerializeProfiles(ArtJsonSerializerOptions.s_jsonOptions, profiles);
+    public static JsonElement SerializeProfiles(params ArtifactToolProfile[] profiles)
+    {
+        if (profiles == null) throw new ArgumentNullException(nameof(profiles));
+        return SerializeProfilesInternal(SourceGenerationContext.Default, profiles);
+    }
 
     /// <summary>
     /// Serializes profiles.
@@ -158,8 +197,12 @@ public static class ArtifactToolProfileUtil
     {
         if (options == null) throw new ArgumentNullException(nameof(options));
         if (profiles == null) throw new ArgumentNullException(nameof(profiles));
-        var re = new SourceGenerationContext(options);
-        return JsonSerializer.SerializeToElement(profiles, re.ArtifactToolProfileArray);
+        return SerializeProfilesInternal(new SourceGenerationContext(options), profiles);
+    }
+
+    private static JsonElement SerializeProfilesInternal(SourceGenerationContext sourceGenerationContext, params ArtifactToolProfile[] profiles)
+    {
+        return JsonSerializer.SerializeToElement(profiles, sourceGenerationContext.ArtifactToolProfileArray);
     }
 
     private static readonly Regex s_toolRegex = new(@"^([\S\s]+)::([\S\s]+)$");
