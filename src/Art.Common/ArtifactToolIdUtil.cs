@@ -5,7 +5,7 @@ namespace Art.Common;
 /// <summary>
 /// Utility for creating tool strings.
 /// </summary>
-public static class ArtifactToolIdUtil
+public static class ArtifactToolIDUtil
 {
     /// <summary>
     /// Creates a tool ID for the specified tool.
