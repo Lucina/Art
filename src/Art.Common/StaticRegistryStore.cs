@@ -16,7 +16,7 @@ public class StaticRegistryStore : IRegistryStore
     /// <inheritdoc />
     public IArtifactToolRegistry LoadRegistry(ArtifactToolID artifactToolId)
     {
-        if (_artifactToolRegistry.Contains(artifactToolId))
+        if (!_artifactToolRegistry.Contains(artifactToolId))
         {
             throw new ArtUserException($"Registry does not contain an artifact with the ID {artifactToolId}");
         }
