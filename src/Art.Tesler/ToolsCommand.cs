@@ -41,10 +41,20 @@ internal class ToolsCommand<TPluginStore> : CommandBase where TPluginStore : IRe
                     bool canFind = desc.Type.IsAssignableTo(typeof(IArtifactToolFind));
                     bool canList = desc.Type.IsAssignableTo(typeof(IArtifactToolList));
                     bool canDump = canList || desc.Type.IsAssignableTo(typeof(IArtifactToolDump));
+                    bool canSelect;
+                    try
+                    {
+                        canSelect = desc.Type.IsAssignableTo(typeof(IArtifactToolRegexSelector<>).MakeGenericType(desc.Type));
+                    }
+                    catch
+                    {
+                        canSelect = false;
+                    }
                     IEnumerable<string> capabilities = Enumerable.Empty<string>();
                     if (canFind) capabilities = capabilities.Append("find");
                     if (canList) capabilities = capabilities.Append("list");
                     if (canDump) capabilities = capabilities.Append("arc");
+                    if (canSelect) capabilities = capabilities.Append("select");
                     capabilities = capabilities.DefaultIfEmpty("none");
                     return new StringBuilder("Capabilities: ").AppendJoin(", ", capabilities).ToString();
                 });
