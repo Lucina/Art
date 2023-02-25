@@ -8,5 +8,7 @@ public interface IArtifactToolSelfFactory<TSelf> : IArtifactToolFactory where TS
 {
     static IArtifactTool IArtifactToolFactory.CreateArtifactTool() => new TSelf();
 
+    static Type IArtifactToolFactory.GetArtifactToolType() => typeof(TSelf);
+
     static ArtifactToolID IArtifactToolFactory.GetArtifactToolId() => ArtifactToolIdUtil.CreateToolId<TSelf>();
 }

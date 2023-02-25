@@ -21,4 +21,10 @@ public interface IArtifactToolRegistry
     /// <param name="tool">Crated artifact tool, if successful.</param>
     /// <returns>True if successful.</returns>
     bool TryLoad(ArtifactToolID artifactToolId, [NotNullWhen(true)] out IArtifactTool? tool);
+
+    /// <summary>
+    /// Gets available tool descriptions in this registry.
+    /// </summary>
+    /// <returns>Tool descriptions.</returns>
+    IEnumerable<ToolDescription> GetToolDescriptions();
 }

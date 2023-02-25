@@ -119,6 +119,15 @@ public class ArtifactToolRegistry : IArtifactToolSelectableRegistry<string>
     }
 
     /// <inheritdoc />
+    public IEnumerable<ToolDescription> GetToolDescriptions()
+    {
+        foreach (var entry in _entries)
+        {
+            yield return new ToolDescription(entry.Value.GetArtifactToolType(), entry.Key);
+        }
+    }
+
+    /// <inheritdoc />
     public bool TryIdentify(string key, out ArtifactToolID artifactToolId, [NotNullWhen(true)] out string? artifactId)
     {
         foreach (var entry in _entries.Values)

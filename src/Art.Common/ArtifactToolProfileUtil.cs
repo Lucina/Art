@@ -220,7 +220,7 @@ public static class ArtifactToolProfileUtil
     /// <param name="tool">Artifact tool target string(assembly::toolType)</param>
     /// <returns>Separated assembly and type name.</returns>
     /// <exception cref="ArgumentNullException">Thrown if <paramref name="tool"/> is null.</exception>
-    /// <exception cref="ArgumentException">Thrown if this instance has an invalid <paramref name="tool"/> value.</exception>
+    /// <exception cref="ArgumentException">Thrown for an invalid <paramref name="tool"/> value.</exception>
     public static ArtifactToolID GetID(string tool)
     {
         if (tool == null) throw new ArgumentNullException(nameof(tool));

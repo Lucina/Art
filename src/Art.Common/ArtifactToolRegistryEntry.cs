@@ -11,6 +11,12 @@ public abstract record ArtifactToolRegistryEntry(ArtifactToolID Id)
     /// </summary>
     /// <returns>Artifact tool.</returns>
     public abstract IArtifactTool CreateArtifactTool();
+
+    /// <summary>
+    /// Gets base type of produced artifact tools.
+    /// </summary>
+    /// <returns>Type for artifact tools.</returns>
+    public abstract Type GetArtifactToolType();
 }
 
 /// <summary>
@@ -24,5 +30,11 @@ public record ArtifactToolRegistryEntry<T>(ArtifactToolID Id) : ArtifactToolRegi
     public override IArtifactTool CreateArtifactTool()
     {
         return T.CreateArtifactTool();
+    }
+
+    /// <inheritdoc />
+    public override Type GetArtifactToolType()
+    {
+        return T.GetArtifactToolType();
     }
 }

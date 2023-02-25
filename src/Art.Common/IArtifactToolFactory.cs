@@ -12,6 +12,12 @@ public interface IArtifactToolFactory
     static abstract IArtifactTool CreateArtifactTool();
 
     /// <summary>
+    /// Gets base type of produced artifact tools.
+    /// </summary>
+    /// <returns>Type for artifact tools.</returns>
+    static abstract Type GetArtifactToolType();
+
+    /// <summary>
     /// Gets artifact tool ID for this factory.
     /// </summary>
     /// <returns>Artifact tool ID.</returns>

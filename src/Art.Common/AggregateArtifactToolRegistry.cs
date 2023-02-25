@@ -109,6 +109,22 @@ public class AggregateArtifactToolRegistry : IArtifactToolSelectableRegistry<str
     }
 
     /// <inheritdoc />
+    public IEnumerable<ToolDescription> GetToolDescriptions()
+    {
+        HashSet<ArtifactToolID> known = new();
+        foreach (var registry in _registries)
+        {
+            foreach (var description in registry.GetToolDescriptions())
+            {
+                if (known.Add(description.Id))
+                {
+                    yield return description;
+                }
+            }
+        }
+    }
+
+    /// <inheritdoc />
     public bool TryIdentify(string key, out ArtifactToolID artifactToolId, [NotNullWhen(true)] out string? artifactId)
     {
         for (int i = _registries.Count - 1; i >= 0; i--)
