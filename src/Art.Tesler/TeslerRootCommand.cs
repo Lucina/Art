@@ -23,6 +23,44 @@ public class TeslerRootCommand : RootCommand
         };
     }
 
+    public static TeslerRootCommand CreateSinglePlugin<TTool>() where TTool : IArtifactToolFactory
+    {
+        var registry = new ArtifactToolRegistry();
+        registry.Add<TTool>();
+        var pluginStore = new StaticArtifactToolRegistryStore(registry);
+        return new TeslerRootCommand<StaticArtifactToolRegistryStore>(pluginStore)
+        {
+            new ArcCommand<StaticArtifactToolRegistryStore>(pluginStore),
+            new DumpCommand<StaticArtifactToolRegistryStore>(pluginStore),
+            new FindCommand<StaticArtifactToolRegistryStore>(pluginStore),
+            new ListCommand<StaticArtifactToolRegistryStore>(pluginStore),
+            new RehashCommand(),
+            new ToolsCommand<StaticArtifactToolRegistryStore>(pluginStore),
+            new ValidateCommand<StaticArtifactToolRegistryStore>(pluginStore),
+            new DatabaseCommand(),
+            new CookieCommand()
+        };
+    }
+
+    public static TeslerRootCommand CreateSingleSelectablePlugin<TTool>() where TTool : IArtifactToolFactory, IArtifactToolSelector<string>
+    {
+        var registry = new ArtifactToolRegistry();
+        registry.AddSelectable<TTool>();
+        var pluginStore = new StaticArtifactToolRegistryStore(registry);
+        return new TeslerRootCommand<StaticArtifactToolRegistryStore>(pluginStore)
+        {
+            new ArcCommand<StaticArtifactToolRegistryStore>(pluginStore),
+            new DumpCommand<StaticArtifactToolRegistryStore>(pluginStore),
+            new FindCommand<StaticArtifactToolRegistryStore>(pluginStore),
+            new ListCommand<StaticArtifactToolRegistryStore>(pluginStore),
+            new RehashCommand(),
+            new ToolsCommand<StaticArtifactToolRegistryStore>(pluginStore),
+            new ValidateCommand<StaticArtifactToolRegistryStore>(pluginStore),
+            new DatabaseCommand(),
+            new CookieCommand()
+        };
+    }
+
     public static TeslerRootCommand Create(IArtifactToolRegistry artifactToolRegistry)
     {
         return Create(new StaticArtifactToolRegistryStore(artifactToolRegistry));
