@@ -1,6 +1,6 @@
 ﻿using System.Diagnostics.CodeAnalysis;
 
-namespace Art.Common;
+namespace Art;
 
 /// <summary>
 /// Represents a registry of artifact tools which can be created as needed.

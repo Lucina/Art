@@ -6,7 +6,7 @@ using Art.Common.Proxies;
 
 namespace Art.Tesler;
 
-internal class FindCommand<TPluginStore> : ToolCommandBase<TPluginStore> where TPluginStore : IRegistryStore
+internal class FindCommand<TPluginStore> : ToolCommandBase<TPluginStore> where TPluginStore : IArtifactToolRegistryStore
 {
     protected Argument<List<string>> IdsArg;
 

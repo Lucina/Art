@@ -3,7 +3,7 @@ using Art.Common;
 
 namespace Art.Tesler;
 
-public class ValidationContext<TPluginStore> where TPluginStore : IRegistryStore
+public class ValidationContext<TPluginStore> where TPluginStore : IArtifactToolRegistryStore
 {
     private readonly TPluginStore _pluginStore;
     private readonly Dictionary<ArtifactKey, List<ArtifactResourceInfo>> _failed = new();

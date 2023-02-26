@@ -3,7 +3,7 @@ using Art.Common.Proxies;
 
 namespace Art.Tesler;
 
-public class RepairContext<TPluginStore> where TPluginStore : IRegistryStore
+public class RepairContext<TPluginStore> where TPluginStore : IArtifactToolRegistryStore
 {
     private readonly TPluginStore _pluginStore;
     private readonly Dictionary<ArtifactKey, List<ArtifactResourceInfo>> _failed;

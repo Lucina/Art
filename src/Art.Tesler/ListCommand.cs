@@ -6,7 +6,7 @@ using Art.Common.Proxies;
 
 namespace Art.Tesler;
 
-internal class ListCommand<TPluginStore> : ToolCommandBase<TPluginStore> where TPluginStore : IRegistryStore
+internal class ListCommand<TPluginStore> : ToolCommandBase<TPluginStore> where TPluginStore : IArtifactToolRegistryStore
 {
     protected Option<string> ProfileFileOption;
 

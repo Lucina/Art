@@ -1,9 +1,9 @@
-﻿namespace Art.Common;
+﻿namespace Art;
 
 /// <summary>
 /// Represents a store of <see cref="IArtifactToolRegistry"/>.
 /// </summary>
-public interface IRegistryStore
+public interface IArtifactToolRegistryStore
 {
     /// <summary>
     /// Loads a registry that applies to the specified tool ID.

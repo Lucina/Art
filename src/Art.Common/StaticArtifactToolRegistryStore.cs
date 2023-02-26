@@ -3,15 +3,15 @@
 /// <summary>
 /// Represents a store of a single <see cref="IArtifactToolRegistry"/>.
 /// </summary>
-public class StaticRegistryStore : IRegistryStore
+public class StaticArtifactToolRegistryStore : IArtifactToolRegistryStore
 {
     private readonly IArtifactToolRegistry _artifactToolRegistry;
 
     /// <summary>
-    /// Initializes an instance of <see cref="StaticRegistryStore"/>.
+    /// Initializes an instance of <see cref="StaticArtifactToolRegistryStore"/>.
     /// </summary>
     /// <param name="artifactToolRegistry">Registry to use.</param>
-    public StaticRegistryStore(IArtifactToolRegistry artifactToolRegistry) => _artifactToolRegistry = artifactToolRegistry;
+    public StaticArtifactToolRegistryStore(IArtifactToolRegistry artifactToolRegistry) => _artifactToolRegistry = artifactToolRegistry;
 
     /// <inheritdoc />
     public IArtifactToolRegistry LoadRegistry(ArtifactToolID artifactToolId)

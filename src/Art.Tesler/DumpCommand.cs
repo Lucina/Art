@@ -8,7 +8,7 @@ using Art.EF.Sqlite;
 
 namespace Art.Tesler;
 
-internal class DumpCommand<TPluginStore> : ToolCommandBase<TPluginStore> where TPluginStore : IRegistryStore
+internal class DumpCommand<TPluginStore> : ToolCommandBase<TPluginStore> where TPluginStore : IArtifactToolRegistryStore
 {
     protected Option<string> DatabaseOption;
 

@@ -5,7 +5,7 @@ using Art.Common;
 namespace Art.Modular;
 
 [RequiresUnreferencedCode("Loading artifact tools might require types that cannot be statically analyzed.")]
-public class DynamicRegistryStore : IRegistryStore
+public class DynamicArtifactToolRegistryStore : IArtifactToolRegistryStore
 {
     public IArtifactToolRegistry LoadRegistry(ArtifactToolID artifactToolId)
     {

@@ -1,4 +1,4 @@
-﻿namespace Art.Common;
+﻿namespace Art;
 
 /// <summary>
 /// Representation of a tool's metadata.

@@ -1,4 +1,4 @@
-namespace Art.Common;
+namespace Art;
 
 /// <summary>
 /// Represents identity of artifact tool.

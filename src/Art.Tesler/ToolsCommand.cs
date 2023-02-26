@@ -6,7 +6,7 @@ using Art.Common;
 
 namespace Art.Tesler;
 
-internal class ToolsCommand<TPluginStore> : CommandBase where TPluginStore : IRegistryStore
+internal class ToolsCommand<TPluginStore> : CommandBase where TPluginStore : IArtifactToolRegistryStore
 {
     protected TPluginStore PluginStore;
 
