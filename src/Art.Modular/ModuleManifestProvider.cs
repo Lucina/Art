@@ -1,70 +1,76 @@
 using System.Diagnostics.CodeAnalysis;
 using System.Reflection;
 using System.Text.Json;
+using Art.Common;
 
 namespace Art.Modular;
 
-public class ModuleManifestProvider
+[RequiresUnreferencedCode("Loading artifact tools might require types that cannot be statically analyzed.")]
+public class ModuleManifestProvider : IModuleProvider
 {
+    private readonly ModuleLoadConfiguration _moduleLoadConfiguration;
     private readonly Dictionary<string, ModuleManifest> _manifests = new(StringComparer.InvariantCultureIgnoreCase);
     private readonly HashSet<string> _searched = new();
     private readonly string _pluginDirectory;
     private readonly string _directorySuffix;
     private readonly string _fileNameSuffix;
 
-    public static ModuleManifestProvider CreateDefault(string directorySuffix = ".kix", string fileNameSuffix = ".kix.json")
+    public static ModuleManifestProvider CreateDefault(ModuleLoadConfiguration moduleLoadConfiguration, string directorySuffix = ".kix", string fileNameSuffix = ".kix.json")
     {
-        return Create(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Plugins"), directorySuffix, fileNameSuffix);
+        return Create(moduleLoadConfiguration, Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Plugins"), directorySuffix, fileNameSuffix);
     }
 
-    public static ModuleManifestProvider Create(string pluginDirectory, string directorySuffix, string fileNameSuffix)
+    public static ModuleManifestProvider Create(ModuleLoadConfiguration moduleLoadConfiguration, string pluginDirectory, string directorySuffix, string fileNameSuffix)
     {
-        return new ModuleManifestProvider(pluginDirectory, directorySuffix, fileNameSuffix);
+        return new ModuleManifestProvider(moduleLoadConfiguration, pluginDirectory, directorySuffix, fileNameSuffix);
     }
 
-    private ModuleManifestProvider(string pluginDirectory, string directorySuffix, string fileNameSuffix)
+    private ModuleManifestProvider(ModuleLoadConfiguration moduleLoadConfiguration, string pluginDirectory, string directorySuffix, string fileNameSuffix)
     {
+        _moduleLoadConfiguration = moduleLoadConfiguration;
         _pluginDirectory = pluginDirectory;
         _directorySuffix = directorySuffix;
         _fileNameSuffix = fileNameSuffix;
     }
 
-    [RequiresUnreferencedCode("Loading artifact tools might require types that cannot be statically analyzed.")]
-    public bool TryFind(string assembly, [NotNullWhen(true)] out ModuleManifest? manifest)
+    public bool TryLocateModule(string assembly, [NotNullWhen(true)] out IModuleLocation? moduleLocation)
     {
-        if (_manifests.TryGetValue(assembly, out manifest))
+        if (_manifests.TryGetValue(assembly, out var moduleManifest))
         {
+            moduleLocation = moduleManifest;
             return true;
         }
         if (!Directory.Exists(_pluginDirectory))
         {
-            manifest = null;
+            moduleLocation = null;
             return false;
         }
-        if (TryFind(assembly, _pluginDirectory, out manifest, _manifests, _searched))
+        if (TryFind(assembly, _pluginDirectory, out moduleManifest, _manifests, _searched))
         {
+            moduleLocation = moduleManifest;
             return true;
         }
-        manifest = null;
+        moduleLocation = null;
         return false;
     }
 
-    [RequiresUnreferencedCode("Loading artifact tools might require types that cannot be statically analyzed.")]
-    public void LoadManifests(IDictionary<string, ModuleManifest> dictionary)
+    public void LoadModuleLocations(IDictionary<string, IModuleLocation> dictionary)
     {
         if (!Directory.Exists(_pluginDirectory)) return;
         LoadManifests(dictionary, _pluginDirectory, _searched);
     }
 
-    [RequiresUnreferencedCode("Loading artifact tools might require types that cannot be statically analyzed.")]
-    public IArtifactToolRegistry LoadForManifest(ModuleManifest manifest)
+    public IArtifactToolRegistry LoadModule(IModuleLocation moduleLocation)
     {
+        if (moduleLocation is not ModuleManifest manifest)
+        {
+            throw new ArgumentException("Cannot load this module manifest, it is of an invalid type.");
+        }
         string baseDir = manifest.Content.Path != null && !Path.IsPathFullyQualified(manifest.Content.Path) ? Path.Combine(manifest.BasePath, manifest.Content.Path) : manifest.BasePath;
-        var ctx = new ArtModuleAssemblyLoadContext(baseDir, manifest.Content.Assembly);
-        return new PluginWithManifest(manifest, ctx, ctx.LoadFromAssemblyName(new AssemblyName(manifest.Content.Assembly)));
+        var ctx = new RestrictedPassthroughAssemblyLoadContext(baseDir, manifest.Content.Assembly, _moduleLoadConfiguration.PassthroughAssemblies);
+        return new Plugin(ctx, ctx.LoadFromAssemblyName(new AssemblyName(manifest.Content.Assembly)));
     }
 
-    [RequiresUnreferencedCode("Loading artifact tools might require types that cannot be statically analyzed.")]
     private bool TryFind(string assembly, string dir, [NotNullWhen(true)] out ModuleManifest? manifest, IDictionary<string, ModuleManifest>? toAugment = null, ISet<string>? searched = null)
     {
         foreach (string directory in Directory.EnumerateDirectories(dir, $"*{_directorySuffix}", new EnumerationOptions { MatchCasing = MatchCasing.CaseInsensitive }))
@@ -82,7 +88,6 @@ public class ModuleManifestProvider
         return false;
     }
 
-    [RequiresUnreferencedCode("Loading artifact tools might require types that cannot be statically analyzed.")]
     private bool TryFindAtTarget(string assembly, string directory, [NotNullWhen(true)] out ModuleManifest? manifest, IDictionary<string, ModuleManifest>? toAugment = null)
     {
         foreach (string file in Directory.EnumerateFiles(directory, $"*{_fileNameSuffix}", new EnumerationOptions { MatchCasing = MatchCasing.CaseInsensitive }))
@@ -106,8 +111,7 @@ public class ModuleManifestProvider
         return false;
     }
 
-    [RequiresUnreferencedCode("Loading artifact tools might require types that cannot be statically analyzed.")]
-    private void LoadManifests(IDictionary<string, ModuleManifest> dictionary, string dir, ISet<string>? searched = null)
+    private void LoadManifests(IDictionary<string, IModuleLocation> dictionary, string dir, ISet<string>? searched = null)
     {
         foreach (string directory in Directory.EnumerateDirectories(dir, $"*{_directorySuffix}", new EnumerationOptions { MatchCasing = MatchCasing.CaseInsensitive }))
         {
@@ -119,8 +123,7 @@ public class ModuleManifestProvider
         }
     }
 
-    [RequiresUnreferencedCode("Loading artifact tools might require types that cannot be statically analyzed.")]
-    private void LoadManifestsAtTarget(IDictionary<string, ModuleManifest> dictionary, string directory)
+    private void LoadManifestsAtTarget(IDictionary<string, IModuleLocation> dictionary, string directory)
     {
         foreach (string file in Directory.EnumerateFiles(directory, $"*{_fileNameSuffix}", new EnumerationOptions { MatchCasing = MatchCasing.CaseInsensitive }))
         {
@@ -131,7 +134,6 @@ public class ModuleManifestProvider
         }
     }
 
-    [RequiresUnreferencedCode("Loading artifact tools might require types that cannot be statically analyzed.")]
     private static bool TryLoad(string file, [NotNullWhen(true)] out ModuleManifestContent? content)
     {
         try
