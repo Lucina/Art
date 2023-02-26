@@ -1,35 +1,34 @@
 ﻿using System.Diagnostics.CodeAnalysis;
-using System.Reflection;
 
 namespace Art.Modular;
 
 [RequiresUnreferencedCode("Loading artifact tools might require types that cannot be statically analyzed.")]
 public class DynamicArtifactToolRegistryStore : IArtifactToolRegistryStore
 {
+    private readonly ModuleManifestProvider _moduleManifestProvider;
+
+    public DynamicArtifactToolRegistryStore(ModuleManifestProvider moduleManifestProvider)
+    {
+        _moduleManifestProvider = moduleManifestProvider;
+    }
+
     public IArtifactToolRegistry LoadRegistry(ArtifactToolID artifactToolId)
     {
         string assembly = artifactToolId.Assembly;
-        if (!ModuleManifest.TryFind(assembly, out var manifest))
+        if (!_moduleManifestProvider.TryFind(assembly, out var manifest))
         {
             throw new ManifestNotFoundException(assembly);
         }
-        return LoadForManifest(manifest);
-    }
-
-    private static IArtifactToolRegistry LoadForManifest(ModuleManifest manifest)
-    {
-        string baseDir = manifest.Content.Path != null && !Path.IsPathFullyQualified(manifest.Content.Path) ? Path.Combine(manifest.BasePath, manifest.Content.Path) : manifest.BasePath;
-        var ctx = new ArtModuleAssemblyLoadContext(baseDir, manifest.Content.Assembly);
-        return new PluginWithManifest(manifest, ctx, ctx.LoadFromAssemblyName(new AssemblyName(manifest.Content.Assembly)));
+        return _moduleManifestProvider.LoadForManifest(manifest);
     }
 
     public IEnumerable<IArtifactToolRegistry> LoadAllRegistries()
     {
         var manifests = new Dictionary<string, ModuleManifest>();
-        ModuleManifest.LoadManifests(manifests);
+        _moduleManifestProvider.LoadManifests(manifests);
         foreach (ModuleManifest manifest in manifests.Values)
         {
-            yield return LoadForManifest(manifest);
+            yield return _moduleManifestProvider.LoadForManifest(manifest);
         }
     }
 }
