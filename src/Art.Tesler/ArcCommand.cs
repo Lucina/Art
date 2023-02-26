@@ -111,7 +111,6 @@ internal class ArcCommand<TPluginStore> : ToolCommandBase<TPluginStore> where TP
                 _selectableRegistries = new List<IArtifactToolSelectableRegistry<string>>();
                 foreach (var registry in PluginStore.LoadAllRegistries())
                 {
-                    // TODO make modular registry selectable
                     if (registry is IArtifactToolSelectableRegistry<string> selectableRegistry)
                     {
                         _selectableRegistries.Add(selectableRegistry);

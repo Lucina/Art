@@ -5,7 +5,7 @@ using Art.Common;
 namespace Art.Modular;
 
 [RequiresUnreferencedCode("Loading artifact tools might require types that cannot be statically analyzed.")]
-public record Plugin(ModuleManifest Manifest, ArtModuleAssemblyLoadContext Context, Assembly BaseAssembly) : IArtifactToolRegistry
+public record Plugin(ModuleManifest Manifest, ArtModuleAssemblyLoadContext Context, Assembly BaseAssembly) : IArtifactToolSelectableRegistry<string>
 {
     public bool Contains(ArtifactToolID artifactToolId)
     {
@@ -30,5 +30,11 @@ public record Plugin(ModuleManifest Manifest, ArtModuleAssemblyLoadContext Conte
         return BaseAssembly.GetExportedTypes()
             .Where(t => t.IsAssignableTo(typeof(IArtifactTool)) && !t.IsAbstract && t.GetConstructor(Array.Empty<Type>()) != null)
             .Select(v => new ArtifactToolDescription(v, ArtifactToolIDUtil.CreateToolId(v)));
+    }
+
+    public bool TryIdentify(string key, out ArtifactToolID artifactToolId, [NotNullWhen(true)] out string? artifactId)
+    {
+        // TODO
+        throw new NotImplementedException();
     }
 }

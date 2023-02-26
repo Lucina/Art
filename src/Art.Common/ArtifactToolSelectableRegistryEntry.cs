@@ -40,6 +40,12 @@ public record ArtifactToolSelectableRegistryEntry<T>(ArtifactToolID Id) : Artifa
     /// <inheritdoc />
     public override bool TryIdentify(string key, out ArtifactToolID artifactToolId, [NotNullWhen(true)] out string? artifactId)
     {
-        return T.TryIdentify(key, out artifactToolId, out artifactId);
+        if (T.TryIdentify(key, out _, out artifactId))
+        {
+            artifactToolId = Id;
+            return true;
+        }
+        artifactToolId = default;
+        return false;
     }
 }

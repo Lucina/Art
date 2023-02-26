@@ -138,16 +138,4 @@ public class AggregateArtifactToolRegistry : IArtifactToolSelectableRegistry<str
         artifactId = null;
         return false;
     }
-
-    /// <inheritdoc />
-    public bool TryIdentifyAndLoad(string key, [NotNullWhen(true)] out IArtifactTool? tool, [NotNullWhen(true)] out string? artifactId)
-    {
-        if (TryIdentify(key, out ArtifactToolID artifactToolId, out artifactId) && TryLoad(artifactToolId, out tool))
-        {
-            return true;
-        }
-        tool = null;
-        artifactId = null;
-        return false;
-    }
 }
