@@ -25,10 +25,10 @@ public record Plugin(ModuleManifest Manifest, ArtModuleAssemblyLoadContext Conte
         return ArtifactToolLoader.TryLoad(Context, artifactToolId, out tool);
     }
 
-    public IEnumerable<ToolDescription> GetToolDescriptions()
+    public IEnumerable<ArtifactToolDescription> GetToolDescriptions()
     {
         return BaseAssembly.GetExportedTypes()
             .Where(t => t.IsAssignableTo(typeof(IArtifactTool)) && !t.IsAbstract && t.GetConstructor(Array.Empty<Type>()) != null)
-            .Select(v => new ToolDescription(v, ArtifactToolIDUtil.CreateToolId(v)));
+            .Select(v => new ArtifactToolDescription(v, ArtifactToolIDUtil.CreateToolId(v)));
     }
 }

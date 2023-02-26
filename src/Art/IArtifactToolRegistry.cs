@@ -26,5 +26,5 @@ public interface IArtifactToolRegistry
     /// Gets available tool descriptions in this registry.
     /// </summary>
     /// <returns>Tool descriptions.</returns>
-    IEnumerable<ToolDescription> GetToolDescriptions();
+    IEnumerable<ArtifactToolDescription> GetToolDescriptions();
 }

@@ -119,11 +119,11 @@ public class ArtifactToolRegistry : IArtifactToolSelectableRegistry<string>
     }
 
     /// <inheritdoc />
-    public IEnumerable<ToolDescription> GetToolDescriptions()
+    public IEnumerable<ArtifactToolDescription> GetToolDescriptions()
     {
         foreach (var entry in _entries)
         {
-            yield return new ToolDescription(entry.Value.GetArtifactToolType(), entry.Key);
+            yield return new ArtifactToolDescription(entry.Value.GetArtifactToolType(), entry.Key);
         }
     }
 

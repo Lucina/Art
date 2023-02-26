@@ -109,7 +109,7 @@ public class AggregateArtifactToolRegistry : IArtifactToolSelectableRegistry<str
     }
 
     /// <inheritdoc />
-    public IEnumerable<ToolDescription> GetToolDescriptions()
+    public IEnumerable<ArtifactToolDescription> GetToolDescriptions()
     {
         HashSet<ArtifactToolID> known = new();
         foreach (var registry in _registries)
