@@ -85,7 +85,7 @@ public class Plugin : IArtifactToolSelectableRegistry<string>
     }
 
     /// <inheritdoc />
-    public bool TryIdentify(string key, out ArtifactToolID artifactToolId, [NotNullWhen(true)] out string? artifactId)
+    public bool TryIdentify(string key, [NotNullWhen(true)] out ArtifactToolID? artifactToolId, [NotNullWhen(true)] out string? artifactId)
     {
         EnsureSelectableRegistryEntriesLoaded();
         foreach (var entry in _selectableRegistryEntries)

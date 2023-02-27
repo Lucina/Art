@@ -17,5 +17,5 @@ public interface IArtifactToolSelector<in TKey>
     /// <param name="artifactToolId">Artifact tool ID, if successful.</param>
     /// <param name="artifactId">Artifact ID, if successful.</param>
     /// <returns>True if successful.</returns>
-    static abstract bool TryIdentify(TKey key, out ArtifactToolID artifactToolId, [NotNullWhen(true)] out string? artifactId);
+    static abstract bool TryIdentify(TKey key, [NotNullWhen(true)] out ArtifactToolID? artifactToolId, [NotNullWhen(true)] out string? artifactId);
 }

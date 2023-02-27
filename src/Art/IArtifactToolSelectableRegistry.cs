@@ -14,7 +14,7 @@ public interface IArtifactToolSelectableRegistry<in TKey> : IArtifactToolRegistr
     /// <param name="artifactToolId">Artifact tool ID, if successful.</param>
     /// <param name="artifactId">Artifact ID, if successful.</param>
     /// <returns>True if successful.</returns>
-    bool TryIdentify(TKey key, out ArtifactToolID artifactToolId, [NotNullWhen(true)] out string? artifactId);
+    bool TryIdentify(TKey key, [NotNullWhen(true)] out ArtifactToolID? artifactToolId, [NotNullWhen(true)] out string? artifactId);
 
     /// <summary>
     /// Attempts to load an applicable tool and identify an artifact ID from an input key.
@@ -26,7 +26,7 @@ public interface IArtifactToolSelectableRegistry<in TKey> : IArtifactToolRegistr
     [Obsolete("Chain TryIdentify and TryLoad calls instead")]
     bool TryIdentifyAndLoad(TKey key, [NotNullWhen(true)] out IArtifactTool? tool, [NotNullWhen(true)] out string? artifactId)
     {
-        if (TryIdentify(key, out ArtifactToolID artifactToolId, out artifactId) && TryLoad(artifactToolId, out tool))
+        if (TryIdentify(key, out ArtifactToolID? artifactToolId, out artifactId) && TryLoad(artifactToolId, out tool))
         {
             return true;
         }

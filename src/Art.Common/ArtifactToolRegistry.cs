@@ -128,7 +128,7 @@ public class ArtifactToolRegistry : IArtifactToolSelectableRegistry<string>
     }
 
     /// <inheritdoc />
-    public bool TryIdentify(string key, out ArtifactToolID artifactToolId, [NotNullWhen(true)] out string? artifactId)
+    public bool TryIdentify(string key, [NotNullWhen(true)] out ArtifactToolID? artifactToolId, [NotNullWhen(true)] out string? artifactId)
     {
         foreach (var entry in _entries.Values)
         {

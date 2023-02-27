@@ -15,7 +15,7 @@ public abstract record ArtifactToolSelectableRegistryEntry(ArtifactToolID Id) : 
     /// <param name="artifactToolId">Artifact tool ID, if successful.</param>
     /// <param name="artifactId">Artifact ID, if successful.</param>
     /// <returns>True if successful.</returns>
-    public abstract bool TryIdentify(string key, out ArtifactToolID artifactToolId, [NotNullWhen(true)] out string? artifactId);
+    public abstract bool TryIdentify(string key, [NotNullWhen(true)] out ArtifactToolID? artifactToolId, [NotNullWhen(true)] out string? artifactId);
 }
 
 /// <summary>
@@ -38,7 +38,7 @@ public record ArtifactToolSelectableRegistryEntry<T>(ArtifactToolID Id) : Artifa
     }
 
     /// <inheritdoc />
-    public override bool TryIdentify(string key, out ArtifactToolID artifactToolId, [NotNullWhen(true)] out string? artifactId)
+    public override bool TryIdentify(string key, [NotNullWhen(true)] out ArtifactToolID? artifactToolId, [NotNullWhen(true)] out string? artifactId)
     {
         if (T.TryIdentify(key, out _, out artifactId))
         {

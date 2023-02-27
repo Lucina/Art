@@ -124,7 +124,7 @@ public class AggregateArtifactToolRegistryTests
         _subRegistry0 = new ArtifactToolRegistry();
         _subRegistry0.AddSelectable<AggregateArtifactToolRegistryTestsDummyTool>();
         _registry.Add(_subRegistry0);
-        bool success = _registry.TryIdentify("ID_1234", out ArtifactToolID artifactToolId, out string? artifactId);
+        bool success = _registry.TryIdentify("ID_1234", out ArtifactToolID? artifactToolId, out string? artifactId);
         Assert.That(success, Is.True);
         Assert.That(artifactToolId, Is.EqualTo(s_dummyToolId));
         Assert.That(artifactId, Is.EqualTo("1234"));
@@ -136,7 +136,7 @@ public class AggregateArtifactToolRegistryTests
         _subRegistry0 = new ArtifactToolRegistry();
         _registry.Add(_subRegistry0);
         _subRegistry0.AddSelectable<AggregateArtifactToolRegistryTestsDummyTool>();
-        bool success = _registry.TryIdentify("INVALID_1234", out ArtifactToolID artifactToolId, out string? artifactId);
+        bool success = _registry.TryIdentify("INVALID_1234", out ArtifactToolID? artifactToolId, out string? artifactId);
         Assert.That(success, Is.False);
         Assert.That(artifactToolId, Is.EqualTo(default(ArtifactToolID)));
         Assert.That(artifactId, Is.Null);
@@ -148,10 +148,10 @@ public class AggregateArtifactToolRegistryTests
         _subRegistry0 = new ArtifactToolRegistry();
         _registry.Add(_subRegistry0);
         _subRegistry0.AddSelectable<AggregateArtifactToolRegistryTestsDummyTool>();
-        bool success = _registry.TryIdentify("ID_1234", out ArtifactToolID artifactToolId, out string? artifactId);
+        bool success = _registry.TryIdentify("ID_1234", out ArtifactToolID? artifactToolId, out string? artifactId);
         Assert.That(success, Is.True);
         Assert.That(artifactToolId, Is.EqualTo(s_dummyToolId));
-        success = _registry.TryLoad(artifactToolId, out IArtifactTool? artifactTool);
+        success = _registry.TryLoad(artifactToolId!, out IArtifactTool? artifactTool);
         Assert.That(success, Is.True);
         Assert.That(artifactTool, Is.InstanceOf<AggregateArtifactToolRegistryTestsDummyTool>());
         Assert.That(artifactId, Is.EqualTo("1234"));
@@ -164,7 +164,7 @@ public class AggregateArtifactToolRegistryTests
         _subRegistry0 = new ArtifactToolRegistry();
         _registry.Add(_subRegistry0);
         _subRegistry0.AddSelectable<AggregateArtifactToolRegistryTestsDummyTool>();
-        bool success = _registry.TryIdentify("INVALID_1234", out ArtifactToolID artifactToolId, out string? artifactId);
+        bool success = _registry.TryIdentify("INVALID_1234", out ArtifactToolID? artifactToolId, out string? artifactId);
         Assert.That(success, Is.False);
         Assert.That(artifactToolId, Is.EqualTo(default(ArtifactToolID)));
         Assert.That(artifactId, Is.Null);

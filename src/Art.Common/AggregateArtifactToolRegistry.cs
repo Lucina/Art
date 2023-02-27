@@ -125,7 +125,7 @@ public class AggregateArtifactToolRegistry : IArtifactToolSelectableRegistry<str
     }
 
     /// <inheritdoc />
-    public bool TryIdentify(string key, out ArtifactToolID artifactToolId, [NotNullWhen(true)] out string? artifactId)
+    public bool TryIdentify(string key, [NotNullWhen(true)] out ArtifactToolID? artifactToolId, [NotNullWhen(true)] out string? artifactId)
     {
         for (int i = _registries.Count - 1; i >= 0; i--)
         {

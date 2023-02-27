@@ -20,7 +20,7 @@ public interface IArtifactToolRegexSelector<TSelf> : IArtifactToolFactory, IArti
     /// <returns>Group name.</returns>
     static abstract string GetArtifactToolSelectorRegexIdGroupName();
 
-    static bool IArtifactToolSelector<string>.TryIdentify(string key, out ArtifactToolID artifactToolId, [NotNullWhen(true)] out string? artifactId)
+    static bool IArtifactToolSelector<string>.TryIdentify(string key, [NotNullWhen(true)] out ArtifactToolID? artifactToolId, [NotNullWhen(true)] out string? artifactId)
     {
         if (TSelf.GetArtifactToolSelectorRegex().Match(key) is { Success: true } match
             && match.Groups.TryGetValue(TSelf.GetArtifactToolSelectorRegexIdGroupName(), out Group? group)

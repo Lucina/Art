@@ -34,9 +34,9 @@ internal class ToolsCommand<TPluginStore> : CommandBase where TPluginStore : IAr
             string? search = context.ParseResult.GetValueForOption(SearchOption);
             Regex? re = search != null ? Common.GetFilterRegex(search, false, false) : null;
             foreach (var desc in plugin.GetToolDescriptions()
-                         .Where(v => re?.IsMatch(v.Id.GetToolString()) ?? true))
+                         .Where(v => re?.IsMatch(v.Id.ToolString) ?? true))
             {
-                Common.PrintFormat(desc.Id.GetToolString(), context.ParseResult.GetValueForOption(DetailedOption), () =>
+                Common.PrintFormat(desc.Id.ToolString, context.ParseResult.GetValueForOption(DetailedOption), () =>
                 {
                     bool canFind = desc.Type.IsAssignableTo(typeof(IArtifactToolFind));
                     bool canList = desc.Type.IsAssignableTo(typeof(IArtifactToolList));
