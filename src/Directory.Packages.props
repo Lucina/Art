@@ -6,17 +6,16 @@
     <!-- Package dependenices -->
     <PackageVersion Include="AngleSharp" Version="1.0.1" />
     <PackageVersion Include="EA" Version="1.1.1" />
-    <PackageVersion Include="Microsoft.Data.Sqlite" Version="7.0.2" />
-    <PackageVersion Include="Microsoft.EntityFrameworkCore.Design" Version="7.0.2" />
-    <PackageVersion Include="Microsoft.EntityFrameworkCore.Proxies" Version="7.0.2" />
-    <PackageVersion Include="Microsoft.EntityFrameworkCore.Sqlite" Version="7.0.2" />
+    <PackageVersion Include="Microsoft.Data.Sqlite" Version="7.0.3" />
+    <PackageVersion Include="Microsoft.EntityFrameworkCore.Design" Version="7.0.3" />
+    <PackageVersion Include="Microsoft.EntityFrameworkCore.Proxies" Version="7.0.3" />
+    <PackageVersion Include="Microsoft.EntityFrameworkCore.Sqlite" Version="7.0.3" />
     <PackageVersion Include="System.CommandLine" Version="2.0.0-beta4.22272.1" />
-    <PackageVersion Include="System.Security.Cryptography.ProtectedData" Version="7.0.0" />
-
+    <PackageVersion Include="System.Security.Cryptography.ProtectedData" Version="7.0.1" />
     <!-- Test dependenices -->
-    <PackageVersion Include="Microsoft.NET.Test.Sdk" Version="17.4.1" />
+    <PackageVersion Include="Microsoft.NET.Test.Sdk" Version="17.5.0" />
     <PackageVersion Include="NUnit" Version="3.13.3" />
-    <PackageVersion Include="NUnit3TestAdapter" Version="4.3.1" />
+    <PackageVersion Include="NUnit3TestAdapter" Version="4.4.0" />
     <PackageVersion Include="coverlet.collector" Version="3.2.0" />
     <PackageVersion Include="RichardSzalay.MockHttp" Version="6.0.0" />
   </ItemGroup>
