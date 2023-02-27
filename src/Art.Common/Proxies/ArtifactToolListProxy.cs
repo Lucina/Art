@@ -91,6 +91,7 @@ public record ArtifactToolListProxy
             try
             {
                 InMemoryArtifactDataManager im = new();
+                artifactTool.DataManager = im;
                 await dumpTool.DumpAsync(cancellationToken).ConfigureAwait(false);
                 foreach ((ArtifactKey ak, List<ArtifactResourceInfo> resources) in im.Artifacts)
                 {
