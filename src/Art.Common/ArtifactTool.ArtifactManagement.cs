@@ -5,6 +5,17 @@ public partial class ArtifactTool
     #region Artifact management
 
     /// <summary>
+    /// Resolves applicable group.
+    /// </summary>
+    /// <param name="customGroup">Optional custom group to apply.</param>
+    /// <returns>Group.</returns>
+    public string ResolveGroup(string? customGroup = null)
+    {
+        // Group precedence: group specified in profile (treated as override), custom group specified locally, tool's fallback
+        return Profile.Group ?? customGroup ?? GroupFallback;
+    }
+
+    /// <summary>
     /// Creates a new instance of <see cref="ArtifactData"/>.
     /// </summary>
     /// <param name="id">Artifact ID.</param>
@@ -20,9 +31,7 @@ public partial class ArtifactTool
         bool full = true,
         string? group = null)
     {
-        // Group precedence: group specified in profile (treated as override), custom group specified locally, tool's fallback
-        string groupActual = Profile.Group ?? group ?? GroupFallback;
-        return new ArtifactData(this, Profile.Tool, groupActual, id, name, date, updateDate, full);
+        return new ArtifactData(this, Profile.Tool, ResolveGroup(group), id, name, date, updateDate, full);
     }
 
     /// <summary>

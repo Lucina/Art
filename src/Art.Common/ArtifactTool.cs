@@ -67,7 +67,7 @@ public partial class ArtifactTool : IArtifactTool
     /// <summary>
     /// Creates a new instance of <see cref="ArtifactTool"/>.
     /// </summary>
-    protected ArtifactTool()
+    public ArtifactTool()
     {
         RegistrationManager = null!;
         DataManager = null!;
