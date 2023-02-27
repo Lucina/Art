@@ -29,7 +29,7 @@ public class DirectoryJsonDefaultPropertyProvider : IDefaultPropertyProvider
 
     public void WriteDefaultProperties(ArtifactToolID artifactToolId, Dictionary<string, JsonElement> dictionary)
     {
-        string toolNameSafe = artifactToolId.ToolString.SafeifyFileName();
+        string toolNameSafe = artifactToolId.GetToolString().SafeifyFileName();
         string toolFile = Path.Combine(_directory, $"{toolNameSafe}.json");
         if (_commonProperties != null)
         {

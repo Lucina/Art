@@ -10,7 +10,5 @@ public record ArtifactToolID(string Assembly, string Type)
     /// <summary>
     /// Tool string equivalent for this instance.
     /// </summary>
-    public string ToolString => _toolString ??= $"{Assembly}::{Type}";
-
-    private string? _toolString;
+    public string GetToolString() => $"{Assembly}::{Type}";
 }

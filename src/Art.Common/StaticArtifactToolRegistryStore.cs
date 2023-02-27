@@ -18,7 +18,7 @@ public class StaticArtifactToolRegistryStore : IArtifactToolRegistryStore
     {
         if (!_artifactToolRegistry.Contains(artifactToolId))
         {
-            throw new ArtUserException($"Registry does not contain an artifact with the ID {artifactToolId}");
+            throw new ArtUserException($"Registry does not contain an artifact tool with the ID {artifactToolId}");
         }
         return _artifactToolRegistry;
     }

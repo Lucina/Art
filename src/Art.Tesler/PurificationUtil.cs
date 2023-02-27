@@ -12,7 +12,7 @@ internal static class PurificationUtil
             if (registry.TryIdentify(key, out var artifactToolId, out string? artifactId))
             {
                 var opts = new Dictionary<string, JsonElement> { { "artifactList", JsonSerializer.SerializeToElement(new List<string> { artifactId }, SourceGenerationContext.Default.ListString) } };
-                profile = new ArtifactToolProfile(artifactToolId.ToolString, null, opts);
+                profile = new ArtifactToolProfile(artifactToolId.GetToolString(), null, opts);
                 return true;
             }
         }
