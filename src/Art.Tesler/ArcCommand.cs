@@ -1,7 +1,6 @@
 ﻿using System.CommandLine;
 using System.CommandLine.Invocation;
 using System.CommandLine.Parsing;
-using System.Text.Json;
 using Art.Common;
 using Art.Common.Management;
 using Art.Common.Proxies;
@@ -117,17 +116,11 @@ internal class ArcCommand<TPluginStore> : ToolCommandBase<TPluginStore> where TP
                     }
                 }
             }
-            foreach (var registry in _selectableRegistries)
+            if (!PurificationUtil.TryIdentify(_selectableRegistries, profileFile, out var profile))
             {
-                if (registry.TryIdentify(profileFile, out var artifactToolId, out string? artifactId))
-                {
-                    var opts = new Dictionary<string, JsonElement> { { "artifactList", JsonSerializer.SerializeToElement(new List<string> { artifactId }, SourceGenerationContext.Default.ListString) } };
-                    var profile = new ArtifactToolProfile(artifactToolId.ToolString, null, opts);
-                    profiles.Add(profile);
-                    return;
-                }
+                throw new FileNotFoundException(null, profileFile);
             }
-            throw new FileNotFoundException(null, profileFile);
+            profiles.Add(profile);
         }
     }
 }
