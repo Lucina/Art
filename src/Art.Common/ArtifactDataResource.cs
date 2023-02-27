@@ -8,5 +8,14 @@ public readonly record struct ArtifactDataResource(ArtifactData Data, ArtifactRe
     /// <summary>
     /// Adds this resource.
     /// </summary>
-    public void Commit() => Data.Add(Info);
+    /// <param name="primary">If true, overwrite the primary resource on <see cref="Data"/>.</param>
+    /// <seealso cref="IArtifactData.PrimaryResource">IArtifactData.PrimaryResource</seealso>
+    public void Commit(bool primary = false)
+    {
+        Data.Add(Info);
+        if (primary)
+        {
+            Data.PrimaryResource = Info;
+        }
+    }
 }

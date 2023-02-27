@@ -21,6 +21,7 @@ public record ArtifactResourceInfo(ArtifactResourceKey Key, string? ContentType 
     /// <summary>
     /// If true, it is possible to directly get a stream from this reference via <see cref="GetStreamAsync"/>.
     /// </summary>
+    [JsonIgnore]
     public virtual bool CanGetStream => false;
 
     /// <summary>
