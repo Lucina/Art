@@ -13,7 +13,7 @@ internal class StreamCommand<TPluginStore> : ToolCommandBase<TPluginStore> where
 
     private List<IArtifactToolSelectableRegistry<string>>? _selectableRegistries;
 
-    public StreamCommand(TPluginStore pluginStore, IDefaultPropertyProvider defaultPropertyProvider) : this(pluginStore, defaultPropertyProvider, "arc", "Execute archival artifact tools.")
+    public StreamCommand(TPluginStore pluginStore, IDefaultPropertyProvider defaultPropertyProvider) : this(pluginStore, defaultPropertyProvider, "stream", "Stream primary resource to standard output.")
     {
     }
 
@@ -81,7 +81,7 @@ internal class StreamCommand<TPluginStore> : ToolCommandBase<TPluginStore> where
         }
         if (!PurificationUtil.TryIdentify(_selectableRegistries, profileFile, out var profile))
         {
-            throw new FileNotFoundException(null, profileFile);
+            throw new ArtUserException($"Could not find file \"{profileFile}\", and no tool can process this item");
         }
         return profile;
     }

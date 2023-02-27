@@ -118,7 +118,7 @@ internal class ArcCommand<TPluginStore> : ToolCommandBase<TPluginStore> where TP
             }
             if (!PurificationUtil.TryIdentify(_selectableRegistries, profileFile, out var profile))
             {
-                throw new FileNotFoundException(null, profileFile);
+                throw new ArtUserException($"Could not find file \"{profileFile}\", and no tool can process this item");
             }
             profiles.Add(profile);
         }
