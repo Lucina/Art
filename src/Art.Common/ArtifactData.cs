@@ -13,10 +13,16 @@ public class ArtifactData : IArtifactData
     /// </summary>
     public ArtifactInfo Info { get; }
 
+    /// <inheritdoc />
+    ArtifactResourceInfo? IArtifactData.PrimaryResource => PrimaryResource;
+
+    /// <inheritdoc cref="IArtifactData.PrimaryResource"/>
+    public ArtifactResourceInfo? PrimaryResource { get; set; }
+
     /// <summary>
     /// Tool associated with this instance.
     /// </summary>
-    public readonly IArtifactTool? Tool;
+    public IArtifactTool? Tool { get; }
 
     /// <summary>
     /// Resources for this artifact.
