@@ -14,7 +14,8 @@ public class PluginTests
     [SetUp]
     public void SetUp()
     {
-        _registry = new Plugin(AssemblyLoadContext.Default, typeof(PluginTestTool).Assembly);
+        var assembly = typeof(PluginTestTool).Assembly;
+        _registry = new Plugin(AssemblyLoadContext.GetLoadContext(assembly)!, assembly);
     }
 
     [Test]

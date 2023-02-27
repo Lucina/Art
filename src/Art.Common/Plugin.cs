@@ -30,6 +30,14 @@ public class Plugin : IArtifactToolSelectableRegistry<string>
     /// <param name="baseAssembly"><see cref="Assembly"/> to draw from.</param>
     public Plugin(AssemblyLoadContext context, Assembly baseAssembly)
     {
+        if (context == null)
+        {
+            throw new ArgumentNullException(nameof(context));
+        }
+        if (baseAssembly == null)
+        {
+            throw new ArgumentNullException(nameof(baseAssembly));
+        }
         Context = context;
         BaseAssembly = baseAssembly;
     }
