@@ -6,6 +6,7 @@
 public class ConsoleLogHandler : IToolLogHandler
 {
     private readonly AutoResetEvent _wh;
+    private readonly bool _itsumoError;
 
     private static readonly Dictionary<LogLevel, string> s_preDefault = new()
     {
@@ -28,33 +29,25 @@ public class ConsoleLogHandler : IToolLogHandler
     /// <summary>
     /// Default instance.
     /// </summary>
-    public static readonly ConsoleLogHandler Default = new();
+    public static readonly ConsoleLogHandler Default = new(true);
 
     /// <summary>
     /// Fancy instance.
     /// </summary>
-    public static readonly ConsoleLogHandler Fancy = new(true);
+    public static readonly ConsoleLogHandler Fancy = new(true, true);
 
     private readonly Dictionary<LogLevel, string> _pre;
 
     /// <summary>
     /// Creates a new instance of <see cref="ConsoleLogHandler"/>.
     /// </summary>
-    public ConsoleLogHandler()
-    {
-        //_pre = OperatingSystem.IsMacOS() ? s_preOsx : s_preDefault;
-        _pre = s_preDefault;
-        _wh = new AutoResetEvent(true);
-    }
-
-    /// <summary>
-    /// Creates a new instance of <see cref="ConsoleLogHandler"/>.
-    /// </summary>
+    /// <param name="alwaysPrintToErrorStream">If true, always print output to error stream.</param>
     /// <param name="enableFancy">Enable fancy output.</param>
-    public ConsoleLogHandler(bool enableFancy)
+    public ConsoleLogHandler(bool alwaysPrintToErrorStream, bool enableFancy = false)
     {
         _pre = enableFancy ? s_preOsx : s_preDefault;
         _wh = new AutoResetEvent(true);
+        _itsumoError = alwaysPrintToErrorStream;
     }
 
     /// <inheritdoc/>
@@ -63,8 +56,9 @@ public class ConsoleLogHandler : IToolLogHandler
         _wh.WaitOne();
         try
         {
-            if (title != null) WriteTitle(level, title, group);
-            if (body != null) Console.WriteLine(body);
+            var textWriter = SelectTextWriter(level);
+            if (title != null) WriteTitle(textWriter, level, title, group);
+            if (body != null) textWriter.WriteLine(body);
         }
         finally
         {
@@ -78,8 +72,9 @@ public class ConsoleLogHandler : IToolLogHandler
         _wh.WaitOne();
         try
         {
-            if (title != null) WriteTitle(level, title);
-            if (body != null) Console.WriteLine(body);
+            var textWriter = SelectTextWriter(level);
+            if (title != null) WriteTitle(textWriter, level, title);
+            if (body != null) textWriter.WriteLine(body);
         }
         finally
         {
@@ -87,6 +82,25 @@ public class ConsoleLogHandler : IToolLogHandler
         }
     }
 
-    private void WriteTitle(LogLevel level, string title, string? group = null)
-        => Console.WriteLine(group != null ? $"{_pre[level]} {group} {_pre[level]} {title}" : $"{_pre[level]} {title}");
+    private TextWriter SelectTextWriter(LogLevel level)
+    {
+        if (_itsumoError)
+        {
+            return Console.Error;
+        }
+        return level switch
+        {
+            LogLevel.Information => Console.Out,
+            LogLevel.Entry => Console.Out,
+            LogLevel.Title => Console.Out,
+            LogLevel.Warning => Console.Error,
+            LogLevel.Error => Console.Error,
+            _ => Console.Error
+        };
+    }
+
+    private void WriteTitle(TextWriter writer, LogLevel level, string title, string? group = null)
+    {
+        writer.WriteLine(group != null ? $"{_pre[level]} {group} {_pre[level]} {title}" : $"{_pre[level]} {title}");
+    }
 }

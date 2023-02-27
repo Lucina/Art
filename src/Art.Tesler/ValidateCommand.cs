@@ -91,7 +91,11 @@ internal class ValidateCommand<TPluginStore> : ToolCommandBase<TPluginStore> whe
         int resourceFailCount = validationContext.CountResourceFailures();
         if (!repair)
         {
-            l.Log($"{resourceFailCount} resources failed to validate.", null, LogLevel.Information);
+            l.Log($"{resourceFailCount} resources failed to validate.", null, LogLevel.Warning);
+            foreach (var entry in validationContext.GetFailureCountsByKey())
+            {
+                l.Log($"Artifact {entry.Key}: {entry.Value} failures", null, LogLevel.Warning);
+            }
             return 1;
         }
         l.Log($"{resourceFailCount} resources failed to validate and will be reacquired.", null, LogLevel.Information);

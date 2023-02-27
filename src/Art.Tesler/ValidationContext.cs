@@ -13,6 +13,8 @@ public class ValidationContext<TPluginStore> where TPluginStore : IArtifactToolR
 
     public bool AnyFailed => _failed.Count != 0;
 
+    public IEnumerable<KeyValuePair<ArtifactKey, int>> GetFailureCountsByKey() => _failed.Select(v => new KeyValuePair<ArtifactKey, int>(v.Key, v.Value.Count));
+
     public int CountResourceFailures() => _failed.Sum(v => v.Value.Count);
 
     public ValidationContext(TPluginStore pluginStore, IArtifactRegistrationManager arm, ArtifactDataManager adm, IToolLogHandler l)
