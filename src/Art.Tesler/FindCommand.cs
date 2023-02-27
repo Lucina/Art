@@ -54,7 +54,7 @@ internal class FindCommand<TPluginStore> : ToolCommandBase<TPluginStore> where T
         string? group = context.ParseResult.HasOption(GroupOption) ? context.ParseResult.GetValueForOption(GroupOption) : null;
         if (profileFile == null)
         {
-            ArtifactToolProfile profile = new(tool!, group ?? "unknown", null);
+            ArtifactToolProfile profile = new(tool!, group, null);
             return await ExecAsync(context, profile);
         }
         int ec = 0;

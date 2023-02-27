@@ -83,7 +83,7 @@ internal class DumpCommand<TPluginStore> : ToolCommandBase<TPluginStore> where T
         string? profileFile = context.ParseResult.HasOption(ProfileFileOption) ? context.ParseResult.GetValueForOption(ProfileFileOption) : null;
         string? tool = context.ParseResult.HasOption(ToolOption) ? context.ParseResult.GetValueForOption(ToolOption) : null;
         string? group = context.ParseResult.HasOption(GroupOption) ? context.ParseResult.GetValueForOption(GroupOption) : null;
-        if (profileFile == null) return await ExecAsync(context, new ArtifactToolProfile(tool!, group ?? "default", null), arm, adm, hash);
+        if (profileFile == null) return await ExecAsync(context, new ArtifactToolProfile(tool!, group, null), arm, adm, hash);
         int ec = 0;
         foreach (ArtifactToolProfile profile in ArtifactToolProfileUtil.DeserializeProfilesFromFile(profileFile))
         {

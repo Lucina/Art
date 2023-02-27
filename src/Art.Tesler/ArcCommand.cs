@@ -122,7 +122,7 @@ internal class ArcCommand<TPluginStore> : ToolCommandBase<TPluginStore> where TP
                 if (registry.TryIdentify(profileFile, out var artifactToolId, out string? artifactId))
                 {
                     var opts = new Dictionary<string, JsonElement> { { "artifactList", JsonSerializer.SerializeToElement(new List<string> { artifactId }, SourceGenerationContext.Default.ListString) } };
-                    var profile = new ArtifactToolProfile(artifactToolId.ToolString, "default", opts);
+                    var profile = new ArtifactToolProfile(artifactToolId.ToolString, null, opts);
                     profiles.Add(profile);
                     return;
                 }
