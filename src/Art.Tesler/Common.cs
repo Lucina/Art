@@ -17,6 +17,8 @@ internal static class Common
     internal const string DefaultChecksumAlgorithm = "SHA256";
     internal const string DefaultDbFile = "kix_data.db";
 
+    internal static IToolLogHandler GetStreamToolLogHandler() => new ConsoleLogHandler(true);
+
     internal static IToolLogHandler GetDefaultToolLogHandler() => OperatingSystem.IsMacOS() ? ConsoleLogHandler.Fancy : ConsoleLogHandler.Default;
 
     internal static int AccumulateErrorCode(int errorCode, int existingErrorCode)
