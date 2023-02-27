@@ -20,16 +20,16 @@ public class M3UDownloaderContextStandardSaver : M3UDownloaderContextSaver
     /// <inheritdoc />
     public override Task RunAsync(CancellationToken cancellationToken = default)
     {
-        return OperateAsync(null, cancellationToken);
+        return OperateAsync(false, null, cancellationToken);
     }
 
     /// <inheritdoc />
     public override Task ExportAsync(Stream stream, CancellationToken cancellationToken = default)
     {
-        return OperateAsync(stream, cancellationToken);
+        return OperateAsync(true, stream, cancellationToken);
     }
 
-    private async Task OperateAsync(Stream? targetStream = null, CancellationToken cancellationToken = default)
+    private async Task OperateAsync(bool noFiles, Stream? targetStream = null, CancellationToken cancellationToken = default)
     {
         FailCounter = 0;
         HashSet<string> hs = new();
@@ -65,7 +65,7 @@ public class M3UDownloaderContextStandardSaver : M3UDownloaderContextSaver
                     Context.Tool.LogInformation($"Downloading segment {entry}...");
                     if (targetStream != null)
                     {
-                        await Context.StreamSegmentAsync(targetStream, new Uri(Context.MainUri, entry), m3, m3.FirstMediaSequenceNumber + i, cancellationToken).ConfigureAwait(false);
+                        await Context.StreamSegmentAsync(targetStream, noFiles, new Uri(Context.MainUri, entry), m3, m3.FirstMediaSequenceNumber + i, cancellationToken).ConfigureAwait(false);
                     }
                     else
                     {
