@@ -11,13 +11,10 @@ namespace Art.Modular;
 [RequiresUnreferencedCode("Loading artifact tools might require types that cannot be statically analyzed.")]
 public class RestrictedPassthroughAssemblyLoadContext : AssemblyLoadContext
 {
-    // Need to share the core library so everyone uses the same Assembly instance and interface types from that instance
-    private static readonly ImmutableHashSet<string> s_shared = new HashSet<string> { "Art" }.ToImmutableHashSet();
-
     /// <summary>
     /// Base path of resolver.
     /// </summary>
-    public readonly string BasePath;
+    public string BasePath { get; }
 
     private readonly ImmutableHashSet<string> _sharedAssemblies;
     private readonly AssemblyDependencyResolver _resolver;
