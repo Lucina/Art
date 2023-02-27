@@ -208,11 +208,20 @@ public static class ArtifactToolProfileUtil
     private static readonly Regex s_toolRegex = new(@"^([\S\s]+)::([\S\s]+)$");
 
     /// <summary>
+    /// Gets group value or fallback to <paramref name="fallback"/>.
+    /// </summary>
+    /// <param name="artifactToolProfile">Artifact tool profile.</param>
+    /// <param name="fallback">Fallback value to use if profile does not contain a specified group value.</param>
+    /// <returns>Group value.</returns>
+    public static string GetGroupOrFallback(this ArtifactToolProfile artifactToolProfile, string fallback = "default") => artifactToolProfile.Group ?? fallback;
+
+    /// <summary>
     /// Separates assembly and type name from <see cref="ArtifactToolProfile.Tool"/>.
     /// </summary>
+    /// <param name="artifactToolProfile">Artifact tool profile.</param>
     /// <returns>Separated assembly and type name.</returns>
     /// <exception cref="ArgumentException">Thrown if this instance has an invalid <see cref="ArtifactToolProfile.Tool"/> value.</exception>
-    public static ArtifactToolID GetID(this ArtifactToolProfile profile) => GetID(profile.Tool);
+    public static ArtifactToolID GetID(this ArtifactToolProfile artifactToolProfile) => GetID(artifactToolProfile.Tool);
 
     /// <summary>
     /// Separates assembly and type name from <see cref="ArtifactToolProfile.Tool"/>.
@@ -281,44 +290,44 @@ public static class ArtifactToolProfileUtil
     /// <summary>
     /// Creates an instance of this profile with most derived core type of instance or instance's type.
     /// </summary>
-    /// <param name="profile">Profile.</param>
+    /// <param name="artifactToolProfile">Profile.</param>
     /// <param name="instance">Instance to derive tool type from.</param>
     /// <returns>Profile.</returns>
-    public static ArtifactToolProfile WithCoreTool(this ArtifactToolProfile profile, object instance) => profile.WithCoreTool(instance.GetType());
+    public static ArtifactToolProfile WithCoreTool(this ArtifactToolProfile artifactToolProfile, object instance) => artifactToolProfile.WithCoreTool(instance.GetType());
 
     /// <summary>
     /// Creates an instance of this profile with most derived core type or given type.
     /// </summary>
-    /// <param name="profile">Profile.</param>
+    /// <param name="artifactToolProfile">Profile.</param>
     /// <param name="type">Tool type.</param>
     /// <returns>Profile.</returns>
-    public static ArtifactToolProfile WithCoreTool(this ArtifactToolProfile profile, Type type) => profile with { Tool = ArtifactToolIDUtil.CreateCoreToolString(type) };
+    public static ArtifactToolProfile WithCoreTool(this ArtifactToolProfile artifactToolProfile, Type type) => artifactToolProfile with { Tool = ArtifactToolIDUtil.CreateCoreToolString(type) };
 
     /// <summary>
     /// Creates an instance of this profile with specified comparer.
     /// </summary>
-    /// <param name="profile">Profile.</param>
+    /// <param name="artifactToolProfile">Profile.</param>
     /// <param name="comparer">Comparer to use.</param>
     /// <returns>Profile</returns>
     /// <exception cref="ArgumentNullException">Thrown if <paramref name="comparer"/> is null.</exception>
     /// <exception cref="ArgumentException">Thrown if duplicate keys are encountered using the specified comparer.</exception>
-    public static ArtifactToolProfile WithOptionsComparer(this ArtifactToolProfile profile, StringComparer comparer)
+    public static ArtifactToolProfile WithOptionsComparer(this ArtifactToolProfile artifactToolProfile, StringComparer comparer)
     {
         if (comparer == null) throw new ArgumentNullException(nameof(comparer));
-        return profile.Options == null ? profile : profile with { Options = new Dictionary<string, JsonElement>(profile.Options, comparer) };
+        return artifactToolProfile.Options == null ? artifactToolProfile : artifactToolProfile with { Options = new Dictionary<string, JsonElement>(artifactToolProfile.Options, comparer) };
     }
 
     /// <summary>
     /// Creates a new options dictionary for this profile with the specified comparer.
     /// </summary>
-    /// <param name="profile">Profile.</param>
+    /// <param name="artifactToolProfile">Profile.</param>
     /// <param name="comparer">Comparer to use.</param>
     /// <returns>Profile</returns>
     /// <exception cref="ArgumentNullException">Thrown if <paramref name="comparer"/> is null.</exception>
     /// <exception cref="ArgumentException">Thrown if duplicate keys are encountered using the specified comparer.</exception>
-    public static Dictionary<string, JsonElement> GetOptionsWithOptionsComparer(this ArtifactToolProfile profile, StringComparer comparer)
+    public static Dictionary<string, JsonElement> GetOptionsWithOptionsComparer(this ArtifactToolProfile artifactToolProfile, StringComparer comparer)
     {
         if (comparer == null) throw new ArgumentNullException(nameof(comparer));
-        return profile.Options == null ? new Dictionary<string, JsonElement>() : new Dictionary<string, JsonElement>(profile.Options, comparer);
+        return artifactToolProfile.Options == null ? new Dictionary<string, JsonElement>() : new Dictionary<string, JsonElement>(artifactToolProfile.Options, comparer);
     }
 }

@@ -69,7 +69,7 @@ internal class DatabaseCommandList : DatabaseCommandBase
         return 0;
     }
 
-    private readonly record struct ToolAndGroup(string Tool, string Group);
+    private readonly record struct ToolAndGroup(string Tool, string? Group);
 
     private static ArtifactToolProfile AugmentProfile(ArtifactToolProfile profile, List<string> ids)
         => CreateNewProfile(new ToolAndGroup(profile.Tool, profile.Group), profile.Options != null ? new Dictionary<string, JsonElement>(profile.Options) : new Dictionary<string, JsonElement>(), ids);

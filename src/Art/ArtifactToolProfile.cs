@@ -10,6 +10,6 @@ namespace Art;
 /// <param name="Options">Tool-specific options.</param>
 public record ArtifactToolProfile(
     string Tool,
-    string Group,
+    string? Group,
     IReadOnlyDictionary<string, JsonElement>? Options
 );

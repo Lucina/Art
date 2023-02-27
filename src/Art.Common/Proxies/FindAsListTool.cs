@@ -50,6 +50,8 @@ internal class FindAsListTool : IArtifactToolList
         set => _baseTool.JsonOptions = value;
     }
 
+    public string GroupFallback => _baseTool.GroupFallback;
+
     public Task InitializeAsync(ArtifactToolConfig? config = null, ArtifactToolProfile? profile = null, CancellationToken cancellationToken = default) => _baseTool.InitializeAsync(config, profile, cancellationToken);
 
     public async IAsyncEnumerable<IArtifactData> ListAsync([EnumeratorCancellation] CancellationToken cancellationToken = default)

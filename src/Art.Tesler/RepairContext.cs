@@ -26,14 +26,14 @@ public class RepairContext<TPluginStore> where TPluginStore : IArtifactToolRegis
         foreach (ArtifactToolProfile profile in profiles)
         {
             ArtifactToolProfile artifactToolProfile = profile;
-            if (artifactToolProfile.Group == null) throw new IOException("Group not specified in profile");
             var context = _pluginStore.LoadRegistry(ArtifactToolProfileUtil.GetID(profile.Tool)); // InvalidOperationException
             if (!context.TryLoad(artifactToolProfile.GetID(), out IArtifactTool? t))
                 throw new ArtifactToolNotFoundException(artifactToolProfile.Tool);
             ArtifactToolConfig config = new(_arm, _adm);
             using IArtifactTool tool = t;
+            string group = artifactToolProfile.GetGroupOrFallback(tool.GroupFallback);
             artifactToolProfile = artifactToolProfile.WithCoreTool(t);
-            if (!_failed.Keys.Any(v => v.Tool == artifactToolProfile.Tool && v.Group == artifactToolProfile.Group))
+            if (!_failed.Keys.Any(v => v.Tool == artifactToolProfile.Tool && v.Group == group))
                 continue;
             await tool.InitializeAsync(config, artifactToolProfile).ConfigureAwait(false);
             switch (tool)
@@ -42,7 +42,7 @@ public class RepairContext<TPluginStore> where TPluginStore : IArtifactToolRegis
                 case IArtifactToolFind:
                     {
                         var proxy = new ArtifactToolFindProxy(tool);
-                        foreach ((ArtifactKey key, List<ArtifactResourceInfo> list) in _failed.Where(v => v.Key.Tool == artifactToolProfile.Tool && v.Key.Group == artifactToolProfile.Group).ToList())
+                        foreach ((ArtifactKey key, List<ArtifactResourceInfo> list) in _failed.Where(v => v.Key.Tool == artifactToolProfile.Tool && v.Key.Group == group).ToList())
                             if (await proxy.FindAsync(key.Id) is { } data) await Fixup(tool, key, list, data, hashAlgorithm);
                             else _l.Log($"Failed to obtain artifact {key.Tool}/{key.Group}:{key.Id}", null, LogLevel.Error);
                         break;

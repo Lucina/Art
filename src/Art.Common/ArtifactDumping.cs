@@ -87,7 +87,6 @@ public static class ArtifactDumping
     [RequiresUnreferencedCode($"Loading artifact tools might require types that cannot be statically analyzed. Consider making use of the overload that takes {nameof(IArtifactToolRegistry)} where possible.")]
     public static async Task DumpAsync(ArtifactToolProfile artifactToolProfile, IArtifactRegistrationManager artifactRegistrationManager, IArtifactDataManager artifactDataManager, ArtifactToolDumpOptions? dumpOptions = null, IToolLogHandler? toolLogHandler = null, CancellationToken cancellationToken = default)
     {
-        if (artifactToolProfile.Group == null) throw new ArgumentException("Group not specified in profile");
         using IArtifactTool tool = await ArtifactTool.PrepareToolAsync(artifactToolProfile, artifactRegistrationManager, artifactDataManager, cancellationToken).ConfigureAwait(false);
         await new ArtifactToolDumpProxy(tool, dumpOptions ?? new ArtifactToolDumpOptions(), toolLogHandler).DumpAsync(cancellationToken).ConfigureAwait(false);
     }
@@ -108,7 +107,6 @@ public static class ArtifactDumping
     [RequiresUnreferencedCode($"Loading artifact tools might require types that cannot be statically analyzed. Consider making use of the overload that takes {nameof(IArtifactToolRegistry)} where possible.")]
     public static async Task DumpAsync(AssemblyLoadContext assemblyLoadContext, ArtifactToolProfile artifactToolProfile, IArtifactRegistrationManager artifactRegistrationManager, IArtifactDataManager artifactDataManager, ArtifactToolDumpOptions? dumpOptions = null, IToolLogHandler? toolLogHandler = null, CancellationToken cancellationToken = default)
     {
-        if (artifactToolProfile.Group == null) throw new ArgumentException("Group not specified in profile");
         using IArtifactTool tool = await ArtifactTool.PrepareToolAsync(assemblyLoadContext, artifactToolProfile, artifactRegistrationManager, artifactDataManager, cancellationToken).ConfigureAwait(false);
         await new ArtifactToolDumpProxy(tool, dumpOptions ?? new ArtifactToolDumpOptions(), toolLogHandler).DumpAsync(cancellationToken).ConfigureAwait(false);
     }
@@ -128,7 +126,6 @@ public static class ArtifactDumping
     /// <exception cref="ArtifactToolNotFoundException">Thrown when tool is not found.</exception>
     public static async Task DumpAsync(IArtifactToolRegistry artifactToolRegistry, ArtifactToolProfile artifactToolProfile, IArtifactRegistrationManager artifactRegistrationManager, IArtifactDataManager artifactDataManager, ArtifactToolDumpOptions? dumpOptions = null, IToolLogHandler? toolLogHandler = null, CancellationToken cancellationToken = default)
     {
-        if (artifactToolProfile.Group == null) throw new ArgumentException("Group not specified in profile");
         using IArtifactTool tool = await ArtifactTool.PrepareToolAsync(artifactToolRegistry, artifactToolProfile, artifactRegistrationManager, artifactDataManager, cancellationToken).ConfigureAwait(false);
         await new ArtifactToolDumpProxy(tool, dumpOptions ?? new ArtifactToolDumpOptions(), toolLogHandler).DumpAsync(cancellationToken).ConfigureAwait(false);
     }
@@ -148,7 +145,6 @@ public static class ArtifactDumping
     /// <exception cref="ArtifactToolNotFoundException">Thrown when tool is not found.</exception>
     public static async Task DumpAsync<T>(ArtifactToolProfile artifactToolProfile, IArtifactRegistrationManager artifactRegistrationManager, IArtifactDataManager artifactDataManager, ArtifactToolDumpOptions? dumpOptions = null, IToolLogHandler? toolLogHandler = null, CancellationToken cancellationToken = default) where T : IArtifactToolFactory
     {
-        if (artifactToolProfile.Group == null) throw new ArgumentException("Group not specified in profile");
         using IArtifactTool tool = await ArtifactTool.PrepareToolAsync<T>(artifactToolProfile, artifactRegistrationManager, artifactDataManager, cancellationToken).ConfigureAwait(false);
         await new ArtifactToolDumpProxy(tool, dumpOptions ?? new ArtifactToolDumpOptions(), toolLogHandler).DumpAsync(cancellationToken).ConfigureAwait(false);
     }
@@ -177,7 +173,7 @@ public static class ArtifactDumping
                 throw new ArgumentOutOfRangeException(nameof(resourceUpdate));
         }
         ItemStateFlags iF = await artifactTool.CompareArtifactAsync(artifactData.Info, cancellationToken).ConfigureAwait(false);
-        logHandler?.Log(artifactTool.Profile.Tool, artifactTool.Profile.Group, $"{((iF & ItemStateFlags.NewerIdentityMask) != 0 ? "[NEW] " : "")}{artifactData.Info.GetInfoTitleString()}", artifactData.Info.GetInfoString(), LogLevel.Entry);
+        logHandler?.Log(artifactTool.Profile.Tool, artifactTool.Profile.GetGroupOrFallback(artifactTool.GroupFallback), $"{((iF & ItemStateFlags.NewerIdentityMask) != 0 ? "[NEW] " : "")}{artifactData.Info.GetInfoTitleString()}", artifactData.Info.GetInfoString(), LogLevel.Entry);
         if ((iF & ItemStateFlags.NewerIdentityMask) != 0)
             await artifactTool.RegistrationManager.AddArtifactAsync(artifactData.Info with { Full = false }, cancellationToken).ConfigureAwait(false);
         switch (resourceUpdate)
@@ -269,7 +265,7 @@ public static class ArtifactDumping
                 stream.ShouldCommit = true;
             }
         }
-        logHandler?.Log(artifactTool.Profile.Tool, artifactTool.Profile.Group, $"-- {((rF & ItemStateFlags.NewerIdentityMask) != 0 ? "[NEW] " : "")}{versionedResource.GetInfoPathString()}", versionedResource.GetInfoString(), LogLevel.Entry);
+        logHandler?.Log(artifactTool.Profile.Tool, artifactTool.Profile.GetGroupOrFallback(artifactTool.GroupFallback), $"-- {((rF & ItemStateFlags.NewerIdentityMask) != 0 ? "[NEW] " : "")}{versionedResource.GetInfoPathString()}", versionedResource.GetInfoString(), LogLevel.Entry);
         if ((rF & ItemStateFlags.DifferentMask) != 0)
             await artifactTool.RegistrationManager.AddResourceAsync(versionedResource, cancellationToken).ConfigureAwait(false);
     }

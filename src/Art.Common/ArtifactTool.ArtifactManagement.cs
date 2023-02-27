@@ -12,8 +12,18 @@ public partial class ArtifactTool
     /// <param name="date">Artifact creation date.</param>
     /// <param name="updateDate">Artifact update date.</param>
     /// <param name="full">True if this is a full artifact.</param>
-    public ArtifactData CreateData(string id, string? name = null, DateTimeOffset? date = null, DateTimeOffset? updateDate = null, bool full = true)
-        => new(this, Profile.Tool, Profile.Group, id, name, date, updateDate, full);
+    /// <param name="group">Custom group.</param>
+    public ArtifactData CreateData(string id,
+        string? name = null,
+        DateTimeOffset? date = null,
+        DateTimeOffset? updateDate = null,
+        bool full = true,
+        string? group = null)
+    {
+        // Group precedence: group specified in profile (treated as override), custom group specified locally, tool's fallback
+        string groupActual = Profile.Group ?? group ?? GroupFallback;
+        return new ArtifactData(this, Profile.Tool, groupActual, id, name, date, updateDate, full);
+    }
 
     /// <summary>
     /// Registers artifact as known.
@@ -40,7 +50,7 @@ public partial class ArtifactTool
     /// <param name="cancellationToken">Cancellation token.</param>
     /// <returns>Task returning retrieved artifact, if it exists.</returns>
     public async Task<ArtifactInfo?> TryGetArtifactAsync(string id, CancellationToken cancellationToken = default)
-        => await RegistrationManager.TryGetArtifactAsync(new ArtifactKey(Profile.Tool, Profile.Group, id), cancellationToken).ConfigureAwait(false);
+        => await RegistrationManager.TryGetArtifactAsync(new ArtifactKey(Profile.Tool, Profile.GetGroupOrFallback(GroupFallback), id), cancellationToken).ConfigureAwait(false);
 
     /// <summary>
     /// Attempts to get info for the artifact with the specified ID.

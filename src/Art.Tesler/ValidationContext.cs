@@ -146,9 +146,10 @@ public class ValidationContext<TPluginStore> where TPluginStore : IArtifactToolR
                 throw new InvalidOperationException($"Unknown tool {profile.Tool}");
             using IArtifactTool tool = t;
             var pp = profile.WithCoreTool(tool);
-            _l.Log($"Processing entries for profile {pp.Tool}/{pp.Group}", null, LogLevel.Title);
-            var result = await ProcessAsync(await _arm.ListArtifactsAsync(pp.Tool, pp.Group), hashForAdd);
-            _l.Log($"Processed {result.Artifacts} artifacts and {result.Resources} resources for profile {pp.Tool}/{pp.Group}", null, LogLevel.Information);
+            string group = pp.GetGroupOrFallback(tool.GroupFallback);
+            _l.Log($"Processing entries for profile {pp.Tool}/{group}", null, LogLevel.Title);
+            var result = await ProcessAsync(await _arm.ListArtifactsAsync(pp.Tool, group), hashForAdd);
+            _l.Log($"Processed {result.Artifacts} artifacts and {result.Resources} resources for profile {pp.Tool}/{group}", null, LogLevel.Information);
             artifactCount += result.Artifacts;
             resourceCount += result.Resources;
         }

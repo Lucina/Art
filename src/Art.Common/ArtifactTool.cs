@@ -45,6 +45,9 @@ public partial class ArtifactTool : IArtifactTool
         set => _jsonOptions = value;
     }
 
+    /// <inheritdoc />
+    public virtual string GroupFallback => "default";
+
     #endregion
 
     #region Private fields
@@ -168,7 +171,6 @@ public partial class ArtifactTool : IArtifactTool
     [RequiresUnreferencedCode($"Loading artifact tools might require types that cannot be statically analyzed. Consider making use of the overload that takes {nameof(IArtifactToolRegistry)} where possible.")]
     public static Task<IArtifactTool> PrepareToolAsync(ArtifactToolProfile artifactToolProfile, IArtifactRegistrationManager artifactRegistrationManager, IArtifactDataManager artifactDataManager, CancellationToken cancellationToken = default)
     {
-        if (artifactToolProfile.Group == null) throw new ArgumentException("Group not specified in profile");
         if (!ArtifactToolLoader.TryLoad(artifactToolProfile.Tool, out IArtifactTool? t))
             throw new ArtifactToolNotFoundException(artifactToolProfile.Tool);
         return PrepareToolInternalAsync(t, artifactToolProfile, artifactRegistrationManager, artifactDataManager, cancellationToken);
@@ -188,7 +190,6 @@ public partial class ArtifactTool : IArtifactTool
     [RequiresUnreferencedCode($"Loading artifact tools might require types that cannot be statically analyzed. Consider making use of the overload that takes {nameof(IArtifactToolRegistry)} where possible.")]
     public static Task<IArtifactTool> PrepareToolAsync(AssemblyLoadContext assemblyLoadContext, ArtifactToolProfile artifactToolProfile, IArtifactRegistrationManager artifactRegistrationManager, IArtifactDataManager artifactDataManager, CancellationToken cancellationToken = default)
     {
-        if (artifactToolProfile.Group == null) throw new ArgumentException("Group not specified in profile");
         if (!ArtifactToolLoader.TryLoad(assemblyLoadContext, artifactToolProfile.Tool, out IArtifactTool? t))
             throw new ArtifactToolNotFoundException(artifactToolProfile.Tool);
         return PrepareToolInternalAsync(t, artifactToolProfile, artifactRegistrationManager, artifactDataManager, cancellationToken);
@@ -207,7 +208,6 @@ public partial class ArtifactTool : IArtifactTool
     /// <exception cref="ArtifactToolNotFoundException">Thrown when tool is not found.</exception>
     public static Task<IArtifactTool> PrepareToolAsync(IArtifactToolRegistry artifactToolRegistry, ArtifactToolProfile artifactToolProfile, IArtifactRegistrationManager artifactRegistrationManager, IArtifactDataManager artifactDataManager, CancellationToken cancellationToken = default)
     {
-        if (artifactToolProfile.Group == null) throw new ArgumentException("Group not specified in profile");
         if (!artifactToolRegistry.TryLoad(ArtifactToolProfileUtil.GetID(artifactToolProfile.Tool), out IArtifactTool? t))
             throw new ArtifactToolNotFoundException(artifactToolProfile.Tool);
         return PrepareToolInternalAsync(t, artifactToolProfile, artifactRegistrationManager, artifactDataManager, cancellationToken);
@@ -225,7 +225,6 @@ public partial class ArtifactTool : IArtifactTool
     /// <exception cref="ArgumentException">Thrown when an invalid profile is provided.</exception>
     public static Task<IArtifactTool> PrepareToolAsync<T>(ArtifactToolProfile artifactToolProfile, IArtifactRegistrationManager artifactRegistrationManager, IArtifactDataManager artifactDataManager, CancellationToken cancellationToken = default) where T : IArtifactToolFactory
     {
-        if (artifactToolProfile.Group == null) throw new ArgumentException("Group not specified in profile");
         var t = T.CreateArtifactTool();
         return PrepareToolInternalAsync(t, artifactToolProfile, artifactRegistrationManager, artifactDataManager, cancellationToken);
     }

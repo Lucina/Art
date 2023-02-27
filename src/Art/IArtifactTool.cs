@@ -20,12 +20,12 @@ public interface IArtifactTool : IDisposable
     /// <summary>
     /// Origin tool profile.
     /// </summary>
-    public ArtifactToolProfile Profile { get; }
+    ArtifactToolProfile Profile { get; }
 
     /// <summary>
     /// Configuration.
     /// </summary>
-    public ArtifactToolConfig Config { get; }
+    ArtifactToolConfig Config { get; }
 
     /// <summary>
     /// Allowed eager evaluation modes for this tool.
@@ -45,7 +45,12 @@ public interface IArtifactTool : IDisposable
     /// <summary>
     /// JSON serialization defaults.
     /// </summary>
-    public JsonSerializerOptions JsonOptions { get; set; }
+    JsonSerializerOptions JsonOptions { get; set; }
+
+    /// <summary>
+    /// Fallback value for group.
+    /// </summary>
+    string GroupFallback { get; }
 
     /// <summary>
     /// Initializes and configures this tool with the specified runtime configuration and profile.

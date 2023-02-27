@@ -214,9 +214,18 @@ public static class ArtifactToolOptionExtensions
     /// <param name="optKey">Key to search.</param>
     /// <param name="group">Group fallback.</param>
     /// <returns>Option value.</returns>
-    public static string GetStringOptionOrGroup(this IReadOnlyDictionary<string, JsonElement>? options, string optKey, string group)
+    /// <exception cref="InvalidOperationException">Thrown when appropriate option was not found and no group is provided.</exception>
+    public static string GetStringOptionOrGroup(this IReadOnlyDictionary<string, JsonElement>? options, string optKey, string? group)
     {
-        return TryGetStringOption(options, optKey, out string? optValue) ? optValue : group;
+        if (TryGetStringOption(options, optKey, out string? optValue))
+        {
+            return optValue;
+        }
+        if (group != null)
+        {
+            return group;
+        }
+        throw new InvalidOperationException($"Applicable option {optKey} was not found, and group was not provided.");
     }
 
     #endregion
@@ -351,9 +360,18 @@ public static class ArtifactToolOptionExtensions
     /// <returns>Option value.</returns>
     /// <exception cref="JsonException">Thrown when conversion failed.</exception>
     /// <exception cref="NotSupportedException">Thrown when type not supported.</exception>
-    public static long GetInt64OptionOrGroup(this IReadOnlyDictionary<string, JsonElement>? options, string optKey, string group, bool throwIfIncorrectType = false)
+    /// <exception cref="InvalidOperationException">Thrown when appropriate option was not found and no group is provided.</exception>
+    public static long GetInt64OptionOrGroup(this IReadOnlyDictionary<string, JsonElement>? options, string optKey, string? group, bool throwIfIncorrectType = false)
     {
-        return TryGetInt64Option(options, optKey, out long? optValue, throwIfIncorrectType) ? optValue.Value : long.Parse(group, CultureInfo.InvariantCulture);
+        if (TryGetInt64Option(options, optKey, out long? optValue, throwIfIncorrectType))
+        {
+            return optValue.Value;
+        }
+        if (group != null)
+        {
+            return long.Parse(group, CultureInfo.InvariantCulture);
+        }
+        throw new InvalidOperationException($"Applicable option {optKey} was not found, and group was not provided.");
     }
 
     #endregion
@@ -428,9 +446,18 @@ public static class ArtifactToolOptionExtensions
     /// <returns>Option value.</returns>
     /// <exception cref="JsonException">Thrown when conversion failed.</exception>
     /// <exception cref="NotSupportedException">Thrown when type not supported.</exception>
-    public static ulong GetUInt64OptionOrGroup(this IReadOnlyDictionary<string, JsonElement>? options, string optKey, string group, bool throwIfIncorrectType = false)
+    /// <exception cref="InvalidOperationException">Thrown when appropriate option was not found and no group is provided.</exception>
+    public static ulong GetUInt64OptionOrGroup(this IReadOnlyDictionary<string, JsonElement>? options, string optKey, string? group, bool throwIfIncorrectType = false)
     {
-        return TryGetUInt64Option(options, optKey, out ulong? optValue, throwIfIncorrectType) ? optValue.Value : ulong.Parse(group, CultureInfo.InvariantCulture);
+        if (TryGetUInt64Option(options, optKey, out ulong? optValue, throwIfIncorrectType))
+        {
+            return optValue.Value;
+        }
+        if (group != null)
+        {
+            return ulong.Parse(group, CultureInfo.InvariantCulture);
+        }
+        throw new InvalidOperationException($"Applicable option {optKey} was not found, and group was not provided.");
     }
 
     #endregion
