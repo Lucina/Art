@@ -15,11 +15,6 @@ public class ModuleManifestProvider : IModuleProvider
     private readonly string _directorySuffix;
     private readonly string _fileNameSuffix;
 
-    public static ModuleManifestProvider CreateDefault(ModuleLoadConfiguration moduleLoadConfiguration, string directorySuffix = ".kix", string fileNameSuffix = ".kix.json")
-    {
-        return Create(moduleLoadConfiguration, Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Plugins"), directorySuffix, fileNameSuffix);
-    }
-
     public static ModuleManifestProvider Create(ModuleLoadConfiguration moduleLoadConfiguration, string pluginDirectory, string directorySuffix, string fileNameSuffix)
     {
         return new ModuleManifestProvider(moduleLoadConfiguration, pluginDirectory, directorySuffix, fileNameSuffix);
