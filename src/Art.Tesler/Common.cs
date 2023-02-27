@@ -144,13 +144,20 @@ internal static class Common
     }
 
     internal static ArtifactToolProfile GetWithConsoleOptions(this ArtifactToolProfile artifactToolProfile,
+        IDefaultPropertyProvider defaultPropertyProvider,
         IEnumerable<string> properties,
         string? cookieFile,
         string? userAgent)
     {
-        Dictionary<string, JsonElement> opts = artifactToolProfile.Options != null
-            ? new Dictionary<string, JsonElement>(artifactToolProfile.Options)
-            : new Dictionary<string, JsonElement>();
+        Dictionary<string, JsonElement> opts = new();
+        defaultPropertyProvider.WriteDefaultProperties(artifactToolProfile.GetID(), opts);
+        if (artifactToolProfile.Options != null)
+        {
+            foreach (var pair in artifactToolProfile.Options)
+            {
+                opts[pair.Key] = pair.Value;
+            }
+        }
         if (cookieFile != null) opts.AddPropWithWarning("cookieFile", JsonSerializer.SerializeToElement(cookieFile, SourceGenerationContext.Default.String));
         if (userAgent != null) opts.AddPropWithWarning("userAgent", JsonSerializer.SerializeToElement(userAgent, SourceGenerationContext.Default.String));
         opts.AddProps(properties);

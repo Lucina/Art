@@ -30,11 +30,11 @@ internal class ArcCommand<TPluginStore> : ToolCommandBase<TPluginStore> where TP
 
     private List<IArtifactToolSelectableRegistry<string>>? _selectableRegistries;
 
-    public ArcCommand(TPluginStore pluginStore) : this(pluginStore, "arc", "Execute archival artifact tools.")
+    public ArcCommand(TPluginStore pluginStore, IDefaultPropertyProvider defaultPropertyProvider) : this(pluginStore, defaultPropertyProvider, "arc", "Execute archival artifact tools.")
     {
     }
 
-    public ArcCommand(TPluginStore pluginStore, string name, string? description = null) : base(pluginStore, name, description)
+    public ArcCommand(TPluginStore pluginStore, IDefaultPropertyProvider defaultPropertyProvider, string name, string? description = null) : base(pluginStore, defaultPropertyProvider, name, description)
     {
         DatabaseOption = new Option<string>(new[] { "-d", "--database" }, "Sqlite database file") { ArgumentHelpName = "file" };
         DatabaseOption.SetDefaultValue(Common.DefaultDbFile);
@@ -88,7 +88,7 @@ internal class ArcCommand<TPluginStore> : ToolCommandBase<TPluginStore> where TP
         string? cookieFile = context.ParseResult.HasOption(CookieFileOption) ? context.ParseResult.GetValueForOption(CookieFileOption) : null;
         string? userAgent = context.ParseResult.HasOption(UserAgentOption) ? context.ParseResult.GetValueForOption(UserAgentOption) : null;
         IEnumerable<string> properties = context.ParseResult.HasOption(PropertiesOption) ? context.ParseResult.GetValueForOption(PropertiesOption)! : Array.Empty<string>();
-        profiles = profiles.Select(p => p.GetWithConsoleOptions(properties, cookieFile, userAgent)).ToList();
+        profiles = profiles.Select(p => p.GetWithConsoleOptions(DefaultPropertyProvider, properties, cookieFile, userAgent)).ToList();
         foreach (ArtifactToolProfile profile in profiles)
         {
             var plugin = PluginStore.LoadRegistry(ArtifactToolProfileUtil.GetID(profile.Tool));

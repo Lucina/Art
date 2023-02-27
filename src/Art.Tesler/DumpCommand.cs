@@ -24,11 +24,11 @@ internal class DumpCommand<TPluginStore> : ToolCommandBase<TPluginStore> where T
 
     protected Option<string> GroupOption;
 
-    public DumpCommand(TPluginStore pluginStore) : this(pluginStore, "dump", "Execute artifact dump tools.")
+    public DumpCommand(TPluginStore pluginStore, IDefaultPropertyProvider defaultPropertyProvider) : this(pluginStore, defaultPropertyProvider, "dump", "Execute artifact dump tools.")
     {
     }
 
-    public DumpCommand(TPluginStore pluginStore, string name, string? description = null) : base(pluginStore, name, description)
+    public DumpCommand(TPluginStore pluginStore, IDefaultPropertyProvider defaultPropertyProvider, string name, string? description = null) : base(pluginStore, defaultPropertyProvider, name, description)
     {
         DatabaseOption = new Option<string>(new[] { "-d", "--database" }, "Sqlite database file") { ArgumentHelpName = "file" };
         DatabaseOption.SetDefaultValue(Common.DefaultDbFile);

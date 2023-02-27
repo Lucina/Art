@@ -10,15 +10,18 @@ public abstract class ToolCommandBase<TPluginStore> : CommandBase where TPluginS
 {
     protected TPluginStore PluginStore;
 
+    protected IDefaultPropertyProvider DefaultPropertyProvider;
+
     protected Option<string> UserAgentOption;
 
     protected Option<string> CookieFileOption;
 
     protected Option<List<string>> PropertiesOption;
 
-    protected ToolCommandBase(TPluginStore pluginStore, string name, string? description = null) : base(name, description)
+    protected ToolCommandBase(TPluginStore pluginStore, IDefaultPropertyProvider defaultPropertyProvider, string name, string? description = null) : base(name, description)
     {
         PluginStore = pluginStore;
+        DefaultPropertyProvider = defaultPropertyProvider;
         UserAgentOption = new Option<string>(new[] { "--user-agent" }, "Custom user agent string") { ArgumentHelpName = "user-agent" };
         AddOption(UserAgentOption);
         CookieFileOption = new Option<string>(new[] { "--cookie-file" }, "Cookie file") { ArgumentHelpName = "file" };
@@ -38,7 +41,7 @@ public abstract class ToolCommandBase<TPluginStore> : CommandBase where TPluginS
         string? cookieFile = context.ParseResult.HasOption(CookieFileOption) ? context.ParseResult.GetValueForOption(CookieFileOption) : null;
         string? userAgent = context.ParseResult.HasOption(UserAgentOption) ? context.ParseResult.GetValueForOption(UserAgentOption) : null;
         IEnumerable<string> properties = context.ParseResult.HasOption(PropertiesOption) ? context.ParseResult.GetValueForOption(PropertiesOption)! : Array.Empty<string>();
-        artifactToolProfile = artifactToolProfile.GetWithConsoleOptions(properties, cookieFile, userAgent);
+        artifactToolProfile = artifactToolProfile.GetWithConsoleOptions(DefaultPropertyProvider, properties, cookieFile, userAgent);
         IArtifactTool t = await ArtifactTool.PrepareToolAsync(plugin, artifactToolProfile, arm, adm, cancellationToken);
         return t;
     }

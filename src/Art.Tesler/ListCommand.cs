@@ -18,11 +18,11 @@ internal class ListCommand<TPluginStore> : ToolCommandBase<TPluginStore> where T
 
     protected Option<bool> DetailedOption;
 
-    public ListCommand(TPluginStore pluginStore) : this(pluginStore, "list", "Execute artifact list tools.")
+    public ListCommand(TPluginStore pluginStore, IDefaultPropertyProvider defaultPropertyProvider) : this(pluginStore, defaultPropertyProvider, "list", "Execute artifact list tools.")
     {
     }
 
-    public ListCommand(TPluginStore pluginStore, string name, string? description = null) : base(pluginStore, name, description)
+    public ListCommand(TPluginStore pluginStore, IDefaultPropertyProvider defaultPropertyProvider, string name, string? description = null) : base(pluginStore, defaultPropertyProvider, name, description)
     {
         ProfileFileOption = new Option<string>(new[] { "-i", "--input" }, "Profile file") { ArgumentHelpName = "file" };
         AddOption(ProfileFileOption);

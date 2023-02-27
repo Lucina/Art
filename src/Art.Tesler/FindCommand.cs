@@ -20,11 +20,11 @@ internal class FindCommand<TPluginStore> : ToolCommandBase<TPluginStore> where T
 
     protected Option<bool> DetailedOption;
 
-    public FindCommand(TPluginStore pluginStore) : this(pluginStore, "find", "Execute artifact finder tools.")
+    public FindCommand(TPluginStore pluginStore, IDefaultPropertyProvider defaultPropertyProvider) : this(pluginStore, defaultPropertyProvider, "find", "Execute artifact finder tools.")
     {
     }
 
-    public FindCommand(TPluginStore pluginStore, string name, string? description = null) : base(pluginStore, name, description)
+    public FindCommand(TPluginStore pluginStore, IDefaultPropertyProvider defaultPropertyProvider, string name, string? description = null) : base(pluginStore, defaultPropertyProvider, name, description)
     {
         IdsArg = new Argument<List<string>>("ids", "IDs") { HelpName = "id", Arity = ArgumentArity.OneOrMore };
         AddArgument(IdsArg);
