@@ -1,5 +1,6 @@
 ﻿using System.Diagnostics.CodeAnalysis;
 using System.Reflection;
+using System.Runtime.CompilerServices;
 using System.Runtime.Loader;
 using Art.Common;
 
@@ -40,6 +41,19 @@ public class Plugin : IArtifactToolSelectableRegistry<string>
         }
         Context = context;
         BaseAssembly = baseAssembly;
+    }
+
+    /// <summary>
+    /// Initializes an instance of <see cref="Plugin"/>.
+    /// </summary>
+    /// <param name="baseAssembly"><see cref="Assembly"/> to draw from.</param>
+    public Plugin(Assembly baseAssembly) : this(ResolveAssemblyLoadContext(baseAssembly), baseAssembly)
+    {
+    }
+
+    private static AssemblyLoadContext ResolveAssemblyLoadContext(Assembly baseAssembly, [CallerArgumentExpression("baseAssembly")] string? argumentName = null)
+    {
+        return AssemblyLoadContext.GetLoadContext(baseAssembly) ?? throw new ArgumentException("Cannot get load context for an baseAssembly not provided by runtime", argumentName);
     }
 
     /// <inheritdoc />

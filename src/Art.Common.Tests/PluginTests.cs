@@ -1,5 +1,4 @@
-﻿using System.Runtime.Loader;
-using System.Text.RegularExpressions;
+﻿using System.Text.RegularExpressions;
 using Art.Modular;
 using NUnit.Framework;
 
@@ -14,8 +13,7 @@ public class PluginTests
     [SetUp]
     public void SetUp()
     {
-        var assembly = typeof(PluginTestTool).Assembly;
-        _registry = new Plugin(AssemblyLoadContext.GetLoadContext(assembly)!, assembly);
+        _registry = new Plugin(typeof(PluginTestTool).Assembly);
     }
 
     [Test]
