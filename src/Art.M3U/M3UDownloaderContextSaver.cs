@@ -63,6 +63,16 @@ public abstract class M3UDownloaderContextSaver
     public abstract Task RunAsync(CancellationToken cancellationToken = default);
 
     /// <summary>
+    /// Copies segments one at a time to target stream.
+    /// </summary>
+    /// <param name="stream">Stream to copy to.</param>
+    /// <param name="cancellationToken">Cancellation token.</param>
+    /// <returns>Task.</returns>
+    /// <exception cref="HttpRequestException">Thrown for issues with request excluding non-success server responses.</exception>
+    /// <exception cref="ArtHttpResponseMessageException">Thrown on HTTP response indicating non-successful response.</exception>
+    public abstract Task ExportAsync(Stream stream, CancellationToken cancellationToken = default);
+
+    /// <summary>
     /// Handles HTTP request exception.
     /// </summary>
     /// <param name="exception">Original exception.</param>

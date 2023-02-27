@@ -122,4 +122,10 @@ public partial class M3UDownloaderContextTopDownSaver : M3UDownloaderContextSave
             }
         }
     }
+
+    /// <inheritdoc />
+    public override Task ExportAsync(Stream stream, CancellationToken cancellationToken = default)
+    {
+        throw new ArtUserException("Exporting content to a single stream is not supported for this type of saver (top-down).");
+    }
 }

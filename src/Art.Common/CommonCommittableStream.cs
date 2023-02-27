@@ -10,7 +10,6 @@ public abstract class CommonCommittableStream : CommittableStream
     /// </summary>
     protected bool Committed { get; private set; }
 
-
     /// <inheritdoc />
     protected override void Dispose(bool disposing)
     {

@@ -198,7 +198,6 @@ public class CommittableFileStream : CommittableWrappingStream
 
     private void CommitCore(bool shouldCommit)
     {
-
         if (shouldCommit)
         {
             if (_tempPath != null) File.Replace(_tempPath, _path, null, true);

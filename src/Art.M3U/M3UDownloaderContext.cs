@@ -182,7 +182,29 @@ public class M3UDownloaderContext
     /// as the media sequence number determines the IV instead.
     /// </remarks>
     public Task DownloadSegmentAsync(Uri uri, M3UFile? file, long? mediaSequenceNumber = null, CancellationToken cancellationToken = default)
-        => DownloadSegmentInternalAsync(uri, file ?? StreamInfo, mediaSequenceNumber, cancellationToken);
+    {
+        return DownloadSegmentInternalAsync(uri, file ?? StreamInfo, mediaSequenceNumber, cancellationToken);
+    }
+
+    /// <summary>
+    /// Outputs a segment to a target stream.
+    /// </summary>
+    /// <param name="targetStream">Target stream</param>
+    /// <param name="uri">URI to download.</param>
+    /// <param name="file">Optional specific file to use (defaults to <see cref="StreamInfo"/>).</param>
+    /// <param name="mediaSequenceNumber">Media sequence number, if available.</param>
+    /// <param name="cancellationToken">Cancellation token.</param>
+    /// <exception cref="HttpRequestException">Thrown for issues with request excluding non-success server responses.</exception>
+    /// <exception cref="ArtHttpResponseMessageException">Thrown on HTTP response indicating non-successful response.</exception>
+    /// <exception cref="InvalidDataException">Thrown for unexpected encryption algorithm when set to decrypt.</exception>
+    /// <remarks>
+    /// <paramref name="mediaSequenceNumber"/> is meant to support scenarios for decrypting media segments without an explicit IV,
+    /// as the media sequence number determines the IV instead.
+    /// </remarks>
+    public Task StreamSegmentAsync(Stream targetStream, Uri uri, M3UFile? file, long? mediaSequenceNumber = null, CancellationToken cancellationToken = default)
+    {
+        return StreamSegmentInternalAsync(targetStream, uri, file ?? StreamInfo, mediaSequenceNumber, cancellationToken);
+    }
 
     private async Task DownloadSegmentInternalAsync(Uri uri, M3UFile file, long? mediaSequenceNumber, CancellationToken cancellationToken)
     {
@@ -193,50 +215,85 @@ public class M3UDownloaderContext
             if (Config.SkipExistingSegments) return;
             await Tool.RegistrationManager.RemoveResourceAsync(ark, cancellationToken).ConfigureAwait(false);
         }
-        // Use ResponseHeadersRead to make timeout only count up to headers
-        var httpRequestConfig = new HttpRequestConfig(Referrer: Config.Referrer, HttpCompletionOption: HttpCompletionOption.ResponseHeadersRead, Timeout: TimeSpan.FromMilliseconds(Config.RequestTimeout));
-        ArtifactResourceInfo ari = new UriArtifactResourceInfo(Tool, uri, httpRequestConfig, ark);
-        if (file.EncryptionInfo is { Encrypted: true } ei)
-        {
-            if (mediaSequenceNumber is { } msn) await WriteAncillaryFileAsync($"{fn}.msn.txt", Encoding.UTF8.GetBytes(msn.ToString(CultureInfo.InvariantCulture)), cancellationToken).ConfigureAwait(false);
-            if (Config.Decrypt) ari = new EncryptedArtifactResourceInfo(ei.ToEncryptionInfo(mediaSequenceNumber), ari);
-        }
+        // don't need to always write msn (only necessary for later dec) but do it anyway...
+        if (mediaSequenceNumber is { } msn) await WriteAncillaryFileAsync($"{fn}.msn.txt", Encoding.UTF8.GetBytes(msn.ToString(CultureInfo.InvariantCulture)), cancellationToken).ConfigureAwait(false);
+        ArtifactResourceInfo ari = GetResourceInternal(ark, uri, file, mediaSequenceNumber);
         await using (CommittableStream oStream = await Tool.DataManager.CreateOutputStreamAsync(ari.Key, OutputStreamOptions.Default, cancellationToken).ConfigureAwait(false))
         {
-            int retries = 0;
-            do
-            {
-                try
-                {
-                    await ari.ExportStreamAsync(oStream, cancellationToken).ConfigureAwait(false);
-                }
-                catch (TaskCanceledException e)
-                {
-                    // .NET 5 throws TaskCanceledException with TimeoutException inner exception
-                    // Added semantics, our timeout from HttpRequestConfig does the same
-                    if (e.InnerException is not TimeoutException)
-                    {
-                        throw;
-                    }
-                    if (retries >= Config.RequestTimeoutRetries)
-                    {
-                        throw;
-                    }
-                    retries++;
-                    Tool.LogWarning($"timeout, retrying {retries}/{Config.RequestTimeoutRetries}");
-                    if (!oStream.CanSeek)
-                    {
-                        throw new IOException("Cannot retry operation: output stream is not seekable.");
-                    }
-                    oStream.Position = 0;
-                    oStream.SetLength(0);
-                    continue;
-                }
-                oStream.ShouldCommit = true;
-                break;
-            } while (true);
+            await StreamSegmentInternalAsync(ari, oStream, cancellationToken).ConfigureAwait(false);
+            oStream.ShouldCommit = true;
         }
         await Tool.RegistrationManager.AddResourceAsync(ari, cancellationToken).ConfigureAwait(false);
+    }
+
+    private async Task StreamSegmentInternalAsync(Stream targetStream, Uri uri, M3UFile file, long? mediaSequenceNumber, CancellationToken cancellationToken)
+    {
+        string fn = GetFileName(uri);
+        ArtifactResourceKey ark = new(Config.ArtifactKey, fn, Config.ArtifactKey.Id);
+        if (await Tool.RegistrationManager.TryGetResourceAsync(ark, cancellationToken).ConfigureAwait(false) != null)
+        {
+            if (Config.SkipExistingSegments) return;
+            await Tool.RegistrationManager.RemoveResourceAsync(ark, cancellationToken).ConfigureAwait(false);
+        }
+        // don't need to always write msn (only necessary for later dec) but do it anyway...
+        if (mediaSequenceNumber is { } msn) await WriteAncillaryFileAsync($"{fn}.msn.txt", Encoding.UTF8.GetBytes(msn.ToString(CultureInfo.InvariantCulture)), cancellationToken).ConfigureAwait(false);
+        ArtifactResourceInfo ari = GetResourceInternal(ark, uri, file, mediaSequenceNumber);
+        var ms = new MemoryStream();
+        await StreamSegmentInternalAsync(ari, ms, cancellationToken).ConfigureAwait(false);
+        ms.Position = 0;
+        await ms.CopyToAsync(targetStream, cancellationToken).ConfigureAwait(false);
+        await Tool.RegistrationManager.AddResourceAsync(ari, cancellationToken).ConfigureAwait(false);
+    }
+
+    private ArtifactResourceInfo GetResourceInternal(ArtifactResourceKey artifactResourceKey, Uri uri, M3UFile file, long? mediaSequenceNumber = null)
+    {
+        // Use ResponseHeadersRead to make timeout only count up to headers
+        var httpRequestConfig = new HttpRequestConfig(Referrer: Config.Referrer, HttpCompletionOption: HttpCompletionOption.ResponseHeadersRead, Timeout: TimeSpan.FromMilliseconds(Config.RequestTimeout));
+        ArtifactResourceInfo ari = new UriArtifactResourceInfo(Tool, uri, httpRequestConfig, artifactResourceKey);
+        if (file.EncryptionInfo is not { Encrypted: true } ei)
+        {
+            return ari;
+        }
+        if (Config.Decrypt)
+        {
+            ari = new EncryptedArtifactResourceInfo(ei.ToEncryptionInfo(mediaSequenceNumber), ari);
+        }
+        return ari;
+    }
+
+    private async Task StreamSegmentInternalAsync(ArtifactResourceInfo artifactResourceInfo, Stream targetStream, CancellationToken cancellationToken)
+    {
+        int retries = 0;
+        long? initPosition = targetStream.CanSeek ? targetStream.Position : null;
+        while (true)
+        {
+            try
+            {
+                await artifactResourceInfo.ExportStreamAsync(targetStream, cancellationToken).ConfigureAwait(false);
+                break;
+            }
+            catch (TaskCanceledException e)
+            {
+                // .NET 5 throws TaskCanceledException with TimeoutException inner exception
+                // Added semantics, our timeout from HttpRequestConfig does the same
+                if (e.InnerException is not TimeoutException)
+                {
+                    throw;
+                }
+                if (retries >= Config.RequestTimeoutRetries)
+                {
+                    throw;
+                }
+                retries++;
+                Tool.LogWarning($"timeout, retrying {retries}/{Config.RequestTimeoutRetries}");
+                if (initPosition is not { } initPositionV)
+                {
+                    throw new IOException("Cannot retry operation: output stream is not seekable.");
+                }
+                targetStream.Position = initPositionV;
+                targetStream.SetLength(initPositionV);
+            }
+        }
     }
 
     /// <summary>

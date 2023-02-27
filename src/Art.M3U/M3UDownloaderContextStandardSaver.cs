@@ -18,7 +18,18 @@ public class M3UDownloaderContextStandardSaver : M3UDownloaderContextSaver
     }
 
     /// <inheritdoc />
-    public override async Task RunAsync(CancellationToken cancellationToken = default)
+    public override Task RunAsync(CancellationToken cancellationToken = default)
+    {
+        return OperateAsync(null, cancellationToken);
+    }
+
+    /// <inheritdoc />
+    public override Task ExportAsync(Stream stream, CancellationToken cancellationToken = default)
+    {
+        return OperateAsync(stream, cancellationToken);
+    }
+
+    private async Task OperateAsync(Stream? targetStream = null, CancellationToken cancellationToken = default)
     {
         FailCounter = 0;
         HashSet<string> hs = new();
@@ -29,15 +40,15 @@ public class M3UDownloaderContextStandardSaver : M3UDownloaderContextSaver
             {
                 if (HeartbeatCallback != null) await HeartbeatCallback().ConfigureAwait(false);
                 Context.Tool.LogInformation("Reading main...");
-                HashSet<string> entries = new();
+                List<string> entries = new();
                 M3UFile m3 = await Context.GetAsync(cancellationToken).ConfigureAwait(false);
                 if (Context.StreamInfo.EncryptionInfo is { Encrypted: true } ei && m3.EncryptionInfo is { Encrypted: true } ei2 && ei.Method == ei2.Method)
                 {
                     ei2.Key ??= ei.Key; // assume key kept if it was supplied in the first place
                     ei2.Iv ??= ei.Iv; // assume IV kept if it was supplied in the first place
                 }
-                entries.UnionWith(m3.DataLines);
-                entries.ExceptWith(hs);
+                entries.AddRange(m3.DataLines);
+                entries.RemoveAll(v => hs.Contains(v));
                 Context.Tool.LogInformation($"{entries.Count} new segments...");
                 if (entries.Count != 0)
                 {
@@ -52,7 +63,14 @@ public class M3UDownloaderContextStandardSaver : M3UDownloaderContextSaver
                 foreach (string entry in entries)
                 {
                     Context.Tool.LogInformation($"Downloading segment {entry}...");
-                    await Context.DownloadSegmentAsync(new Uri(Context.MainUri, entry), m3, m3.FirstMediaSequenceNumber + i, cancellationToken).ConfigureAwait(false);
+                    if (targetStream != null)
+                    {
+                        await Context.StreamSegmentAsync(targetStream, new Uri(Context.MainUri, entry), m3, m3.FirstMediaSequenceNumber + i, cancellationToken).ConfigureAwait(false);
+                    }
+                    else
+                    {
+                        await Context.DownloadSegmentAsync(new Uri(Context.MainUri, entry), m3, m3.FirstMediaSequenceNumber + i, cancellationToken).ConfigureAwait(false);
+                    }
                     i++;
                 }
                 hs.UnionWith(entries);
