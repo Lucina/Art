@@ -62,18 +62,26 @@ public class M3UDownloaderContextStandardSaver : M3UDownloaderContextSaver
                 int i = 0;
                 foreach (string entry in entries)
                 {
+                    var entryUri = new Uri(Context.MainUri, entry);
+                    // source could possibly be wonky and use query to differentiate?
+                    string entryKey = entry; //entryUri.Segments[^1];
+                    if (hs.Contains(entryKey))
+                    {
+                        Context.Tool.LogInformation($"Skipping known segment {entry}...");
+                        continue;
+                    }
                     Context.Tool.LogInformation($"Downloading segment {entry}...");
                     if (targetStream != null)
                     {
-                        await Context.StreamSegmentAsync(targetStream, noFiles, new Uri(Context.MainUri, entry), m3, m3.FirstMediaSequenceNumber + i, cancellationToken).ConfigureAwait(false);
+                        await Context.StreamSegmentAsync(targetStream, noFiles, entryUri, m3, m3.FirstMediaSequenceNumber + i, cancellationToken).ConfigureAwait(false);
                     }
                     else
                     {
-                        await Context.DownloadSegmentAsync(new Uri(Context.MainUri, entry), m3, m3.FirstMediaSequenceNumber + i, cancellationToken).ConfigureAwait(false);
+                        await Context.DownloadSegmentAsync(entryUri, m3, m3.FirstMediaSequenceNumber + i, cancellationToken).ConfigureAwait(false);
                     }
+                    hs.Add(entryKey);
                     i++;
                 }
-                hs.UnionWith(entries);
                 if (_oneOff) break;
                 await Task.Delay(1000, cancellationToken).ConfigureAwait(false);
                 FailCounter = 0;
