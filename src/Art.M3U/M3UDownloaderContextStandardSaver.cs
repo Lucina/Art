@@ -40,17 +40,14 @@ public class M3UDownloaderContextStandardSaver : M3UDownloaderContextSaver
             {
                 if (HeartbeatCallback != null) await HeartbeatCallback().ConfigureAwait(false);
                 Context.Tool.LogInformation("Reading main...");
-                List<string> entries = new();
                 M3UFile m3 = await Context.GetAsync(cancellationToken).ConfigureAwait(false);
                 if (Context.StreamInfo.EncryptionInfo is { Encrypted: true } ei && m3.EncryptionInfo is { Encrypted: true } ei2 && ei.Method == ei2.Method)
                 {
                     ei2.Key ??= ei.Key; // assume key kept if it was supplied in the first place
                     ei2.Iv ??= ei.Iv; // assume IV kept if it was supplied in the first place
                 }
-                entries.AddRange(m3.DataLines);
-                entries.RemoveAll(v => hs.Contains(v));
-                Context.Tool.LogInformation($"{entries.Count} new segments...");
-                if (entries.Count != 0)
+                Context.Tool.LogInformation($"{m3.DataLines.Count} new segments...");
+                if (m3.DataLines.Count != 0)
                 {
                     sw.Restart();
                 }
@@ -60,7 +57,7 @@ public class M3UDownloaderContextStandardSaver : M3UDownloaderContextSaver
                     return;
                 }
                 int i = 0;
-                foreach (string entry in entries)
+                foreach (string entry in m3.DataLines)
                 {
                     var entryUri = new Uri(Context.MainUri, entry);
                     // source could possibly be wonky and use query to differentiate?
