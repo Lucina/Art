@@ -2,7 +2,6 @@
 using System.CommandLine.Invocation;
 using System.Text;
 using System.Text.RegularExpressions;
-using Art.Common;
 
 namespace Art.Tesler;
 
@@ -44,7 +43,7 @@ internal class ToolsCommand<TPluginStore> : CommandBase where TPluginStore : IAr
                     bool canSelect;
                     try
                     {
-                        canSelect = desc.Type.IsAssignableTo(typeof(IArtifactToolRegexSelector<>).MakeGenericType(desc.Type));
+                        canSelect = desc.Type.IsAssignableTo(typeof(IArtifactToolSelector<>).MakeGenericType(desc.Type));
                     }
                     catch
                     {
