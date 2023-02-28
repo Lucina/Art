@@ -2,7 +2,6 @@
 using System.CommandLine.Invocation;
 using System.CommandLine.Parsing;
 using System.Text.Json;
-using System.Text.Json.Serialization;
 using Art.Common;
 using Art.EF.Sqlite;
 
@@ -63,8 +62,7 @@ internal class DatabaseCommandList : DatabaseCommandBase
                 foreach ((ToolAndGroup profile, List<string> value) in dict) profiles.Add(CreateNewProfile(profile, value));
             }
             await using FileStream fs = File.Create(output);
-            var re = new SourceGenerationContext(s_jsonOptions);
-            await JsonSerializer.SerializeAsync(fs, profiles, re.ListArtifactToolProfile);
+            await JsonSerializer.SerializeAsync(fs, profiles, SourceGenerationContext.s_context.ListArtifactToolProfile);
         }
         return 0;
     }
@@ -82,8 +80,4 @@ internal class DatabaseCommandList : DatabaseCommandBase
         dict["artifactList"] = JsonSerializer.SerializeToElement(ids, SourceGenerationContext.s_context.ListString);
         return new ArtifactToolProfile(profile.Tool, profile.Group, dict);
     }
-
-    private static readonly JsonSerializerOptions s_jsonOptions = new() { PropertyNameCaseInsensitive = true };
-
-    static DatabaseCommandList() => s_jsonOptions.Converters.Add(new JsonStringEnumConverter());
 }
