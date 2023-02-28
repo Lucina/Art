@@ -47,7 +47,7 @@ public class M3UDownloaderContextStandardSaver : M3UDownloaderContextSaver
                     ei2.Iv ??= ei.Iv; // assume IV kept if it was supplied in the first place
                 }
                 Context.Tool.LogInformation($"{m3.DataLines.Count} segments...");
-                int i = 0;
+                int i = 0, j = 0;
                 foreach (string entry in m3.DataLines)
                 {
                     long msn = m3.FirstMediaSequenceNumber + i++;
@@ -68,8 +68,9 @@ public class M3UDownloaderContextStandardSaver : M3UDownloaderContextSaver
                         await Context.DownloadSegmentAsync(entryUri, m3, msn, cancellationToken).ConfigureAwait(false);
                     }
                     hs.Add(entryKey);
+                    j++;
                 }
-                if (i != 0)
+                if (j != 0)
                 {
                     sw.Restart();
                 }
