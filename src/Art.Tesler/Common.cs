@@ -79,11 +79,11 @@ internal static class Common
             string k = match.Groups[1].Value;
             string val = match.Groups[2].Value;
             JsonElement v;
-            if (val.StartsWith('{') || val.StartsWith('[')) v = JsonSerializer.Deserialize(val, SourceGenerationContext.Default.JsonElement);
-            else if (long.TryParse(val, out long valLong)) v = JsonSerializer.SerializeToElement(valLong, SourceGenerationContext.Default.Int64);
-            else if (ulong.TryParse(val, out ulong valULong)) v = JsonSerializer.SerializeToElement(valULong, SourceGenerationContext.Default.UInt64);
-            else if (double.TryParse(val, out double valDouble)) v = JsonSerializer.SerializeToElement(valDouble, SourceGenerationContext.Default.Double);
-            else v = JsonSerializer.SerializeToElement(val, SourceGenerationContext.Default.String);
+            if (val.StartsWith('{') || val.StartsWith('[')) v = JsonSerializer.Deserialize(val, SourceGenerationContext.s_context.JsonElement);
+            else if (long.TryParse(val, out long valLong)) v = JsonSerializer.SerializeToElement(valLong, SourceGenerationContext.s_context.Int64);
+            else if (ulong.TryParse(val, out ulong valULong)) v = JsonSerializer.SerializeToElement(valULong, SourceGenerationContext.s_context.UInt64);
+            else if (double.TryParse(val, out double valDouble)) v = JsonSerializer.SerializeToElement(valDouble, SourceGenerationContext.s_context.Double);
+            else v = JsonSerializer.SerializeToElement(val, SourceGenerationContext.s_context.String);
             dictionary.AddPropWithWarning(k, v);
         }
     }
@@ -160,8 +160,8 @@ internal static class Common
                 opts[pair.Key] = pair.Value;
             }
         }
-        if (cookieFile != null) opts.AddPropWithWarning("cookieFile", JsonSerializer.SerializeToElement(cookieFile, SourceGenerationContext.Default.String));
-        if (userAgent != null) opts.AddPropWithWarning("userAgent", JsonSerializer.SerializeToElement(userAgent, SourceGenerationContext.Default.String));
+        if (cookieFile != null) opts.AddPropWithWarning("cookieFile", JsonSerializer.SerializeToElement(cookieFile, SourceGenerationContext.s_context.String));
+        if (userAgent != null) opts.AddPropWithWarning("userAgent", JsonSerializer.SerializeToElement(userAgent, SourceGenerationContext.s_context.String));
         opts.AddProps(properties);
         return artifactToolProfile with { Options = opts };
     }

@@ -23,7 +23,7 @@ public class DirectoryJsonDefaultPropertyProvider : IDefaultPropertyProvider
                 throw new FileNotFoundException($"Could not find common property file {commonPropertyFile}");
             }
             using var fs = File.OpenRead(commonPropertyFile);
-            _commonProperties = JsonSerializer.Deserialize(fs, SourceGenerationContext.Default.IReadOnlyDictionaryStringJsonElement);
+            _commonProperties = JsonSerializer.Deserialize(fs, SourceGenerationContext.s_context.IReadOnlyDictionaryStringJsonElement);
         }
     }
 
@@ -41,7 +41,7 @@ public class DirectoryJsonDefaultPropertyProvider : IDefaultPropertyProvider
         if (File.Exists(toolFile))
         {
             using var file = File.OpenRead(toolFile);
-            var dict = JsonSerializer.Deserialize(file, SourceGenerationContext.Default.IReadOnlyDictionaryStringJsonElement);
+            var dict = JsonSerializer.Deserialize(file, SourceGenerationContext.s_context.IReadOnlyDictionaryStringJsonElement);
             if (dict != null)
             {
                 foreach (var pair in dict)

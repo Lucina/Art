@@ -79,8 +79,7 @@ internal class DatabaseCommandList : DatabaseCommandBase
 
     private static ArtifactToolProfile CreateNewProfile(ToolAndGroup profile, Dictionary<string, JsonElement> dict, List<string> ids)
     {
-        var re = new SourceGenerationContext(s_jsonOptions);
-        dict["artifactList"] = JsonSerializer.SerializeToElement(ids, re.ListString);
+        dict["artifactList"] = JsonSerializer.SerializeToElement(ids, SourceGenerationContext.s_context.ListString);
         return new ArtifactToolProfile(profile.Tool, profile.Group, dict);
     }
 
