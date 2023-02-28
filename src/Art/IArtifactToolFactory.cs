@@ -1,4 +1,4 @@
-﻿namespace Art.Common;
+﻿namespace Art;
 
 /// <summary>
 /// Represents a factory for artifact tools.

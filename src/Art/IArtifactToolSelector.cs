@@ -1,6 +1,6 @@
 ﻿using System.Diagnostics.CodeAnalysis;
 
-namespace Art.Common;
+namespace Art;
 
 /// <summary>
 /// Represents a provider for identifying an applicable tool ID and artifact ID for a given input key.
