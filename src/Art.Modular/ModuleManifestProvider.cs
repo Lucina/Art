@@ -52,7 +52,7 @@ public class ModuleManifestProvider : IModuleProvider
     public void LoadModuleLocations(IDictionary<string, IModuleLocation> dictionary)
     {
         if (!Directory.Exists(_pluginDirectory)) return;
-        LoadManifests(dictionary, _pluginDirectory, _searched);
+        LoadManifests(dictionary, _pluginDirectory, _manifests, _searched);
     }
 
     public IArtifactToolRegistry LoadModule(IModuleLocation moduleLocation)
@@ -106,7 +106,7 @@ public class ModuleManifestProvider : IModuleProvider
         return false;
     }
 
-    private void LoadManifests(IDictionary<string, IModuleLocation> dictionary, string dir, ISet<string>? searched = null)
+    private void LoadManifests(IDictionary<string, IModuleLocation> dictionary, string dir, IDictionary<string, ModuleManifest>? toAugment = null, ISet<string>? searched = null)
     {
         foreach (string directory in Directory.EnumerateDirectories(dir, $"*{_directorySuffix}", new EnumerationOptions { MatchCasing = MatchCasing.CaseInsensitive }))
         {
@@ -114,17 +114,25 @@ public class ModuleManifestProvider : IModuleProvider
             {
                 continue;
             }
-            LoadManifestsAtTarget(dictionary, directory);
+            LoadManifestsAtTarget(dictionary, directory, toAugment);
         }
     }
 
-    private void LoadManifestsAtTarget(IDictionary<string, IModuleLocation> dictionary, string directory)
+    private void LoadManifestsAtTarget(IDictionary<string, IModuleLocation> dictionary, string directory, IDictionary<string, ModuleManifest>? toAugment = null)
     {
         foreach (string file in Directory.EnumerateFiles(directory, $"*{_fileNameSuffix}", new EnumerationOptions { MatchCasing = MatchCasing.CaseInsensitive }))
         {
-            if (TryLoad(file, out var content) && !dictionary.ContainsKey(content.Assembly))
+            if (TryLoad(file, out var content))
             {
-                dictionary.Add(content.Assembly, new ModuleManifest(directory, content));
+                var manifest = new ModuleManifest(directory, content);
+                if (!dictionary.ContainsKey(content.Assembly))
+                {
+                    dictionary.Add(content.Assembly, manifest);
+                }
+                if (toAugment != null && !toAugment.ContainsKey(content.Assembly))
+                {
+                    toAugment.Add(content.Assembly, manifest);
+                }
             }
         }
     }
