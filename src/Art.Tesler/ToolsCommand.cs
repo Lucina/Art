@@ -40,15 +40,7 @@ internal class ToolsCommand<TPluginStore> : CommandBase where TPluginStore : IAr
                     bool canFind = desc.Type.IsAssignableTo(typeof(IArtifactToolFind));
                     bool canList = desc.Type.IsAssignableTo(typeof(IArtifactToolList));
                     bool canDump = canList || desc.Type.IsAssignableTo(typeof(IArtifactToolDump));
-                    bool canSelect;
-                    try
-                    {
-                        canSelect = desc.Type.IsAssignableTo(typeof(IArtifactToolSelector<>).MakeGenericType(desc.Type));
-                    }
-                    catch
-                    {
-                        canSelect = false;
-                    }
+                    bool canSelect = desc.Type.IsAssignableTo(typeof(IArtifactToolSelector<string>));
                     IEnumerable<string> capabilities = Enumerable.Empty<string>();
                     if (canFind) capabilities = capabilities.Append("find");
                     if (canList) capabilities = capabilities.Append("list");
