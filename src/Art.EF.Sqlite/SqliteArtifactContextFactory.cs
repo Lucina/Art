@@ -4,7 +4,7 @@ using Microsoft.EntityFrameworkCore;
 namespace Art.EF.Sqlite;
 
 /// <summary>
-/// Factory for sqlite-backed context for artifact registration..
+/// Factory for sqlite-backed context for artifact registration.
 /// </summary>
 public class SqliteArtifactContextFactory : ArtifactContextFactoryBase
 {
@@ -12,7 +12,7 @@ public class SqliteArtifactContextFactory : ArtifactContextFactoryBase
     /// Creates a new instance of <see cref="SqliteArtifactContextFactory"/>.
     /// </summary>
     /// <remarks>
-    /// Sqlite file backing if environment variable art_ef_sqlite_backing_file is set, otherwise in-memory Sqlite backing
+    /// Sqlite file backing if environment variable (by default, art_ef_sqlite_backing_file) is set, otherwise in-memory Sqlite backing
     /// </remarks>
     public SqliteArtifactContextFactory()
     {
@@ -23,7 +23,7 @@ public class SqliteArtifactContextFactory : ArtifactContextFactoryBase
     /// </summary>
     /// <param name="inMemory">If true, use in-memory otherwise allow fallback to environment variable.</param>
     /// <remarks>
-    /// Sqlite file backing if environment variable art_ef_sqlite_backing_file is set and <paramref name="inMemory"/> is false, otherwise in-memory Sqlite backing
+    /// Sqlite file backing if environment variable (by default, art_ef_sqlite_backing_file) is set and <paramref name="inMemory"/> is false, otherwise in-memory Sqlite backing
     /// </remarks>
     public SqliteArtifactContextFactory(bool inMemory)
     {
