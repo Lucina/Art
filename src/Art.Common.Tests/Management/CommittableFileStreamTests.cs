@@ -11,7 +11,10 @@ public class CommittableFileStreamTests
     [Test]
     public void ShouldCommit_TrueWithNewFile_FileKeptWithContents()
     {
-        string temp = ArtUtils.CreateRandomPath(Path.GetTempPath());
+        string tempDir = Path.GetTempPath();
+        Assert.That(Directory.Exists(tempDir), Is.True);
+        string temp = CommittableFileStream.CreateRandomPath(tempDir);
+        Assert.That(Path.GetRelativePath(tempDir, temp), Is.EqualTo(Path.GetFileName(temp)));
         try
         {
             string mess = $"ya like jazz? {Random.Shared.Next()}";
@@ -33,7 +36,10 @@ public class CommittableFileStreamTests
     [Test]
     public void ShouldCommit_FalseWithNewFile_FileNotExist()
     {
-        string temp = ArtUtils.CreateRandomPath(Path.GetTempPath());
+        string tempDir = Path.GetTempPath();
+        Assert.That(Directory.Exists(tempDir), Is.True);
+        string temp = CommittableFileStream.CreateRandomPath(tempDir);
+        Assert.That(Path.GetRelativePath(tempDir, temp), Is.EqualTo(Path.GetFileName(temp)));
         try
         {
             string mess = $"ya like jazz? {Random.Shared.Next()}";

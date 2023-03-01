@@ -52,7 +52,7 @@ public class DiskArtifactRegistrationManager : IArtifactRegistrationManager
         foreach (string toolDir in Directory.EnumerateDirectories(dir))
         foreach (string groupDir in Directory.EnumerateDirectories(toolDir))
         foreach (string file in Directory.EnumerateFiles(groupDir).Where(v => v.EndsWith(ArtifactFileNameEnd)))
-            if (await ArtUtils.LoadFromFileAsync(file, SourceGenerationContext.s_context.ArtifactInfo, cancellationToken).ConfigureAwait(false) is { } v)
+            if (await LoadFromFileAsync(file, SourceGenerationContext.s_context.ArtifactInfo, cancellationToken).ConfigureAwait(false) is { } v)
                 results.Add(v);
         return results;
     }
@@ -67,7 +67,7 @@ public class DiskArtifactRegistrationManager : IArtifactRegistrationManager
         foreach (string toolDir in Directory.EnumerateDirectories(dir))
         foreach (string groupDir in Directory.EnumerateDirectories(toolDir))
         foreach (string file in Directory.EnumerateFiles(groupDir).Where(v => v.EndsWith(ArtifactFileNameEnd)))
-            if (await ArtUtils.LoadFromFileAsync(file, SourceGenerationContext.s_context.ArtifactInfo, cancellationToken).ConfigureAwait(false) is { } v && predicate(v))
+            if (await LoadFromFileAsync(file, SourceGenerationContext.s_context.ArtifactInfo, cancellationToken).ConfigureAwait(false) is { } v && predicate(v))
                 results.Add(v);
         return results;
     }
@@ -81,7 +81,7 @@ public class DiskArtifactRegistrationManager : IArtifactRegistrationManager
         if (!Directory.Exists(toolDir)) return results;
         foreach (string groupDir in Directory.EnumerateDirectories(toolDir))
         foreach (string file in Directory.EnumerateFiles(groupDir).Where(v => v.EndsWith(ArtifactFileNameEnd)))
-            if (await ArtUtils.LoadFromFileAsync(file, SourceGenerationContext.s_context.ArtifactInfo, cancellationToken).ConfigureAwait(false) is { } v)
+            if (await LoadFromFileAsync(file, SourceGenerationContext.s_context.ArtifactInfo, cancellationToken).ConfigureAwait(false) is { } v)
                 results.Add(v);
         return results;
     }
@@ -94,7 +94,7 @@ public class DiskArtifactRegistrationManager : IArtifactRegistrationManager
         List<ArtifactInfo> results = new();
         if (!Directory.Exists(groupDir)) return results;
         foreach (string file in Directory.EnumerateFiles(groupDir).Where(v => v.EndsWith(ArtifactFileNameEnd)))
-            if (await ArtUtils.LoadFromFileAsync(file, SourceGenerationContext.s_context.ArtifactInfo, cancellationToken).ConfigureAwait(false) is { } v)
+            if (await LoadFromFileAsync(file, SourceGenerationContext.s_context.ArtifactInfo, cancellationToken).ConfigureAwait(false) is { } v)
                 results.Add(v);
         return results;
     }
@@ -120,7 +120,7 @@ public class DiskArtifactRegistrationManager : IArtifactRegistrationManager
         while (dQueue.TryDequeue(out string? dd))
         {
             foreach (string f in Directory.EnumerateFiles(dd).Where(v => v.EndsWith(ResourceFileNameEnd)))
-                if (await ArtUtils.LoadFromFileAsync(f, SourceGenerationContext.s_context.ArtifactResourceInfo, cancellationToken).ConfigureAwait(false) is { } v)
+                if (await LoadFromFileAsync(f, SourceGenerationContext.s_context.ArtifactResourceInfo, cancellationToken).ConfigureAwait(false) is { } v)
                     results.Add(v);
             foreach (string d in Directory.EnumerateDirectories(dd))
                 dQueue.Enqueue(d);
@@ -134,7 +134,7 @@ public class DiskArtifactRegistrationManager : IArtifactRegistrationManager
         EnsureNotDisposed();
         string dir = GetArtifactInfoDir(key);
         string path = GetArtifactInfoFilePath(dir, key);
-        return File.Exists(path) ? await ArtUtils.LoadFromFileAsync(path, SourceGenerationContext.s_context.ArtifactInfo, cancellationToken).ConfigureAwait(false) : null;
+        return File.Exists(path) ? await LoadFromFileAsync(path, SourceGenerationContext.s_context.ArtifactInfo, cancellationToken).ConfigureAwait(false) : null;
     }
 
     /// <inheritdoc/>
@@ -143,7 +143,7 @@ public class DiskArtifactRegistrationManager : IArtifactRegistrationManager
         EnsureNotDisposed();
         string dir = GetResourceInfoDir(key);
         string path = GetResourceInfoFilePath(dir, key);
-        return File.Exists(path) ? await ArtUtils.LoadFromFileAsync(path, SourceGenerationContext.s_context.ArtifactResourceInfo, cancellationToken).ConfigureAwait(false) : null;
+        return File.Exists(path) ? await LoadFromFileAsync(path, SourceGenerationContext.s_context.ArtifactResourceInfo, cancellationToken).ConfigureAwait(false) : null;
     }
 
     /// <inheritdoc/>
@@ -245,4 +245,14 @@ public class DiskArtifactRegistrationManager : IArtifactRegistrationManager
         }
         _disposed = true;
     }
+
+    /// <summary>
+    /// Loads an object from a JSON file.
+    /// </summary>
+    /// <typeparam name="T">Data type.</typeparam>
+    /// <param name="file">File path to load from.</param>
+    /// <param name="jsonTypeInfo">JSON type info.</param>
+    /// <param name="cancellationToken">Cancellation token.</param>
+    /// <returns>Task returning read data.</returns>
+    private static async Task<T?> LoadFromFileAsync<T>(string file, JsonTypeInfo<T> jsonTypeInfo, CancellationToken cancellationToken = default) => JsonSerializer.Deserialize(await File.ReadAllTextAsync(file, cancellationToken).ConfigureAwait(false), jsonTypeInfo);
 }

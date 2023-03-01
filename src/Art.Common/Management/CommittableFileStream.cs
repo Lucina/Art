@@ -150,7 +150,7 @@ public class CommittableFileStream : CommittableWrappingStream
         if (fi.Exists)
         {
             if (fi.IsReadOnly) throw new IOException("File exists and is read-only");
-            tempPath = ArtUtils.CreateRandomPathForSibling(path);
+            tempPath = CreateRandomPathForSibling(path);
             pathForStream = tempPath;
         }
         else
@@ -207,5 +207,41 @@ public class CommittableFileStream : CommittableWrappingStream
             if (File.Exists(_pathForStream))
                 File.Delete(_pathForStream);
         }
+    }
+
+    /// <summary>
+    /// Creates a random path for the specified sibling path.
+    /// </summary>
+    /// <param name="sibling">Sibling path.</param>
+    /// <param name="attempts">Maximum number of attempts to generate path.</param>
+    /// <returns>Random path.</returns>
+    /// <exception cref="ArgumentNullException"><paramref name="sibling"/> is null.</exception>
+    /// <exception cref="ArgumentException">Thrown for invalid <paramref name="sibling"/> (e.g. drive root) or <paramref name="attempts"/> (&lt;=0) value.</exception>
+    /// <exception cref="IOException">Thrown if failed to create sibling path with specified attempts.</exception>
+    private static string CreateRandomPathForSibling(string sibling, int attempts = 10)
+    {
+        string dir = Path.GetDirectoryName(sibling) ?? throw new ArgumentException("Sibling path cannot be a drive root", nameof(sibling));
+        return CreateRandomPath(dir, attempts);
+    }
+
+    /// <summary>
+    /// Creates a random path directly under the specified base directory.
+    /// </summary>
+    /// <param name="baseDirectory">Base directory.</param>
+    /// <param name="attempts">Maximum number of attempts to generate path.</param>
+    /// <returns>Random path.</returns>
+    /// <exception cref="ArgumentNullException"><paramref name="baseDirectory"/> is null.</exception>
+    /// <exception cref="ArgumentException">Thrown for invalid <paramref name="attempts"/> (&lt;=0) value.</exception>
+    /// <exception cref="IOException">Thrown if failed to create sibling path with specified attempts.</exception>
+    internal static string CreateRandomPath(string baseDirectory, int attempts = 10)
+    {
+        if (baseDirectory == null) throw new ArgumentNullException(nameof(baseDirectory));
+        if (attempts <= 0) throw new ArgumentException("Invalid max number of attempts", nameof(attempts));
+        for (int i = 0; i < attempts; i++)
+        {
+            string path = Path.Combine(baseDirectory, $"{Guid.NewGuid():N}.tmp");
+            if (!File.Exists(path) && !Directory.Exists(path)) return path;
+        }
+        throw new IOException("Failed to create random path");
     }
 }
