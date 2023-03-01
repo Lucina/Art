@@ -80,7 +80,7 @@ public class StreamCommand : ToolCommandBase
         {
             l.Log($"Primary resource {primaryResource} does not support exporting, this command requires this functionality", null, LogLevel.Error);
         }
-        await using var output = Console.OpenStandardOutput();
+        await using var output = ToolLogHandlerProvider.GetOutStream();
         await primaryResource.ExportStreamAsync(output).ConfigureAwait(false);
         return 0;
     }

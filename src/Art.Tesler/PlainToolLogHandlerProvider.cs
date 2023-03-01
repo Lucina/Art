@@ -4,7 +4,8 @@ namespace Art.Tesler;
 
 public class PlainToolLogHandlerProvider : ToolLogHandlerProviderBase
 {
-    public PlainToolLogHandlerProvider(TextWriter outWriter, TextWriter errorWriter) : base(outWriter, errorWriter)
+    public PlainToolLogHandlerProvider(TextWriter outWriter, TextWriter errorWriter, Func<Stream> outStreamAccessFunc)
+        : base(outWriter, errorWriter, outStreamAccessFunc)
     {
     }
 

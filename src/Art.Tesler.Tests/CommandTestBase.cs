@@ -1,9 +1,12 @@
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Text.Json;
+using System.Threading.Tasks;
 using Art.Common;
+using Art.Common.IO;
 
 namespace Art.Tesler.Tests;
 
@@ -31,8 +34,40 @@ public class CommandTestBase
             Out.NewLine = newLine;
             Error.NewLine = newLine;
         }
-        ToolOutput = toolLogHandlerProvider = new PlainToolLogHandlerProvider(Out, Error);
+        ToolOutput = toolLogHandlerProvider = new PlainToolLogHandlerProvider(Out, Error, () => throw new NotSupportedException());
         console = TestConsole = new TestConsole(Out, Error, windowWidth, outputRedirected, errorRedirected, inputRedirected);
+    }
+
+    [MemberNotNull(nameof(Error))]
+    [MemberNotNull(nameof(ToolOutput))]
+    [MemberNotNull(nameof(TestConsole))]
+    internal void CreateOutputs(out PlainToolLogHandlerProvider toolLogHandlerProvider, out TestConsole console, Stream outStream, string? newLine = null, int windowWidth = 100, bool outputRedirected = true, bool errorRedirected = true, bool inputRedirected = true)
+    {
+        var outWriter = new StreamWriter(outStream, leaveOpen: true);
+        Error = new StringWriter();
+        if (newLine != null)
+        {
+            outWriter.NewLine = newLine;
+            Error.NewLine = newLine;
+        }
+        ToolOutput = toolLogHandlerProvider = new PlainToolLogHandlerProvider(outWriter, Error, () => new NonDisposingStream(outStream));
+        console = TestConsole = new TestConsole(outWriter, Error, windowWidth, outputRedirected, errorRedirected, inputRedirected);
+    }
+
+    private class NonDisposingStream : DelegatingStream
+    {
+        public NonDisposingStream(Stream innerStream) : base(innerStream)
+        {
+        }
+
+        protected override void Dispose(bool disposing)
+        {
+        }
+
+        public override ValueTask DisposeAsync()
+        {
+            return ValueTask.CompletedTask;
+        }
     }
 
     internal StaticArtifactToolRegistryStore GetEmptyStore() => new(new ArtifactToolRegistry());

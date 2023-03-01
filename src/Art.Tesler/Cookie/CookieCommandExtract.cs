@@ -33,7 +33,7 @@ public class CookieCommandExtract : CommandBase
         List<string> domains = context.ParseResult.GetValueForOption(DomainsOption)!;
         if (!CookieSource.TryGetBrowserFromName(browserName, out var source, browserProfile))
         {
-            PrintErrorMessage(Common.GetInvalidCookieSourceBrowserMessage(browserName), context.Console);
+            PrintErrorMessage(Common.GetInvalidCookieSourceBrowserMessage(browserName), ToolOutput);
             return 2;
         }
         if (context.ParseResult.HasOption(OutputOption))

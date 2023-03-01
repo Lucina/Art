@@ -89,7 +89,7 @@ public class ArcCommand : ToolCommandBase
         {
             if (!ChecksumSource.DefaultSources.TryGetValue(hash, out checksumSource))
             {
-                PrintErrorMessage(Common.GetInvalidHashMessage(hash), context.Console);
+                PrintErrorMessage(Common.GetInvalidHashMessage(hash), ToolOutput);
                 return 2;
             }
         }
