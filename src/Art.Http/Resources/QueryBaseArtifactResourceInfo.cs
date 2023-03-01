@@ -32,6 +32,11 @@ public record QueryBaseArtifactResourceInfo(ArtifactResourceKey Key, string? Con
     /// <inheritdoc />
     public override void AugmentOutputStreamOptions(ref OutputStreamOptions options)
     {
-        if (ContentLength is { } contentLength) options = options with { PreallocationSize = contentLength };
+        if (ContentLength is { } contentLength) options = options with { PreallocationSize = Math.Clamp(contentLength, 0, MaxStreamDownloadPreallocationSize) };
     }
+
+    /// <summary>
+    /// Maximum preallocation size for direct downloads.
+    /// </summary>
+    public const long MaxStreamDownloadPreallocationSize = 256 * 1024 * 1024;
 }

@@ -1,4 +1,6 @@
-﻿namespace Art.Http;
+﻿using Art.Http.Resources;
+
+namespace Art.Http;
 
 public partial class HttpArtifactTool
 {
@@ -278,7 +280,7 @@ public partial class HttpArtifactTool
     private async Task StreamDownloadAsync(HttpResponseMessage response, ArtifactResourceKey key, CancellationToken cancellationToken)
     {
         OutputStreamOptions options = OutputStreamOptions.Default;
-        if (response.Content.Headers.ContentLength is { } contentLength) options = options with { PreallocationSize = contentLength };
+        if (response.Content.Headers.ContentLength is { } contentLength) options = options with { PreallocationSize = Math.Clamp(contentLength, 0, QueryBaseArtifactResourceInfo.MaxStreamDownloadPreallocationSize) };
         await using CommittableStream stream = await CreateOutputStreamAsync(key, options, cancellationToken).ConfigureAwait(false);
         await response.Content.CopyToAsync(stream, cancellationToken).ConfigureAwait(false);
         stream.ShouldCommit = true;
