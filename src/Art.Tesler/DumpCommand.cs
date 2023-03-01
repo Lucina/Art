@@ -104,7 +104,7 @@ public class DumpCommand : ToolCommandBase
     {
         ArtifactToolDumpOptions options = new(ChecksumId: hash);
         using var tool = await GetToolAsync(context, profile, arm, adm);
-        ArtifactToolDumpProxy dProxy = new(tool, options, Common.GetDefaultToolLogHandler());
+        ArtifactToolDumpProxy dProxy = new(tool, options, Common.GetDefaultToolLogHandler(context.Console));
         await dProxy.DumpAsync();
         return 0;
     }

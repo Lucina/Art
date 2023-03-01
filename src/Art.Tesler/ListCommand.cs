@@ -65,7 +65,7 @@ public class ListCommand : ToolCommandBase
         using var adm = new NullArtifactDataManager();
         using var tool = await GetSearchingToolAsync(context, profile, arm, adm);
         ArtifactToolListOptions options = new();
-        ArtifactToolListProxy proxy = new(tool, options, Common.GetDefaultToolLogHandler());
+        ArtifactToolListProxy proxy = new(tool, options, Common.GetDefaultToolLogHandler(context.Console));
         bool listResource = context.ParseResult.GetValueForOption(ListResourceOption);
         bool detailed = context.ParseResult.GetValueForOption(DetailedOption);
         await foreach (IArtifactData data in proxy.ListAsync())

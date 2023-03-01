@@ -62,7 +62,7 @@ public class ValidateCommand : ToolCommandBase
             PrintErrorMessage(Common.GetInvalidHashMessage(hash));
             return 2;
         }
-        IToolLogHandler l = Common.GetDefaultToolLogHandler();
+        IToolLogHandler l = Common.GetDefaultToolLogHandler(context.Console);
         List<ArtifactToolProfile> profiles = new();
         foreach (string profileFile in context.ParseResult.GetValueForArgument(ProfileFilesArg))
             profiles.AddRange(ArtifactToolProfileUtil.DeserializeProfilesFromFile(profileFile));

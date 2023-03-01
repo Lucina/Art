@@ -25,7 +25,7 @@ public class StreamCommand : ToolCommandBase
 
     protected override async Task<int> RunAsync(InvocationContext context)
     {
-        IToolLogHandler l = Common.GetStreamToolLogHandler();
+        IToolLogHandler l = Common.GetStreamToolLogHandler(context.Console);
             var profile = LoadProfile( context.ParseResult.GetValueForArgument(ProfileFileArg));
         string? cookieFile = context.ParseResult.HasOption(CookieFileOption) ? context.ParseResult.GetValueForOption(CookieFileOption) : null;
         string? userAgent = context.ParseResult.HasOption(UserAgentOption) ? context.ParseResult.GetValueForOption(UserAgentOption) : null;

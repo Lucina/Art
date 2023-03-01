@@ -1,12 +1,14 @@
 ﻿namespace Art.Common.Logging;
 
 /// <summary>
-/// Log handler output to console.
+/// Log handler output to two backing <see cref="TextWriter"/> (out and err) with styles.
 /// </summary>
-public class ConsoleLogHandler : IToolLogHandler
+public class StyledLogHandler : IToolLogHandler
 {
     private readonly AutoResetEvent _wh;
     private readonly bool _itsumoError;
+    private readonly TextWriter _out;
+    private readonly TextWriter _error;
 
     private static readonly Dictionary<LogLevel, string> s_preDefault = new()
     {
@@ -26,25 +28,19 @@ public class ConsoleLogHandler : IToolLogHandler
         { LogLevel.Error, "⛔" }
     };
 
-    /// <summary>
-    /// Default instance.
-    /// </summary>
-    public static readonly ConsoleLogHandler Default = new(true);
-
-    /// <summary>
-    /// Fancy instance.
-    /// </summary>
-    public static readonly ConsoleLogHandler Fancy = new(true, true);
-
     private readonly Dictionary<LogLevel, string> _pre;
 
     /// <summary>
-    /// Creates a new instance of <see cref="ConsoleLogHandler"/>.
+    /// Initializes an instance of <see cref="StyledLogHandler"/>.
     /// </summary>
+    /// <param name="outWriter">Writer for normal output.</param>
+    /// <param name="errorWriter">Writer for error output.</param>
     /// <param name="alwaysPrintToErrorStream">If true, always print output to error stream.</param>
     /// <param name="enableFancy">Enable fancy output.</param>
-    public ConsoleLogHandler(bool alwaysPrintToErrorStream, bool enableFancy = false)
+    public StyledLogHandler(TextWriter outWriter, TextWriter errorWriter, bool alwaysPrintToErrorStream, bool enableFancy = false)
     {
+        _out = outWriter ?? throw new ArgumentNullException(nameof(outWriter));
+        _error = errorWriter ?? throw new ArgumentNullException(nameof(errorWriter));
         _pre = enableFancy ? s_preOsx : s_preDefault;
         _wh = new AutoResetEvent(true);
         _itsumoError = alwaysPrintToErrorStream;
@@ -86,16 +82,16 @@ public class ConsoleLogHandler : IToolLogHandler
     {
         if (_itsumoError)
         {
-            return Console.Error;
+            return _error;
         }
         return level switch
         {
-            LogLevel.Information => Console.Out,
-            LogLevel.Entry => Console.Out,
-            LogLevel.Title => Console.Out,
-            LogLevel.Warning => Console.Error,
-            LogLevel.Error => Console.Error,
-            _ => Console.Error
+            LogLevel.Information => _out,
+            LogLevel.Entry => _out,
+            LogLevel.Title => _out,
+            LogLevel.Warning => _error,
+            LogLevel.Error => _error,
+            _ => _error
         };
     }
 
