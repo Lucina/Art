@@ -1,10 +1,13 @@
 using System.Diagnostics.CodeAnalysis;
 using System.Reflection;
 using System.Text.Json;
-using Art.Common;
+using Art.Modular;
 
-namespace Art.Modular;
+namespace Art.Common.Modular;
 
+/// <summary>
+/// Provides disk and manifest backed module provider.
+/// </summary>
 [RequiresUnreferencedCode("Loading artifact tools might require types that cannot be statically analyzed.")]
 public class ModuleManifestProvider : IModuleProvider
 {
@@ -15,6 +18,14 @@ public class ModuleManifestProvider : IModuleProvider
     private readonly string _directorySuffix;
     private readonly string _fileNameSuffix;
 
+    /// <summary>
+    /// Creates a provider instance.
+    /// </summary>
+    /// <param name="moduleLoadConfiguration">Load configuration.</param>
+    /// <param name="pluginDirectory">Plugin directory.</param>
+    /// <param name="directorySuffix">Suffix on plugin directories.</param>
+    /// <param name="fileNameSuffix">Suffix on module manifests.</param>
+    /// <returns>Instance.</returns>
     public static ModuleManifestProvider Create(ModuleLoadConfiguration moduleLoadConfiguration, string pluginDirectory, string directorySuffix, string fileNameSuffix)
     {
         return new ModuleManifestProvider(moduleLoadConfiguration, pluginDirectory, directorySuffix, fileNameSuffix);
@@ -28,6 +39,7 @@ public class ModuleManifestProvider : IModuleProvider
         _fileNameSuffix = fileNameSuffix;
     }
 
+    /// <inheritdoc />
     public bool TryLocateModule(string assembly, [NotNullWhen(true)] out IModuleLocation? moduleLocation)
     {
         if (_manifests.TryGetValue(assembly, out var moduleManifest))
@@ -49,12 +61,14 @@ public class ModuleManifestProvider : IModuleProvider
         return false;
     }
 
+    /// <inheritdoc />
     public void LoadModuleLocations(IDictionary<string, IModuleLocation> dictionary)
     {
         if (!Directory.Exists(_pluginDirectory)) return;
         LoadManifests(dictionary, _pluginDirectory, _manifests, _searched);
     }
 
+    /// <inheritdoc />
     public IArtifactToolRegistry LoadModule(IModuleLocation moduleLocation)
     {
         if (moduleLocation is not ModuleManifest manifest)
