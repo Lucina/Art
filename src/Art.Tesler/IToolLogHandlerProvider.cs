@@ -1,10 +1,9 @@
-﻿using System.CommandLine;
-
-namespace Art.Tesler;
+﻿namespace Art.Tesler;
 
 public interface IToolLogHandlerProvider
 {
-    internal IToolLogHandler GetStreamToolLogHandler(IConsole console);
+    // TODO implementors should use their own TW sources
+    internal IToolLogHandler GetStreamToolLogHandler(IOutputPair console);
 
-    internal IToolLogHandler GetDefaultToolLogHandler(IConsole console);
+    internal IToolLogHandler GetDefaultToolLogHandler(IOutputPair console);
 }

@@ -20,20 +20,22 @@ public class ListCommand : ToolCommandBase
     protected Option<bool> DetailedOption;
 
     public ListCommand(
+        IOutputPair toolOutput,
         IArtifactToolRegistryStore pluginStore,
         IDefaultPropertyProvider defaultPropertyProvider,
         IToolLogHandlerProvider toolLogHandlerProvider)
-        : this(pluginStore, defaultPropertyProvider, toolLogHandlerProvider, "list", "Execute artifact list tools.")
+        : this(toolOutput, pluginStore, defaultPropertyProvider, toolLogHandlerProvider, "list", "Execute artifact list tools.")
     {
     }
 
     public ListCommand(
+        IOutputPair toolOutput,
         IArtifactToolRegistryStore pluginStore,
         IDefaultPropertyProvider defaultPropertyProvider,
         IToolLogHandlerProvider toolLogHandlerProvider,
         string name,
         string? description = null)
-        : base(pluginStore, defaultPropertyProvider, toolLogHandlerProvider, name, description)
+        : base(toolOutput, pluginStore, defaultPropertyProvider, toolLogHandlerProvider, name, description)
     {
         ProfileFileOption = new Option<string>(new[] { "-i", "--input" }, "Profile file") { ArgumentHelpName = "file" };
         AddOption(ProfileFileOption);
@@ -75,14 +77,14 @@ public class ListCommand : ToolCommandBase
         using var adm = new NullArtifactDataManager();
         using var tool = await GetSearchingToolAsync(context, profile, arm, adm);
         ArtifactToolListOptions options = new();
-        ArtifactToolListProxy proxy = new(tool, options, ToolLogHandlerProvider.GetDefaultToolLogHandler(context.Console));
+        ArtifactToolListProxy proxy = new(tool, options, ToolLogHandlerProvider.GetDefaultToolLogHandler(ToolOutput));
         bool listResource = context.ParseResult.GetValueForOption(ListResourceOption);
         bool detailed = context.ParseResult.GetValueForOption(DetailedOption);
         await foreach (IArtifactData data in proxy.ListAsync())
             if (listResource)
-                await Common.DisplayAsync(data.Info, data.Values, detailed, context.Console);
+                await Common.DisplayAsync(data.Info, data.Values, detailed, ToolOutput);
             else
-                Common.Display(data.Info, detailed, context.Console);
+                Common.Display(data.Info, detailed, ToolOutput);
         return 0;
     }
 }

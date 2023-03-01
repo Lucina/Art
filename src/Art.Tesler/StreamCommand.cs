@@ -14,22 +14,24 @@ public class StreamCommand : ToolCommandBase
     protected Argument<string> ProfileFileArg;
 
     public StreamCommand(
+        IOutputPair toolOutput,
         IArtifactToolRegistryStore pluginStore,
         IDefaultPropertyProvider defaultPropertyProvider,
         IToolLogHandlerProvider toolLogHandlerProvider,
         IProfileResolver profileResolver)
-        : this(pluginStore, defaultPropertyProvider, toolLogHandlerProvider, profileResolver, "stream", "Stream primary resource to standard output.")
+        : this(toolOutput, pluginStore, defaultPropertyProvider, toolLogHandlerProvider, profileResolver, "stream", "Stream primary resource to standard output.")
     {
     }
 
     public StreamCommand(
+        IOutputPair toolOutput,
         IArtifactToolRegistryStore pluginStore,
         IDefaultPropertyProvider defaultPropertyProvider,
         IToolLogHandlerProvider toolLogHandlerProvider,
         IProfileResolver profileResolver,
         string name,
         string? description = null)
-        : base(pluginStore, defaultPropertyProvider, toolLogHandlerProvider, name, description)
+        : base(toolOutput, pluginStore, defaultPropertyProvider, toolLogHandlerProvider, name, description)
     {
         ProfileResolver = profileResolver;
         ProfileFileArg = new Argument<string>("profile", "Profile file") { HelpName = "profile", Arity = ArgumentArity.ExactlyOne };
@@ -38,7 +40,7 @@ public class StreamCommand : ToolCommandBase
 
     protected override async Task<int> RunAsync(InvocationContext context)
     {
-        IToolLogHandler l = ToolLogHandlerProvider.GetStreamToolLogHandler(context.Console);
+        IToolLogHandler l = ToolLogHandlerProvider.GetStreamToolLogHandler(ToolOutput);
         List<ArtifactToolProfile> profiles = new();
         ResolveAndAddProfiles(ProfileResolver, profiles, context.ParseResult.GetValueForArgument(ProfileFileArg));
         if (profiles.Count == 0)
@@ -53,7 +55,7 @@ public class StreamCommand : ToolCommandBase
         string? cookieFile = context.ParseResult.HasOption(CookieFileOption) ? context.ParseResult.GetValueForOption(CookieFileOption) : null;
         string? userAgent = context.ParseResult.HasOption(UserAgentOption) ? context.ParseResult.GetValueForOption(UserAgentOption) : null;
         IEnumerable<string> properties = context.ParseResult.HasOption(PropertiesOption) ? context.ParseResult.GetValueForOption(PropertiesOption)! : Array.Empty<string>();
-        profile = profile.GetWithConsoleOptions(DefaultPropertyProvider, properties, cookieFile, userAgent, context.Console);
+        profile = profile.GetWithConsoleOptions(DefaultPropertyProvider, properties, cookieFile, userAgent, ToolOutput);
         var plugin = PluginStore.LoadRegistry(ArtifactToolProfileUtil.GetID(profile.Tool));
         using var arm = new InMemoryArtifactRegistrationManager();
         using var adm = new InMemoryArtifactDataManager();

@@ -6,8 +6,11 @@ namespace Art.Tesler;
 
 public abstract class CommandBase : Command
 {
-    protected CommandBase(string name, string? description = null) : base(name, description)
+    protected IOutputPair ToolOutput;
+
+    protected CommandBase(IOutputPair toolOutput, string name, string? description = null) : base(name, description)
     {
+        ToolOutput = toolOutput;
         this.SetHandler(RunInternalAsync);
     }
 

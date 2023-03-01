@@ -20,13 +20,15 @@ public abstract class ToolCommandBase : CommandBase
     protected Option<List<string>> PropertiesOption;
 
     protected ToolCommandBase(
+        IOutputPair toolOutput,
         IArtifactToolRegistryStore pluginStore,
         IDefaultPropertyProvider defaultPropertyProvider,
         IToolLogHandlerProvider toolLogHandlerProvider,
         string name,
-        string? description = null) : base(name, description)
+        string? description = null) : base(toolOutput, name, description)
     {
         PluginStore = pluginStore;
+        ToolOutput = toolOutput;
         DefaultPropertyProvider = defaultPropertyProvider;
         ToolLogHandlerProvider = toolLogHandlerProvider;
         UserAgentOption = new Option<string>(new[] { "--user-agent" }, "Custom user agent string") { ArgumentHelpName = "user-agent" };
@@ -48,7 +50,7 @@ public abstract class ToolCommandBase : CommandBase
         string? cookieFile = context.ParseResult.HasOption(CookieFileOption) ? context.ParseResult.GetValueForOption(CookieFileOption) : null;
         string? userAgent = context.ParseResult.HasOption(UserAgentOption) ? context.ParseResult.GetValueForOption(UserAgentOption) : null;
         IEnumerable<string> properties = context.ParseResult.HasOption(PropertiesOption) ? context.ParseResult.GetValueForOption(PropertiesOption)! : Array.Empty<string>();
-        artifactToolProfile = artifactToolProfile.GetWithConsoleOptions(DefaultPropertyProvider, properties, cookieFile, userAgent, context.Console);
+        artifactToolProfile = artifactToolProfile.GetWithConsoleOptions(DefaultPropertyProvider, properties, cookieFile, userAgent, ToolOutput);
         IArtifactTool t = await ArtifactTool.PrepareToolAsync(plugin, artifactToolProfile, arm, adm, cancellationToken);
         return t;
     }

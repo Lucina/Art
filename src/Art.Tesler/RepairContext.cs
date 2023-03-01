@@ -1,5 +1,4 @@
-﻿using System.CommandLine;
-using Art.Common;
+﻿using Art.Common;
 using Art.Common.Proxies;
 
 namespace Art.Tesler;
@@ -21,7 +20,7 @@ public class RepairContext
         _l = l;
     }
 
-    public async Task<bool> RepairAsync(List<ArtifactToolProfile> profiles, bool detailed, ChecksumSource? checksumSource, IConsole console)
+    public async Task<bool> RepairAsync(List<ArtifactToolProfile> profiles, bool detailed, ChecksumSource? checksumSource, IOutputPair console)
     {
         foreach (ArtifactToolProfile profile in profiles)
         {
@@ -41,7 +40,7 @@ public class RepairContext
                 // ReSharper disable SuspiciousTypeConversion.Global
                 case IArtifactFindTool:
                     {
-                        var proxy = new ArtifactToolFindProxy(tool);
+                        var proxy = new ArtifactToolFindProxy(tool, _l);
                         foreach ((ArtifactKey key, List<ArtifactResourceInfo> list) in _failed.Where(v => v.Key.Tool == artifactToolProfile.Tool && v.Key.Group == group).ToList())
                             if (await proxy.FindAsync(key.Id) is { } data) await Fixup(tool, key, list, data, checksumSource);
                             else _l.Log($"Failed to obtain artifact {key.Tool}/{key.Group}:{key.Id}", null, LogLevel.Error);

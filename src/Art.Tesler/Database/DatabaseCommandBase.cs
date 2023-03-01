@@ -24,7 +24,12 @@ public abstract class DatabaseCommandBase : CommandBase
 
     protected Option<bool> DetailedOption;
 
-    protected DatabaseCommandBase(ITeslerRegistrationProvider registrationProvider, string name, string? description = null) : base(name, description)
+    protected DatabaseCommandBase(
+        IOutputPair toolOutput,
+        ITeslerRegistrationProvider registrationProvider,
+        string name,
+        string? description = null)
+        : base(toolOutput, name, description)
     {
         RegistrationProvider = registrationProvider;
         RegistrationProvider.Initialize(this);

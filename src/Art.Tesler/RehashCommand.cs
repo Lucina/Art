@@ -17,17 +17,20 @@ internal class RehashCommand : CommandBase
     protected Option<bool> DetailedOption;
 
     public RehashCommand(
+        IOutputPair toolOutput,
         ITeslerDataProvider dataProvider,
         ITeslerRegistrationProvider registrationProvider)
-        : this(dataProvider, registrationProvider, "rehash", "Recompute hashes for archive contents.")
+        : this(toolOutput, dataProvider, registrationProvider, "rehash", "Recompute hashes for archive contents.")
     {
     }
 
     public RehashCommand(
+        IOutputPair toolOutput,
         ITeslerDataProvider dataProvider,
         ITeslerRegistrationProvider registrationProvider,
         string name,
-        string? description = null) : base(name, description)
+        string? description = null)
+        : base(toolOutput, name, description)
     {
         DataProvider = dataProvider;
         DataProvider.Initialize(this);
@@ -75,7 +78,7 @@ internal class RehashCommand : CommandBase
                 PrintErrorMessage($"Failed to instantiate new hash algorithm for {hash}", context.Console);
                 return 2;
             }
-            Common.PrintFormat(rInf.GetInfoPathString(), detailed, () => rInf.GetInfoString(), context.Console);
+            Common.PrintFormat(rInf.GetInfoPathString(), detailed, () => rInf.GetInfoString(), ToolOutput);
             using HashAlgorithm haNew = haNewV.CreateHashAlgorithm();
             await using Stream sourceStream = await adm.OpenInputStreamAsync(rInf.Key);
             await using HashProxyStream hpsOriginal = new(sourceStream, haOriginal, true, true);
@@ -89,14 +92,14 @@ internal class RehashCommand : CommandBase
             }
             ArtifactResourceInfo nInf = rInf with { Checksum = new Checksum(haNewV.Id, hpsNew.GetHash()) };
             await arm.AddResourceAsync(nInf);
-            Common.PrintFormat(nInf.GetInfoPathString(), detailed, () => nInf.GetInfoString(), context.Console);
+            Common.PrintFormat(nInf.GetInfoPathString(), detailed, () => nInf.GetInfoString(), ToolOutput);
             rehashed++;
         }
         context.Console.Out.WriteLine();
         if (failed.Count != 0)
         {
             PrintErrorMessage($"{failed.Sum(v => v.Value.Count)} resources with checksums failed validation before rehash.", context.Console);
-            foreach (ArtifactResourceInfo value in failed.Values.SelectMany(v => v)) Common.Display(value, detailed, context.Console);
+            foreach (ArtifactResourceInfo value in failed.Values.SelectMany(v => v)) Common.Display(value, detailed, ToolOutput);
             return 1;
         }
         context.Console.Out.WriteLine($"{rehashed} resources successfully rehashed.");

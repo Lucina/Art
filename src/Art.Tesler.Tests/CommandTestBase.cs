@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
+using System.IO;
 using System.Text.Json;
 using Art.Common;
 
@@ -9,12 +10,45 @@ namespace Art.Tesler.Tests;
 
 public class CommandTestBase
 {
+    protected StringWriter? Out;
+    protected StringWriter? Error;
+    protected IOutputPair? ToolOutput;
+    protected TestConsole? TestConsole;
     protected IDefaultPropertyProvider? DefaultPropertyProvider;
     protected IToolLogHandlerProvider? ToolLogHandlerProvider;
     protected ITeslerRegistrationProvider? RegistrationProvider;
     protected ITeslerDataProvider? DataProvider;
     protected IProfileResolver? ProfileResolver;
-    protected TestConsole? TestConsole;
+
+    private class StringWriterOutputPair : IOutputPair
+    {
+        public TextWriter Out { get; }
+
+        public TextWriter Error { get; }
+
+        public StringWriterOutputPair(StringWriter outWriter, StringWriter errorWriter)
+        {
+            Out = outWriter;
+            Error = errorWriter;
+        }
+    }
+
+    [MemberNotNull(nameof(Out))]
+    [MemberNotNull(nameof(Error))]
+    [MemberNotNull(nameof(ToolOutput))]
+    [MemberNotNull(nameof(TestConsole))]
+    internal void CreateOutputs(out IOutputPair toolOutput, out TestConsole console, string? newLine=null, int windowWidth = 100, bool outputRedirected = true, bool errorRedirected = true, bool inputRedirected = true)
+    {
+        Out = new StringWriter();
+        Error = new StringWriter();
+        if (newLine != null)
+        {
+            Out.NewLine = newLine;
+            Error.NewLine = newLine;
+        }
+        toolOutput = ToolOutput = new StringWriterOutputPair(Out, Error);
+        console = TestConsole = new TestConsole(Out, Error, windowWidth, outputRedirected, errorRedirected, inputRedirected);
+    }
 
     internal StaticArtifactToolRegistryStore GetEmptyStore() => new StaticArtifactToolRegistryStore(new ArtifactToolRegistry());
 
@@ -37,12 +71,6 @@ public class CommandTestBase
         var registry = new ArtifactToolRegistry();
         registry.AddSelectable<T>();
         return new StaticArtifactToolRegistryStore(registry);
-    }
-
-    [MemberNotNull(nameof(TestConsole))]
-    internal TestConsole CreateConsole(int windowWidth = 100, bool outputRedirected = true, bool errorRedirected = true, bool inputRedirected = true)
-    {
-        return TestConsole = new TestConsole(windowWidth, outputRedirected, errorRedirected, inputRedirected);
     }
 
     [MemberNotNull(nameof(DefaultPropertyProvider))]

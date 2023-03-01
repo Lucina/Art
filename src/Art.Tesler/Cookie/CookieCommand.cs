@@ -4,12 +4,18 @@ namespace Art.Tesler.Cookie;
 
 public class CookieCommand : Command
 {
-    public CookieCommand() : this("cookie", "Perform operations on browser cookies.")
+    public CookieCommand(
+        IOutputPair toolOutput)
+        : this(toolOutput, "cookie", "Perform operations on browser cookies.")
     {
     }
 
-    public CookieCommand(string name, string? description = null) : base(name, description)
+    public CookieCommand(
+        IOutputPair toolOutput,
+        string name,
+        string? description = null)
+        : base(name, description)
     {
-        AddCommand(new CookieCommandExtract("extract", "Extracts cookies."));
+        AddCommand(new CookieCommandExtract(toolOutput, "extract", "Extracts cookies."));
     }
 }

@@ -13,11 +13,19 @@ public class ToolsCommand : CommandBase
 
     protected Option<bool> DetailedOption;
 
-    public ToolsCommand(IArtifactToolRegistryStore pluginStore) : this(pluginStore, "tools", "List available tools.")
+    public ToolsCommand(
+        IOutputPair toolOutput,
+        IArtifactToolRegistryStore pluginStore)
+        : this(toolOutput, pluginStore, "tools", "List available tools.")
     {
     }
 
-    public ToolsCommand(IArtifactToolRegistryStore pluginStore, string name, string? description = null) : base(name, description)
+    public ToolsCommand(
+        IOutputPair toolOutput,
+        IArtifactToolRegistryStore pluginStore,
+        string name,
+        string? description = null)
+        : base(toolOutput, name, description)
     {
         PluginStore = pluginStore;
         SearchOption = new Option<string>(new[] { "-s", "--search" }, "Search pattern") { ArgumentHelpName = "pattern" };
@@ -48,7 +56,7 @@ public class ToolsCommand : CommandBase
                     if (canSelect) capabilities = capabilities.Append("select");
                     capabilities = capabilities.DefaultIfEmpty("none");
                     return new StringBuilder("Capabilities: ").AppendJoin(", ", capabilities).ToString();
-                }, context.Console);
+                }, ToolOutput);
             }
         }
         return Task.FromResult(0);

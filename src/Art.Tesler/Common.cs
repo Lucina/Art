@@ -1,5 +1,3 @@
-using System.CommandLine;
-using System.CommandLine.IO;
 using System.Text;
 using System.Text.Json;
 using System.Text.RegularExpressions;
@@ -23,7 +21,7 @@ internal static class Common
         return errorCode != 0 ? errorCode : existingErrorCode;
     }
 
-    internal static async Task DisplayAsync(ArtifactInfo i, bool listResource, IArtifactRegistrationManager arm, bool detailed, IConsole console)
+    internal static async Task DisplayAsync(ArtifactInfo i, bool listResource, IArtifactRegistrationManager arm, bool detailed, IOutputPair console)
     {
         Display(i, detailed, console);
         if (listResource)
@@ -31,7 +29,7 @@ internal static class Common
                 Display(r, detailed, console);
     }
 
-    internal static async Task DisplayAsync(ArtifactInfo i, IEnumerable<ArtifactResourceInfo> resources, bool detailed, IConsole console)
+    internal static async Task DisplayAsync(ArtifactInfo i, IEnumerable<ArtifactResourceInfo> resources, bool detailed, IOutputPair console)
     {
         Display(i, detailed, console);
         foreach (ArtifactResourceInfo r in resources)
@@ -49,7 +47,7 @@ internal static class Common
                 Display(r, detailed, console);
     }
 
-    internal static void PrintFormat(string entry, bool detailed, Func<string> details, IConsole console)
+    internal static void PrintFormat(string entry, bool detailed, Func<string> details, IOutputPair console)
     {
         console.Out.WriteLine(entry);
         if (detailed)
@@ -60,15 +58,15 @@ internal static class Common
         }
     }
 
-    internal static void Display(ArtifactInfo i, bool detailed, IConsole console)
+    internal static void Display(ArtifactInfo i, bool detailed, IOutputPair console)
         => PrintFormat(i.Key.Tool + "/" + i.Key.Group + ": " + i.GetInfoTitleString(), detailed, i.GetInfoString, console);
 
-    internal static void Display(ArtifactResourceInfo r, bool detailed, IConsole console)
+    internal static void Display(ArtifactResourceInfo r, bool detailed, IOutputPair console)
         => PrintFormat("-- " + r.GetInfoPathString(), detailed, r.GetInfoString, console);
 
     private static readonly Regex s_propRe = new(@"(.+?):(.+)");
 
-    internal static void AddProps(this Dictionary<string, JsonElement> dictionary, IEnumerable<string> props, IConsole console)
+    internal static void AddProps(this Dictionary<string, JsonElement> dictionary, IEnumerable<string> props, IOutputPair console)
     {
         foreach (string prop in props)
         {
@@ -85,7 +83,7 @@ internal static class Common
         }
     }
 
-    private static void AddPropWithWarning(this Dictionary<string, JsonElement> dictionary, string k, JsonElement v, IConsole console)
+    private static void AddPropWithWarning(this Dictionary<string, JsonElement> dictionary, string k, JsonElement v, IOutputPair console)
     {
         if (dictionary.ContainsKey(k)) console.Out.WriteLine($@"Warning: property {k} already exists with value ""{dictionary[k].ToString()}"", overwriting");
         dictionary[k] = v;
@@ -147,7 +145,7 @@ internal static class Common
         IEnumerable<string> properties,
         string? cookieFile,
         string? userAgent,
-        IConsole console)
+        IOutputPair console)
     {
         Dictionary<string, JsonElement> opts = new();
         defaultPropertyProvider.WriteDefaultProperties(artifactToolProfile.GetID(), opts);

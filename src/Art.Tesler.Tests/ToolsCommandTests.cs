@@ -9,50 +9,50 @@ public class ToolsCommandTests : CommandTestBase
     protected ToolsCommand? Command;
 
     [MemberNotNull(nameof(Command))]
-    protected void InitCommandDefault(IArtifactToolRegistryStore artifactToolRegistryStore)
+    protected void InitCommandDefault(IOutputPair toolOutput, IArtifactToolRegistryStore artifactToolRegistryStore)
     {
-        Command = new ToolsCommand(artifactToolRegistryStore);
+        Command = new ToolsCommand(toolOutput, artifactToolRegistryStore);
     }
 
     [Test]
     public void DefaultExecution_Empty_Success()
     {
-        InitCommandDefault(GetEmptyStore());
-        var console = CreateConsole();
+        CreateOutputs(out var toolOutput, out var console);
+        InitCommandDefault(toolOutput, GetEmptyStore());
         Assert.That(Command.Invoke(Array.Empty<string>(), console), Is.EqualTo(0));
-        Assert.That(console.StringOut.StringWriter.ToString(), Is.Empty);
-        Assert.That(console.StringError.StringWriter.ToString(), Is.Empty);
+        Assert.That(Out.ToString(), Is.Empty);
+        Assert.That(Error.ToString(), Is.Empty);
     }
 
     [Test]
     public void DefaultExecution_Single_Success()
     {
-        InitCommandDefault(GetSingleStore<ExampleArtifactFindTool>());
-        var console = CreateConsole();
+        CreateOutputs(out var toolOutput, out var console);
+        InitCommandDefault(toolOutput, GetSingleStore<ExampleArtifactFindTool>());
         Assert.That(Command.Invoke(Array.Empty<string>(), console), Is.EqualTo(0));
-        Assert.That(console.StringOut.StringWriter.ToString(), Contains.Substring(nameof(ExampleArtifactFindTool)));
-        Assert.That(console.StringError.StringWriter.ToString(), Is.Empty);
+        Assert.That(Out.ToString(), Contains.Substring(nameof(ExampleArtifactFindTool)));
+        Assert.That(Error.ToString(), Is.Empty);
     }
 
     [Test]
     public void Search_NoMatch_NotFound()
     {
-        InitCommandDefault(GetSingleStore<ExampleArtifactFindTool>());
-        var console = CreateConsole();
+        CreateOutputs(out var toolOutput, out var console);
+        InitCommandDefault(toolOutput, GetSingleStore<ExampleArtifactFindTool>());
         string[] line = { "-s", "$$NOT_A_REAL_TOOL$$" };
         Assert.That(Command.Invoke(line, console), Is.EqualTo(0));
-        Assert.That(console.StringOut.StringWriter.ToString(), Is.Empty);
-        Assert.That(console.StringError.StringWriter.ToString(), Is.Empty);
+        Assert.That(Out.ToString(), Is.Empty);
+        Assert.That(Error.ToString(), Is.Empty);
     }
 
     [Test]
     public void Search_SingleMatching_Found()
     {
-        InitCommandDefault(GetSingleStore<ExampleArtifactFindTool>());
-        var console = CreateConsole();
+        CreateOutputs(out var toolOutput, out var console);
+        InitCommandDefault(toolOutput, GetSingleStore<ExampleArtifactFindTool>());
         string[] line = { "-s", nameof(ExampleArtifactFindTool) };
         Assert.That(Command.Invoke(line, console), Is.EqualTo(0));
-        Assert.That(console.StringOut.StringWriter.ToString(), Contains.Substring(nameof(ExampleArtifactFindTool)));
-        Assert.That(console.StringError.StringWriter.ToString(), Is.Empty);
+        Assert.That(Out.ToString(), Contains.Substring(nameof(ExampleArtifactFindTool)));
+        Assert.That(Error.ToString(), Is.Empty);
     }
 }

@@ -23,23 +23,27 @@ public class DumpCommand : ToolCommandBase
 
     protected Option<string> GroupOption;
 
-    public DumpCommand(IArtifactToolRegistryStore pluginStore,
+    public DumpCommand(
+        IOutputPair toolOutput,
+        IArtifactToolRegistryStore pluginStore,
         IDefaultPropertyProvider defaultPropertyProvider,
         IToolLogHandlerProvider toolLogHandlerProvider,
         ITeslerDataProvider dataProvider,
         ITeslerRegistrationProvider registrationProvider)
-        : this(pluginStore, defaultPropertyProvider, toolLogHandlerProvider, dataProvider, registrationProvider, "dump", "Execute artifact dump tools.")
+        : this(toolOutput, pluginStore, defaultPropertyProvider, toolLogHandlerProvider, dataProvider, registrationProvider, "dump", "Execute artifact dump tools.")
     {
     }
 
-    public DumpCommand(IArtifactToolRegistryStore pluginStore,
+    public DumpCommand(
+        IOutputPair toolOutput,
+        IArtifactToolRegistryStore pluginStore,
         IDefaultPropertyProvider defaultPropertyProvider,
         IToolLogHandlerProvider toolLogHandlerProvider,
         ITeslerDataProvider dataProvider,
         ITeslerRegistrationProvider registrationProvider,
         string name,
         string? description = null)
-        : base(pluginStore, defaultPropertyProvider, toolLogHandlerProvider, name, description)
+        : base(toolOutput, pluginStore, defaultPropertyProvider, toolLogHandlerProvider, name, description)
     {
         DataProvider = dataProvider;
         DataProvider.Initialize(this);
@@ -117,7 +121,7 @@ public class DumpCommand : ToolCommandBase
     {
         ArtifactToolDumpOptions options = new(ChecksumSource: checksumSource);
         using var tool = await GetToolAsync(context, profile, arm, adm);
-        ArtifactToolDumpProxy dProxy = new(tool, options, ToolLogHandlerProvider.GetDefaultToolLogHandler(context.Console));
+        ArtifactToolDumpProxy dProxy = new(tool, options, ToolLogHandlerProvider.GetDefaultToolLogHandler(ToolOutput));
         await dProxy.DumpAsync();
         return 0;
     }

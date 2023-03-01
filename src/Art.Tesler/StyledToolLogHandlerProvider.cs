@@ -1,5 +1,4 @@
-﻿using System.CommandLine;
-using Art.Common.Logging;
+﻿using Art.Common.Logging;
 
 namespace Art.Tesler;
 
@@ -13,15 +12,13 @@ public class StyledToolLogHandlerProvider : ToolLogHandlerProviderBase
     {
     }
 
-    public override IToolLogHandler GetStreamToolLogHandler(IConsole console)
+    public override IToolLogHandler GetStreamToolLogHandler(IOutputPair console)
     {
-        CreateTextWriters(console, out var outWriter, out var errorWriter);
-        return new StyledLogHandler(outWriter, errorWriter, true);
+        return new StyledLogHandler(console.Out, console.Error, true);
     }
 
-    public override IToolLogHandler GetDefaultToolLogHandler(IConsole console)
+    public override IToolLogHandler GetDefaultToolLogHandler(IOutputPair console)
     {
-        CreateTextWriters(console, out var outWriter, out var errorWriter);
-        return new StyledLogHandler(outWriter, errorWriter, false, OperatingSystem.IsMacOS());
+        return new StyledLogHandler(console.Out, console.Error, false, OperatingSystem.IsMacOS());
     }
 }

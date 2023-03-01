@@ -22,19 +22,22 @@ public class FindCommand : ToolCommandBase
     protected Option<bool> DetailedOption;
 
     public FindCommand(
+        IOutputPair toolOutput,
         IArtifactToolRegistryStore pluginStore,
         IDefaultPropertyProvider defaultPropertyProvider,
         IToolLogHandlerProvider toolLogHandlerProvider)
-        : this(pluginStore, defaultPropertyProvider, toolLogHandlerProvider, "find", "Execute artifact finder tools.")
+        : this(toolOutput, pluginStore, defaultPropertyProvider, toolLogHandlerProvider, "find", "Execute artifact finder tools.")
     {
     }
 
-    public FindCommand(IArtifactToolRegistryStore pluginStore,
+    public FindCommand(
+        IOutputPair toolOutput,
+        IArtifactToolRegistryStore pluginStore,
         IDefaultPropertyProvider defaultPropertyProvider,
         IToolLogHandlerProvider toolLogHandlerProvider,
         string name,
         string? description = null) :
-        base(pluginStore, defaultPropertyProvider, toolLogHandlerProvider, name, description)
+        base(toolOutput, pluginStore, defaultPropertyProvider, toolLogHandlerProvider, name, description)
     {
         IdsArg = new Argument<List<string>>("ids", "IDs") { HelpName = "id", Arity = ArgumentArity.OneOrMore };
         AddArgument(IdsArg);
@@ -81,7 +84,7 @@ public class FindCommand : ToolCommandBase
         using var arm = new InMemoryArtifactRegistrationManager();
         using var adm = new NullArtifactDataManager();
         using var tool = await GetSearchingToolAsync(context, profile, arm, adm);
-        ArtifactToolFindProxy proxy = new(tool);
+        ArtifactToolFindProxy proxy = new(tool, ToolLogHandlerProvider.GetDefaultToolLogHandler(ToolOutput));
         bool listResource = context.ParseResult.GetValueForOption(ListResourceOption);
         bool detailed = context.ParseResult.GetValueForOption(DetailedOption);
         foreach (string id in context.ParseResult.GetValueForArgument(IdsArg))
@@ -103,9 +106,9 @@ public class FindCommand : ToolCommandBase
             if (data != null)
             {
                 if (listResource)
-                    await Common.DisplayAsync(data.Info, data.Values, detailed, context.Console);
+                    await Common.DisplayAsync(data.Info, data.Values, detailed, ToolOutput);
                 else
-                    Common.Display(data.Info, detailed, context.Console);
+                    Common.Display(data.Info, detailed, ToolOutput);
             }
         }
         return 0;

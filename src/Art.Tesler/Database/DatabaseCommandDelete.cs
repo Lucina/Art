@@ -13,7 +13,12 @@ public class DatabaseCommandDelete : DatabaseCommandBase
 
     protected Option<bool> DoDeleteOption;
 
-    public DatabaseCommandDelete(ITeslerRegistrationProvider registrationProvider, string name, string? description = null) : base(registrationProvider, name, description)
+    public DatabaseCommandDelete(
+        IOutputPair toolOutput,
+        ITeslerRegistrationProvider registrationProvider,
+        string name,
+        string? description = null)
+        : base(toolOutput, registrationProvider, name, description)
     {
         ListOption = new Option<bool>(new[] { "--list" }, "List items");
         AddOption(ListOption);
@@ -71,7 +76,7 @@ public class DatabaseCommandDelete : DatabaseCommandBase
         bool detailed = context.ParseResult.GetValueForOption(DetailedOption);
         foreach (ArtifactInfo i in en.ToList())
         {
-            if (list) await Common.DisplayAsync(i, listResource, arm, detailed, context.Console);
+            if (list) await Common.DisplayAsync(i, listResource, arm, detailed, ToolOutput);
             if (doDelete) await arm.RemoveArtifactAsync(i.Key);
             v++;
         }

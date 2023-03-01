@@ -21,22 +21,26 @@ public class ValidateCommand : ToolCommandBase
 
     protected Option<bool> DetailedOption;
 
-    public ValidateCommand(IArtifactToolRegistryStore pluginStore,
+    public ValidateCommand(
+        IOutputPair toolOutput,
+        IArtifactToolRegistryStore pluginStore,
         IDefaultPropertyProvider defaultPropertyProvider,
         IToolLogHandlerProvider toolLogHandlerProvider,
         ITeslerDataProvider dataProvider,
         ITeslerRegistrationProvider registrationProvider)
-        : this(pluginStore, defaultPropertyProvider, toolLogHandlerProvider, dataProvider, registrationProvider, "validate", "Verify resource integrity.")
+        : this(toolOutput, pluginStore, defaultPropertyProvider, toolLogHandlerProvider, dataProvider, registrationProvider, "validate", "Verify resource integrity.")
     {
     }
 
-    public ValidateCommand(IArtifactToolRegistryStore pluginStore,
+    public ValidateCommand(
+        IOutputPair toolOutput,
+        IArtifactToolRegistryStore pluginStore,
         IDefaultPropertyProvider defaultPropertyProvider,
         IToolLogHandlerProvider toolLogHandlerProvider,
         ITeslerDataProvider dataProvider,
         ITeslerRegistrationProvider registrationProvider,
         string name,
-        string? description = null) : base(pluginStore, defaultPropertyProvider, toolLogHandlerProvider, name, description)
+        string? description = null) : base(toolOutput, pluginStore, defaultPropertyProvider, toolLogHandlerProvider, name, description)
     {
         DataProvider = dataProvider;
         DataProvider.Initialize(this);
@@ -72,14 +76,14 @@ public class ValidateCommand : ToolCommandBase
                 return 2;
             }
         }
-        IToolLogHandler l = ToolLogHandlerProvider.GetDefaultToolLogHandler(context.Console);
+        IToolLogHandler l = ToolLogHandlerProvider.GetDefaultToolLogHandler(ToolOutput);
         List<ArtifactToolProfile> profiles = new();
         foreach (string profileFile in context.ParseResult.GetValueForArgument(ProfileFilesArg))
             profiles.AddRange(ArtifactToolProfileUtil.DeserializeProfilesFromFile(profileFile));
         string? cookieFile = context.ParseResult.HasOption(CookieFileOption) ? context.ParseResult.GetValueForOption(CookieFileOption) : null;
         string? userAgent = context.ParseResult.HasOption(UserAgentOption) ? context.ParseResult.GetValueForOption(UserAgentOption) : null;
         IEnumerable<string> properties = context.ParseResult.HasOption(PropertiesOption) ? context.ParseResult.GetValueForOption(PropertiesOption)! : Array.Empty<string>();
-        profiles = profiles.Select(p => p.GetWithConsoleOptions(DefaultPropertyProvider, properties, cookieFile, userAgent, context.Console)).ToList();
+        profiles = profiles.Select(p => p.GetWithConsoleOptions(DefaultPropertyProvider, properties, cookieFile, userAgent, ToolOutput)).ToList();
         bool repair = context.ParseResult.GetValueForOption(RepairOption);
         if (profiles.Count == 0)
         {
@@ -121,7 +125,7 @@ public class ValidateCommand : ToolCommandBase
         }
         l.Log($"{resourceFailCount} resources failed to validate and will be reacquired.", null, LogLevel.Information);
         var repairContext = validationContext.CreateRepairContext();
-        await repairContext.RepairAsync(profiles, context.ParseResult.GetValueForOption(DetailedOption), checksumSource, context.Console);
+        await repairContext.RepairAsync(profiles, context.ParseResult.GetValueForOption(DetailedOption), checksumSource, ToolOutput);
         return 0;
     }
 }

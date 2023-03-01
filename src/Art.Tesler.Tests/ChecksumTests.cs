@@ -11,6 +11,7 @@ public class ChecksumTests : CommandTestBase
 
     [MemberNotNull(nameof(Command))]
     protected void InitCommandDefault(
+        IOutputPair toolOutput,
         IArtifactToolRegistryStore artifactToolRegistryStore,
         IDefaultPropertyProvider defaultPropertyProvider,
         IToolLogHandlerProvider toolLogHandlerProvider,
@@ -18,7 +19,7 @@ public class ChecksumTests : CommandTestBase
         ITeslerRegistrationProvider registrationProvider,
         IProfileResolver profileResolver)
     {
-        Command = new ArcCommand(artifactToolRegistryStore, defaultPropertyProvider, toolLogHandlerProvider, dataProvider, registrationProvider, profileResolver);
+        Command = new ArcCommand(toolOutput, artifactToolRegistryStore, defaultPropertyProvider, toolLogHandlerProvider, dataProvider, registrationProvider, profileResolver);
     }
 
     [Test]
@@ -30,12 +31,12 @@ public class ChecksumTests : CommandTestBase
         var dataProvider = CreateSharedMemoryDataProvider();
         var registrationProvider = CreateSharedMemoryRegistrationProvider();
         var profileResolver = CreateDictionaryProfileResolver(ProfileName);
-        InitCommandDefault(store, defaultPropertyProvider, toolLogHandlerProvider, dataProvider, registrationProvider, profileResolver);
-        var console = CreateConsole();
+        CreateOutputs(out var toolOutput, out var console);
+        InitCommandDefault(toolOutput, store, defaultPropertyProvider, toolLogHandlerProvider, dataProvider, registrationProvider, profileResolver);
         string[] line = { ProfileName };
         Assert.That(Command.Invoke(line, console), Is.EqualTo(0));
-        Assert.That(console.StringOut.StringWriter.ToString(), Is.Empty);
-        Assert.That(console.StringError.StringWriter.ToString(), Is.Empty);
+        Assert.That(Out.ToString(), Is.Empty);
+        Assert.That(Error.ToString(), Is.Empty);
     }
 
     [Test]
@@ -47,12 +48,12 @@ public class ChecksumTests : CommandTestBase
         var dataProvider = CreateSharedMemoryDataProvider();
         var registrationProvider = CreateSharedMemoryRegistrationProvider();
         var profileResolver = CreateDictionaryProfileResolver(ProfileName);
-        InitCommandDefault(store, defaultPropertyProvider, toolLogHandlerProvider, dataProvider, registrationProvider, profileResolver);
-        var console = CreateConsole();
+        CreateOutputs(out var toolOutput, out var console);
+        InitCommandDefault(toolOutput, store, defaultPropertyProvider, toolLogHandlerProvider, dataProvider, registrationProvider, profileResolver);
         string[] line = { ProfileName, "--hash", "SHA256" };
         Assert.That(Command.Invoke(line, console), Is.EqualTo(0));
-        Assert.That(console.StringOut.StringWriter.ToString(), Is.Empty);
-        Assert.That(console.StringError.StringWriter.ToString(), Is.Empty);
+        Assert.That(Out.ToString(), Is.Empty);
+        Assert.That(Error.ToString(), Is.Empty);
     }
 
     [Test]
@@ -64,11 +65,11 @@ public class ChecksumTests : CommandTestBase
         var dataProvider = CreateSharedMemoryDataProvider();
         var registrationProvider = CreateSharedMemoryRegistrationProvider();
         var profileResolver = CreateDictionaryProfileResolver(ProfileName);
-        InitCommandDefault(store, defaultPropertyProvider, toolLogHandlerProvider, dataProvider, registrationProvider, profileResolver);
-        var console = CreateConsole();
+        CreateOutputs(out var toolOutput, out var console);
+        InitCommandDefault(toolOutput, store, defaultPropertyProvider, toolLogHandlerProvider, dataProvider, registrationProvider, profileResolver);
         string[] line = { ProfileName, "--hash", "BAD_CHECKSUM" };
         Assert.That(Command.Invoke(line, console), Is.Not.EqualTo(0));
-        Assert.That(console.StringOut.StringWriter.ToString(), Is.Empty);
-        Assert.That(console.StringError.StringWriter.ToString(), Is.Not.Empty);
+        Assert.That(Out.ToString(), Is.Empty);
+        Assert.That(Error.ToString(), Is.Not.Empty);
     }
 }
