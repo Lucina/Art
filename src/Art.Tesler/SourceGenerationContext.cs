@@ -8,6 +8,7 @@ namespace Art.Tesler;
 [JsonSerializable(typeof(long))]
 [JsonSerializable(typeof(double))]
 [JsonSerializable(typeof(string))]
+[JsonSerializable(typeof(string[]))]
 [JsonSerializable(typeof(List<string>))]
 [JsonSerializable(typeof(List<ArtifactToolProfile>))]
 [JsonSerializable(typeof(JsonElement))]

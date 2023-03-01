@@ -150,7 +150,15 @@ public class ValidationContext
             var pp = profile.WithCoreTool(tool);
             string group = pp.GetGroupOrFallback(tool.GroupFallback);
             _l.Log($"Processing entries for profile {pp.Tool}/{group}", null, LogLevel.Title);
-            var result = await ProcessAsync(await _arm.ListArtifactsAsync(pp.Tool, group), hashForAdd);
+            var artifacts = await _arm.ListArtifactsAsync(pp.Tool, group);
+            // respect profile's artifact list
+            // (checking against it being a find tool matches the behaviour of dump / list proxies)
+            if (profile.Options.TryGetOption("artifactList", out string[]? artifactList, SourceGenerationContext.s_context.StringArray) && tool is IArtifactFindTool)
+            {
+                var set = artifactList.ToHashSet();
+                artifacts.RemoveAll(v => set.Contains(v.Key.Id));
+            }
+            var result = await ProcessAsync(artifacts, hashForAdd);
             _l.Log($"Processed {result.Artifacts} artifacts and {result.Resources} resources for profile {pp.Tool}/{group}", null, LogLevel.Information);
             artifactCount += result.Artifacts;
             resourceCount += result.Resources;

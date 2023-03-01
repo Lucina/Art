@@ -68,7 +68,6 @@ public class ValidateCommand : ToolCommandBase
         List<ArtifactToolProfile> profiles = new();
         foreach (string profileFile in context.ParseResult.GetValueForArgument(ProfileFilesArg))
             profiles.AddRange(ArtifactToolProfileUtil.DeserializeProfilesFromFile(profileFile));
-        // TODO filtered profiles should also have artifact list used as a secondary filter if present
         string? cookieFile = context.ParseResult.HasOption(CookieFileOption) ? context.ParseResult.GetValueForOption(CookieFileOption) : null;
         string? userAgent = context.ParseResult.HasOption(UserAgentOption) ? context.ParseResult.GetValueForOption(UserAgentOption) : null;
         IEnumerable<string> properties = context.ParseResult.HasOption(PropertiesOption) ? context.ParseResult.GetValueForOption(PropertiesOption)! : Array.Empty<string>();
@@ -88,8 +87,14 @@ public class ValidateCommand : ToolCommandBase
         var validationContext = new ValidationContext(PluginStore, arm, adm, l);
         ValidationProcessResult result;
         string? hashForAdd = context.ParseResult.GetValueForOption(AddChecksumOption) ? hash : null;
-        if (profiles.Count == 0) result = await validationContext.ProcessAsync(await arm.ListArtifactsAsync(), hashForAdd);
-        else result = await validationContext.ProcessAsync(profiles, hashForAdd);
+        if (profiles.Count == 0)
+        {
+            result = await validationContext.ProcessAsync(await arm.ListArtifactsAsync(), hashForAdd);
+        }
+        else
+        {
+            result = await validationContext.ProcessAsync(profiles, hashForAdd);
+        }
         l.Log($"Total: {result.Artifacts} artifacts and {result.Resources} processed.", null, LogLevel.Information);
         if (!validationContext.AnyFailed)
         {
