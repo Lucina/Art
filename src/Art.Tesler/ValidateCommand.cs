@@ -5,7 +5,7 @@ using Art.Common;
 
 namespace Art.Tesler;
 
-internal class ValidateCommand<TPluginStore> : ToolCommandBase<TPluginStore> where TPluginStore : IArtifactToolRegistryStore
+public class ValidateCommand : ToolCommandBase
 {
     protected ITeslerDataProvider DataProvider;
 
@@ -21,7 +21,7 @@ internal class ValidateCommand<TPluginStore> : ToolCommandBase<TPluginStore> whe
 
     protected Option<bool> DetailedOption;
 
-    public ValidateCommand(TPluginStore pluginStore,
+    public ValidateCommand(IArtifactToolRegistryStore pluginStore,
         IDefaultPropertyProvider defaultPropertyProvider,
         ITeslerDataProvider dataProvider,
         ITeslerRegistrationProvider registrationProvider)
@@ -29,7 +29,7 @@ internal class ValidateCommand<TPluginStore> : ToolCommandBase<TPluginStore> whe
     {
     }
 
-    public ValidateCommand(TPluginStore pluginStore,
+    public ValidateCommand(IArtifactToolRegistryStore pluginStore,
         IDefaultPropertyProvider defaultPropertyProvider,
         ITeslerDataProvider dataProvider,
         ITeslerRegistrationProvider registrationProvider,
@@ -82,7 +82,7 @@ internal class ValidateCommand<TPluginStore> : ToolCommandBase<TPluginStore> whe
         }
         using var adm = DataProvider.CreateArtifactDataManager(context);
         using var arm = RegistrationProvider.CreateArtifactRegistrationManager(context);
-        var validationContext = new ValidationContext<TPluginStore>(PluginStore, arm, adm, l);
+        var validationContext = new ValidationContext(PluginStore, arm, adm, l);
         ValidationProcessResult result;
         string? hashForAdd = context.ParseResult.GetValueForOption(AddChecksumOption) ? hash : null;
         if (profiles.Count == 0) result = await validationContext.ProcessAsync(await arm.ListArtifactsAsync(), hashForAdd);
@@ -105,7 +105,7 @@ internal class ValidateCommand<TPluginStore> : ToolCommandBase<TPluginStore> whe
         }
         l.Log($"{resourceFailCount} resources failed to validate and will be reacquired.", null, LogLevel.Information);
         var repairContext = validationContext.CreateRepairContext();
-        await repairContext.RepairAsync(profiles, context.ParseResult.GetValueForOption(DetailedOption), hash);
+        await repairContext.RepairAsync(profiles, context.ParseResult.GetValueForOption(DetailedOption), hash, context.Console);
         return 0;
     }
 }

@@ -7,17 +7,17 @@ using Art.Common.Proxies;
 
 namespace Art.Tesler;
 
-internal class StreamCommand<TPluginStore> : ToolCommandBase<TPluginStore> where TPluginStore : IArtifactToolRegistryStore
+public class StreamCommand : ToolCommandBase
 {
     protected Argument<string> ProfileFileArg;
 
     private List<IArtifactToolSelectableRegistry<string>>? _selectableRegistries;
 
-    public StreamCommand(TPluginStore pluginStore, IDefaultPropertyProvider defaultPropertyProvider) : this(pluginStore, defaultPropertyProvider, "stream", "Stream primary resource to standard output.")
+    public StreamCommand(IArtifactToolRegistryStore pluginStore, IDefaultPropertyProvider defaultPropertyProvider) : this(pluginStore, defaultPropertyProvider, "stream", "Stream primary resource to standard output.")
     {
     }
 
-    public StreamCommand(TPluginStore pluginStore, IDefaultPropertyProvider defaultPropertyProvider, string name, string? description = null) : base(pluginStore, defaultPropertyProvider, name, description)
+    public StreamCommand(IArtifactToolRegistryStore pluginStore, IDefaultPropertyProvider defaultPropertyProvider, string name, string? description = null) : base(pluginStore, defaultPropertyProvider, name, description)
     {
         ProfileFileArg = new Argument<string>("profile", "Profile file") { HelpName = "profile", Arity = ArgumentArity.ExactlyOne };
         AddArgument(ProfileFileArg);

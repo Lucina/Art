@@ -7,7 +7,7 @@ using Art.Common.Proxies;
 
 namespace Art.Tesler;
 
-internal class DumpCommand<TPluginStore> : ToolCommandBase<TPluginStore> where TPluginStore : IArtifactToolRegistryStore
+public class DumpCommand : ToolCommandBase
 {
     protected ITeslerDataProvider DataProvider;
 
@@ -23,7 +23,7 @@ internal class DumpCommand<TPluginStore> : ToolCommandBase<TPluginStore> where T
 
     protected Option<string> GroupOption;
 
-    public DumpCommand(TPluginStore pluginStore,
+    public DumpCommand(IArtifactToolRegistryStore pluginStore,
         IDefaultPropertyProvider defaultPropertyProvider,
         ITeslerDataProvider dataProvider,
         ITeslerRegistrationProvider registrationProvider)
@@ -31,7 +31,7 @@ internal class DumpCommand<TPluginStore> : ToolCommandBase<TPluginStore> where T
     {
     }
 
-    public DumpCommand(TPluginStore pluginStore,
+    public DumpCommand(IArtifactToolRegistryStore pluginStore,
         IDefaultPropertyProvider defaultPropertyProvider,
         ITeslerDataProvider dataProvider,
         ITeslerRegistrationProvider registrationProvider,

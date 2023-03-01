@@ -74,7 +74,7 @@ internal class RehashCommand : CommandBase
                 PrintErrorMessage($"Failed to instantiate new hash algorithm for {hash}");
                 return 2;
             }
-            Common.PrintFormat(rInf.GetInfoPathString(), detailed, () => rInf.GetInfoString());
+            Common.PrintFormat(rInf.GetInfoPathString(), detailed, () => rInf.GetInfoString(), context.Console);
             using HashAlgorithm haNew = haNewV.HashAlgorithmFunc!();
             await using Stream sourceStream = await adm.OpenInputStreamAsync(rInf.Key);
             await using HashProxyStream hpsOriginal = new(sourceStream, haOriginal, true, true);
@@ -88,14 +88,14 @@ internal class RehashCommand : CommandBase
             }
             ArtifactResourceInfo nInf = rInf with { Checksum = new Checksum(haNewV.Id, hpsNew.GetHash()) };
             await arm.AddResourceAsync(nInf);
-            Common.PrintFormat(nInf.GetInfoPathString(), detailed, () => nInf.GetInfoString());
+            Common.PrintFormat(nInf.GetInfoPathString(), detailed, () => nInf.GetInfoString(), context.Console);
             rehashed++;
         }
         Console.WriteLine();
         if (failed.Count != 0)
         {
             PrintErrorMessage($"{failed.Sum(v => v.Value.Count)} resources with checksums failed validation before rehash.");
-            foreach (ArtifactResourceInfo value in failed.Values.SelectMany(v => v)) Common.Display(value, detailed);
+            foreach (ArtifactResourceInfo value in failed.Values.SelectMany(v => v)) Common.Display(value, detailed, context.Console);
             return 1;
         }
         Console.WriteLine($"{rehashed} resources successfully rehashed.");

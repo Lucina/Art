@@ -4,7 +4,7 @@ using Art.Common;
 
 namespace Art.Tesler.Database;
 
-internal class DatabaseCommandDelete : DatabaseCommandBase
+public class DatabaseCommandDelete : DatabaseCommandBase
 {
     protected Option<bool> ListOption;
 
@@ -70,7 +70,7 @@ internal class DatabaseCommandDelete : DatabaseCommandBase
         bool detailed = context.ParseResult.GetValueForOption(DetailedOption);
         foreach (ArtifactInfo i in en.ToList())
         {
-            if (list) await Common.DisplayAsync(i, listResource, arm, detailed);
+            if (list) await Common.DisplayAsync(i, listResource, arm, detailed, context.Console);
             if (doDelete) await arm.RemoveArtifactAsync(i.Key);
             v++;
         }

@@ -27,6 +27,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Art.BrowserCookies", "Art.B
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Art.Tesler", "Art.Tesler\Art.Tesler.csproj", "{047E570C-EC49-4A1D-B6FC-32F408DC382D}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Art.Tesler.Tests", "Art.Tesler.Tests\Art.Tesler.Tests.csproj", "{CCBD3446-FC87-4EAF-A0FF-8E04761DAF11}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -84,5 +86,9 @@ Global
 		{047E570C-EC49-4A1D-B6FC-32F408DC382D}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{047E570C-EC49-4A1D-B6FC-32F408DC382D}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{047E570C-EC49-4A1D-B6FC-32F408DC382D}.Release|Any CPU.Build.0 = Release|Any CPU
+		{CCBD3446-FC87-4EAF-A0FF-8E04761DAF11}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{CCBD3446-FC87-4EAF-A0FF-8E04761DAF11}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{CCBD3446-FC87-4EAF-A0FF-8E04761DAF11}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{CCBD3446-FC87-4EAF-A0FF-8E04761DAF11}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal

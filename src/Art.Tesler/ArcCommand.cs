@@ -7,7 +7,7 @@ using Art.Common.Proxies;
 
 namespace Art.Tesler;
 
-internal class ArcCommand<TPluginStore> : ToolCommandBase<TPluginStore> where TPluginStore : IArtifactToolRegistryStore
+public class ArcCommand : ToolCommandBase
 {
     protected ITeslerDataProvider DataProvider;
 
@@ -30,7 +30,7 @@ internal class ArcCommand<TPluginStore> : ToolCommandBase<TPluginStore> where TP
     private List<IArtifactToolSelectableRegistry<string>>? _selectableRegistries;
 
     public ArcCommand(
-        TPluginStore pluginStore,
+        IArtifactToolRegistryStore pluginStore,
         IDefaultPropertyProvider defaultPropertyProvider,
         ITeslerDataProvider dataProvider,
         ITeslerRegistrationProvider registrationProvider)
@@ -38,7 +38,7 @@ internal class ArcCommand<TPluginStore> : ToolCommandBase<TPluginStore> where TP
     {
     }
 
-    public ArcCommand(TPluginStore pluginStore,
+    public ArcCommand(IArtifactToolRegistryStore pluginStore,
         IDefaultPropertyProvider defaultPropertyProvider,
         ITeslerDataProvider dataProvider,
         ITeslerRegistrationProvider registrationProvider,

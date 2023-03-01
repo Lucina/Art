@@ -7,7 +7,7 @@ using Art.Common.Proxies;
 
 namespace Art.Tesler;
 
-internal class FindCommand<TPluginStore> : ToolCommandBase<TPluginStore> where TPluginStore : IArtifactToolRegistryStore
+public class FindCommand : ToolCommandBase
 {
     protected Argument<List<string>> IdsArg;
 
@@ -21,11 +21,11 @@ internal class FindCommand<TPluginStore> : ToolCommandBase<TPluginStore> where T
 
     protected Option<bool> DetailedOption;
 
-    public FindCommand(TPluginStore pluginStore, IDefaultPropertyProvider defaultPropertyProvider) : this(pluginStore, defaultPropertyProvider, "find", "Execute artifact finder tools.")
+    public FindCommand(IArtifactToolRegistryStore pluginStore, IDefaultPropertyProvider defaultPropertyProvider) : this(pluginStore, defaultPropertyProvider, "find", "Execute artifact finder tools.")
     {
     }
 
-    public FindCommand(TPluginStore pluginStore, IDefaultPropertyProvider defaultPropertyProvider, string name, string? description = null) : base(pluginStore, defaultPropertyProvider, name, description)
+    public FindCommand(IArtifactToolRegistryStore pluginStore, IDefaultPropertyProvider defaultPropertyProvider, string name, string? description = null) : base(pluginStore, defaultPropertyProvider, name, description)
     {
         IdsArg = new Argument<List<string>>("ids", "IDs") { HelpName = "id", Arity = ArgumentArity.OneOrMore };
         AddArgument(IdsArg);
@@ -94,9 +94,9 @@ internal class FindCommand<TPluginStore> : ToolCommandBase<TPluginStore> where T
             if (data != null)
             {
                 if (listResource)
-                    await Common.DisplayAsync(data.Info, data.Values, detailed);
+                    await Common.DisplayAsync(data.Info, data.Values, detailed, context.Console);
                 else
-                    Common.Display(data.Info, detailed);
+                    Common.Display(data.Info, detailed, context.Console);
             }
         }
         return 0;

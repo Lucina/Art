@@ -7,7 +7,7 @@ using Art.Common.Proxies;
 
 namespace Art.Tesler;
 
-internal class ListCommand<TPluginStore> : ToolCommandBase<TPluginStore> where TPluginStore : IArtifactToolRegistryStore
+public class ListCommand : ToolCommandBase
 {
     protected Option<string> ProfileFileOption;
 
@@ -19,11 +19,11 @@ internal class ListCommand<TPluginStore> : ToolCommandBase<TPluginStore> where T
 
     protected Option<bool> DetailedOption;
 
-    public ListCommand(TPluginStore pluginStore, IDefaultPropertyProvider defaultPropertyProvider) : this(pluginStore, defaultPropertyProvider, "list", "Execute artifact list tools.")
+    public ListCommand(IArtifactToolRegistryStore pluginStore, IDefaultPropertyProvider defaultPropertyProvider) : this(pluginStore, defaultPropertyProvider, "list", "Execute artifact list tools.")
     {
     }
 
-    public ListCommand(TPluginStore pluginStore, IDefaultPropertyProvider defaultPropertyProvider, string name, string? description = null) : base(pluginStore, defaultPropertyProvider, name, description)
+    public ListCommand(IArtifactToolRegistryStore pluginStore, IDefaultPropertyProvider defaultPropertyProvider, string name, string? description = null) : base(pluginStore, defaultPropertyProvider, name, description)
     {
         ProfileFileOption = new Option<string>(new[] { "-i", "--input" }, "Profile file") { ArgumentHelpName = "file" };
         AddOption(ProfileFileOption);
@@ -70,9 +70,9 @@ internal class ListCommand<TPluginStore> : ToolCommandBase<TPluginStore> where T
         bool detailed = context.ParseResult.GetValueForOption(DetailedOption);
         await foreach (IArtifactData data in proxy.ListAsync())
             if (listResource)
-                await Common.DisplayAsync(data.Info, data.Values, detailed);
+                await Common.DisplayAsync(data.Info, data.Values, detailed, context.Console);
             else
-                Common.Display(data.Info, detailed);
+                Common.Display(data.Info, detailed, context.Console);
         return 0;
     }
 }

@@ -5,19 +5,19 @@ using System.Text.RegularExpressions;
 
 namespace Art.Tesler;
 
-internal class ToolsCommand<TPluginStore> : CommandBase where TPluginStore : IArtifactToolRegistryStore
+public class ToolsCommand : CommandBase
 {
-    protected TPluginStore PluginStore;
+    protected IArtifactToolRegistryStore PluginStore;
 
     protected Option<string> SearchOption;
 
     protected Option<bool> DetailedOption;
 
-    public ToolsCommand(TPluginStore pluginStore) : this(pluginStore, "tools", "List available tools.")
+    public ToolsCommand(IArtifactToolRegistryStore pluginStore) : this(pluginStore, "tools", "List available tools.")
     {
     }
 
-    public ToolsCommand(TPluginStore pluginStore, string name, string? description = null) : base(name, description)
+    public ToolsCommand(IArtifactToolRegistryStore pluginStore, string name, string? description = null) : base(name, description)
     {
         PluginStore = pluginStore;
         SearchOption = new Option<string>(new[] { "-s", "--search" }, "Search pattern") { ArgumentHelpName = "pattern" };
@@ -48,7 +48,7 @@ internal class ToolsCommand<TPluginStore> : CommandBase where TPluginStore : IAr
                     if (canSelect) capabilities = capabilities.Append("select");
                     capabilities = capabilities.DefaultIfEmpty("none");
                     return new StringBuilder("Capabilities: ").AppendJoin(", ", capabilities).ToString();
-                });
+                }, context.Console);
             }
         }
         return Task.FromResult(0);

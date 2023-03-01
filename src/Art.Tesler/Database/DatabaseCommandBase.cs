@@ -2,7 +2,7 @@
 
 namespace Art.Tesler.Database;
 
-internal abstract class DatabaseCommandBase : CommandBase
+public abstract class DatabaseCommandBase : CommandBase
 {
     protected ITeslerRegistrationProvider RegistrationProvider;
 

@@ -6,7 +6,7 @@ using Art.Common;
 
 namespace Art.Tesler.Database;
 
-internal class DatabaseCommandList : DatabaseCommandBase
+public class DatabaseCommandList : DatabaseCommandBase
 {
     protected Option<string> AugmentOption;
 
@@ -38,7 +38,7 @@ internal class DatabaseCommandList : DatabaseCommandBase
         bool detailed = context.ParseResult.GetValueForOption(DetailedOption);
         foreach (ArtifactInfo i in en)
         {
-            await Common.DisplayAsync(i, listResource, arm, detailed);
+            await Common.DisplayAsync(i, listResource, arm, detailed, context.Console);
             selection?.Add(i.Key);
         }
         if (output != null && selection != null)

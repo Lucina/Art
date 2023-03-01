@@ -1,3 +1,4 @@
+using System.CommandLine;
 using System.Text;
 using System.Text.Json;
 using System.Text.RegularExpressions;
@@ -26,48 +27,48 @@ internal static class Common
         return errorCode != 0 ? errorCode : existingErrorCode;
     }
 
-    internal static async Task DisplayAsync(ArtifactInfo i, bool listResource, IArtifactRegistrationManager arm, bool detailed)
+    internal static async Task DisplayAsync(ArtifactInfo i, bool listResource, IArtifactRegistrationManager arm, bool detailed, IConsole console)
     {
-        Display(i, detailed);
+        Display(i, detailed, console);
         if (listResource)
             foreach (ArtifactResourceInfo r in await arm.ListResourcesAsync(i.Key))
-                Display(r, detailed);
+                Display(r, detailed, console);
     }
 
-    internal static async Task DisplayAsync(ArtifactInfo i, IEnumerable<ArtifactResourceInfo> resources, bool detailed)
+    internal static async Task DisplayAsync(ArtifactInfo i, IEnumerable<ArtifactResourceInfo> resources, bool detailed, IConsole console)
     {
-        Display(i, detailed);
+        Display(i, detailed, console);
         foreach (ArtifactResourceInfo r in resources)
             if (r.UsesMetadata)
                 try
                 {
                     ArtifactResourceInfo r2 = await r.WithMetadataAsync();
-                    Display(r2, detailed);
+                    Display(r2, detailed, console);
                 }
                 catch
                 {
-                    Display(r, detailed);
+                    Display(r, detailed, console);
                 }
             else
-                Display(r, detailed);
+                Display(r, detailed, console);
     }
 
-    internal static void PrintFormat(string entry, bool detailed, Func<string> details)
+    internal static void PrintFormat(string entry, bool detailed, Func<string> details, IConsole console)
     {
-        Console.WriteLine(entry);
+        console.WriteLine(entry);
         if (detailed)
         {
-            Console.WriteLine(new string('-', EastAsianWidth.GetWidth(entry)));
-            Console.WriteLine(details());
-            Console.WriteLine();
+            console.WriteLine(new string('-', EastAsianWidth.GetWidth(entry)));
+            console.WriteLine(details());
+            console.WriteLine("");
         }
     }
 
-    internal static void Display(ArtifactInfo i, bool detailed)
-        => PrintFormat(i.Key.Tool + "/" + i.Key.Group + ": " + i.GetInfoTitleString(), detailed, i.GetInfoString);
+    internal static void Display(ArtifactInfo i, bool detailed, IConsole console)
+        => PrintFormat(i.Key.Tool + "/" + i.Key.Group + ": " + i.GetInfoTitleString(), detailed, i.GetInfoString, console);
 
-    internal static void Display(ArtifactResourceInfo r, bool detailed)
-        => PrintFormat("-- " + r.GetInfoPathString(), detailed, r.GetInfoString);
+    internal static void Display(ArtifactResourceInfo r, bool detailed, IConsole console)
+        => PrintFormat("-- " + r.GetInfoPathString(), detailed, r.GetInfoString, console);
 
     private static readonly Regex s_propRe = new(@"(.+?):(.+)");
 

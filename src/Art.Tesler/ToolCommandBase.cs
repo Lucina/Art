@@ -5,9 +5,9 @@ using Art.Common;
 
 namespace Art.Tesler;
 
-public abstract class ToolCommandBase<TPluginStore> : CommandBase where TPluginStore : IArtifactToolRegistryStore
+public abstract class ToolCommandBase : CommandBase
 {
-    protected TPluginStore PluginStore;
+    protected IArtifactToolRegistryStore PluginStore;
 
     protected IDefaultPropertyProvider DefaultPropertyProvider;
 
@@ -17,7 +17,7 @@ public abstract class ToolCommandBase<TPluginStore> : CommandBase where TPluginS
 
     protected Option<List<string>> PropertiesOption;
 
-    protected ToolCommandBase(TPluginStore pluginStore, IDefaultPropertyProvider defaultPropertyProvider, string name, string? description = null) : base(name, description)
+    protected ToolCommandBase(IArtifactToolRegistryStore pluginStore, IDefaultPropertyProvider defaultPropertyProvider, string name, string? description = null) : base(name, description)
     {
         PluginStore = pluginStore;
         DefaultPropertyProvider = defaultPropertyProvider;

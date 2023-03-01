@@ -1,17 +1,18 @@
-﻿using Art.Common;
+﻿using System.CommandLine;
+using Art.Common;
 using Art.Common.Proxies;
 
 namespace Art.Tesler;
 
-public class RepairContext<TPluginStore> where TPluginStore : IArtifactToolRegistryStore
+public class RepairContext
 {
-    private readonly TPluginStore _pluginStore;
+    private readonly IArtifactToolRegistryStore _pluginStore;
     private readonly Dictionary<ArtifactKey, List<ArtifactResourceInfo>> _failed;
     private readonly IArtifactRegistrationManager _arm;
     private readonly IArtifactDataManager _adm;
     private readonly IToolLogHandler _l;
 
-    public RepairContext(TPluginStore pluginStore, IReadOnlyDictionary<ArtifactKey, List<ArtifactResourceInfo>> failed, IArtifactRegistrationManager arm, IArtifactDataManager adm, IToolLogHandler l)
+    public RepairContext(IArtifactToolRegistryStore pluginStore, IReadOnlyDictionary<ArtifactKey, List<ArtifactResourceInfo>> failed, IArtifactRegistrationManager arm, IArtifactDataManager adm, IToolLogHandler l)
     {
         _pluginStore = pluginStore;
         _failed = new Dictionary<ArtifactKey, List<ArtifactResourceInfo>>(failed);
@@ -20,7 +21,7 @@ public class RepairContext<TPluginStore> where TPluginStore : IArtifactToolRegis
         _l = l;
     }
 
-    public async Task<bool> RepairAsync(List<ArtifactToolProfile> profiles, bool detailed, string? hashAlgorithm)
+    public async Task<bool> RepairAsync(List<ArtifactToolProfile> profiles, bool detailed, string? hashAlgorithm, IConsole console)
     {
         // TODO context should accept ChecksumSource
         foreach (ArtifactToolProfile profile in profiles)
@@ -60,11 +61,10 @@ public class RepairContext<TPluginStore> where TPluginStore : IArtifactToolRegis
         if (_failed.Count != 0)
         {
             _l.Log($"Failed to reacquire {_failed.Sum(v => v.Value.Count)} resources.", null, LogLevel.Error);
-            foreach (ArtifactResourceInfo value in _failed.Values.SelectMany(v => v)) Common.Display(value, detailed);
+            foreach (ArtifactResourceInfo value in _failed.Values.SelectMany(v => v)) Common.Display(value, detailed, console);
             return false;
         }
-        else
-            _l.Log("Successfully reacquired all resources.", null, LogLevel.Information);
+        _l.Log("Successfully reacquired all resources.", null, LogLevel.Information);
         return true;
     }
 

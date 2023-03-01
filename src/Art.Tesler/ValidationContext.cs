@@ -3,9 +3,9 @@ using Art.Common;
 
 namespace Art.Tesler;
 
-public class ValidationContext<TPluginStore> where TPluginStore : IArtifactToolRegistryStore
+public class ValidationContext
 {
-    private readonly TPluginStore _pluginStore;
+    private readonly IArtifactToolRegistryStore _pluginStore;
     private readonly Dictionary<ArtifactKey, List<ArtifactResourceInfo>> _failed = new();
     private readonly IArtifactRegistrationManager _arm;
     private readonly IArtifactDataManager _adm;
@@ -17,7 +17,7 @@ public class ValidationContext<TPluginStore> where TPluginStore : IArtifactToolR
 
     public int CountResourceFailures() => _failed.Sum(v => v.Value.Count);
 
-    public ValidationContext(TPluginStore pluginStore, IArtifactRegistrationManager arm, IArtifactDataManager adm, IToolLogHandler l)
+    public ValidationContext(IArtifactToolRegistryStore pluginStore, IArtifactRegistrationManager arm, IArtifactDataManager adm, IToolLogHandler l)
     {
         _pluginStore = pluginStore;
         _arm = arm;
@@ -158,7 +158,7 @@ public class ValidationContext<TPluginStore> where TPluginStore : IArtifactToolR
         return new ValidationProcessResult(artifactCount, resourceCount);
     }
 
-    public RepairContext<TPluginStore> CreateRepairContext() => new(_pluginStore, _failed, _arm, _adm, _l);
+    public RepairContext CreateRepairContext() => new(_pluginStore, _failed, _arm, _adm, _l);
 }
 
 public readonly record struct ValidationProcessResult(int Artifacts, int Resources);
