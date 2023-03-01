@@ -8,7 +8,7 @@ public class ValidationContext<TPluginStore> where TPluginStore : IArtifactToolR
     private readonly TPluginStore _pluginStore;
     private readonly Dictionary<ArtifactKey, List<ArtifactResourceInfo>> _failed = new();
     private readonly IArtifactRegistrationManager _arm;
-    private readonly ArtifactDataManager _adm;
+    private readonly IArtifactDataManager _adm;
     private readonly IToolLogHandler _l;
 
     public bool AnyFailed => _failed.Count != 0;
@@ -17,7 +17,7 @@ public class ValidationContext<TPluginStore> where TPluginStore : IArtifactToolR
 
     public int CountResourceFailures() => _failed.Sum(v => v.Value.Count);
 
-    public ValidationContext(TPluginStore pluginStore, IArtifactRegistrationManager arm, ArtifactDataManager adm, IToolLogHandler l)
+    public ValidationContext(TPluginStore pluginStore, IArtifactRegistrationManager arm, IArtifactDataManager adm, IToolLogHandler l)
     {
         _pluginStore = pluginStore;
         _arm = arm;

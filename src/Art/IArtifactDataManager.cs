@@ -7,7 +7,7 @@ namespace Art;
 /// <summary>
 /// Represents a manager for artifact data.
 /// </summary>
-public interface IArtifactDataManager
+public interface IArtifactDataManager : IDisposable
 {
     /// <summary>
     /// Creates an output stream for the specified resource.

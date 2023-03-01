@@ -2,16 +2,14 @@
 using System.CommandLine.Invocation;
 using System.CommandLine.Parsing;
 using Art.Common;
-using Art.Common.Management;
-using Art.EF.Sqlite;
 
 namespace Art.Tesler;
 
 internal class ValidateCommand<TPluginStore> : ToolCommandBase<TPluginStore> where TPluginStore : IArtifactToolRegistryStore
 {
-    protected Option<string> DatabaseOption;
+    protected ITeslerDataProvider DataProvider;
 
-    protected Option<string> OutputOption;
+    protected ITeslerRegistrationProvider RegistrationProvider;
 
     protected Option<string> HashOption;
 
@@ -23,18 +21,25 @@ internal class ValidateCommand<TPluginStore> : ToolCommandBase<TPluginStore> whe
 
     protected Option<bool> DetailedOption;
 
-    public ValidateCommand(TPluginStore pluginStore, IDefaultPropertyProvider defaultPropertyProvider) : this(pluginStore, defaultPropertyProvider, "validate", "Verify resource integrity.")
+    public ValidateCommand(TPluginStore pluginStore,
+        IDefaultPropertyProvider defaultPropertyProvider,
+        ITeslerDataProvider dataProvider,
+        ITeslerRegistrationProvider registrationProvider)
+        : this(pluginStore, defaultPropertyProvider, dataProvider, registrationProvider, "validate", "Verify resource integrity.")
     {
     }
 
-    public ValidateCommand(TPluginStore pluginStore, IDefaultPropertyProvider defaultPropertyProvider, string name, string? description = null) : base(pluginStore, defaultPropertyProvider, name, description)
+    public ValidateCommand(TPluginStore pluginStore,
+        IDefaultPropertyProvider defaultPropertyProvider,
+        ITeslerDataProvider dataProvider,
+        ITeslerRegistrationProvider registrationProvider,
+        string name,
+        string? description = null) : base(pluginStore, defaultPropertyProvider, name, description)
     {
-        DatabaseOption = new Option<string>(new[] { "-d", "--database" }, "Sqlite database file") { ArgumentHelpName = "file" };
-        DatabaseOption.SetDefaultValue(Common.DefaultDbFile);
-        AddOption(DatabaseOption);
-        OutputOption = new Option<string>(new[] { "-o", "--output" }, "Output directory") { ArgumentHelpName = "directory" };
-        OutputOption.SetDefaultValue(Directory.GetCurrentDirectory());
-        AddOption(OutputOption);
+        DataProvider = dataProvider;
+        DataProvider.Initialize(this);
+        RegistrationProvider = registrationProvider;
+        RegistrationProvider.Initialize(this);
         HashOption = new Option<string>(new[] { "-h", "--hash" }, $"Checksum algorithm ({Common.ChecksumAlgorithms})");
         HashOption.SetDefaultValue(Common.DefaultChecksumAlgorithm);
         AddOption(HashOption);
@@ -75,8 +80,8 @@ internal class ValidateCommand<TPluginStore> : ToolCommandBase<TPluginStore> whe
             }
             l.Log("No profiles provided, validating all artifacts and resources", null, LogLevel.Information);
         }
-        ArtifactDataManager adm = new DiskArtifactDataManager(context.ParseResult.GetValueForOption(OutputOption)!);
-        using SqliteArtifactRegistrationManager arm = new(context.ParseResult.GetValueForOption(DatabaseOption)!);
+        using var adm = DataProvider.CreateArtifactDataManager(context);
+        using var arm = RegistrationProvider.CreateArtifactRegistrationManager(context);
         var validationContext = new ValidationContext<TPluginStore>(PluginStore, arm, adm, l);
         ValidationProcessResult result;
         string? hashForAdd = context.ParseResult.GetValueForOption(AddChecksumOption) ? hash : null;

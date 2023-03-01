@@ -8,10 +8,10 @@ public class RepairContext<TPluginStore> where TPluginStore : IArtifactToolRegis
     private readonly TPluginStore _pluginStore;
     private readonly Dictionary<ArtifactKey, List<ArtifactResourceInfo>> _failed;
     private readonly IArtifactRegistrationManager _arm;
-    private readonly ArtifactDataManager _adm;
+    private readonly IArtifactDataManager _adm;
     private readonly IToolLogHandler _l;
 
-    public RepairContext(TPluginStore pluginStore, IReadOnlyDictionary<ArtifactKey, List<ArtifactResourceInfo>> failed, IArtifactRegistrationManager arm, ArtifactDataManager adm, IToolLogHandler l)
+    public RepairContext(TPluginStore pluginStore, IReadOnlyDictionary<ArtifactKey, List<ArtifactResourceInfo>> failed, IArtifactRegistrationManager arm, IArtifactDataManager adm, IToolLogHandler l)
     {
         _pluginStore = pluginStore;
         _failed = new Dictionary<ArtifactKey, List<ArtifactResourceInfo>>(failed);

@@ -2,33 +2,36 @@
 using System.CommandLine.Invocation;
 using System.Security.Cryptography;
 using Art.Common;
-using Art.Common.Management;
-using Art.EF.Sqlite;
 
 namespace Art.Tesler;
 
 internal class RehashCommand : CommandBase
 {
-    protected Option<string> DatabaseOption;
+    protected ITeslerDataProvider DataProvider;
 
-    protected Option<string> OutputOption;
+    protected ITeslerRegistrationProvider RegistrationProvider;
 
     protected Option<string> HashOption;
 
     protected Option<bool> DetailedOption;
 
-    public RehashCommand() : this("rehash", "Recompute hashes for archive contents.")
+    public RehashCommand(
+        ITeslerDataProvider dataProvider,
+        ITeslerRegistrationProvider registrationProvider)
+        : this(dataProvider, registrationProvider, "rehash", "Recompute hashes for archive contents.")
     {
     }
 
-    public RehashCommand(string name, string? description = null) : base(name, description)
+    public RehashCommand(
+        ITeslerDataProvider dataProvider,
+        ITeslerRegistrationProvider registrationProvider,
+        string name,
+        string? description = null) : base(name, description)
     {
-        DatabaseOption = new Option<string>(new[] { "-d", "--database" }, "Sqlite database file") { ArgumentHelpName = "file" };
-        DatabaseOption.SetDefaultValue(Common.DefaultDbFile);
-        AddOption(DatabaseOption);
-        OutputOption = new Option<string>(new[] { "-o", "--output" }, "Output directory") { ArgumentHelpName = "directory" };
-        OutputOption.SetDefaultValue(Directory.GetCurrentDirectory());
-        AddOption(OutputOption);
+        DataProvider = dataProvider;
+        DataProvider.Initialize(this);
+        RegistrationProvider = registrationProvider;
+        RegistrationProvider.Initialize(this);
         HashOption = new Option<string>(new[] { "-h", "--hash" }, $"Checksum algorithm ({Common.ChecksumAlgorithms})") { IsRequired = true };
         AddOption(HashOption);
         DetailedOption = new Option<bool>(new[] { "--detailed" }, "Show detailed information on entries");
@@ -43,8 +46,8 @@ internal class RehashCommand : CommandBase
             PrintErrorMessage(Common.GetInvalidHashMessage(hash));
             return 2;
         }
-        ArtifactDataManager adm = new DiskArtifactDataManager(context.ParseResult.GetValueForOption(OutputOption)!);
-        using SqliteArtifactRegistrationManager arm = new(context.ParseResult.GetValueForOption(DatabaseOption)!);
+        using var adm = DataProvider.CreateArtifactDataManager(context);
+        using var arm = RegistrationProvider.CreateArtifactRegistrationManager(context);
         Dictionary<ArtifactKey, List<ArtifactResourceInfo>> failed = new();
         int rehashed = 0;
 

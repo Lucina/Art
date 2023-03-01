@@ -21,6 +21,8 @@ public class DiskArtifactRegistrationManager : IArtifactRegistrationManager
     /// </summary>
     public string BaseDirectory { get; }
 
+    private bool _disposed;
+
     /// <summary>
     /// Creates a new instance of <see cref="DiskArtifactDataManager"/>.
     /// </summary>
@@ -33,6 +35,7 @@ public class DiskArtifactRegistrationManager : IArtifactRegistrationManager
     /// <inheritdoc/>
     public async ValueTask AddArtifactAsync(ArtifactInfo artifactInfo, CancellationToken cancellationToken = default)
     {
+        EnsureNotDisposed();
         string dir = GetArtifactInfoDir(artifactInfo.Key);
         if (!Directory.Exists(dir)) Directory.CreateDirectory(dir);
         string path = GetArtifactInfoFilePath(dir, artifactInfo.Key);
@@ -42,6 +45,7 @@ public class DiskArtifactRegistrationManager : IArtifactRegistrationManager
     /// <inheritdoc/>
     public async Task<List<ArtifactInfo>> ListArtifactsAsync(CancellationToken cancellationToken = default)
     {
+        EnsureNotDisposed();
         string dir = GetArtifactInfoDir();
         List<ArtifactInfo> results = new();
         if (!Directory.Exists(dir)) return results;
@@ -56,6 +60,7 @@ public class DiskArtifactRegistrationManager : IArtifactRegistrationManager
     /// <inheritdoc/>
     public async Task<List<ArtifactInfo>> ListArtifactsAsync(Func<ArtifactInfo, bool> predicate, CancellationToken cancellationToken = default)
     {
+        EnsureNotDisposed();
         string dir = GetArtifactInfoDir();
         List<ArtifactInfo> results = new();
         if (!Directory.Exists(dir)) return results;
@@ -70,6 +75,7 @@ public class DiskArtifactRegistrationManager : IArtifactRegistrationManager
     /// <inheritdoc/>
     public async Task<List<ArtifactInfo>> ListArtifactsAsync(string tool, CancellationToken cancellationToken = default)
     {
+        EnsureNotDisposed();
         string toolDir = GetArtifactInfoDir(tool);
         List<ArtifactInfo> results = new();
         if (!Directory.Exists(toolDir)) return results;
@@ -83,6 +89,7 @@ public class DiskArtifactRegistrationManager : IArtifactRegistrationManager
     /// <inheritdoc/>
     public async Task<List<ArtifactInfo>> ListArtifactsAsync(string tool, string group, CancellationToken cancellationToken = default)
     {
+        EnsureNotDisposed();
         string groupDir = GetArtifactInfoDir(tool, group);
         List<ArtifactInfo> results = new();
         if (!Directory.Exists(groupDir)) return results;
@@ -95,6 +102,7 @@ public class DiskArtifactRegistrationManager : IArtifactRegistrationManager
     /// <inheritdoc/>
     public async ValueTask AddResourceAsync(ArtifactResourceInfo artifactResourceInfo, CancellationToken cancellationToken = default)
     {
+        EnsureNotDisposed();
         string dir = GetResourceInfoDir(artifactResourceInfo.Key);
         if (!Directory.Exists(dir)) Directory.CreateDirectory(dir);
         string path = GetResourceInfoFilePath(dir, artifactResourceInfo.Key);
@@ -104,6 +112,7 @@ public class DiskArtifactRegistrationManager : IArtifactRegistrationManager
     /// <inheritdoc/>
     public async Task<List<ArtifactResourceInfo>> ListResourcesAsync(ArtifactKey key, CancellationToken cancellationToken = default)
     {
+        EnsureNotDisposed();
         string dir = GetResourceInfoDir(key);
         List<ArtifactResourceInfo> results = new();
         Queue<string> dQueue = new();
@@ -122,6 +131,7 @@ public class DiskArtifactRegistrationManager : IArtifactRegistrationManager
     /// <inheritdoc/>
     public async ValueTask<ArtifactInfo?> TryGetArtifactAsync(ArtifactKey key, CancellationToken cancellationToken = default)
     {
+        EnsureNotDisposed();
         string dir = GetArtifactInfoDir(key);
         string path = GetArtifactInfoFilePath(dir, key);
         return File.Exists(path) ? await ArtUtils.LoadFromFileAsync(path, SourceGenerationContext.s_context.ArtifactInfo, cancellationToken).ConfigureAwait(false) : null;
@@ -130,6 +140,7 @@ public class DiskArtifactRegistrationManager : IArtifactRegistrationManager
     /// <inheritdoc/>
     public async ValueTask<ArtifactResourceInfo?> TryGetResourceAsync(ArtifactResourceKey key, CancellationToken cancellationToken = default)
     {
+        EnsureNotDisposed();
         string dir = GetResourceInfoDir(key);
         string path = GetResourceInfoFilePath(dir, key);
         return File.Exists(path) ? await ArtUtils.LoadFromFileAsync(path, SourceGenerationContext.s_context.ArtifactResourceInfo, cancellationToken).ConfigureAwait(false) : null;
@@ -138,6 +149,7 @@ public class DiskArtifactRegistrationManager : IArtifactRegistrationManager
     /// <inheritdoc/>
     public ValueTask RemoveArtifactAsync(ArtifactKey key, CancellationToken cancellationToken = default)
     {
+        EnsureNotDisposed();
         string dir = GetArtifactInfoDir(key);
         string path = GetArtifactInfoFilePath(dir, key);
         if (File.Exists(path))
@@ -148,6 +160,7 @@ public class DiskArtifactRegistrationManager : IArtifactRegistrationManager
     /// <inheritdoc/>
     public ValueTask RemoveResourceAsync(ArtifactResourceKey key, CancellationToken cancellationToken = default)
     {
+        EnsureNotDisposed();
         string dir = GetResourceInfoDir(key);
         string path = GetResourceInfoFilePath(dir, key);
         if (File.Exists(path))
@@ -212,5 +225,24 @@ public class DiskArtifactRegistrationManager : IArtifactRegistrationManager
     {
         await using FileStream fs = File.Create(file);
         await JsonSerializer.SerializeAsync(fs, value, jsonTypeInfo, cancellationToken: cancellationToken).ConfigureAwait(false);
+    }
+
+    private void EnsureNotDisposed()
+    {
+        if (_disposed)
+        {
+            throw new ObjectDisposedException(nameof(DiskArtifactRegistrationManager));
+        }
+    }
+
+
+    /// <inheritdoc />
+    public void Dispose()
+    {
+        if (_disposed)
+        {
+            return;
+        }
+        _disposed = true;
     }
 }

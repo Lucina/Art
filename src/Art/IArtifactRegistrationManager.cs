@@ -3,7 +3,7 @@
 /// <summary>
 /// Represents a manager for artifact data.
 /// </summary>
-public interface IArtifactRegistrationManager
+public interface IArtifactRegistrationManager : IDisposable
 {
     /// <summary>
     /// Lists all artifacts.

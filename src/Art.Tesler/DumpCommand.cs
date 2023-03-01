@@ -4,15 +4,14 @@ using System.CommandLine.Parsing;
 using Art.Common;
 using Art.Common.Management;
 using Art.Common.Proxies;
-using Art.EF.Sqlite;
 
 namespace Art.Tesler;
 
 internal class DumpCommand<TPluginStore> : ToolCommandBase<TPluginStore> where TPluginStore : IArtifactToolRegistryStore
 {
-    protected Option<string> DatabaseOption;
+    protected ITeslerDataProvider DataProvider;
 
-    protected Option<string> OutputOption;
+    protected ITeslerRegistrationProvider RegistrationProvider;
 
     protected Option<string> HashOption;
 
@@ -24,18 +23,26 @@ internal class DumpCommand<TPluginStore> : ToolCommandBase<TPluginStore> where T
 
     protected Option<string> GroupOption;
 
-    public DumpCommand(TPluginStore pluginStore, IDefaultPropertyProvider defaultPropertyProvider) : this(pluginStore, defaultPropertyProvider, "dump", "Execute artifact dump tools.")
+    public DumpCommand(TPluginStore pluginStore,
+        IDefaultPropertyProvider defaultPropertyProvider,
+        ITeslerDataProvider dataProvider,
+        ITeslerRegistrationProvider registrationProvider)
+        : this(pluginStore, defaultPropertyProvider, dataProvider, registrationProvider, "dump", "Execute artifact dump tools.")
     {
     }
 
-    public DumpCommand(TPluginStore pluginStore, IDefaultPropertyProvider defaultPropertyProvider, string name, string? description = null) : base(pluginStore, defaultPropertyProvider, name, description)
+    public DumpCommand(TPluginStore pluginStore,
+        IDefaultPropertyProvider defaultPropertyProvider,
+        ITeslerDataProvider dataProvider,
+        ITeslerRegistrationProvider registrationProvider,
+        string name,
+        string? description = null)
+        : base(pluginStore, defaultPropertyProvider, name, description)
     {
-        DatabaseOption = new Option<string>(new[] { "-d", "--database" }, "Sqlite database file") { ArgumentHelpName = "file" };
-        DatabaseOption.SetDefaultValue(Common.DefaultDbFile);
-        AddOption(DatabaseOption);
-        OutputOption = new Option<string>(new[] { "-o", "--output" }, "Output directory") { ArgumentHelpName = "directory" };
-        OutputOption.SetDefaultValue(Directory.GetCurrentDirectory());
-        AddOption(OutputOption);
+        DataProvider = dataProvider;
+        DataProvider.Initialize(this);
+        RegistrationProvider = registrationProvider;
+        RegistrationProvider.Initialize(this);
         HashOption = new Option<string>(new[] { "-h", "--hash" }, $"Checksum algorithm ({Common.ChecksumAlgorithms})");
         HashOption.SetDefaultValue(Common.DefaultChecksumAlgorithm);
         AddOption(HashOption);
@@ -58,7 +65,7 @@ internal class DumpCommand<TPluginStore> : ToolCommandBase<TPluginStore> where T
 
     protected override async Task<int> RunAsync(InvocationContext context)
     {
-        ArtifactDataManager adm = new DiskArtifactDataManager(context.ParseResult.GetValueForOption(OutputOption)!);
+        using var adm = DataProvider.CreateArtifactDataManager(context);
         if (context.ParseResult.GetValueForOption(NoDatabaseOption))
         {
             InMemoryArtifactRegistrationManager arm = new();
@@ -66,12 +73,12 @@ internal class DumpCommand<TPluginStore> : ToolCommandBase<TPluginStore> where T
         }
         else
         {
-            using SqliteArtifactRegistrationManager arm = new(context.ParseResult.GetValueForOption(DatabaseOption)!);
+            using var arm = RegistrationProvider.CreateArtifactRegistrationManager(context);
             return await RunAsync(context, adm, arm);
         }
     }
 
-    private async Task<int> RunAsync(InvocationContext context, ArtifactDataManager adm, IArtifactRegistrationManager arm)
+    private async Task<int> RunAsync(InvocationContext context, IArtifactDataManager adm, IArtifactRegistrationManager arm)
     {
         string? hash = context.ParseResult.HasOption(HashOption) ? context.ParseResult.GetValueForOption(HashOption) : null;
         hash = string.Equals(hash, "none", StringComparison.InvariantCultureIgnoreCase) ? null : hash;
@@ -93,7 +100,7 @@ internal class DumpCommand<TPluginStore> : ToolCommandBase<TPluginStore> where T
         return ec;
     }
 
-    private async Task<int> ExecAsync(InvocationContext context, ArtifactToolProfile profile, IArtifactRegistrationManager arm, ArtifactDataManager adm, string? hash)
+    private async Task<int> ExecAsync(InvocationContext context, ArtifactToolProfile profile, IArtifactRegistrationManager arm, IArtifactDataManager adm, string? hash)
     {
         ArtifactToolDumpOptions options = new(ChecksumId: hash);
         using var tool = await GetToolAsync(context, profile, arm, adm);

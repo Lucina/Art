@@ -10,6 +10,8 @@ public class DiskArtifactDataManager : ArtifactDataManager
     /// </summary>
     public string BaseDirectory { get; }
 
+    private bool _disposed;
+
     /// <summary>
     /// Creates a new instance of <see cref="DiskArtifactDataManager"/>.
     /// </summary>
@@ -22,6 +24,7 @@ public class DiskArtifactDataManager : ArtifactDataManager
     /// <inheritdoc/>
     public override ValueTask<Stream> OpenInputStreamAsync(ArtifactResourceKey key, CancellationToken cancellationToken = default)
     {
+        EnsureNotDisposed();
         try
         {
             return ValueTask.FromResult((Stream)File.OpenRead(Path.Combine(DiskPaths.GetBasePath(BaseDirectory, key.Artifact.Tool, key.Artifact.Group), key.Path, key.File.SafeifyFileName())));
@@ -39,12 +42,14 @@ public class DiskArtifactDataManager : ArtifactDataManager
     /// <inheritdoc/>
     public override ValueTask<bool> ExistsAsync(ArtifactResourceKey key, CancellationToken cancellationToken = default)
     {
+        EnsureNotDisposed();
         return ValueTask.FromResult(File.Exists(Path.Combine(DiskPaths.GetBasePath(BaseDirectory, key.Artifact.Tool, key.Artifact.Group), key.Path, key.File.SafeifyFileName())));
     }
 
     /// <inheritdoc/>
     public override ValueTask<bool> DeleteAsync(ArtifactResourceKey key, CancellationToken cancellationToken = default)
     {
+        EnsureNotDisposed();
         string file = Path.Combine(DiskPaths.GetBasePath(BaseDirectory, key.Artifact.Tool, key.Artifact.Group), key.Path, key.File.SafeifyFileName());
         if (!File.Exists(file)) return ValueTask.FromResult(false);
         File.Delete(file);
@@ -54,6 +59,7 @@ public class DiskArtifactDataManager : ArtifactDataManager
     /// <inheritdoc/>
     public override ValueTask<CommittableStream> CreateOutputStreamAsync(ArtifactResourceKey key, OutputStreamOptions? options = null, CancellationToken cancellationToken = default)
     {
+        EnsureNotDisposed();
         string dir = Path.Combine(DiskPaths.GetBasePath(BaseDirectory, key.Artifact.Tool, key.Artifact.Group), key.Path);
         if (!Directory.Exists(dir)) Directory.CreateDirectory(dir);
         FileStreamOptions fso = new() { Mode = FileMode.Create, Access = FileAccess.ReadWrite };
@@ -64,5 +70,24 @@ public class DiskArtifactDataManager : ArtifactDataManager
             if (preallocationSize != 0) fso.PreallocationSize = preallocationSize;
         }
         return new ValueTask<CommittableStream>(new CommittableFileStream(Path.Combine(dir, key.File.SafeifyFileName()), fso));
+    }
+
+    private void EnsureNotDisposed()
+    {
+        if (_disposed)
+        {
+            throw new ObjectDisposedException(nameof(DiskArtifactDataManager));
+        }
+    }
+
+    /// <inheritdoc />
+    protected override void Dispose(bool disposing)
+    {
+        base.Dispose(disposing);
+        if (_disposed)
+        {
+            return;
+        }
+        _disposed = true;
     }
 }

@@ -20,10 +20,12 @@ public class InMemoryArtifactDataManager : ArtifactDataManager
     public IReadOnlyDictionary<ArtifactResourceKey, Stream> Entries => _entries;
 
     private readonly Dictionary<ArtifactResourceKey, Stream> _entries = new();
+    private bool _disposed;
 
     /// <inheritdoc />
     public override ValueTask<CommittableStream> CreateOutputStreamAsync(ArtifactResourceKey key, OutputStreamOptions? options = null, CancellationToken cancellationToken = default)
     {
+        EnsureNotDisposed();
         // Create a new output stream. If one already exists for mapping, get rid of it.
         // Since everything uses CommittableMemoryStream, underlying memory stream isn't disposed, so
         // previous buffer is still accessible. Doesn't need to be, but that's how it is right now.
@@ -53,18 +55,21 @@ public class InMemoryArtifactDataManager : ArtifactDataManager
     /// <inheritdoc />
     public override ValueTask<bool> ExistsAsync(ArtifactResourceKey key, CancellationToken cancellationToken = default)
     {
+        EnsureNotDisposed();
         return ValueTask.FromResult(_entries.ContainsKey(key));
     }
 
     /// <inheritdoc />
     public override ValueTask<bool> DeleteAsync(ArtifactResourceKey key, CancellationToken cancellationToken = default)
     {
+        EnsureNotDisposed();
         return ValueTask.FromResult(_entries.Remove(key));
     }
 
     /// <inheritdoc />
     public override ValueTask<Stream> OpenInputStreamAsync(ArtifactResourceKey key, CancellationToken cancellationToken = default)
     {
+        EnsureNotDisposed();
         // Use a stream wrapping original buffer, but hide away buffer and make stream read-only
         if (!_entries.TryGetValue(key, out Stream? stream)) throw new KeyNotFoundException();
         if (stream is not CommittableMemoryStream cms)
@@ -75,4 +80,23 @@ public class InMemoryArtifactDataManager : ArtifactDataManager
 
     private record ResultStreamArtifactResourceInfo(Stream Resource, ArtifactResourceKey Key, string? ContentType, DateTimeOffset? Updated, string? Version)
         : StreamArtifactResourceInfo(Resource, Key, ContentType, Updated, Version);
+
+    private void EnsureNotDisposed()
+    {
+        if (_disposed)
+        {
+            throw new ObjectDisposedException(nameof(InMemoryArtifactDataManager));
+        }
+    }
+
+    /// <inheritdoc />
+    protected override void Dispose(bool disposing)
+    {
+        base.Dispose(disposing);
+        if (_disposed)
+        {
+            return;
+        }
+        _disposed = true;
+    }
 }

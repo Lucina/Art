@@ -4,7 +4,7 @@ namespace Art.Tesler.Database;
 
 internal abstract class DatabaseCommandBase : CommandBase
 {
-    protected Option<string> DatabaseOption;
+    protected ITeslerRegistrationProvider RegistrationProvider;
 
     protected Option<string> ToolOption;
 
@@ -24,11 +24,10 @@ internal abstract class DatabaseCommandBase : CommandBase
 
     protected Option<bool> DetailedOption;
 
-    protected DatabaseCommandBase(string name, string? description = null) : base(name, description)
+    protected DatabaseCommandBase(ITeslerRegistrationProvider registrationProvider, string name, string? description = null) : base(name, description)
     {
-        DatabaseOption = new Option<string>(new[] { "-d", "--database" }, "Sqlite database file") { ArgumentHelpName = "file" };
-        DatabaseOption.SetDefaultValue(Common.DefaultDbFile);
-        AddOption(DatabaseOption);
+        RegistrationProvider = registrationProvider;
+        RegistrationProvider.Initialize(this);
         ToolOption = new Option<string>(new[] { "-t", "--tool" }, "Tool to filter by") { ArgumentHelpName = "value" };
         AddOption(ToolOption);
         GroupOption = new Option<string>(new[] { "-g", "--group" }, "Group to filter by") { ArgumentHelpName = "value" };

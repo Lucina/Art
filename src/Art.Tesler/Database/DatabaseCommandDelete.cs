@@ -1,7 +1,6 @@
 ﻿using System.CommandLine;
 using System.CommandLine.Invocation;
 using Art.Common;
-using Art.EF.Sqlite;
 
 namespace Art.Tesler.Database;
 
@@ -13,7 +12,7 @@ internal class DatabaseCommandDelete : DatabaseCommandBase
 
     protected Option<bool> DoDeleteOption;
 
-    public DatabaseCommandDelete(string name, string? description = null) : base(name, description)
+    public DatabaseCommandDelete(ITeslerRegistrationProvider registrationProvider, string name, string? description = null) : base(registrationProvider, name, description)
     {
         ListOption = new Option<bool>(new[] { "--list" }, "List items");
         AddOption(ListOption);
@@ -47,7 +46,7 @@ internal class DatabaseCommandDelete : DatabaseCommandBase
 
     protected override async Task<int> RunAsync(InvocationContext context)
     {
-        using SqliteArtifactRegistrationManager arm = new(context.ParseResult.GetValueForOption(DatabaseOption)!);
+        using var arm = RegistrationProvider.CreateArtifactRegistrationManager(context);
         IEnumerable<ArtifactInfo> en;
         if (context.ParseResult.GetValueForOption(AllOption))
         {
