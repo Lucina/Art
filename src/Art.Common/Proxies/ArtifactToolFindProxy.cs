@@ -26,7 +26,7 @@ public record ArtifactToolFindProxy
     public async Task<IArtifactData?> FindAsync(string id, CancellationToken cancellationToken = default)
     {
         if (ArtifactTool == null) throw new InvalidOperationException("Artifact tool cannot be null");
-        if (ArtifactTool is IArtifactToolFind findTool)
+        if (ArtifactTool is IArtifactFindTool findTool)
             return await findTool.FindAsync(id, cancellationToken).ConfigureAwait(false);
         throw new NotSupportedException("Artifact tool is not a supported type");
     }

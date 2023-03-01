@@ -40,7 +40,7 @@ public class RepairContext
             switch (tool)
             {
                 // ReSharper disable SuspiciousTypeConversion.Global
-                case IArtifactToolFind:
+                case IArtifactFindTool:
                     {
                         var proxy = new ArtifactToolFindProxy(tool);
                         foreach ((ArtifactKey key, List<ArtifactResourceInfo> list) in _failed.Where(v => v.Key.Tool == artifactToolProfile.Tool && v.Key.Group == group).ToList())
@@ -48,7 +48,7 @@ public class RepairContext
                             else _l.Log($"Failed to obtain artifact {key.Tool}/{key.Group}:{key.Id}", null, LogLevel.Error);
                         break;
                     }
-                case IArtifactToolList:
+                case IArtifactListTool:
                     {
                         await foreach (IArtifactData data in (new ArtifactToolListProxy(tool, ArtifactToolListOptions.Default, _l).ListAsync()))
                             if (_failed.TryGetValue(data.Info.Key, out List<ArtifactResourceInfo>? list))

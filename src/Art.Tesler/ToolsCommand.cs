@@ -37,9 +37,9 @@ public class ToolsCommand : CommandBase
             {
                 Common.PrintFormat(desc.Id.GetToolString(), context.ParseResult.GetValueForOption(DetailedOption), () =>
                 {
-                    bool canFind = desc.Type.IsAssignableTo(typeof(IArtifactToolFind));
-                    bool canList = desc.Type.IsAssignableTo(typeof(IArtifactToolList));
-                    bool canDump = canList || desc.Type.IsAssignableTo(typeof(IArtifactToolDump));
+                    bool canFind = desc.Type.IsAssignableTo(typeof(IArtifactFindTool));
+                    bool canList = desc.Type.IsAssignableTo(typeof(IArtifactListTool));
+                    bool canDump = canList || desc.Type.IsAssignableTo(typeof(IArtifactDumpTool));
                     bool canSelect = desc.Type.IsAssignableTo(typeof(IArtifactToolSelector<string>));
                     IEnumerable<string> capabilities = Enumerable.Empty<string>();
                     if (canFind) capabilities = capabilities.Append("find");

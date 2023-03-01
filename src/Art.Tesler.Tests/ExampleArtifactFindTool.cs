@@ -5,10 +5,10 @@ using Art.Common;
 
 namespace Art.Tesler.Tests;
 
-internal partial class ExampleArtifactTool : ArtifactTool,
-    IArtifactToolSelfFactory<ExampleArtifactTool>,
-    IArtifactToolRegexSelector<ExampleArtifactTool>,
-    IArtifactToolFind
+internal partial class ExampleArtifactFindTool : ArtifactTool,
+    IArtifactToolSelfFactory<ExampleArtifactFindTool>,
+    IArtifactToolRegexSelector<ExampleArtifactFindTool>,
+    IArtifactFindTool
 {
     [GeneratedRegex(@"https://example\.com/(?<id>\d+)(?:$|/)")]
     public static partial Regex GetArtifactToolSelectorRegex();

@@ -3,62 +3,62 @@ using System.Text.Json;
 
 namespace Art.Common.Proxies;
 
-internal class FindAsListTool : IArtifactToolList
+internal class FindAsListTool : IArtifactListTool
 {
-    private readonly IArtifactToolFind _baseTool;
+    private readonly IArtifactFindTool _baseFindTool;
     private readonly IReadOnlyList<string> _ids;
 
-    public FindAsListTool(IArtifactToolFind baseTool, IReadOnlyList<string> ids)
+    public FindAsListTool(IArtifactFindTool baseFindTool, IReadOnlyList<string> ids)
     {
-        _baseTool = baseTool ?? throw new ArgumentNullException(nameof(baseTool));
+        _baseFindTool = baseFindTool ?? throw new ArgumentNullException(nameof(baseFindTool));
         _ids = ids ?? throw new ArgumentNullException(nameof(ids));
     }
 
-    public void Dispose() => _baseTool.Dispose();
+    public void Dispose() => _baseFindTool.Dispose();
 
     public bool DebugMode
     {
-        get => _baseTool.DebugMode;
-        set => _baseTool.DebugMode = value;
+        get => _baseFindTool.DebugMode;
+        set => _baseFindTool.DebugMode = value;
     }
 
     public IToolLogHandler? LogHandler
     {
-        get => _baseTool.LogHandler;
-        set => _baseTool.LogHandler = value;
+        get => _baseFindTool.LogHandler;
+        set => _baseFindTool.LogHandler = value;
     }
 
-    public ArtifactToolProfile Profile => _baseTool.Profile;
-    public ArtifactToolConfig Config => _baseTool.Config;
-    public EagerFlags AllowedEagerModes => _baseTool.AllowedEagerModes;
+    public ArtifactToolProfile Profile => _baseFindTool.Profile;
+    public ArtifactToolConfig Config => _baseFindTool.Config;
+    public EagerFlags AllowedEagerModes => _baseFindTool.AllowedEagerModes;
 
     public IArtifactRegistrationManager RegistrationManager
     {
-        get => _baseTool.RegistrationManager;
-        set => _baseTool.RegistrationManager = value;
+        get => _baseFindTool.RegistrationManager;
+        set => _baseFindTool.RegistrationManager = value;
     }
 
     public IArtifactDataManager DataManager
     {
-        get => _baseTool.DataManager;
-        set => _baseTool.DataManager = value;
+        get => _baseFindTool.DataManager;
+        set => _baseFindTool.DataManager = value;
     }
 
     public JsonSerializerOptions JsonOptions
     {
-        get => _baseTool.JsonOptions;
-        set => _baseTool.JsonOptions = value;
+        get => _baseFindTool.JsonOptions;
+        set => _baseFindTool.JsonOptions = value;
     }
 
-    public string GroupFallback => _baseTool.GroupFallback;
+    public string GroupFallback => _baseFindTool.GroupFallback;
 
-    public Task InitializeAsync(ArtifactToolConfig? config = null, ArtifactToolProfile? profile = null, CancellationToken cancellationToken = default) => _baseTool.InitializeAsync(config, profile, cancellationToken);
+    public Task InitializeAsync(ArtifactToolConfig? config = null, ArtifactToolProfile? profile = null, CancellationToken cancellationToken = default) => _baseFindTool.InitializeAsync(config, profile, cancellationToken);
 
     public async IAsyncEnumerable<IArtifactData> ListAsync([EnumeratorCancellation] CancellationToken cancellationToken = default)
     {
         foreach (string id in _ids)
         {
-            var artifact = await _baseTool.FindAsync(id, cancellationToken).ConfigureAwait(false);
+            var artifact = await _baseFindTool.FindAsync(id, cancellationToken).ConfigureAwait(false);
             if (artifact != null)
             {
                 yield return artifact;

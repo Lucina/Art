@@ -3,7 +3,7 @@
 /// <summary>
 /// Represents an artifact tool that finds.
 /// </summary>
-public interface IArtifactToolFind : IArtifactTool
+public interface IArtifactFindTool : IArtifactTool
 {
     /// <summary>
     /// Finds an artifact with the specified id.

@@ -44,13 +44,13 @@ public static class ArtCommonExtensions
     /// <summary>
     /// Lists artifacts as key-value pairs of ID to artifact data.
     /// </summary>
-    /// <param name="artifactTool">Artifact tool.</param>
+    /// <param name="artifactListTool">Artifact tool.</param>
     /// <param name="cancellationToken">Cancellation token.</param>
     /// <returns>Task returning created dictionary.</returns>
-    public static async ValueTask<Dictionary<string, IArtifactData>> ListDictionaryAsync(this IArtifactToolList artifactTool, CancellationToken cancellationToken = default)
+    public static async ValueTask<Dictionary<string, IArtifactData>> ListDictionaryAsync(this IArtifactListTool artifactListTool, CancellationToken cancellationToken = default)
     {
         Dictionary<string, IArtifactData> res = new();
-        await foreach (IArtifactData artifactData in artifactTool.ListAsync(cancellationToken).ConfigureAwait(false))
+        await foreach (IArtifactData artifactData in artifactListTool.ListAsync(cancellationToken).ConfigureAwait(false))
             res[artifactData.Info.Key.Id] = artifactData;
         return res;
     }

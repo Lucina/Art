@@ -57,17 +57,17 @@ public record ArtifactToolDumpProxy
         if (Options == null) throw new InvalidOperationException("Options cannot be null");
         Validate(Options, false);
         IArtifactTool artifactTool = ArtifactTool;
-        if (artifactTool.Profile.Options.TryGetOption(OptArtifactList, out string[]? artifactList, SourceGenerationContext.s_context.StringArray) && artifactTool is IArtifactToolFind findTool)
+        if (artifactTool.Profile.Options.TryGetOption(OptArtifactList, out string[]? artifactList, SourceGenerationContext.s_context.StringArray) && artifactTool is IArtifactFindTool findTool)
         {
             artifactTool = new FindAsListTool(findTool, artifactList);
         }
         if (LogHandler != null) artifactTool.LogHandler = LogHandler;
-        if (artifactTool is IArtifactToolDump dumpTool)
+        if (artifactTool is IArtifactDumpTool dumpTool)
         {
             await dumpTool.DumpAsync(cancellationToken).ConfigureAwait(false);
             return;
         }
-        if (artifactTool is IArtifactToolList listTool)
+        if (artifactTool is IArtifactListTool listTool)
         {
             IAsyncEnumerable<IArtifactData> enumerable = listTool.ListAsync(cancellationToken);
             if ((Options.EagerFlags & artifactTool.AllowedEagerModes & EagerFlags.ArtifactList) != 0) enumerable = enumerable.EagerAsync();

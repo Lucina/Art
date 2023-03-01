@@ -27,17 +27,17 @@ public class ToolsCommandTests : CommandTestBase
     [Test]
     public void DefaultExecution_Single_Success()
     {
-        InitCommandDefault(GetSingleStore<ExampleArtifactTool>());
+        InitCommandDefault(GetSingleStore<ExampleArtifactFindTool>());
         var console = CreateConsole();
         Assert.That(Command.Invoke(Array.Empty<string>(), console), Is.EqualTo(0));
-        Assert.That(console.StringOut.StringWriter.ToString(), Contains.Substring(nameof(ExampleArtifactTool)));
+        Assert.That(console.StringOut.StringWriter.ToString(), Contains.Substring(nameof(ExampleArtifactFindTool)));
         Assert.That(console.StringError.StringWriter.ToString(), Is.Empty);
     }
 
     [Test]
     public void Search_NoMatch_NotFound()
     {
-        InitCommandDefault(GetSingleStore<ExampleArtifactTool>());
+        InitCommandDefault(GetSingleStore<ExampleArtifactFindTool>());
         var console = CreateConsole();
         string[] line = { "-s", "$$NOT_A_REAL_TOOL$$" };
         Assert.That(Command.Invoke(line, console), Is.EqualTo(0));
@@ -48,11 +48,11 @@ public class ToolsCommandTests : CommandTestBase
     [Test]
     public void Search_SingleMatching_Found()
     {
-        InitCommandDefault(GetSingleStore<ExampleArtifactTool>());
+        InitCommandDefault(GetSingleStore<ExampleArtifactFindTool>());
         var console = CreateConsole();
-        string[] line = { "-s", nameof(ExampleArtifactTool) };
+        string[] line = { "-s", nameof(ExampleArtifactFindTool) };
         Assert.That(Command.Invoke(line, console), Is.EqualTo(0));
-        Assert.That(console.StringOut.StringWriter.ToString(), Contains.Substring(nameof(ExampleArtifactTool)));
+        Assert.That(console.StringOut.StringWriter.ToString(), Contains.Substring(nameof(ExampleArtifactFindTool)));
         Assert.That(console.StringError.StringWriter.ToString(), Is.Empty);
     }
 }
