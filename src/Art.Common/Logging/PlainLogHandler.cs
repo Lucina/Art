@@ -26,7 +26,7 @@ public class PlainLogHandler : IToolLogHandler
 
     /// <inheritdoc/>
     /// <remarks>
-    /// Logs level, tool, group, title, and body with <see cref="TextWriter.WriteLine(String)"/> after each, in that order,
+    /// Logs level, tool, group, title, and body, in that order, using <see cref="TextWriter.WriteLine(String)"/>,
     /// skipping any of the listed that are null.
     /// </remarks>
     public void Log(string tool, string group, string? title, string? body, LogLevel level)
@@ -55,7 +55,7 @@ public class PlainLogHandler : IToolLogHandler
 
     /// <inheritdoc/>
     /// <remarks>
-    /// Logs level, title, and body with <see cref="TextWriter.WriteLine(String)"/> after each, in that order,
+    /// Logs level, title, and body, in that order, using <see cref="TextWriter.WriteLine(String)"/>,
     /// skipping any of the listed that are null.
     /// </remarks>
     public void Log(string? title, string? body, LogLevel level)
