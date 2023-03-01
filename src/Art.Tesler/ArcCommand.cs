@@ -30,28 +30,26 @@ public class ArcCommand : ToolCommandBase
     protected Option<bool> NullOutputOption;
 
     public ArcCommand(
-        IOutputPair toolOutput,
+        IToolLogHandlerProvider toolLogHandlerProvider,
         IArtifactToolRegistryStore pluginStore,
         IDefaultPropertyProvider defaultPropertyProvider,
-        IToolLogHandlerProvider toolLogHandlerProvider,
         ITeslerDataProvider dataProvider,
         ITeslerRegistrationProvider registrationProvider,
         IProfileResolver profileResolver)
-        : this(toolOutput, pluginStore, defaultPropertyProvider, toolLogHandlerProvider, dataProvider, registrationProvider, profileResolver, "arc", "Execute archival artifact tools.")
+        : this(toolLogHandlerProvider, pluginStore, defaultPropertyProvider, dataProvider, registrationProvider, profileResolver, "arc", "Execute archival artifact tools.")
     {
     }
 
     public ArcCommand(
-        IOutputPair toolOutput,
+        IToolLogHandlerProvider toolLogHandlerProvider,
         IArtifactToolRegistryStore pluginStore,
         IDefaultPropertyProvider defaultPropertyProvider,
-        IToolLogHandlerProvider toolLogHandlerProvider,
         ITeslerDataProvider dataProvider,
         ITeslerRegistrationProvider registrationProvider,
         IProfileResolver profileResolver,
         string name,
         string? description = null)
-        : base(toolOutput, pluginStore, defaultPropertyProvider, toolLogHandlerProvider, name, description)
+        : base(toolLogHandlerProvider, pluginStore, defaultPropertyProvider, name, description)
     {
         DataProvider = dataProvider;
         DataProvider.Initialize(this);
@@ -103,7 +101,7 @@ public class ArcCommand : ToolCommandBase
         ArtifactToolDumpOptions options = new(update, !full, fastExit ? ArtifactSkipMode.FastExit : skip, checksumSource);
         using var adm = nullOutput ? new NullArtifactDataManager() : DataProvider.CreateArtifactDataManager(context);
         using var arm = RegistrationProvider.CreateArtifactRegistrationManager(context);
-        IToolLogHandler l = ToolLogHandlerProvider.GetDefaultToolLogHandler(ToolOutput);
+        IToolLogHandler l = ToolLogHandlerProvider.GetDefaultToolLogHandler();
         List<ArtifactToolProfile> profiles = new();
         foreach (string profileFile in context.ParseResult.GetValueForArgument(ProfileFilesArg))
         {

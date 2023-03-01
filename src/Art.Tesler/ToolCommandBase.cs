@@ -7,11 +7,11 @@ namespace Art.Tesler;
 
 public abstract class ToolCommandBase : CommandBase
 {
+    protected IToolLogHandlerProvider ToolLogHandlerProvider;
+
     protected IArtifactToolRegistryStore PluginStore;
 
     protected IDefaultPropertyProvider DefaultPropertyProvider;
-
-    protected IToolLogHandlerProvider ToolLogHandlerProvider;
 
     protected Option<string> UserAgentOption;
 
@@ -20,17 +20,15 @@ public abstract class ToolCommandBase : CommandBase
     protected Option<List<string>> PropertiesOption;
 
     protected ToolCommandBase(
-        IOutputPair toolOutput,
+        IToolLogHandlerProvider toolLogHandlerProvider,
         IArtifactToolRegistryStore pluginStore,
         IDefaultPropertyProvider defaultPropertyProvider,
-        IToolLogHandlerProvider toolLogHandlerProvider,
         string name,
-        string? description = null) : base(toolOutput, name, description)
+        string? description = null) : base(toolLogHandlerProvider, name, description)
     {
-        PluginStore = pluginStore;
-        ToolOutput = toolOutput;
-        DefaultPropertyProvider = defaultPropertyProvider;
         ToolLogHandlerProvider = toolLogHandlerProvider;
+        PluginStore = pluginStore;
+        DefaultPropertyProvider = defaultPropertyProvider;
         UserAgentOption = new Option<string>(new[] { "--user-agent" }, "Custom user agent string") { ArgumentHelpName = "user-agent" };
         AddOption(UserAgentOption);
         CookieFileOption = new Option<string>(new[] { "--cookie-file" }, "Cookie file") { ArgumentHelpName = "file" };

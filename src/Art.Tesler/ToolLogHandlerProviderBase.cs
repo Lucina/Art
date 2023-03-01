@@ -4,14 +4,17 @@ public abstract class ToolLogHandlerProviderBase : IToolLogHandlerProvider
 {
     protected static readonly char[] EnvironmentNewLine = Environment.NewLine.ToCharArray();
 
-    protected readonly char[] NewLine;
+    public TextWriter Out { get; }
 
-    protected ToolLogHandlerProviderBase(char[] newLine)
+    public TextWriter Error { get; }
+
+    protected ToolLogHandlerProviderBase(TextWriter outWriter, TextWriter errorWriter)
     {
-        NewLine = newLine;
+        Out = outWriter;
+        Error = errorWriter;
     }
 
-    public abstract IToolLogHandler GetStreamToolLogHandler(IOutputPair console);
+    public abstract IToolLogHandler GetStreamToolLogHandler();
 
-    public abstract IToolLogHandler GetDefaultToolLogHandler(IOutputPair console);
+    public abstract IToolLogHandler GetDefaultToolLogHandler();
 }

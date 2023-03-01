@@ -4,21 +4,17 @@ namespace Art.Tesler;
 
 public class StyledToolLogHandlerProvider : ToolLogHandlerProviderBase
 {
-    public StyledToolLogHandlerProvider() : base(EnvironmentNewLine)
+    public StyledToolLogHandlerProvider(TextWriter outWriter, TextWriter errorWriter) : base(outWriter, errorWriter)
     {
     }
 
-    public StyledToolLogHandlerProvider(char[] newLine) : base(newLine)
+    public override IToolLogHandler GetStreamToolLogHandler()
     {
+        return new StyledLogHandler(Out, Error, true);
     }
 
-    public override IToolLogHandler GetStreamToolLogHandler(IOutputPair console)
+    public override IToolLogHandler GetDefaultToolLogHandler()
     {
-        return new StyledLogHandler(console.Out, console.Error, true);
-    }
-
-    public override IToolLogHandler GetDefaultToolLogHandler(IOutputPair console)
-    {
-        return new StyledLogHandler(console.Out, console.Error, false, OperatingSystem.IsMacOS());
+        return new StyledLogHandler(Out, Error, false, OperatingSystem.IsMacOS());
     }
 }

@@ -4,21 +4,17 @@ namespace Art.Tesler;
 
 public class PlainToolLogHandlerProvider : ToolLogHandlerProviderBase
 {
-    public PlainToolLogHandlerProvider() : base(EnvironmentNewLine)
+    public PlainToolLogHandlerProvider(TextWriter outWriter, TextWriter errorWriter) : base(outWriter, errorWriter)
     {
     }
 
-    public PlainToolLogHandlerProvider(char[] newLine) : base(newLine)
+    public override IToolLogHandler GetStreamToolLogHandler()
     {
+        return new PlainLogHandler(Out, Error, true);
     }
 
-    public override IToolLogHandler GetStreamToolLogHandler(IOutputPair console)
+    public override IToolLogHandler GetDefaultToolLogHandler()
     {
-        return new PlainLogHandler(console.Out, console.Error, true);
-    }
-
-    public override IToolLogHandler GetDefaultToolLogHandler(IOutputPair console)
-    {
-        return new PlainLogHandler(console.Out, console.Error, false);
+        return new PlainLogHandler(Out, Error, false);
     }
 }

@@ -24,26 +24,24 @@ public class DumpCommand : ToolCommandBase
     protected Option<string> GroupOption;
 
     public DumpCommand(
-        IOutputPair toolOutput,
+        IToolLogHandlerProvider toolLogHandlerProvider,
         IArtifactToolRegistryStore pluginStore,
         IDefaultPropertyProvider defaultPropertyProvider,
-        IToolLogHandlerProvider toolLogHandlerProvider,
         ITeslerDataProvider dataProvider,
         ITeslerRegistrationProvider registrationProvider)
-        : this(toolOutput, pluginStore, defaultPropertyProvider, toolLogHandlerProvider, dataProvider, registrationProvider, "dump", "Execute artifact dump tools.")
+        : this(toolLogHandlerProvider, pluginStore, defaultPropertyProvider, dataProvider, registrationProvider, "dump", "Execute artifact dump tools.")
     {
     }
 
     public DumpCommand(
-        IOutputPair toolOutput,
+        IToolLogHandlerProvider toolLogHandlerProvider,
         IArtifactToolRegistryStore pluginStore,
         IDefaultPropertyProvider defaultPropertyProvider,
-        IToolLogHandlerProvider toolLogHandlerProvider,
         ITeslerDataProvider dataProvider,
         ITeslerRegistrationProvider registrationProvider,
         string name,
         string? description = null)
-        : base(toolOutput, pluginStore, defaultPropertyProvider, toolLogHandlerProvider, name, description)
+        : base(toolLogHandlerProvider, pluginStore, defaultPropertyProvider, name, description)
     {
         DataProvider = dataProvider;
         DataProvider.Initialize(this);
@@ -121,7 +119,7 @@ public class DumpCommand : ToolCommandBase
     {
         ArtifactToolDumpOptions options = new(ChecksumSource: checksumSource);
         using var tool = await GetToolAsync(context, profile, arm, adm);
-        ArtifactToolDumpProxy dProxy = new(tool, options, ToolLogHandlerProvider.GetDefaultToolLogHandler(ToolOutput));
+        ArtifactToolDumpProxy dProxy = new(tool, options, ToolLogHandlerProvider.GetDefaultToolLogHandler());
         await dProxy.DumpAsync();
         return 0;
     }

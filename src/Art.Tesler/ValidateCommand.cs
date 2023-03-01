@@ -22,25 +22,23 @@ public class ValidateCommand : ToolCommandBase
     protected Option<bool> DetailedOption;
 
     public ValidateCommand(
-        IOutputPair toolOutput,
+        IToolLogHandlerProvider toolLogHandlerProvider,
         IArtifactToolRegistryStore pluginStore,
         IDefaultPropertyProvider defaultPropertyProvider,
-        IToolLogHandlerProvider toolLogHandlerProvider,
         ITeslerDataProvider dataProvider,
         ITeslerRegistrationProvider registrationProvider)
-        : this(toolOutput, pluginStore, defaultPropertyProvider, toolLogHandlerProvider, dataProvider, registrationProvider, "validate", "Verify resource integrity.")
+        : this(toolLogHandlerProvider, pluginStore, defaultPropertyProvider, dataProvider, registrationProvider, "validate", "Verify resource integrity.")
     {
     }
 
     public ValidateCommand(
-        IOutputPair toolOutput,
+        IToolLogHandlerProvider toolLogHandlerProvider,
         IArtifactToolRegistryStore pluginStore,
         IDefaultPropertyProvider defaultPropertyProvider,
-        IToolLogHandlerProvider toolLogHandlerProvider,
         ITeslerDataProvider dataProvider,
         ITeslerRegistrationProvider registrationProvider,
         string name,
-        string? description = null) : base(toolOutput, pluginStore, defaultPropertyProvider, toolLogHandlerProvider, name, description)
+        string? description = null) : base(toolLogHandlerProvider, pluginStore, defaultPropertyProvider, name, description)
     {
         DataProvider = dataProvider;
         DataProvider.Initialize(this);
@@ -76,7 +74,7 @@ public class ValidateCommand : ToolCommandBase
                 return 2;
             }
         }
-        IToolLogHandler l = ToolLogHandlerProvider.GetDefaultToolLogHandler(ToolOutput);
+        IToolLogHandler l = ToolLogHandlerProvider.GetDefaultToolLogHandler();
         List<ArtifactToolProfile> profiles = new();
         foreach (string profileFile in context.ParseResult.GetValueForArgument(ProfileFilesArg))
             profiles.AddRange(ArtifactToolProfileUtil.DeserializeProfilesFromFile(profileFile));

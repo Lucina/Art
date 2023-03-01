@@ -14,24 +14,22 @@ public class StreamCommand : ToolCommandBase
     protected Argument<string> ProfileFileArg;
 
     public StreamCommand(
-        IOutputPair toolOutput,
+        IToolLogHandlerProvider toolLogHandlerProvider,
         IArtifactToolRegistryStore pluginStore,
         IDefaultPropertyProvider defaultPropertyProvider,
-        IToolLogHandlerProvider toolLogHandlerProvider,
         IProfileResolver profileResolver)
-        : this(toolOutput, pluginStore, defaultPropertyProvider, toolLogHandlerProvider, profileResolver, "stream", "Stream primary resource to standard output.")
+        : this(toolLogHandlerProvider, pluginStore, defaultPropertyProvider, profileResolver, "stream", "Stream primary resource to standard output.")
     {
     }
 
     public StreamCommand(
-        IOutputPair toolOutput,
+        IToolLogHandlerProvider toolLogHandlerProvider,
         IArtifactToolRegistryStore pluginStore,
         IDefaultPropertyProvider defaultPropertyProvider,
-        IToolLogHandlerProvider toolLogHandlerProvider,
         IProfileResolver profileResolver,
         string name,
         string? description = null)
-        : base(toolOutput, pluginStore, defaultPropertyProvider, toolLogHandlerProvider, name, description)
+        : base(toolLogHandlerProvider, pluginStore, defaultPropertyProvider, name, description)
     {
         ProfileResolver = profileResolver;
         ProfileFileArg = new Argument<string>("profile", "Profile file") { HelpName = "profile", Arity = ArgumentArity.ExactlyOne };
@@ -40,7 +38,7 @@ public class StreamCommand : ToolCommandBase
 
     protected override async Task<int> RunAsync(InvocationContext context)
     {
-        IToolLogHandler l = ToolLogHandlerProvider.GetStreamToolLogHandler(ToolOutput);
+        IToolLogHandler l = ToolLogHandlerProvider.GetStreamToolLogHandler();
         List<ArtifactToolProfile> profiles = new();
         ResolveAndAddProfiles(ProfileResolver, profiles, context.ParseResult.GetValueForArgument(ProfileFileArg));
         if (profiles.Count == 0)

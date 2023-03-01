@@ -20,22 +20,21 @@ public class ListCommand : ToolCommandBase
     protected Option<bool> DetailedOption;
 
     public ListCommand(
-        IOutputPair toolOutput,
+        IToolLogHandlerProvider toolLogHandlerProvider,
         IArtifactToolRegistryStore pluginStore,
-        IDefaultPropertyProvider defaultPropertyProvider,
-        IToolLogHandlerProvider toolLogHandlerProvider)
-        : this(toolOutput, pluginStore, defaultPropertyProvider, toolLogHandlerProvider, "list", "Execute artifact list tools.")
+        IDefaultPropertyProvider defaultPropertyProvider
+    )
+        : this(toolLogHandlerProvider, pluginStore, defaultPropertyProvider, "list", "Execute artifact list tools.")
     {
     }
 
     public ListCommand(
-        IOutputPair toolOutput,
+        IToolLogHandlerProvider toolLogHandlerProvider,
         IArtifactToolRegistryStore pluginStore,
         IDefaultPropertyProvider defaultPropertyProvider,
-        IToolLogHandlerProvider toolLogHandlerProvider,
         string name,
         string? description = null)
-        : base(toolOutput, pluginStore, defaultPropertyProvider, toolLogHandlerProvider, name, description)
+        : base(toolLogHandlerProvider, pluginStore, defaultPropertyProvider, name, description)
     {
         ProfileFileOption = new Option<string>(new[] { "-i", "--input" }, "Profile file") { ArgumentHelpName = "file" };
         AddOption(ProfileFileOption);
@@ -77,7 +76,7 @@ public class ListCommand : ToolCommandBase
         using var adm = new NullArtifactDataManager();
         using var tool = await GetSearchingToolAsync(context, profile, arm, adm);
         ArtifactToolListOptions options = new();
-        ArtifactToolListProxy proxy = new(tool, options, ToolLogHandlerProvider.GetDefaultToolLogHandler(ToolOutput));
+        ArtifactToolListProxy proxy = new(tool, options, ToolLogHandlerProvider.GetDefaultToolLogHandler());
         bool listResource = context.ParseResult.GetValueForOption(ListResourceOption);
         bool detailed = context.ParseResult.GetValueForOption(DetailedOption);
         await foreach (IArtifactData data in proxy.ListAsync())

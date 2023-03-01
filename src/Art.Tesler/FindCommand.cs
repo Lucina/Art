@@ -22,22 +22,21 @@ public class FindCommand : ToolCommandBase
     protected Option<bool> DetailedOption;
 
     public FindCommand(
-        IOutputPair toolOutput,
+        IToolLogHandlerProvider toolLogHandlerProvider,
         IArtifactToolRegistryStore pluginStore,
-        IDefaultPropertyProvider defaultPropertyProvider,
-        IToolLogHandlerProvider toolLogHandlerProvider)
-        : this(toolOutput, pluginStore, defaultPropertyProvider, toolLogHandlerProvider, "find", "Execute artifact finder tools.")
+        IDefaultPropertyProvider defaultPropertyProvider
+    )
+        : this(toolLogHandlerProvider, pluginStore, defaultPropertyProvider, "find", "Execute artifact finder tools.")
     {
     }
 
     public FindCommand(
-        IOutputPair toolOutput,
+        IToolLogHandlerProvider toolLogHandlerProvider,
         IArtifactToolRegistryStore pluginStore,
         IDefaultPropertyProvider defaultPropertyProvider,
-        IToolLogHandlerProvider toolLogHandlerProvider,
         string name,
         string? description = null) :
-        base(toolOutput, pluginStore, defaultPropertyProvider, toolLogHandlerProvider, name, description)
+        base(toolLogHandlerProvider, pluginStore, defaultPropertyProvider, name, description)
     {
         IdsArg = new Argument<List<string>>("ids", "IDs") { HelpName = "id", Arity = ArgumentArity.OneOrMore };
         AddArgument(IdsArg);
@@ -84,7 +83,7 @@ public class FindCommand : ToolCommandBase
         using var arm = new InMemoryArtifactRegistrationManager();
         using var adm = new NullArtifactDataManager();
         using var tool = await GetSearchingToolAsync(context, profile, arm, adm);
-        ArtifactToolFindProxy proxy = new(tool, ToolLogHandlerProvider.GetDefaultToolLogHandler(ToolOutput));
+        ArtifactToolFindProxy proxy = new(tool, ToolLogHandlerProvider.GetDefaultToolLogHandler());
         bool listResource = context.ParseResult.GetValueForOption(ListResourceOption);
         bool detailed = context.ParseResult.GetValueForOption(DetailedOption);
         foreach (string id in context.ParseResult.GetValueForArgument(IdsArg))

@@ -11,14 +11,13 @@ public class DumpCommandTests : CommandTestBase
 
     [MemberNotNull(nameof(Command))]
     protected void InitCommandDefault(
-        IOutputPair toolOutput,
+        IToolLogHandlerProvider toolLogHandlerProvider,
         IArtifactToolRegistryStore artifactToolRegistryStore,
         IDefaultPropertyProvider defaultPropertyProvider,
-        IToolLogHandlerProvider toolLogHandlerProvider,
         ITeslerDataProvider dataProvider,
         ITeslerRegistrationProvider registrationProvider)
     {
-        Command = new DumpCommand(toolOutput, artifactToolRegistryStore, defaultPropertyProvider, toolLogHandlerProvider, dataProvider, registrationProvider);
+        Command = new DumpCommand(toolLogHandlerProvider, artifactToolRegistryStore, defaultPropertyProvider, dataProvider, registrationProvider);
     }
 
     [Test]
@@ -26,11 +25,10 @@ public class DumpCommandTests : CommandTestBase
     {
         var store = GetSingleStore(ProgrammableArtifactDumpTool.CreateRegistryEntry(_ => { }));
         var defaultPropertyProvider = CreateInMemoryDefaultPropertyProvider();
-        var toolLogHandlerProvider = CreateStyledToolLogHandlerProvider();
         var dataProvider = CreateSharedMemoryDataProvider();
         var registrationProvider = CreateSharedMemoryRegistrationProvider();
         CreateOutputs(out var toolOutput, out var console);
-        InitCommandDefault(toolOutput, store, defaultPropertyProvider, toolLogHandlerProvider, dataProvider, registrationProvider);
+        InitCommandDefault(toolOutput, store, defaultPropertyProvider, dataProvider, registrationProvider);
         Assert.That(Command.Invoke(Array.Empty<string>(), console), Is.Not.EqualTo(0));
         Assert.That(Out.ToString(), Is.Not.Empty);
         Assert.That(Error.ToString(), Is.Not.Empty);
@@ -41,11 +39,10 @@ public class DumpCommandTests : CommandTestBase
     {
         var store = GetSingleStore(ProgrammableArtifactDumpTool.CreateRegistryEntry(_ => { }));
         var defaultPropertyProvider = CreateInMemoryDefaultPropertyProvider();
-        var toolLogHandlerProvider = CreateStyledToolLogHandlerProvider();
         var dataProvider = CreateSharedMemoryDataProvider();
         var registrationProvider = CreateSharedMemoryRegistrationProvider();
         CreateOutputs(out var toolOutput, out var console);
-        InitCommandDefault(toolOutput, store, defaultPropertyProvider, toolLogHandlerProvider, dataProvider, registrationProvider);
+        InitCommandDefault(toolOutput, store, defaultPropertyProvider, dataProvider, registrationProvider);
         string[] line = { "-t", new ArtifactToolID("NOT_AN_ASSEMBLY", "MALO").GetToolString() };
         Assert.That(Command.Invoke(line, console), Is.Not.EqualTo(0));
         Assert.That(Out.ToString(), Is.Empty);
@@ -57,11 +54,10 @@ public class DumpCommandTests : CommandTestBase
     {
         var store = GetSingleStore(ProgrammableArtifactDumpTool.CreateRegistryEntry(_ => { }));
         var defaultPropertyProvider = CreateInMemoryDefaultPropertyProvider();
-        var toolLogHandlerProvider = CreateStyledToolLogHandlerProvider();
         var dataProvider = CreateSharedMemoryDataProvider();
         var registrationProvider = CreateSharedMemoryRegistrationProvider();
         CreateOutputs(out var toolOutput, out var console);
-        InitCommandDefault(toolOutput, store, defaultPropertyProvider, toolLogHandlerProvider, dataProvider, registrationProvider);
+        InitCommandDefault(toolOutput, store, defaultPropertyProvider, dataProvider, registrationProvider);
         string[] line = { "-t", ArtifactToolIDUtil.CreateToolString<ProgrammableArtifactDumpTool>() };
         Assert.That(Command.Invoke(line, console), Is.EqualTo(0));
         Assert.That(Out.ToString(), Is.Empty);
