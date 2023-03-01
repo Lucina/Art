@@ -12,10 +12,9 @@ public class ArcCommandTests : CommandTestBase
         IDefaultPropertyProvider defaultPropertyProvider,
         IToolLogHandlerProvider toolLogHandlerProvider,
         ITeslerDataProvider dataProvider,
-        ITeslerRegistrationProvider registrationProvider)
+        ITeslerRegistrationProvider registrationProvider,
+        IProfileResolver profileResolver)
     {
-        Command = new ArcCommand(artifactToolRegistryStore, defaultPropertyProvider, toolLogHandlerProvider, dataProvider, registrationProvider);
+        Command = new ArcCommand(artifactToolRegistryStore, defaultPropertyProvider, toolLogHandlerProvider, dataProvider, registrationProvider, profileResolver);
     }
-
-    // TODO command should get abstraction for input file processing / proxy to registry as well...
 }

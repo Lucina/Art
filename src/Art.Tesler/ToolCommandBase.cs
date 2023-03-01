@@ -52,4 +52,13 @@ public abstract class ToolCommandBase : CommandBase
         IArtifactTool t = await ArtifactTool.PrepareToolAsync(plugin, artifactToolProfile, arm, adm, cancellationToken);
         return t;
     }
+
+    protected static void ResolveAndAddProfiles(IProfileResolver profileResolver, List<ArtifactToolProfile> profiles, string profileFile)
+    {
+        if (!profileResolver.TryGetProfiles(profileFile, out var profilesResult))
+        {
+            throw new ArtUserException($"Could not resolve profile for input \"{profileFile}\"");
+        }
+        profiles.AddRange(profilesResult);
+    }
 }

@@ -19,15 +19,16 @@ public class TeslerRootCommand : RootCommand
         IDefaultPropertyProvider defaultPropertyProvider,
         IToolLogHandlerProvider toolLogHandlerProvider,
         ITeslerDataProvider dataProvider,
-        ITeslerRegistrationProvider registrationProvider)
+        ITeslerRegistrationProvider registrationProvider,
+        IProfileResolver profileResolver)
     {
         return new TeslerRootCommand(pluginStore)
         {
-            new ArcCommand(pluginStore, defaultPropertyProvider, toolLogHandlerProvider, dataProvider, registrationProvider),
+            new ArcCommand(pluginStore, defaultPropertyProvider, toolLogHandlerProvider, dataProvider, registrationProvider, profileResolver),
             new DumpCommand(pluginStore, defaultPropertyProvider, toolLogHandlerProvider, dataProvider, registrationProvider),
             new FindCommand(pluginStore, defaultPropertyProvider, toolLogHandlerProvider),
             new ListCommand(pluginStore, defaultPropertyProvider, toolLogHandlerProvider),
-            new StreamCommand(pluginStore, defaultPropertyProvider, toolLogHandlerProvider),
+            new StreamCommand(pluginStore, defaultPropertyProvider, toolLogHandlerProvider, profileResolver),
             new RehashCommand(dataProvider, registrationProvider),
             new ToolsCommand(pluginStore),
             new ValidateCommand(pluginStore, defaultPropertyProvider, toolLogHandlerProvider, dataProvider, registrationProvider),
@@ -40,7 +41,8 @@ public class TeslerRootCommand : RootCommand
         IDefaultPropertyProvider defaultPropertyProvider,
         IToolLogHandlerProvider toolLogHandlerProvider,
         ITeslerDataProvider dataProvider,
-        ITeslerRegistrationProvider registrationProvider)
+        ITeslerRegistrationProvider registrationProvider,
+        IProfileResolver profileResolver)
         where TTool : IArtifactToolFactory
     {
         var registry = new ArtifactToolRegistry();
@@ -48,11 +50,11 @@ public class TeslerRootCommand : RootCommand
         var pluginStore = new StaticArtifactToolRegistryStore(registry);
         return new TeslerRootCommand(pluginStore)
         {
-            new ArcCommand(pluginStore, defaultPropertyProvider, toolLogHandlerProvider, dataProvider, registrationProvider),
+            new ArcCommand(pluginStore, defaultPropertyProvider, toolLogHandlerProvider, dataProvider, registrationProvider, profileResolver),
             new DumpCommand(pluginStore, defaultPropertyProvider, toolLogHandlerProvider, dataProvider, registrationProvider),
             new FindCommand(pluginStore, defaultPropertyProvider, toolLogHandlerProvider),
             new ListCommand(pluginStore, defaultPropertyProvider, toolLogHandlerProvider),
-            new StreamCommand(pluginStore, defaultPropertyProvider, toolLogHandlerProvider),
+            new StreamCommand(pluginStore, defaultPropertyProvider, toolLogHandlerProvider, profileResolver),
             new RehashCommand(dataProvider, registrationProvider),
             new ToolsCommand(pluginStore),
             new ValidateCommand(pluginStore, defaultPropertyProvider, toolLogHandlerProvider, dataProvider, registrationProvider),
@@ -65,7 +67,8 @@ public class TeslerRootCommand : RootCommand
         IDefaultPropertyProvider defaultPropertyProvider,
         IToolLogHandlerProvider toolLogHandlerProvider,
         ITeslerDataProvider dataProvider,
-        ITeslerRegistrationProvider registrationProvider)
+        ITeslerRegistrationProvider registrationProvider,
+        IProfileResolver profileResolver)
         where TTool : IArtifactToolFactory, IArtifactToolSelector<string>
     {
         var registry = new ArtifactToolRegistry();
@@ -73,11 +76,11 @@ public class TeslerRootCommand : RootCommand
         var pluginStore = new StaticArtifactToolRegistryStore(registry);
         return new TeslerRootCommand(pluginStore)
         {
-            new ArcCommand(pluginStore, defaultPropertyProvider, toolLogHandlerProvider, dataProvider, registrationProvider),
+            new ArcCommand(pluginStore, defaultPropertyProvider, toolLogHandlerProvider, dataProvider, registrationProvider, profileResolver),
             new DumpCommand(pluginStore, defaultPropertyProvider, toolLogHandlerProvider, dataProvider, registrationProvider),
             new FindCommand(pluginStore, defaultPropertyProvider, toolLogHandlerProvider),
             new ListCommand(pluginStore, defaultPropertyProvider, toolLogHandlerProvider),
-            new StreamCommand(pluginStore, defaultPropertyProvider, toolLogHandlerProvider),
+            new StreamCommand(pluginStore, defaultPropertyProvider, toolLogHandlerProvider, profileResolver),
             new RehashCommand(dataProvider, registrationProvider),
             new ToolsCommand(pluginStore),
             new ValidateCommand(pluginStore, defaultPropertyProvider, toolLogHandlerProvider, dataProvider, registrationProvider),
@@ -91,8 +94,9 @@ public class TeslerRootCommand : RootCommand
         IDefaultPropertyProvider defaultPropertyProvider,
         IToolLogHandlerProvider toolLogHandlerProvider,
         ITeslerDataProvider dataProvider,
-        ITeslerRegistrationProvider registrationProvider)
+        ITeslerRegistrationProvider registrationProvider,
+        IProfileResolver profileResolver)
     {
-        return Create(new StaticArtifactToolRegistryStore(artifactToolRegistry), defaultPropertyProvider, toolLogHandlerProvider, dataProvider, registrationProvider);
+        return Create(new StaticArtifactToolRegistryStore(artifactToolRegistry), defaultPropertyProvider, toolLogHandlerProvider, dataProvider, registrationProvider, profileResolver);
     }
 }

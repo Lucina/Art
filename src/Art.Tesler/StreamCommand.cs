@@ -9,15 +9,16 @@ namespace Art.Tesler;
 
 public class StreamCommand : ToolCommandBase
 {
-    protected Argument<string> ProfileFileArg;
+    protected IProfileResolver ProfileResolver;
 
-    private List<IArtifactToolSelectableRegistry<string>>? _selectableRegistries;
+    protected Argument<string> ProfileFileArg;
 
     public StreamCommand(
         IArtifactToolRegistryStore pluginStore,
         IDefaultPropertyProvider defaultPropertyProvider,
-        IToolLogHandlerProvider toolLogHandlerProvider)
-        : this(pluginStore, defaultPropertyProvider, toolLogHandlerProvider, "stream", "Stream primary resource to standard output.")
+        IToolLogHandlerProvider toolLogHandlerProvider,
+        IProfileResolver profileResolver)
+        : this(pluginStore, defaultPropertyProvider, toolLogHandlerProvider, profileResolver, "stream", "Stream primary resource to standard output.")
     {
     }
 
@@ -25,10 +26,12 @@ public class StreamCommand : ToolCommandBase
         IArtifactToolRegistryStore pluginStore,
         IDefaultPropertyProvider defaultPropertyProvider,
         IToolLogHandlerProvider toolLogHandlerProvider,
+        IProfileResolver profileResolver,
         string name,
         string? description = null)
         : base(pluginStore, defaultPropertyProvider, toolLogHandlerProvider, name, description)
     {
+        ProfileResolver = profileResolver;
         ProfileFileArg = new Argument<string>("profile", "Profile file") { HelpName = "profile", Arity = ArgumentArity.ExactlyOne };
         AddArgument(ProfileFileArg);
     }
@@ -36,7 +39,17 @@ public class StreamCommand : ToolCommandBase
     protected override async Task<int> RunAsync(InvocationContext context)
     {
         IToolLogHandler l = ToolLogHandlerProvider.GetStreamToolLogHandler(context.Console);
-        var profile = LoadProfile(context.ParseResult.GetValueForArgument(ProfileFileArg));
+        List<ArtifactToolProfile> profiles = new();
+        ResolveAndAddProfiles(ProfileResolver, profiles, context.ParseResult.GetValueForArgument(ProfileFileArg));
+        if (profiles.Count == 0)
+        {
+            throw new ArtUserException("No profiles were loaded from specified inputs, this command requires exactly one");
+        }
+        if (profiles.Count != 1)
+        {
+            throw new ArtUserException("Multiple profiles were loaded from specified inputs, this command requires exactly one");
+        }
+        var profile = profiles[0];
         string? cookieFile = context.ParseResult.HasOption(CookieFileOption) ? context.ParseResult.GetValueForOption(CookieFileOption) : null;
         string? userAgent = context.ParseResult.HasOption(UserAgentOption) ? context.ParseResult.GetValueForOption(UserAgentOption) : null;
         IEnumerable<string> properties = context.ParseResult.HasOption(PropertiesOption) ? context.ParseResult.GetValueForOption(PropertiesOption)! : Array.Empty<string>();
@@ -70,29 +83,5 @@ public class StreamCommand : ToolCommandBase
         await using var output = Console.OpenStandardOutput();
         await primaryResource.ExportStreamAsync(output).ConfigureAwait(false);
         return 0;
-    }
-
-    private ArtifactToolProfile LoadProfile(string profileFile)
-    {
-        if (File.Exists(profileFile))
-        {
-            return ArtifactToolProfileUtil.DeserializeProfilesFromFile(profileFile)[0];
-        }
-        if (_selectableRegistries == null)
-        {
-            _selectableRegistries = new List<IArtifactToolSelectableRegistry<string>>();
-            foreach (var registry in PluginStore.LoadAllRegistries())
-            {
-                if (registry is IArtifactToolSelectableRegistry<string> selectableRegistry)
-                {
-                    _selectableRegistries.Add(selectableRegistry);
-                }
-            }
-        }
-        if (!PurificationUtil.TryIdentify(_selectableRegistries, profileFile, out var profile))
-        {
-            throw new ArtUserException($"Could not find file \"{profileFile}\", and no tool can process this item");
-        }
-        return profile;
     }
 }

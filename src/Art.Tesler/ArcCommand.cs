@@ -13,6 +13,8 @@ public class ArcCommand : ToolCommandBase
 
     protected ITeslerRegistrationProvider RegistrationProvider;
 
+    protected IProfileResolver ProfileResolver;
+
     protected Option<string> HashOption;
 
     protected Argument<List<string>> ProfileFilesArg;
@@ -27,15 +29,14 @@ public class ArcCommand : ToolCommandBase
 
     protected Option<bool> NullOutputOption;
 
-    private List<IArtifactToolSelectableRegistry<string>>? _selectableRegistries;
-
     public ArcCommand(
         IArtifactToolRegistryStore pluginStore,
         IDefaultPropertyProvider defaultPropertyProvider,
         IToolLogHandlerProvider toolLogHandlerProvider,
         ITeslerDataProvider dataProvider,
-        ITeslerRegistrationProvider registrationProvider)
-        : this(pluginStore, defaultPropertyProvider, toolLogHandlerProvider, dataProvider, registrationProvider, "arc", "Execute archival artifact tools.")
+        ITeslerRegistrationProvider registrationProvider,
+        IProfileResolver profileResolver)
+        : this(pluginStore, defaultPropertyProvider, toolLogHandlerProvider, dataProvider, registrationProvider, profileResolver, "arc", "Execute archival artifact tools.")
     {
     }
 
@@ -44,6 +45,7 @@ public class ArcCommand : ToolCommandBase
         IToolLogHandlerProvider toolLogHandlerProvider,
         ITeslerDataProvider dataProvider,
         ITeslerRegistrationProvider registrationProvider,
+        IProfileResolver profileResolver,
         string name,
         string? description = null)
         : base(pluginStore, defaultPropertyProvider, toolLogHandlerProvider, name, description)
@@ -52,6 +54,7 @@ public class ArcCommand : ToolCommandBase
         DataProvider.Initialize(this);
         RegistrationProvider = registrationProvider;
         RegistrationProvider.Initialize(this);
+        ProfileResolver = profileResolver;
         HashOption = new Option<string>(new[] { "-h", "--hash" }, $"Checksum algorithm ({Common.ChecksumAlgorithms})");
         HashOption.SetDefaultValue(Common.DefaultChecksumAlgorithm);
         AddOption(HashOption);
@@ -93,7 +96,7 @@ public class ArcCommand : ToolCommandBase
         List<ArtifactToolProfile> profiles = new();
         foreach (string profileFile in context.ParseResult.GetValueForArgument(ProfileFilesArg))
         {
-            LoadProfiles(profiles, profileFile);
+            ResolveAndAddProfiles(ProfileResolver, profiles, profileFile);
         }
         string? cookieFile = context.ParseResult.HasOption(CookieFileOption) ? context.ParseResult.GetValueForOption(CookieFileOption) : null;
         string? userAgent = context.ParseResult.HasOption(UserAgentOption) ? context.ParseResult.GetValueForOption(UserAgentOption) : null;
@@ -105,32 +108,5 @@ public class ArcCommand : ToolCommandBase
             await ArtifactDumping.DumpAsync(plugin, profile, arm, adm, options, l).ConfigureAwait(false);
         }
         return 0;
-    }
-
-    private void LoadProfiles(List<ArtifactToolProfile> profiles, string profileFile)
-    {
-        if (File.Exists(profileFile))
-        {
-            profiles.AddRange(ArtifactToolProfileUtil.DeserializeProfilesFromFile(profileFile));
-        }
-        else
-        {
-            if (_selectableRegistries == null)
-            {
-                _selectableRegistries = new List<IArtifactToolSelectableRegistry<string>>();
-                foreach (var registry in PluginStore.LoadAllRegistries())
-                {
-                    if (registry is IArtifactToolSelectableRegistry<string> selectableRegistry)
-                    {
-                        _selectableRegistries.Add(selectableRegistry);
-                    }
-                }
-            }
-            if (!PurificationUtil.TryIdentify(_selectableRegistries, profileFile, out var profile))
-            {
-                throw new ArtUserException($"Could not find file \"{profileFile}\", and no tool can process this item");
-            }
-            profiles.Add(profile);
-        }
     }
 }
