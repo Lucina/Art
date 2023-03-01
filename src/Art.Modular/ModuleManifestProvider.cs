@@ -108,6 +108,13 @@ public class ModuleManifestProvider : IModuleProvider
 
     private void LoadManifests(IDictionary<string, IModuleLocation> dictionary, string dir, IDictionary<string, ModuleManifest>? toAugment = null, ISet<string>? searched = null)
     {
+        if (toAugment != null)
+        {
+            foreach (var pair in toAugment)
+            {
+                dictionary[pair.Key] = pair.Value;
+            }
+        }
         foreach (string directory in Directory.EnumerateDirectories(dir, $"*{_directorySuffix}", new EnumerationOptions { MatchCasing = MatchCasing.CaseInsensitive }))
         {
             if (searched != null && !searched.Add(Path.GetFullPath(directory)))
