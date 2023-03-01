@@ -100,7 +100,7 @@ public class Plugin : IArtifactToolSelectableRegistry<string>
         return false;
     }
 
-    [MemberNotNull("_selectableRegistryEntries")]
+    [MemberNotNull(nameof(_selectableRegistryEntries))]
     private void EnsureSelectableRegistryEntriesLoaded()
     {
         if (_selectableRegistryEntries == null)

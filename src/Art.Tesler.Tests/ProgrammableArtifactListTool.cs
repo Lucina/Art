@@ -28,7 +28,12 @@ internal class ProgrammableArtifactListTool : ArtifactTool, IArtifactListTool
 
     public static ArtifactToolRegistryEntry CreateRegistryEntry(SynchronousListDelegate synchronousListDelegate)
     {
-        return new CustomArtifactToolRegistryEntry(ArtifactToolIDUtil.CreateToolId<ProgrammableArtifactListTool>(), synchronousListDelegate);
+        return CreateRegistryEntry(ArtifactToolIDUtil.CreateToolId<ProgrammableArtifactListTool>(), synchronousListDelegate);
+    }
+
+    public static ArtifactToolRegistryEntry CreateRegistryEntry(ArtifactToolID artifactToolId, SynchronousListDelegate synchronousListDelegate)
+    {
+        return new CustomArtifactToolRegistryEntry(artifactToolId, synchronousListDelegate);
     }
 
     private record CustomArtifactToolRegistryEntry(ArtifactToolID Id, SynchronousListDelegate SynchronousListDelegate) : ArtifactToolRegistryEntry(Id)

@@ -27,7 +27,12 @@ internal class ProgrammableArtifactFindTool : ArtifactTool, IArtifactFindTool
 
     public static ArtifactToolRegistryEntry CreateRegistryEntry(SynchronousFindDelegate synchronousFindDelegate)
     {
-        return new CustomArtifactToolRegistryEntry(ArtifactToolIDUtil.CreateToolId<ProgrammableArtifactFindTool>(), synchronousFindDelegate);
+        return CreateRegistryEntry(ArtifactToolIDUtil.CreateToolId<ProgrammableArtifactFindTool>(), synchronousFindDelegate);
+    }
+
+    public static ArtifactToolRegistryEntry CreateRegistryEntry(ArtifactToolID artifactToolId, SynchronousFindDelegate synchronousFindDelegate)
+    {
+        return new CustomArtifactToolRegistryEntry(artifactToolId, synchronousFindDelegate);
     }
 
     private record CustomArtifactToolRegistryEntry(ArtifactToolID Id, SynchronousFindDelegate SynchronousFindDelegate) : ArtifactToolRegistryEntry(Id)

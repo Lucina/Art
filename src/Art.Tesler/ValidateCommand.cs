@@ -57,12 +57,20 @@ public class ValidateCommand : ToolCommandBase
 
     protected override async Task<int> RunAsync(InvocationContext context)
     {
+        ChecksumSource? checksumSource;
         string? hash = context.ParseResult.HasOption(HashOption) ? context.ParseResult.GetValueForOption(HashOption) : null;
         hash = string.Equals(hash, "none", StringComparison.InvariantCultureIgnoreCase) ? null : hash;
-        if (hash != null && !ChecksumSource.DefaultSources.ContainsKey(hash))
+        if (hash == null)
         {
-            PrintErrorMessage(Common.GetInvalidHashMessage(hash), context.Console);
-            return 2;
+            checksumSource = null;
+        }
+        else
+        {
+            if (!ChecksumSource.DefaultSources.TryGetValue(hash, out checksumSource) || checksumSource.HashAlgorithmFunc == null)
+            {
+                PrintErrorMessage(Common.GetInvalidHashMessage(hash), context.Console);
+                return 2;
+            }
         }
         IToolLogHandler l = ToolLogHandlerProvider.GetDefaultToolLogHandler(context.Console);
         List<ArtifactToolProfile> profiles = new();
@@ -86,14 +94,14 @@ public class ValidateCommand : ToolCommandBase
         using var arm = RegistrationProvider.CreateArtifactRegistrationManager(context);
         var validationContext = new ValidationContext(PluginStore, arm, adm, l);
         ValidationProcessResult result;
-        string? hashForAdd = context.ParseResult.GetValueForOption(AddChecksumOption) ? hash : null;
+        ChecksumSource? checksumSourceForAdd = context.ParseResult.GetValueForOption(AddChecksumOption) ? checksumSource : null;
         if (profiles.Count == 0)
         {
-            result = await validationContext.ProcessAsync(await arm.ListArtifactsAsync(), hashForAdd);
+            result = await validationContext.ProcessAsync(await arm.ListArtifactsAsync(), checksumSourceForAdd);
         }
         else
         {
-            result = await validationContext.ProcessAsync(profiles, hashForAdd);
+            result = await validationContext.ProcessAsync(profiles, checksumSourceForAdd);
         }
         l.Log($"Total: {result.Artifacts} artifacts and {result.Resources} processed.", null, LogLevel.Information);
         if (!validationContext.AnyFailed)
@@ -113,7 +121,7 @@ public class ValidateCommand : ToolCommandBase
         }
         l.Log($"{resourceFailCount} resources failed to validate and will be reacquired.", null, LogLevel.Information);
         var repairContext = validationContext.CreateRepairContext();
-        await repairContext.RepairAsync(profiles, context.ParseResult.GetValueForOption(DetailedOption), hash, context.Console);
+        await repairContext.RepairAsync(profiles, context.ParseResult.GetValueForOption(DetailedOption), checksumSource, context.Console);
         return 0;
     }
 }

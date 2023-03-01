@@ -8,7 +8,7 @@ public class ToolsCommandTests : CommandTestBase
 {
     protected ToolsCommand? Command;
 
-    [MemberNotNull("Command")]
+    [MemberNotNull(nameof(Command))]
     protected void InitCommandDefault(IArtifactToolRegistryStore artifactToolRegistryStore)
     {
         Command = new ToolsCommand(artifactToolRegistryStore);

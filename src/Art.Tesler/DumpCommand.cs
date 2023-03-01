@@ -82,32 +82,40 @@ public class DumpCommand : ToolCommandBase
 
     private async Task<int> RunAsync(InvocationContext context, IArtifactDataManager adm, IArtifactRegistrationManager arm)
     {
+        ChecksumSource? checksumSource;
         string? hash = context.ParseResult.HasOption(HashOption) ? context.ParseResult.GetValueForOption(HashOption) : null;
         hash = string.Equals(hash, "none", StringComparison.InvariantCultureIgnoreCase) ? null : hash;
-        if (hash != null && !ChecksumSource.DefaultSources.ContainsKey(hash))
+        if (hash == null)
         {
-            PrintErrorMessage(Common.GetInvalidHashMessage(hash), context.Console);
-            return 2;
+            checksumSource = null;
+        }
+        else
+        {
+            if (!ChecksumSource.DefaultSources.TryGetValue(hash, out checksumSource) || checksumSource.HashAlgorithmFunc == null)
+            {
+                PrintErrorMessage(Common.GetInvalidHashMessage(hash), context.Console);
+                return 2;
+            }
         }
         string? profileFile = context.ParseResult.HasOption(ProfileFileOption) ? context.ParseResult.GetValueForOption(ProfileFileOption) : null;
         string? tool = context.ParseResult.HasOption(ToolOption) ? context.ParseResult.GetValueForOption(ToolOption) : null;
         string? group = context.ParseResult.HasOption(GroupOption) ? context.ParseResult.GetValueForOption(GroupOption) : null;
         if (profileFile == null)
         {
-            return await ExecAsync(context, new ArtifactToolProfile(tool!, group, null), arm, adm, hash);
+            return await ExecAsync(context, new ArtifactToolProfile(tool!, group, null), arm, adm, checksumSource);
         }
         int ec = 0;
         foreach (ArtifactToolProfile profile in ArtifactToolProfileUtil.DeserializeProfilesFromFile(profileFile))
         {
             if (group != null && group != profile.Group || tool != null && tool != profile.Tool) continue;
-            ec = Common.AccumulateErrorCode(await ExecAsync(context, profile, arm, adm, hash), ec);
+            ec = Common.AccumulateErrorCode(await ExecAsync(context, profile, arm, adm, checksumSource), ec);
         }
         return ec;
     }
 
-    private async Task<int> ExecAsync(InvocationContext context, ArtifactToolProfile profile, IArtifactRegistrationManager arm, IArtifactDataManager adm, string? hash)
+    private async Task<int> ExecAsync(InvocationContext context, ArtifactToolProfile profile, IArtifactRegistrationManager arm, IArtifactDataManager adm, ChecksumSource? checksumSource)
     {
-        ArtifactToolDumpOptions options = new(ChecksumId: hash);
+        ArtifactToolDumpOptions options = new(ChecksumSource: checksumSource);
         using var tool = await GetToolAsync(context, profile, arm, adm);
         ArtifactToolDumpProxy dProxy = new(tool, options, ToolLogHandlerProvider.GetDefaultToolLogHandler(context.Console));
         await dProxy.DumpAsync();

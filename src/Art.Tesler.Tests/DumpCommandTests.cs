@@ -9,7 +9,7 @@ public class DumpCommandTests : CommandTestBase
 {
     protected DumpCommand? Command;
 
-    [MemberNotNull("Command")]
+    [MemberNotNull(nameof(Command))]
     protected void InitCommandDefault(
         IArtifactToolRegistryStore artifactToolRegistryStore,
         IDefaultPropertyProvider defaultPropertyProvider,

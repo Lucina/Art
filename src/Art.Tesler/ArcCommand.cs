@@ -77,19 +77,27 @@ public class ArcCommand : ToolCommandBase
 
     protected override async Task<int> RunAsync(InvocationContext context)
     {
+        ChecksumSource? checksumSource;
         string? hash = context.ParseResult.HasOption(HashOption) ? context.ParseResult.GetValueForOption(HashOption) : null;
         hash = string.Equals(hash, "none", StringComparison.InvariantCultureIgnoreCase) ? null : hash;
-        if (hash != null && !ChecksumSource.DefaultSources.ContainsKey(hash))
+        if (hash == null)
         {
-            PrintErrorMessage(Common.GetInvalidHashMessage(hash), context.Console);
-            return 2;
+            checksumSource = null;
+        }
+        else
+        {
+            if (!ChecksumSource.DefaultSources.TryGetValue(hash, out checksumSource) || checksumSource.HashAlgorithmFunc == null)
+            {
+                PrintErrorMessage(Common.GetInvalidHashMessage(hash), context.Console);
+                return 2;
+            }
         }
         ResourceUpdateMode update = context.ParseResult.GetValueForOption(UpdateOption);
         bool full = context.ParseResult.GetValueForOption(FullOption);
         ArtifactSkipMode skip = context.ParseResult.GetValueForOption(SkipOption);
         bool fastExit = context.ParseResult.GetValueForOption(FastExitOption);
         bool nullOutput = context.ParseResult.GetValueForOption(NullOutputOption);
-        ArtifactToolDumpOptions options = new(update, !full, fastExit ? ArtifactSkipMode.FastExit : skip, hash);
+        ArtifactToolDumpOptions options = new(update, !full, fastExit ? ArtifactSkipMode.FastExit : skip, checksumSource);
         using var adm = nullOutput ? new NullArtifactDataManager() : DataProvider.CreateArtifactDataManager(context);
         using var arm = RegistrationProvider.CreateArtifactRegistrationManager(context);
         IToolLogHandler l = ToolLogHandlerProvider.GetDefaultToolLogHandler(context.Console);

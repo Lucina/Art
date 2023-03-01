@@ -1,6 +1,5 @@
 ﻿using System.Diagnostics.CodeAnalysis;
 using System.Runtime.Loader;
-using System.Security.Cryptography;
 using Art.Common.Management;
 using Art.Common.Proxies;
 
@@ -155,13 +154,17 @@ public static class ArtifactDumping
     /// <param name="artifactTool">Origin artifact tool.</param>
     /// <param name="artifactData">Artifact data to dump.</param>
     /// <param name="resourceUpdate">Resource update mode.</param>
-    /// <param name="checksumId">Checksum algorithm ID.</param>
+    /// <param name="checksumSource">Optional checksum source, if resources are to have their checksums computed.</param>
     /// <param name="eagerFlags">Eager flags.</param>
     /// <param name="logHandler">Log handler.</param>
     /// <param name="cancellationToken">Cancellation token.</param>
     /// <exception cref="ArgumentOutOfRangeException">Thrown if <paramref name="resourceUpdate"/> is invalid.</exception>
-    public static async Task DumpArtifactAsync(this IArtifactTool artifactTool, IArtifactData artifactData, ResourceUpdateMode resourceUpdate = ResourceUpdateMode.Soft, string? checksumId = null, EagerFlags eagerFlags = EagerFlags.None, IToolLogHandler? logHandler = null, CancellationToken cancellationToken = default)
+    public static async Task DumpArtifactAsync(this IArtifactTool artifactTool, IArtifactData artifactData, ResourceUpdateMode resourceUpdate = ResourceUpdateMode.Soft, ChecksumSource? checksumSource = null, EagerFlags eagerFlags = EagerFlags.None, IToolLogHandler? logHandler = null, CancellationToken cancellationToken = default)
     {
+        if (checksumSource is { HashAlgorithmFunc: not { } })
+        {
+            throw new ArgumentException("Checksum source does not specify a hash algorithm function, this is an error.", nameof(checksumSource));
+        }
         switch (resourceUpdate)
         {
             case ResourceUpdateMode.ArtifactSoft:
@@ -191,7 +194,7 @@ public static class ArtifactDumping
             case EagerFlags.ResourceMetadata | EagerFlags.ResourceObtain:
                 {
                     Task[] tasks = artifactData.Values.Select(async v =>
-                        await UpdateResourceAsync(artifactTool, await artifactTool.DetermineUpdatedResourceAsync(v, resourceUpdate, cancellationToken).ConfigureAwait(false), logHandler, checksumId, cancellationToken).ConfigureAwait(false)).ToArray();
+                        await UpdateResourceAsync(artifactTool, await artifactTool.DetermineUpdatedResourceAsync(v, resourceUpdate, cancellationToken).ConfigureAwait(false), logHandler, checksumSource, cancellationToken).ConfigureAwait(false)).ToArray();
                     await Task.WhenAll(tasks).ConfigureAwait(false);
                     break;
                 }
@@ -199,7 +202,7 @@ public static class ArtifactDumping
                 Task<ArtifactResourceInfoWithState>[] updateTasks = artifactData.Values.Select(v => artifactTool.DetermineUpdatedResourceAsync(v, resourceUpdate, cancellationToken)).ToArray();
                 ArtifactResourceInfoWithState[] items = await Task.WhenAll(updateTasks).ConfigureAwait(false);
                 foreach (ArtifactResourceInfoWithState aris in items)
-                    await UpdateResourceAsync(artifactTool, aris, logHandler, checksumId, cancellationToken).ConfigureAwait(false);
+                    await UpdateResourceAsync(artifactTool, aris, logHandler, checksumSource, cancellationToken).ConfigureAwait(false);
                 break;
             case EagerFlags.ResourceObtain:
                 {
@@ -207,7 +210,7 @@ public static class ArtifactDumping
                     foreach (ArtifactResourceInfo resource in artifactData.Values)
                     {
                         ArtifactResourceInfoWithState aris = await artifactTool.DetermineUpdatedResourceAsync(resource, resourceUpdate, cancellationToken).ConfigureAwait(false);
-                        tasks.Add(UpdateResourceAsync(artifactTool, aris, logHandler, checksumId, cancellationToken));
+                        tasks.Add(UpdateResourceAsync(artifactTool, aris, logHandler, checksumSource, cancellationToken));
                     }
                     await Task.WhenAll(tasks).ConfigureAwait(false);
                     break;
@@ -215,7 +218,7 @@ public static class ArtifactDumping
             default:
                 {
                     foreach (ArtifactResourceInfo resource in artifactData.Values)
-                        await UpdateResourceAsync(artifactTool, await artifactTool.DetermineUpdatedResourceAsync(resource, resourceUpdate, cancellationToken).ConfigureAwait(false), logHandler, checksumId, cancellationToken).ConfigureAwait(false);
+                        await UpdateResourceAsync(artifactTool, await artifactTool.DetermineUpdatedResourceAsync(resource, resourceUpdate, cancellationToken).ConfigureAwait(false), logHandler, checksumSource, cancellationToken).ConfigureAwait(false);
                     break;
                 }
         }
@@ -231,14 +234,18 @@ public static class ArtifactDumping
     /// <param name="resource">Resource to check.</param>
     /// <param name="resourceUpdate">Resource update mode.</param>
     /// <param name="logHandler">Log handler.</param>
-    /// <param name="checksumId">Checksum algorithm ID.</param>
+    /// <param name="checksumSource">Optional checksum source, if resource is to have its checksum computed.</param>
     /// <param name="cancellationToken">Cancellation token.</param>
-    public static async Task DumpResourceAsync(this IArtifactTool artifactTool, ArtifactResourceInfo resource, ResourceUpdateMode resourceUpdate, IToolLogHandler? logHandler, string? checksumId, CancellationToken cancellationToken = default)
+    public static async Task DumpResourceAsync(this IArtifactTool artifactTool, ArtifactResourceInfo resource, ResourceUpdateMode resourceUpdate, IToolLogHandler? logHandler, ChecksumSource? checksumSource, CancellationToken cancellationToken = default)
     {
-        await UpdateResourceAsync(artifactTool, await artifactTool.DetermineUpdatedResourceAsync(resource, resourceUpdate, cancellationToken).ConfigureAwait(false), logHandler, checksumId, cancellationToken).ConfigureAwait(false);
+        if (checksumSource is { HashAlgorithmFunc: not { } })
+        {
+            throw new ArgumentException("Checksum source does not specify a hash algorithm function, this is an error.", nameof(checksumSource));
+        }
+        await UpdateResourceAsync(artifactTool, await artifactTool.DetermineUpdatedResourceAsync(resource, resourceUpdate, cancellationToken).ConfigureAwait(false), logHandler, checksumSource, cancellationToken).ConfigureAwait(false);
     }
 
-    private static async Task UpdateResourceAsync(IArtifactTool artifactTool, ArtifactResourceInfoWithState aris, IToolLogHandler? logHandler, string? checksumId, CancellationToken cancellationToken)
+    private static async Task UpdateResourceAsync(IArtifactTool artifactTool, ArtifactResourceInfoWithState aris, IToolLogHandler? logHandler, ChecksumSource? checksumSource, CancellationToken cancellationToken)
     {
         (ArtifactResourceInfo versionedResource, ItemStateFlags rF) = aris;
         if ((rF & ItemStateFlags.NewerIdentityMask) != 0 && versionedResource.CanExportStream)
@@ -246,13 +253,18 @@ public static class ArtifactDumping
             OutputStreamOptions options = OutputStreamOptions.Default;
             versionedResource.AugmentOutputStreamOptions(ref options);
             await using CommittableStream stream = await artifactTool.DataManager.CreateOutputStreamAsync(versionedResource.Key, options, cancellationToken).ConfigureAwait(false);
-            if (checksumId != null && ChecksumSource.TryGetHashAlgorithm(checksumId, out HashAlgorithm? algorithm))
+            if (checksumSource != null)
             {
+                if (checksumSource.HashAlgorithmFunc is not { } hashAlgorithmFunc)
+                {
+                    throw new ArgumentException("Checksum source does not specify a hash algorithm function, this is an error.", nameof(checksumSource));
+                }
+                using var algorithm = hashAlgorithmFunc();
                 // Take this opportunity to hash the resource.
                 await using HashProxyStream hps = new(stream, algorithm, true);
                 await versionedResource.ExportStreamAsync(hps, cancellationToken).ConfigureAwait(false);
                 stream.ShouldCommit = true;
-                Checksum newChecksum = new(checksumId, hps.GetHash());
+                Checksum newChecksum = new(checksumSource.Id, hps.GetHash());
                 if (!ChecksumUtility.DatawiseEquals(newChecksum, versionedResource.Checksum))
                 {
                     rF |= ItemStateFlags.NewChecksum;

@@ -31,59 +31,52 @@ public class ValidationContext
         list.Add(r);
     }
 
-    public async Task<ValidationProcessResult> ProcessAsync(List<ArtifactInfo> artifacts, string? hashForAdd)
+    public async Task<ValidationProcessResult> ProcessAsync(List<ArtifactInfo> artifacts, ChecksumSource? checksumSourceForAdd)
     {
-        // TODO context should accept ChecksumSource
         int artifactCount = 0, resourceCount = 0;
-        if (hashForAdd == null)
+        if (checksumSourceForAdd == null)
         {
             foreach (ArtifactInfo inf in artifacts)
             {
-                var result = await ProcessAsync(inf, hashForAdd, null);
+                var result = await ProcessAsync(inf, (ActiveHashAlgorithm?)null);
                 artifactCount += result.Artifacts;
                 resourceCount += result.Resources;
             }
         }
         else
         {
-            if (!ChecksumSource.TryGetHashAlgorithm(hashForAdd, out HashAlgorithm? hashAlgorithm))
+            if (checksumSourceForAdd.HashAlgorithmFunc is not { } hashAlgorithmFunc)
             {
-                throw new ArgumentException($"Unsupported hash algorithm {hashForAdd}");
+                throw new ArgumentException("Checksum source does not specify a hash algorithm function, this is an error.", nameof(checksumSourceForAdd));
             }
-            try
+            using var hashAlgorithm = hashAlgorithmFunc();
+            foreach (ArtifactInfo inf in artifacts)
             {
-                foreach (ArtifactInfo inf in artifacts)
-                {
-                    var result = await ProcessAsync(inf, hashForAdd, hashAlgorithm);
-                    artifactCount += result.Artifacts;
-                    resourceCount += result.Resources;
-                }
-            }
-            finally
-            {
-                hashAlgorithm.Dispose();
+                var result = await ProcessAsync(inf, new ActiveHashAlgorithm(checksumSourceForAdd.Id, hashAlgorithm));
+                artifactCount += result.Artifacts;
+                resourceCount += result.Resources;
             }
         }
         return new ValidationProcessResult(artifactCount, resourceCount);
     }
 
-    public async Task<ValidationProcessResult> ProcessAsync(ArtifactInfo artifact, string? hashForAdd)
+    public async Task<ValidationProcessResult> ProcessAsync(ArtifactInfo artifact, ChecksumSource? checksumSourceForAdd)
     {
-        // TODO context should accept ChecksumSource
         ValidationProcessResult result;
-        if (hashForAdd == null)
+        if (checksumSourceForAdd == null)
         {
-            result = await ProcessAsync(artifact, hashForAdd, null);
+            result = await ProcessAsync(artifact, (ActiveHashAlgorithm?)null);
         }
         else
         {
-            if (!ChecksumSource.TryGetHashAlgorithm(hashForAdd, out HashAlgorithm? hashAlgorithm))
+            if (checksumSourceForAdd.HashAlgorithmFunc is not { } hashAlgorithmFunc)
             {
-                throw new ArgumentException($"Unsupported hash algorithm {hashForAdd}");
+                throw new ArgumentException("Checksum source does not specify a hash algorithm function, this is an error.", nameof(checksumSourceForAdd));
             }
+            using var hashAlgorithm = hashAlgorithmFunc();
             try
             {
-                result = await ProcessAsync(artifact, hashForAdd, hashAlgorithm);
+                result = await ProcessAsync(artifact, new ActiveHashAlgorithm(checksumSourceForAdd.Id, hashAlgorithm));
             }
             finally
             {
@@ -93,7 +86,9 @@ public class ValidationContext
         return result;
     }
 
-    private async Task<ValidationProcessResult> ProcessAsync(ArtifactInfo artifact, string? hashForAdd, HashAlgorithm? hashAlgorithmForAdd)
+    private readonly record struct ActiveHashAlgorithm(string Id, HashAlgorithm HashAlgorithm);
+
+    private async Task<ValidationProcessResult> ProcessAsync(ArtifactInfo artifact, ActiveHashAlgorithm? activeHashAlgorithmForAdd)
     {
         int resourceCount = 0;
         foreach (ArtifactResourceInfo rInf in await _arm.ListResourcesAsync(artifact.Key))
@@ -106,15 +101,15 @@ public class ValidationContext
             }
             if (rInf.Checksum == null)
             {
-                if (hashForAdd == null || hashAlgorithmForAdd == null)
+                if (activeHashAlgorithmForAdd is not { } activeHashAlgorithmForAddReal)
                 {
                     AddFail(rInf);
                 }
                 else
                 {
                     await using Stream sourceStreamAdd = await _adm.OpenInputStreamAsync(rInf.Key);
-                    byte[] hash = await hashAlgorithmForAdd.ComputeHashAsync(sourceStreamAdd);
-                    await _arm.AddResourceAsync(rInf with { Checksum = new Checksum(hashForAdd, hash) });
+                    byte[] hash = await activeHashAlgorithmForAddReal.HashAlgorithm.ComputeHashAsync(sourceStreamAdd);
+                    await _arm.AddResourceAsync(rInf with { Checksum = new Checksum(activeHashAlgorithmForAddReal.Id, hash) });
                 }
                 continue;
             }
@@ -137,9 +132,8 @@ public class ValidationContext
         return new ValidationProcessResult(1, resourceCount);
     }
 
-    public async Task<ValidationProcessResult> ProcessAsync(IEnumerable<ArtifactToolProfile> profiles, string? hashForAdd)
+    public async Task<ValidationProcessResult> ProcessAsync(IEnumerable<ArtifactToolProfile> profiles, ChecksumSource? checksumSourceForAdd)
     {
-        // TODO context should accept ChecksumSource
         int artifactCount = 0, resourceCount = 0;
         foreach (ArtifactToolProfile profile in profiles)
         {
@@ -158,7 +152,7 @@ public class ValidationContext
                 var set = artifactList.ToHashSet();
                 artifacts.RemoveAll(v => set.Contains(v.Key.Id));
             }
-            var result = await ProcessAsync(artifacts, hashForAdd);
+            var result = await ProcessAsync(artifacts, checksumSourceForAdd);
             _l.Log($"Processed {result.Artifacts} artifacts and {result.Resources} resources for profile {pp.Tool}/{group}", null, LogLevel.Information);
             artifactCount += result.Artifacts;
             resourceCount += result.Resources;

@@ -21,9 +21,8 @@ public class RepairContext
         _l = l;
     }
 
-    public async Task<bool> RepairAsync(List<ArtifactToolProfile> profiles, bool detailed, string? hashAlgorithm, IConsole console)
+    public async Task<bool> RepairAsync(List<ArtifactToolProfile> profiles, bool detailed, ChecksumSource? checksumSource, IConsole console)
     {
-        // TODO context should accept ChecksumSource
         foreach (ArtifactToolProfile profile in profiles)
         {
             ArtifactToolProfile artifactToolProfile = profile;
@@ -44,7 +43,7 @@ public class RepairContext
                     {
                         var proxy = new ArtifactToolFindProxy(tool);
                         foreach ((ArtifactKey key, List<ArtifactResourceInfo> list) in _failed.Where(v => v.Key.Tool == artifactToolProfile.Tool && v.Key.Group == group).ToList())
-                            if (await proxy.FindAsync(key.Id) is { } data) await Fixup(tool, key, list, data, hashAlgorithm);
+                            if (await proxy.FindAsync(key.Id) is { } data) await Fixup(tool, key, list, data, checksumSource);
                             else _l.Log($"Failed to obtain artifact {key.Tool}/{key.Group}:{key.Id}", null, LogLevel.Error);
                         break;
                     }
@@ -52,7 +51,7 @@ public class RepairContext
                     {
                         await foreach (IArtifactData data in (new ArtifactToolListProxy(tool, ArtifactToolListOptions.Default, _l).ListAsync()))
                             if (_failed.TryGetValue(data.Info.Key, out List<ArtifactResourceInfo>? list))
-                                await Fixup(tool, data.Info.Key, list, data, hashAlgorithm);
+                                await Fixup(tool, data.Info.Key, list, data, checksumSource);
                         break;
                     }
                 // ReSharper restore SuspiciousTypeConversion.Global
@@ -68,7 +67,7 @@ public class RepairContext
         return true;
     }
 
-    private async Task Fixup(IArtifactTool tool, ArtifactKey key, ICollection<ArtifactResourceInfo> list, IArtifactData data, string? hashAlgorithm)
+    private async Task Fixup(IArtifactTool tool, ArtifactKey key, ICollection<ArtifactResourceInfo> list, IArtifactData data, ChecksumSource? checksumSource)
     {
         foreach (ArtifactResourceInfo resource in list.ToList())
         {
@@ -77,7 +76,7 @@ public class RepairContext
                 _l.Log($"Failed to obtain resource {resource.GetInfoPathString()} for artifact {key.Tool}/{key.Group}:{key.Id}", null, LogLevel.Error);
                 continue;
             }
-            await tool.DumpResourceAsync(resourceActual, ResourceUpdateMode.Hard, _l, hashAlgorithm);
+            await tool.DumpResourceAsync(resourceActual, ResourceUpdateMode.Hard, _l, checksumSource);
             list.Remove(resource);
         }
         if (list.Count == 0) _failed.Remove(key);

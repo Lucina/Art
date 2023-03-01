@@ -15,7 +15,7 @@ public class LoggingTests : CommandTestBase
     private const string Group = "group_here";
     private const string OutputDelimiter = "🥔";
 
-    [MemberNotNull("Command")]
+    [MemberNotNull(nameof(Command))]
     protected void InitCommandDefault(
         IArtifactToolRegistryStore artifactToolRegistryStore,
         IDefaultPropertyProvider defaultPropertyProvider,

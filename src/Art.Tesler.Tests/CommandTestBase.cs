@@ -13,76 +13,113 @@ public class CommandTestBase
     protected IToolLogHandlerProvider? ToolLogHandlerProvider;
     protected ITeslerRegistrationProvider? RegistrationProvider;
     protected ITeslerDataProvider? DataProvider;
+    protected IProfileResolver? ProfileResolver;
     protected TestConsole? TestConsole;
 
-    protected IArtifactToolRegistryStore GetEmptyStore() => new StaticArtifactToolRegistryStore(new ArtifactToolRegistry());
+    internal StaticArtifactToolRegistryStore GetEmptyStore() => new StaticArtifactToolRegistryStore(new ArtifactToolRegistry());
 
-    protected IArtifactToolRegistryStore GetSingleStore(ArtifactToolRegistryEntry artifactToolRegistryEntry)
+    internal StaticArtifactToolRegistryStore GetSingleStore(ArtifactToolRegistryEntry artifactToolRegistryEntry)
     {
         var registry = new ArtifactToolRegistry();
         registry.Add(artifactToolRegistryEntry);
         return new StaticArtifactToolRegistryStore(registry);
     }
 
-    protected IArtifactToolRegistryStore GetSingleStore<T>() where T : IArtifactToolFactory
+    internal StaticArtifactToolRegistryStore GetSingleStore<T>() where T : IArtifactToolFactory
     {
         var registry = new ArtifactToolRegistry();
         registry.Add<T>();
         return new StaticArtifactToolRegistryStore(registry);
     }
 
-    protected IArtifactToolRegistryStore GetSingleSelectableStore<T>() where T : IArtifactToolFactory, IArtifactToolSelector<string>
+    internal StaticArtifactToolRegistryStore GetSingleSelectableStore<T>() where T : IArtifactToolFactory, IArtifactToolSelector<string>
     {
         var registry = new ArtifactToolRegistry();
         registry.AddSelectable<T>();
         return new StaticArtifactToolRegistryStore(registry);
     }
 
-    [MemberNotNull("TestConsole")]
-    protected TestConsole CreateConsole(int windowWidth = 100, bool outputRedirected = true, bool errorRedirected = true, bool inputRedirected = true)
+    [MemberNotNull(nameof(TestConsole))]
+    internal TestConsole CreateConsole(int windowWidth = 100, bool outputRedirected = true, bool errorRedirected = true, bool inputRedirected = true)
     {
         return TestConsole = new TestConsole(windowWidth, outputRedirected, errorRedirected, inputRedirected);
     }
 
-    [MemberNotNull("DefaultPropertyProvider")]
-    protected IDefaultPropertyProvider CreateInMemoryDefaultPropertyProvider()
+    [MemberNotNull(nameof(DefaultPropertyProvider))]
+    internal IDefaultPropertyProvider CreateInMemoryDefaultPropertyProvider()
     {
-        return DefaultPropertyProvider = new InMemoryDefaultPropertyProvider(ImmutableDictionary<string, JsonElement>.Empty, ImmutableDictionary<ArtifactToolID, IReadOnlyDictionary<string, JsonElement>>.Empty);
+        var result = new InMemoryDefaultPropertyProvider(ImmutableDictionary<string, JsonElement>.Empty, ImmutableDictionary<ArtifactToolID, IReadOnlyDictionary<string, JsonElement>>.Empty);
+        DefaultPropertyProvider = result;
+        return result;
     }
 
-    [MemberNotNull("DefaultPropertyProvider")]
-    protected IDefaultPropertyProvider CreateInMemoryDefaultPropertyProvider(IReadOnlyDictionary<string, JsonElement> shared)
+    [MemberNotNull(nameof(DefaultPropertyProvider))]
+    internal InMemoryDefaultPropertyProvider CreateInMemoryDefaultPropertyProvider(IReadOnlyDictionary<string, JsonElement> shared)
     {
-        return DefaultPropertyProvider = new InMemoryDefaultPropertyProvider(shared, ImmutableDictionary<ArtifactToolID, IReadOnlyDictionary<string, JsonElement>>.Empty);
+        var result = new InMemoryDefaultPropertyProvider(shared, ImmutableDictionary<ArtifactToolID, IReadOnlyDictionary<string, JsonElement>>.Empty);
+        DefaultPropertyProvider = result;
+        return result;
     }
 
-    [MemberNotNull("DefaultPropertyProvider")]
-    protected IDefaultPropertyProvider CreateInMemoryDefaultPropertyProvider(IReadOnlyDictionary<string, JsonElement> shared, IReadOnlyDictionary<ArtifactToolID, IReadOnlyDictionary<string, JsonElement>> perTool)
+    [MemberNotNull(nameof(DefaultPropertyProvider))]
+    internal InMemoryDefaultPropertyProvider CreateInMemoryDefaultPropertyProvider(IReadOnlyDictionary<string, JsonElement> shared, IReadOnlyDictionary<ArtifactToolID, IReadOnlyDictionary<string, JsonElement>> perTool)
     {
-        return DefaultPropertyProvider = new InMemoryDefaultPropertyProvider(shared, perTool);
+        var result = new InMemoryDefaultPropertyProvider(shared, perTool);
+        DefaultPropertyProvider = result;
+        return result;
     }
 
-    [MemberNotNull("ToolLogHandlerProvider")]
-    protected IToolLogHandlerProvider CreateStyledToolLogHandlerProvider(char[]? newLine = null)
+    [MemberNotNull(nameof(ToolLogHandlerProvider))]
+    internal StyledToolLogHandlerProvider CreateStyledToolLogHandlerProvider(char[]? newLine = null)
     {
-        return ToolLogHandlerProvider = new StyledToolLogHandlerProvider(newLine ?? Environment.NewLine.ToCharArray());
+        var result = new StyledToolLogHandlerProvider(newLine ?? Environment.NewLine.ToCharArray());
+        ToolLogHandlerProvider = result;
+        return result;
     }
 
-    [MemberNotNull("ToolLogHandlerProvider")]
-    protected IToolLogHandlerProvider CreatePlainToolLogHandlerProvider(char[]? newLine = null)
+    [MemberNotNull(nameof(ToolLogHandlerProvider))]
+    internal PlainToolLogHandlerProvider CreatePlainToolLogHandlerProvider(char[]? newLine = null)
     {
-        return ToolLogHandlerProvider = new PlainToolLogHandlerProvider(newLine ?? Environment.NewLine.ToCharArray());
+        var result = new PlainToolLogHandlerProvider(newLine ?? Environment.NewLine.ToCharArray());
+        ToolLogHandlerProvider = result;
+        return result;
     }
 
-    [MemberNotNull("DataProvider")]
-    protected ITeslerDataProvider CreateSharedMemoryDataProvider()
+    [MemberNotNull(nameof(DataProvider))]
+    internal SharedMemoryDataProvider CreateSharedMemoryDataProvider()
     {
-        return DataProvider = new SharedMemoryDataProvider();
+        var result = new SharedMemoryDataProvider();
+        DataProvider = result;
+        return result;
     }
 
-    [MemberNotNull("RegistrationProvider")]
-    protected ITeslerRegistrationProvider CreateSharedMemoryRegistrationProvider()
+    [MemberNotNull(nameof(RegistrationProvider))]
+    internal SharedMemoryRegistrationProvider CreateSharedMemoryRegistrationProvider()
     {
-        return RegistrationProvider = new SharedMemoryRegistrationProvider();
+        var result = new SharedMemoryRegistrationProvider();
+        RegistrationProvider = result;
+        return result;
+    }
+
+    [MemberNotNull(nameof(ProfileResolver))]
+    internal DictionaryProfileResolver CreateDictionaryProfileResolver()
+    {
+        var result = new DictionaryProfileResolver(ImmutableDictionary<string, IReadOnlyCollection<ArtifactToolProfile>>.Empty);
+        ProfileResolver = result;
+        return result;
+    }
+
+    [MemberNotNull(nameof(ProfileResolver))]
+    internal DictionaryProfileResolver CreateDictionaryProfileResolver(IReadOnlyDictionary<string, IReadOnlyCollection<ArtifactToolProfile>> map)
+    {
+        var result = new DictionaryProfileResolver(map);
+        ProfileResolver = result;
+        return result;
+    }
+
+    [MemberNotNull(nameof(ProfileResolver))]
+    internal DictionaryProfileResolver CreateDictionaryProfileResolver(string profileName, params ArtifactToolProfile[] profiles)
+    {
+        return CreateDictionaryProfileResolver(new Dictionary<string, IReadOnlyCollection<ArtifactToolProfile>> { [profileName] = profiles });
     }
 }

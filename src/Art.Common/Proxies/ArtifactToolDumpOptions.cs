@@ -6,14 +6,14 @@
 /// <param name="ResourceUpdate">Resource update mode.</param>
 /// <param name="IncludeNonFull">Overwrite full entries with non-full if newer.</param>
 /// <param name="SkipMode">Skip mode.</param>
-/// <param name="ChecksumId">Checksum algorithm ID.</param>
+/// <param name="ChecksumSource">Optional checksum source, if resources are to have their checksums computed.</param>
 /// <param name="IgnoreException">Predicate used to conditionally ignore exceptions.</param>
 /// <param name="EagerFlags">Eager evaluation flags.</param>
 public record ArtifactToolDumpOptions(
     ResourceUpdateMode ResourceUpdate = ResourceUpdateMode.ArtifactHard,
     bool IncludeNonFull = true,
     ArtifactSkipMode SkipMode = ArtifactSkipMode.None,
-    string? ChecksumId = null,
+    ChecksumSource? ChecksumSource = null,
     Func<Exception, bool>? IgnoreException = null,
     EagerFlags EagerFlags = EagerFlags.None)
 {
@@ -56,6 +56,13 @@ public record ArtifactToolDumpOptions(
                     throw new ArgumentException($"Invalid {nameof(ArtifactToolDumpOptions)}.{nameof(ResourceUpdate)}");
                 else
                     throw new InvalidOperationException($"Invalid {nameof(ArtifactToolDumpOptions)}.{nameof(ResourceUpdate)}");
+        }
+        if (options.ChecksumSource is { HashAlgorithmFunc: not { } })
+        {
+            if (constructor)
+                throw new ArgumentException("Checksum source does not specify a hash algorithm function, this is an error.");
+            else
+                throw new InvalidOperationException("Checksum source does not specify a hash algorithm function, this is an error.");
         }
     }
 }
