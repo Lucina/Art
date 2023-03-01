@@ -161,10 +161,6 @@ public static class ArtifactDumping
     /// <exception cref="ArgumentOutOfRangeException">Thrown if <paramref name="resourceUpdate"/> is invalid.</exception>
     public static async Task DumpArtifactAsync(this IArtifactTool artifactTool, IArtifactData artifactData, ResourceUpdateMode resourceUpdate = ResourceUpdateMode.Soft, ChecksumSource? checksumSource = null, EagerFlags eagerFlags = EagerFlags.None, IToolLogHandler? logHandler = null, CancellationToken cancellationToken = default)
     {
-        if (checksumSource is { HashAlgorithmFunc: not { } })
-        {
-            throw new ArgumentException("Checksum source does not specify a hash algorithm function, this is an error.", nameof(checksumSource));
-        }
         switch (resourceUpdate)
         {
             case ResourceUpdateMode.ArtifactSoft:
@@ -238,10 +234,6 @@ public static class ArtifactDumping
     /// <param name="cancellationToken">Cancellation token.</param>
     public static async Task DumpResourceAsync(this IArtifactTool artifactTool, ArtifactResourceInfo resource, ResourceUpdateMode resourceUpdate, IToolLogHandler? logHandler, ChecksumSource? checksumSource, CancellationToken cancellationToken = default)
     {
-        if (checksumSource is { HashAlgorithmFunc: not { } })
-        {
-            throw new ArgumentException("Checksum source does not specify a hash algorithm function, this is an error.", nameof(checksumSource));
-        }
         await UpdateResourceAsync(artifactTool, await artifactTool.DetermineUpdatedResourceAsync(resource, resourceUpdate, cancellationToken).ConfigureAwait(false), logHandler, checksumSource, cancellationToken).ConfigureAwait(false);
     }
 
@@ -255,13 +247,9 @@ public static class ArtifactDumping
             await using CommittableStream stream = await artifactTool.DataManager.CreateOutputStreamAsync(versionedResource.Key, options, cancellationToken).ConfigureAwait(false);
             if (checksumSource != null)
             {
-                if (checksumSource.HashAlgorithmFunc is not { } hashAlgorithmFunc)
-                {
-                    throw new ArgumentException("Checksum source does not specify a hash algorithm function, this is an error.", nameof(checksumSource));
-                }
-                using var algorithm = hashAlgorithmFunc();
+                using var algorithm = checksumSource.CreateHashAlgorithm();
                 // Take this opportunity to hash the resource.
-                await using HashProxyStream hps = new(stream, algorithm, true);
+                await using HashProxyStream hps = new(stream, algorithm, true, true);
                 await versionedResource.ExportStreamAsync(hps, cancellationToken).ConfigureAwait(false);
                 stream.ShouldCommit = true;
                 Checksum newChecksum = new(checksumSource.Id, hps.GetHash());

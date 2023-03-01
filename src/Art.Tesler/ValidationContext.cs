@@ -45,11 +45,7 @@ public class ValidationContext
         }
         else
         {
-            if (checksumSourceForAdd.HashAlgorithmFunc is not { } hashAlgorithmFunc)
-            {
-                throw new ArgumentException("Checksum source does not specify a hash algorithm function, this is an error.", nameof(checksumSourceForAdd));
-            }
-            using var hashAlgorithm = hashAlgorithmFunc();
+            using var hashAlgorithm = checksumSourceForAdd.CreateHashAlgorithm();
             foreach (ArtifactInfo inf in artifacts)
             {
                 var result = await ProcessAsync(inf, new ActiveHashAlgorithm(checksumSourceForAdd.Id, hashAlgorithm));
@@ -69,19 +65,8 @@ public class ValidationContext
         }
         else
         {
-            if (checksumSourceForAdd.HashAlgorithmFunc is not { } hashAlgorithmFunc)
-            {
-                throw new ArgumentException("Checksum source does not specify a hash algorithm function, this is an error.", nameof(checksumSourceForAdd));
-            }
-            using var hashAlgorithm = hashAlgorithmFunc();
-            try
-            {
-                result = await ProcessAsync(artifact, new ActiveHashAlgorithm(checksumSourceForAdd.Id, hashAlgorithm));
-            }
-            finally
-            {
-                hashAlgorithm.Dispose();
-            }
+            using var hashAlgorithm = checksumSourceForAdd.CreateHashAlgorithm();
+            result = await ProcessAsync(artifact, new ActiveHashAlgorithm(checksumSourceForAdd.Id, hashAlgorithm));
         }
         return result;
     }
@@ -113,12 +98,12 @@ public class ValidationContext
                 }
                 continue;
             }
-            if (!ChecksumSource.DefaultSources.TryGetValue(rInf.Checksum.Id, out ChecksumSource? checksumSource) || checksumSource.HashAlgorithmFunc == null)
+            if (!ChecksumSource.DefaultSources.TryGetValue(rInf.Checksum.Id, out ChecksumSource? checksumSource))
             {
                 AddFail(rInf);
                 continue;
             }
-            using var hashAlgorithm = checksumSource.HashAlgorithmFunc();
+            using var hashAlgorithm = checksumSource.CreateHashAlgorithm();
             await using Stream sourceStream = await _adm.OpenInputStreamAsync(rInf.Key);
             byte[] existingHash = await hashAlgorithm.ComputeHashAsync(sourceStream);
             if (!rInf.Checksum.Value.AsSpan().SequenceEqual(existingHash)) AddFail(rInf);

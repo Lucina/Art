@@ -57,12 +57,5 @@ public record ArtifactToolDumpOptions(
                 else
                     throw new InvalidOperationException($"Invalid {nameof(ArtifactToolDumpOptions)}.{nameof(ResourceUpdate)}");
         }
-        if (options.ChecksumSource is { HashAlgorithmFunc: not { } })
-        {
-            if (constructor)
-                throw new ArgumentException("Checksum source does not specify a hash algorithm function, this is an error.");
-            else
-                throw new InvalidOperationException("Checksum source does not specify a hash algorithm function, this is an error.");
-        }
     }
 }

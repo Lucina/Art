@@ -33,11 +33,7 @@ public static class ChecksumUtility
         {
             throw new ArgumentException("Unknown checksum ID", nameof(checksumId));
         }
-        if (checksumSource.HashAlgorithmFunc == null)
-        {
-            throw new ArgumentException("Found known checksum source but hash algorithm function does not exist", nameof(checksumId));
-        }
-        using HashAlgorithm hashAlgorithm = checksumSource.HashAlgorithmFunc();
+        using HashAlgorithm hashAlgorithm = checksumSource.CreateHashAlgorithm();
         await using Stream sourceStream = await artifactDataManager.OpenInputStreamAsync(key, cancellationToken).ConfigureAwait(false);
         await using HashProxyStream hps = new(sourceStream, hashAlgorithm, true, true);
         await using MemoryStream ms = new();

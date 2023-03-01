@@ -45,17 +45,23 @@ public class ChecksumSource
     /// <summary>Algorithm ID.</summary>
     public string Id { get; }
 
-    /// <summary>Hash algorithm function, if available.</summary>
-    public Func<HashAlgorithm>? HashAlgorithmFunc { get; }
+    /// <summary>Hash algorithm function.</summary>
+    private Func<HashAlgorithm> HashAlgorithmFunc { get; }
 
     /// <summary>
     /// Identifies a checksum source.
     /// </summary>
     /// <param name="id">Algorithm ID.</param>
     /// <param name="hashAlgorithmFunc">Hash algorithm function, if available.</param>
-    public ChecksumSource(string id, Func<HashAlgorithm>? hashAlgorithmFunc)
+    public ChecksumSource(string id, Func<HashAlgorithm> hashAlgorithmFunc)
     {
         Id = id;
         HashAlgorithmFunc = hashAlgorithmFunc;
     }
+
+    /// <summary>
+    /// Creates a <see cref="HashAlgorithm"/> for this checksum type.
+    /// </summary>
+    /// <returns><see cref="HashAlgorithm"/>.</returns>
+    public HashAlgorithm CreateHashAlgorithm() => HashAlgorithmFunc();
 }

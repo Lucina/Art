@@ -64,7 +64,7 @@ internal class RehashCommand : CommandBase
         {
             if (rInf.Checksum == null || !ChecksumSource.DefaultSources.TryGetValue(rInf.Checksum.Id, out ChecksumSource? haOriginalV))
                 continue;
-            using HashAlgorithm haOriginal = haOriginalV.HashAlgorithmFunc!();
+            using HashAlgorithm haOriginal = haOriginalV.CreateHashAlgorithm();
             if (!await adm.ExistsAsync(rInf.Key))
             {
                 AddFail(rInf);
@@ -76,7 +76,7 @@ internal class RehashCommand : CommandBase
                 return 2;
             }
             Common.PrintFormat(rInf.GetInfoPathString(), detailed, () => rInf.GetInfoString(), context.Console);
-            using HashAlgorithm haNew = haNewV.HashAlgorithmFunc!();
+            using HashAlgorithm haNew = haNewV.CreateHashAlgorithm();
             await using Stream sourceStream = await adm.OpenInputStreamAsync(rInf.Key);
             await using HashProxyStream hpsOriginal = new(sourceStream, haOriginal, true, true);
             await using HashProxyStream hpsNew = new(hpsOriginal, haNew, true, true);

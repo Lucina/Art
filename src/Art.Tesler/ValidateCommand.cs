@@ -66,7 +66,7 @@ public class ValidateCommand : ToolCommandBase
         }
         else
         {
-            if (!ChecksumSource.DefaultSources.TryGetValue(hash, out checksumSource) || checksumSource.HashAlgorithmFunc == null)
+            if (!ChecksumSource.DefaultSources.TryGetValue(hash, out checksumSource))
             {
                 PrintErrorMessage(Common.GetInvalidHashMessage(hash), context.Console);
                 return 2;

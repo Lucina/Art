@@ -24,7 +24,7 @@ public class HashProxyTests
         byte[] arr = new byte[inputSize];
         Random.Shared.NextBytes(arr);
         byte[] expected = hashAlgorithm.ComputeHash(arr);
-        HashProxyStream hps = new(new MemoryStream(arr), hashAlgorithm);
+        HashProxyStream hps = new(new MemoryStream(arr), hashAlgorithm, false, true);
         hps.CopyTo(new MemoryStream());
         byte[] actual = hps.GetHash();
         Assert.That(actual, Is.EqualTo(expected));
