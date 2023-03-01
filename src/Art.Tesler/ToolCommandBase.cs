@@ -40,7 +40,7 @@ public abstract class ToolCommandBase : CommandBase
         string? cookieFile = context.ParseResult.HasOption(CookieFileOption) ? context.ParseResult.GetValueForOption(CookieFileOption) : null;
         string? userAgent = context.ParseResult.HasOption(UserAgentOption) ? context.ParseResult.GetValueForOption(UserAgentOption) : null;
         IEnumerable<string> properties = context.ParseResult.HasOption(PropertiesOption) ? context.ParseResult.GetValueForOption(PropertiesOption)! : Array.Empty<string>();
-        artifactToolProfile = artifactToolProfile.GetWithConsoleOptions(DefaultPropertyProvider, properties, cookieFile, userAgent);
+        artifactToolProfile = artifactToolProfile.GetWithConsoleOptions(DefaultPropertyProvider, properties, cookieFile, userAgent, context.Console);
         IArtifactTool t = await ArtifactTool.PrepareToolAsync(plugin, artifactToolProfile, arm, adm, cancellationToken);
         return t;
     }

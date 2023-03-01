@@ -1,4 +1,5 @@
 using System.CommandLine;
+using System.CommandLine.IO;
 using System.Text;
 using System.Text.Json;
 using System.Text.RegularExpressions;
@@ -69,12 +70,12 @@ internal static class Common
 
     internal static void PrintFormat(string entry, bool detailed, Func<string> details, IConsole console)
     {
-        console.WriteLine(entry);
+        console.Out.WriteLine(entry);
         if (detailed)
         {
-            console.WriteLine(new string('-', EastAsianWidth.GetWidth(entry)));
-            console.WriteLine(details());
-            console.WriteLine("");
+            console.Out.WriteLine(new string('-', EastAsianWidth.GetWidth(entry)));
+            console.Out.WriteLine(details());
+            console.Out.WriteLine("");
         }
     }
 
@@ -86,7 +87,7 @@ internal static class Common
 
     private static readonly Regex s_propRe = new(@"(.+?):(.+)");
 
-    internal static void AddProps(this Dictionary<string, JsonElement> dictionary, IEnumerable<string> props)
+    internal static void AddProps(this Dictionary<string, JsonElement> dictionary, IEnumerable<string> props, IConsole console)
     {
         foreach (string prop in props)
         {
@@ -99,13 +100,13 @@ internal static class Common
             else if (ulong.TryParse(val, out ulong valULong)) v = JsonSerializer.SerializeToElement(valULong, SourceGenerationContext.s_context.UInt64);
             else if (double.TryParse(val, out double valDouble)) v = JsonSerializer.SerializeToElement(valDouble, SourceGenerationContext.s_context.Double);
             else v = JsonSerializer.SerializeToElement(val, SourceGenerationContext.s_context.String);
-            dictionary.AddPropWithWarning(k, v);
+            dictionary.AddPropWithWarning(k, v, console);
         }
     }
 
-    private static void AddPropWithWarning(this Dictionary<string, JsonElement> dictionary, string k, JsonElement v)
+    private static void AddPropWithWarning(this Dictionary<string, JsonElement> dictionary, string k, JsonElement v, IConsole console)
     {
-        if (dictionary.ContainsKey(k)) Console.WriteLine($@"Warning: property {k} already exists with value ""{dictionary[k].ToString()}"", overwriting");
+        if (dictionary.ContainsKey(k)) console.Out.WriteLine($@"Warning: property {k} already exists with value ""{dictionary[k].ToString()}"", overwriting");
         dictionary[k] = v;
     }
 
@@ -143,20 +144,20 @@ internal static class Common
     internal static string GetInvalidHashMessage(string hash)
     {
         return new StringBuilder($"Failed to find hash algorithm {hash}")
-            .Append(Console.Error.NewLine)
+            .Append(Environment.NewLine)
             .Append("Known algorithms:")
-            .Append(Console.Error.NewLine)
-            .AppendJoin(Console.Error.NewLine, ChecksumAlgorithmArray)
+            .Append(Environment.NewLine)
+            .AppendJoin(Environment.NewLine, ChecksumAlgorithmArray)
             .ToString();
     }
 
     internal static string GetInvalidCookieSourceBrowserMessage(string browserName)
     {
         return new StringBuilder($"Failed to find browser with name {browserName}")
-            .Append(Console.Error.NewLine)
+            .Append(Environment.NewLine)
             .Append("Supported browsers:")
-            .Append(Console.Error.NewLine)
-            .AppendJoin(Console.Error.NewLine, CookieSource.GetSupportedBrowserNames())
+            .Append(Environment.NewLine)
+            .AppendJoin(Environment.NewLine, CookieSource.GetSupportedBrowserNames())
             .ToString();
     }
 
@@ -164,7 +165,8 @@ internal static class Common
         IDefaultPropertyProvider defaultPropertyProvider,
         IEnumerable<string> properties,
         string? cookieFile,
-        string? userAgent)
+        string? userAgent,
+        IConsole console)
     {
         Dictionary<string, JsonElement> opts = new();
         defaultPropertyProvider.WriteDefaultProperties(artifactToolProfile.GetID(), opts);
@@ -175,9 +177,9 @@ internal static class Common
                 opts[pair.Key] = pair.Value;
             }
         }
-        if (cookieFile != null) opts.AddPropWithWarning("cookieFile", JsonSerializer.SerializeToElement(cookieFile, SourceGenerationContext.s_context.String));
-        if (userAgent != null) opts.AddPropWithWarning("userAgent", JsonSerializer.SerializeToElement(userAgent, SourceGenerationContext.s_context.String));
-        opts.AddProps(properties);
+        if (cookieFile != null) opts.AddPropWithWarning("cookieFile", JsonSerializer.SerializeToElement(cookieFile, SourceGenerationContext.s_context.String), console);
+        if (userAgent != null) opts.AddPropWithWarning("userAgent", JsonSerializer.SerializeToElement(userAgent, SourceGenerationContext.s_context.String), console);
+        opts.AddProps(properties, console);
         return artifactToolProfile with { Options = opts };
     }
 }

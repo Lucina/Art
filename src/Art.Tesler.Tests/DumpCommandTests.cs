@@ -49,8 +49,6 @@ public class DumpCommandTests : CommandTestBase
         InitCommandDefault(store, CreateInMemoryDefaultPropertyProvider(), CreateSharedMemoryDataProvider(), CreateSharedMemoryRegistrationProvider());
         var console = CreateConsole();
         string[] line = { "-t", ArtifactToolIDUtil.CreateToolString<ProgrammableArtifactDumpTool>() };
-        Console.WriteLine(console.StringOut.StringWriter.ToString());
-        Console.WriteLine(console.StringError.StringWriter.ToString());
         Assert.That(Command.Invoke(line, console), Is.EqualTo(0));
         Assert.That(console.StringOut.StringWriter.ToString(), Is.Empty);
         Assert.That(console.StringError.StringWriter.ToString(), Is.Empty);
@@ -63,8 +61,6 @@ public class DumpCommandTests : CommandTestBase
         InitCommandDefault(store, CreateInMemoryDefaultPropertyProvider(), CreateSharedMemoryDataProvider(), CreateSharedMemoryRegistrationProvider());
         var console = CreateConsole();
         string[] line = { "-t", ArtifactToolIDUtil.CreateToolString<ProgrammableArtifactDumpTool>() };
-        Console.WriteLine(console.StringOut.StringWriter.ToString());
-        Console.WriteLine(console.StringError.StringWriter.ToString());
         Assert.That(Command.Invoke(line, console), Is.EqualTo(0));
         // TODO match exact via output fmt check
         Assert.That(console.StringOut.StringWriter.ToString(), Is.Not.Empty);
@@ -78,8 +74,6 @@ public class DumpCommandTests : CommandTestBase
         InitCommandDefault(store, CreateInMemoryDefaultPropertyProvider(), CreateSharedMemoryDataProvider(), CreateSharedMemoryRegistrationProvider());
         var console = CreateConsole();
         string[] line = { "-t", ArtifactToolIDUtil.CreateToolString<ProgrammableArtifactDumpTool>() };
-        Console.WriteLine(console.StringOut.StringWriter.ToString());
-        Console.WriteLine(console.StringError.StringWriter.ToString());
         Assert.That(Command.Invoke(line, console), Is.EqualTo(0));
         Assert.That(console.StringOut.StringWriter.ToString(), Is.Empty);
         // TODO match exact via output fmt check

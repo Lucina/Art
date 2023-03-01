@@ -1,5 +1,6 @@
 ﻿using System.CommandLine;
 using System.CommandLine.Invocation;
+using System.CommandLine.IO;
 using Art.Common;
 
 namespace Art.Tesler.Database;
@@ -74,7 +75,7 @@ public class DatabaseCommandDelete : DatabaseCommandBase
             if (doDelete) await arm.RemoveArtifactAsync(i.Key);
             v++;
         }
-        context.Console.WriteLine(doDelete ? $"Deleted {v} records." : $"{v} records would be affected.");
+        context.Console.Out.WriteLine(doDelete ? $"Deleted {v} records." : $"{v} records would be affected.");
         return 0;
     }
 }

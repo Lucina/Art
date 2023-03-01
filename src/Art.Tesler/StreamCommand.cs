@@ -30,7 +30,7 @@ public class StreamCommand : ToolCommandBase
         string? cookieFile = context.ParseResult.HasOption(CookieFileOption) ? context.ParseResult.GetValueForOption(CookieFileOption) : null;
         string? userAgent = context.ParseResult.HasOption(UserAgentOption) ? context.ParseResult.GetValueForOption(UserAgentOption) : null;
         IEnumerable<string> properties = context.ParseResult.HasOption(PropertiesOption) ? context.ParseResult.GetValueForOption(PropertiesOption)! : Array.Empty<string>();
-        profile = profile.GetWithConsoleOptions(DefaultPropertyProvider, properties, cookieFile, userAgent);
+        profile = profile.GetWithConsoleOptions(DefaultPropertyProvider, properties, cookieFile, userAgent, context.Console);
         var plugin = PluginStore.LoadRegistry(ArtifactToolProfileUtil.GetID(profile.Tool));
         using var arm = new InMemoryArtifactRegistrationManager();
         using var adm = new InMemoryArtifactDataManager();
