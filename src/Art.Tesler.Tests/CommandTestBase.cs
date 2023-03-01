@@ -1,14 +1,20 @@
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.CommandLine;
 using System.Diagnostics.CodeAnalysis;
+using System.IO;
+using System.Text;
 using System.Text.Json;
 using Art.Common;
+using Art.Common.Logging;
 
 namespace Art.Tesler.Tests;
 
 public class CommandTestBase
 {
     protected IDefaultPropertyProvider? DefaultPropertyProvider;
+    protected IToolLogHandlerProvider? ToolLogHandlerProvider;
     protected ITeslerRegistrationProvider? RegistrationProvider;
     protected ITeslerDataProvider? DataProvider;
     protected TestConsole? TestConsole;
@@ -58,6 +64,18 @@ public class CommandTestBase
     protected IDefaultPropertyProvider CreateInMemoryDefaultPropertyProvider(IReadOnlyDictionary<string, JsonElement> shared, IReadOnlyDictionary<ArtifactToolID, IReadOnlyDictionary<string, JsonElement>> perTool)
     {
         return DefaultPropertyProvider = new InMemoryDefaultPropertyProvider(shared, perTool);
+    }
+
+    [MemberNotNull("ToolLogHandlerProvider")]
+    protected IToolLogHandlerProvider CreateStyledToolLogHandlerProvider(char[]? newLine = null)
+    {
+        return ToolLogHandlerProvider = new StyledToolLogHandlerProvider(newLine ?? Environment.NewLine.ToCharArray());
+    }
+
+    [MemberNotNull("ToolLogHandlerProvider")]
+    protected IToolLogHandlerProvider CreatePlainToolLogHandlerProvider(char[]? newLine = null)
+    {
+        return ToolLogHandlerProvider = new PlainToolLogHandlerProvider(newLine ?? Environment.NewLine.ToCharArray());
     }
 
     [MemberNotNull("DataProvider")]

@@ -25,19 +25,21 @@ public class DumpCommand : ToolCommandBase
 
     public DumpCommand(IArtifactToolRegistryStore pluginStore,
         IDefaultPropertyProvider defaultPropertyProvider,
+        IToolLogHandlerProvider toolLogHandlerProvider,
         ITeslerDataProvider dataProvider,
         ITeslerRegistrationProvider registrationProvider)
-        : this(pluginStore, defaultPropertyProvider, dataProvider, registrationProvider, "dump", "Execute artifact dump tools.")
+        : this(pluginStore, defaultPropertyProvider, toolLogHandlerProvider, dataProvider, registrationProvider, "dump", "Execute artifact dump tools.")
     {
     }
 
     public DumpCommand(IArtifactToolRegistryStore pluginStore,
         IDefaultPropertyProvider defaultPropertyProvider,
+        IToolLogHandlerProvider toolLogHandlerProvider,
         ITeslerDataProvider dataProvider,
         ITeslerRegistrationProvider registrationProvider,
         string name,
         string? description = null)
-        : base(pluginStore, defaultPropertyProvider, name, description)
+        : base(pluginStore, defaultPropertyProvider, toolLogHandlerProvider, name, description)
     {
         DataProvider = dataProvider;
         DataProvider.Initialize(this);
@@ -107,7 +109,7 @@ public class DumpCommand : ToolCommandBase
     {
         ArtifactToolDumpOptions options = new(ChecksumId: hash);
         using var tool = await GetToolAsync(context, profile, arm, adm);
-        ArtifactToolDumpProxy dProxy = new(tool, options, Common.GetDefaultToolLogHandler(context.Console));
+        ArtifactToolDumpProxy dProxy = new(tool, options, ToolLogHandlerProvider.GetDefaultToolLogHandler(context.Console));
         await dProxy.DumpAsync();
         return 0;
     }

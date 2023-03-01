@@ -23,18 +23,20 @@ public class ValidateCommand : ToolCommandBase
 
     public ValidateCommand(IArtifactToolRegistryStore pluginStore,
         IDefaultPropertyProvider defaultPropertyProvider,
+        IToolLogHandlerProvider toolLogHandlerProvider,
         ITeslerDataProvider dataProvider,
         ITeslerRegistrationProvider registrationProvider)
-        : this(pluginStore, defaultPropertyProvider, dataProvider, registrationProvider, "validate", "Verify resource integrity.")
+        : this(pluginStore, defaultPropertyProvider, toolLogHandlerProvider, dataProvider, registrationProvider, "validate", "Verify resource integrity.")
     {
     }
 
     public ValidateCommand(IArtifactToolRegistryStore pluginStore,
         IDefaultPropertyProvider defaultPropertyProvider,
+        IToolLogHandlerProvider toolLogHandlerProvider,
         ITeslerDataProvider dataProvider,
         ITeslerRegistrationProvider registrationProvider,
         string name,
-        string? description = null) : base(pluginStore, defaultPropertyProvider, name, description)
+        string? description = null) : base(pluginStore, defaultPropertyProvider, toolLogHandlerProvider, name, description)
     {
         DataProvider = dataProvider;
         DataProvider.Initialize(this);
@@ -62,7 +64,7 @@ public class ValidateCommand : ToolCommandBase
             PrintErrorMessage(Common.GetInvalidHashMessage(hash), context.Console);
             return 2;
         }
-        IToolLogHandler l = Common.GetDefaultToolLogHandler(context.Console);
+        IToolLogHandler l = ToolLogHandlerProvider.GetDefaultToolLogHandler(context.Console);
         List<ArtifactToolProfile> profiles = new();
         foreach (string profileFile in context.ParseResult.GetValueForArgument(ProfileFilesArg))
             profiles.AddRange(ArtifactToolProfileUtil.DeserializeProfilesFromFile(profileFile));

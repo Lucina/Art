@@ -21,11 +21,20 @@ public class FindCommand : ToolCommandBase
 
     protected Option<bool> DetailedOption;
 
-    public FindCommand(IArtifactToolRegistryStore pluginStore, IDefaultPropertyProvider defaultPropertyProvider) : this(pluginStore, defaultPropertyProvider, "find", "Execute artifact finder tools.")
+    public FindCommand(
+        IArtifactToolRegistryStore pluginStore,
+        IDefaultPropertyProvider defaultPropertyProvider,
+        IToolLogHandlerProvider toolLogHandlerProvider)
+        : this(pluginStore, defaultPropertyProvider, toolLogHandlerProvider, "find", "Execute artifact finder tools.")
     {
     }
 
-    public FindCommand(IArtifactToolRegistryStore pluginStore, IDefaultPropertyProvider defaultPropertyProvider, string name, string? description = null) : base(pluginStore, defaultPropertyProvider, name, description)
+    public FindCommand(IArtifactToolRegistryStore pluginStore,
+        IDefaultPropertyProvider defaultPropertyProvider,
+        IToolLogHandlerProvider toolLogHandlerProvider,
+        string name,
+        string? description = null) :
+        base(pluginStore, defaultPropertyProvider, toolLogHandlerProvider, name, description)
     {
         IdsArg = new Argument<List<string>>("ids", "IDs") { HelpName = "id", Arity = ArgumentArity.OneOrMore };
         AddArgument(IdsArg);

@@ -13,11 +13,21 @@ public class StreamCommand : ToolCommandBase
 
     private List<IArtifactToolSelectableRegistry<string>>? _selectableRegistries;
 
-    public StreamCommand(IArtifactToolRegistryStore pluginStore, IDefaultPropertyProvider defaultPropertyProvider) : this(pluginStore, defaultPropertyProvider, "stream", "Stream primary resource to standard output.")
+    public StreamCommand(
+        IArtifactToolRegistryStore pluginStore,
+        IDefaultPropertyProvider defaultPropertyProvider,
+        IToolLogHandlerProvider toolLogHandlerProvider)
+        : this(pluginStore, defaultPropertyProvider, toolLogHandlerProvider, "stream", "Stream primary resource to standard output.")
     {
     }
 
-    public StreamCommand(IArtifactToolRegistryStore pluginStore, IDefaultPropertyProvider defaultPropertyProvider, string name, string? description = null) : base(pluginStore, defaultPropertyProvider, name, description)
+    public StreamCommand(
+        IArtifactToolRegistryStore pluginStore,
+        IDefaultPropertyProvider defaultPropertyProvider,
+        IToolLogHandlerProvider toolLogHandlerProvider,
+        string name,
+        string? description = null)
+        : base(pluginStore, defaultPropertyProvider, toolLogHandlerProvider, name, description)
     {
         ProfileFileArg = new Argument<string>("profile", "Profile file") { HelpName = "profile", Arity = ArgumentArity.ExactlyOne };
         AddArgument(ProfileFileArg);
@@ -25,8 +35,8 @@ public class StreamCommand : ToolCommandBase
 
     protected override async Task<int> RunAsync(InvocationContext context)
     {
-        IToolLogHandler l = Common.GetStreamToolLogHandler(context.Console);
-            var profile = LoadProfile( context.ParseResult.GetValueForArgument(ProfileFileArg));
+        IToolLogHandler l = ToolLogHandlerProvider.GetStreamToolLogHandler(context.Console);
+        var profile = LoadProfile(context.ParseResult.GetValueForArgument(ProfileFileArg));
         string? cookieFile = context.ParseResult.HasOption(CookieFileOption) ? context.ParseResult.GetValueForOption(CookieFileOption) : null;
         string? userAgent = context.ParseResult.HasOption(UserAgentOption) ? context.ParseResult.GetValueForOption(UserAgentOption) : null;
         IEnumerable<string> properties = context.ParseResult.HasOption(PropertiesOption) ? context.ParseResult.GetValueForOption(PropertiesOption)! : Array.Empty<string>();
@@ -55,7 +65,7 @@ public class StreamCommand : ToolCommandBase
         }
         if (!primaryResource.CanExportStream)
         {
-            l.Log($"Primary resource {primaryResource} does not support exporting, this command requires this functionality",null, LogLevel.Error);
+            l.Log($"Primary resource {primaryResource} does not support exporting, this command requires this functionality", null, LogLevel.Error);
         }
         await using var output = Console.OpenStandardOutput();
         await primaryResource.ExportStreamAsync(output).ConfigureAwait(false);

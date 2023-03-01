@@ -19,11 +19,21 @@ public class ListCommand : ToolCommandBase
 
     protected Option<bool> DetailedOption;
 
-    public ListCommand(IArtifactToolRegistryStore pluginStore, IDefaultPropertyProvider defaultPropertyProvider) : this(pluginStore, defaultPropertyProvider, "list", "Execute artifact list tools.")
+    public ListCommand(
+        IArtifactToolRegistryStore pluginStore,
+        IDefaultPropertyProvider defaultPropertyProvider,
+        IToolLogHandlerProvider toolLogHandlerProvider)
+        : this(pluginStore, defaultPropertyProvider, toolLogHandlerProvider, "list", "Execute artifact list tools.")
     {
     }
 
-    public ListCommand(IArtifactToolRegistryStore pluginStore, IDefaultPropertyProvider defaultPropertyProvider, string name, string? description = null) : base(pluginStore, defaultPropertyProvider, name, description)
+    public ListCommand(
+        IArtifactToolRegistryStore pluginStore,
+        IDefaultPropertyProvider defaultPropertyProvider,
+        IToolLogHandlerProvider toolLogHandlerProvider,
+        string name,
+        string? description = null)
+        : base(pluginStore, defaultPropertyProvider, toolLogHandlerProvider, name, description)
     {
         ProfileFileOption = new Option<string>(new[] { "-i", "--input" }, "Profile file") { ArgumentHelpName = "file" };
         AddOption(ProfileFileOption);
@@ -65,7 +75,7 @@ public class ListCommand : ToolCommandBase
         using var adm = new NullArtifactDataManager();
         using var tool = await GetSearchingToolAsync(context, profile, arm, adm);
         ArtifactToolListOptions options = new();
-        ArtifactToolListProxy proxy = new(tool, options, Common.GetDefaultToolLogHandler(context.Console));
+        ArtifactToolListProxy proxy = new(tool, options, ToolLogHandlerProvider.GetDefaultToolLogHandler(context.Console));
         bool listResource = context.ParseResult.GetValueForOption(ListResourceOption);
         bool detailed = context.ParseResult.GetValueForOption(DetailedOption);
         await foreach (IArtifactData data in proxy.ListAsync())

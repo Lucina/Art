@@ -11,16 +11,24 @@ public abstract class ToolCommandBase : CommandBase
 
     protected IDefaultPropertyProvider DefaultPropertyProvider;
 
+    protected IToolLogHandlerProvider ToolLogHandlerProvider;
+
     protected Option<string> UserAgentOption;
 
     protected Option<string> CookieFileOption;
 
     protected Option<List<string>> PropertiesOption;
 
-    protected ToolCommandBase(IArtifactToolRegistryStore pluginStore, IDefaultPropertyProvider defaultPropertyProvider, string name, string? description = null) : base(name, description)
+    protected ToolCommandBase(
+        IArtifactToolRegistryStore pluginStore,
+        IDefaultPropertyProvider defaultPropertyProvider,
+        IToolLogHandlerProvider toolLogHandlerProvider,
+        string name,
+        string? description = null) : base(name, description)
     {
         PluginStore = pluginStore;
         DefaultPropertyProvider = defaultPropertyProvider;
+        ToolLogHandlerProvider = toolLogHandlerProvider;
         UserAgentOption = new Option<string>(new[] { "--user-agent" }, "Custom user agent string") { ArgumentHelpName = "user-agent" };
         AddOption(UserAgentOption);
         CookieFileOption = new Option<string>(new[] { "--cookie-file" }, "Cookie file") { ArgumentHelpName = "file" };

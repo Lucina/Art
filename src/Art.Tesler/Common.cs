@@ -5,7 +5,6 @@ using System.Text.Json;
 using System.Text.RegularExpressions;
 using Art.BrowserCookies;
 using Art.Common;
-using Art.Common.Logging;
 using EA;
 
 namespace Art.Tesler;
@@ -18,24 +17,6 @@ internal static class Common
     internal const string ArtifactSkipModes = $"{nameof(ArtifactSkipMode.None)}|{nameof(ArtifactSkipMode.FastExit)}|{nameof(ArtifactSkipMode.Known)}";
     internal const string DefaultChecksumAlgorithm = "SHA256";
     internal const string DefaultDbFile = "kix_data.db";
-
-    private static readonly char[] s_envNewLine = Environment.NewLine.ToCharArray();
-
-    internal static IToolLogHandler GetStreamToolLogHandler(IConsole console)
-    {
-        var encoding = Encoding.UTF8; // big assumption, there... what choice is there
-        var outWriter = new ConsoleProxyTextWriter(console.Out, s_envNewLine, encoding);
-        var errorWriter = new ConsoleProxyTextWriter(console.Error, s_envNewLine, encoding);
-        return new StyledLogHandler(outWriter, errorWriter, true);
-    }
-
-    internal static IToolLogHandler GetDefaultToolLogHandler(IConsole console)
-    {
-        var encoding = Encoding.UTF8; // big assumption, there... what choice is there
-        var outWriter = new ConsoleProxyTextWriter(console.Out, s_envNewLine, encoding);
-        var errorWriter = new ConsoleProxyTextWriter(console.Error, s_envNewLine, encoding);
-        return new StyledLogHandler(outWriter, errorWriter, false, OperatingSystem.IsMacOS());
-    }
 
     internal static int AccumulateErrorCode(int errorCode, int existingErrorCode)
     {
