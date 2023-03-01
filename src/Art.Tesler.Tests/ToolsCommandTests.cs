@@ -33,4 +33,26 @@ public class ToolsCommandTests : CommandTestBase
         Assert.That(console.StringOut.StringWriter.ToString(), Contains.Substring(nameof(ExampleArtifactTool)));
         Assert.That(console.StringError.StringWriter.ToString(), Is.Empty);
     }
+
+    [Test]
+    public void Search_NoMatch_NotFound()
+    {
+        InitCommandDefault(GetSingleStore<ExampleArtifactTool>());
+        var console = CreateConsole();
+        string[] line = { "-s", "$$NOT_A_REAL_TOOL$$" };
+        Assert.That(Command.Invoke(line, console), Is.EqualTo(0));
+        Assert.That(console.StringOut.StringWriter.ToString(), Is.Empty);
+        Assert.That(console.StringError.StringWriter.ToString(), Is.Empty);
+    }
+
+    [Test]
+    public void Search_SingleMatching_Found()
+    {
+        InitCommandDefault(GetSingleStore<ExampleArtifactTool>());
+        var console = CreateConsole();
+        string[] line = { "-s", nameof(ExampleArtifactTool) };
+        Assert.That(Command.Invoke(line, console), Is.EqualTo(0));
+        Assert.That(console.StringOut.StringWriter.ToString(), Contains.Substring(nameof(ExampleArtifactTool)));
+        Assert.That(console.StringError.StringWriter.ToString(), Is.Empty);
+    }
 }
