@@ -25,8 +25,8 @@ public static class ArtifactDumping
     public static async Task DumpAsync(string artifactToolProfilePath, string targetDirectory, ArtifactToolDumpOptions? dumpOptions = null, IToolLogHandler? toolLogHandler = null, CancellationToken cancellationToken = default)
     {
         dumpOptions ??= new ArtifactToolDumpOptions();
-        var srm = new DiskArtifactRegistrationManager(targetDirectory);
-        var sdm = new DiskArtifactDataManager(targetDirectory);
+        using var srm = new DiskArtifactRegistrationManager(targetDirectory);
+        using var sdm = new DiskArtifactDataManager(targetDirectory);
         foreach (ArtifactToolProfile profile in ArtifactToolProfileUtil.DeserializeProfilesFromFile(artifactToolProfilePath))
             await DumpAsync(profile, srm, sdm, dumpOptions, toolLogHandler, cancellationToken).ConfigureAwait(false);
     }
@@ -46,8 +46,8 @@ public static class ArtifactDumping
     public static async Task DumpAsync(AssemblyLoadContext assemblyLoadContext, string artifactToolProfilePath, string targetDirectory, ArtifactToolDumpOptions? dumpOptions = null, IToolLogHandler? toolLogHandler = null, CancellationToken cancellationToken = default)
     {
         dumpOptions ??= new ArtifactToolDumpOptions();
-        var srm = new DiskArtifactRegistrationManager(targetDirectory);
-        var sdm = new DiskArtifactDataManager(targetDirectory);
+        using var srm = new DiskArtifactRegistrationManager(targetDirectory);
+        using var sdm = new DiskArtifactDataManager(targetDirectory);
         foreach (ArtifactToolProfile profile in ArtifactToolProfileUtil.DeserializeProfilesFromFile(artifactToolProfilePath))
             await DumpAsync(assemblyLoadContext, profile, srm, sdm, dumpOptions, toolLogHandler, cancellationToken).ConfigureAwait(false);
     }
@@ -66,8 +66,8 @@ public static class ArtifactDumping
     public static async Task DumpAsync(IArtifactToolRegistry artifactToolRegistry, string artifactToolProfilePath, string targetDirectory, ArtifactToolDumpOptions? dumpOptions = null, IToolLogHandler? toolLogHandler = null, CancellationToken cancellationToken = default)
     {
         dumpOptions ??= new ArtifactToolDumpOptions();
-        var srm = new DiskArtifactRegistrationManager(targetDirectory);
-        var sdm = new DiskArtifactDataManager(targetDirectory);
+        using var srm = new DiskArtifactRegistrationManager(targetDirectory);
+        using var sdm = new DiskArtifactDataManager(targetDirectory);
         foreach (ArtifactToolProfile profile in ArtifactToolProfileUtil.DeserializeProfilesFromFile(artifactToolProfilePath))
             await DumpAsync(artifactToolRegistry, profile, srm, sdm, dumpOptions, toolLogHandler, cancellationToken).ConfigureAwait(false);
     }

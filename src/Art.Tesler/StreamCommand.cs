@@ -32,8 +32,8 @@ internal class StreamCommand<TPluginStore> : ToolCommandBase<TPluginStore> where
         IEnumerable<string> properties = context.ParseResult.HasOption(PropertiesOption) ? context.ParseResult.GetValueForOption(PropertiesOption)! : Array.Empty<string>();
         profile = profile.GetWithConsoleOptions(DefaultPropertyProvider, properties, cookieFile, userAgent);
         var plugin = PluginStore.LoadRegistry(ArtifactToolProfileUtil.GetID(profile.Tool));
-        var arm = new InMemoryArtifactRegistrationManager();
-        var adm = new InMemoryArtifactDataManager();
+        using var arm = new InMemoryArtifactRegistrationManager();
+        using var adm = new InMemoryArtifactDataManager();
         using IArtifactTool tool = await ArtifactTool.PrepareToolAsync(plugin, profile, arm, adm).ConfigureAwait(false);
         var listProxy = new ArtifactToolListProxy(tool, ArtifactToolListOptions.Default, l);
         var res = await listProxy.ListAsync().ToListAsync().ConfigureAwait(false);

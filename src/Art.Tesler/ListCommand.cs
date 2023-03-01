@@ -2,6 +2,7 @@
 using System.CommandLine.Invocation;
 using System.CommandLine.Parsing;
 using Art.Common;
+using Art.Common.Management;
 using Art.Common.Proxies;
 
 namespace Art.Tesler;
@@ -60,7 +61,9 @@ internal class ListCommand<TPluginStore> : ToolCommandBase<TPluginStore> where T
 
     private async Task<int> ExecAsync(InvocationContext context, ArtifactToolProfile profile)
     {
-        using var tool = await GetSearchingToolAsync(context, profile);
+        using var arm = new InMemoryArtifactRegistrationManager();
+        using var adm = new NullArtifactDataManager();
+        using var tool = await GetSearchingToolAsync(context, profile, arm, adm);
         ArtifactToolListOptions options = new();
         ArtifactToolListProxy proxy = new(tool, options, Common.GetDefaultToolLogHandler());
         bool listResource = context.ParseResult.GetValueForOption(ListResourceOption);
