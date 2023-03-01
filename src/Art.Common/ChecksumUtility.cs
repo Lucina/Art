@@ -29,10 +29,17 @@ public static class ChecksumUtility
     /// <exception cref="ArgumentException">Thrown for a bad <paramref name="checksumId"/> value.</exception>
     public static async ValueTask<Checksum> ComputeChecksumAsync(this IArtifactDataManager artifactDataManager, ArtifactResourceKey key, string checksumId, CancellationToken cancellationToken = default)
     {
-        if (!ChecksumSource.TryGetHashAlgorithm(checksumId, out HashAlgorithm? hashAlgorithm))
+        if (!ChecksumSource.DefaultSources.TryGetValue(checksumId, out var checksumSource))
+        {
             throw new ArgumentException("Unknown checksum ID", nameof(checksumId));
+        }
+        if (checksumSource.HashAlgorithmFunc == null)
+        {
+            throw new ArgumentException("Found known checksum source but hash algorithm function does not exist", nameof(checksumId));
+        }
+        using HashAlgorithm hashAlgorithm = checksumSource.HashAlgorithmFunc();
         await using Stream sourceStream = await artifactDataManager.OpenInputStreamAsync(key, cancellationToken).ConfigureAwait(false);
-        await using HashProxyStream hps = new(sourceStream, hashAlgorithm, true);
+        await using HashProxyStream hps = new(sourceStream, hashAlgorithm, true, true);
         await using MemoryStream ms = new();
         await hps.CopyToAsync(ms, cancellationToken).ConfigureAwait(false);
         return new Checksum(checksumId, hps.GetHash());

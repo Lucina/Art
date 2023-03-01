@@ -1,4 +1,3 @@
-using System.Diagnostics.CodeAnalysis;
 using System.Security.Cryptography;
 
 namespace Art.Common;
@@ -58,30 +57,5 @@ public class ChecksumSource
     {
         Id = id;
         HashAlgorithmFunc = hashAlgorithmFunc;
-    }
-
-    /// <summary>
-    /// Attempts to get a hash algorithm for the specified source id.
-    /// </summary>
-    /// <param name="id">Algorithm id (e.g. from <see cref="SHA256"/>).</param>
-    /// <param name="hashAlgorithm">Hash algorithm, if available.</param>
-    /// <returns>True if hash algorithm found.</returns>
-    public static bool TryGetHashAlgorithm(string id, [NotNullWhen(true)] out HashAlgorithm? hashAlgorithm)
-    {
-        if (DefaultSources.TryGetValue(id, out ChecksumSource? source) && source.HashAlgorithmFunc is { } func)
-        {
-            try
-            {
-                hashAlgorithm = func.Invoke();
-                return true;
-            }
-            catch
-            {
-                hashAlgorithm = null;
-                return false;
-            }
-        }
-        hashAlgorithm = null;
-        return false;
     }
 }

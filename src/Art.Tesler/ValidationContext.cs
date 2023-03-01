@@ -108,26 +108,20 @@ public class ValidationContext
                 else
                 {
                     await using Stream sourceStreamAdd = await _adm.OpenInputStreamAsync(rInf.Key);
-                    byte[] hash = await activeHashAlgorithmForAddReal.HashAlgorithm.ComputeHashAsync(sourceStreamAdd);
-                    await _arm.AddResourceAsync(rInf with { Checksum = new Checksum(activeHashAlgorithmForAddReal.Id, hash) });
+                    byte[] newHash = await activeHashAlgorithmForAddReal.HashAlgorithm.ComputeHashAsync(sourceStreamAdd);
+                    await _arm.AddResourceAsync(rInf with { Checksum = new Checksum(activeHashAlgorithmForAddReal.Id, newHash) });
                 }
                 continue;
             }
-            if (!ChecksumSource.TryGetHashAlgorithm(rInf.Checksum.Id, out HashAlgorithm? hashAlgorithm))
+            if (!ChecksumSource.DefaultSources.TryGetValue(rInf.Checksum.Id, out ChecksumSource? checksumSource) || checksumSource.HashAlgorithmFunc == null)
             {
                 AddFail(rInf);
                 continue;
             }
-            try
-            {
-                await using Stream sourceStream = await _adm.OpenInputStreamAsync(rInf.Key);
-                byte[] hash = await hashAlgorithm.ComputeHashAsync(sourceStream);
-                if (!rInf.Checksum.Value.AsSpan().SequenceEqual(hash)) AddFail(rInf);
-            }
-            finally
-            {
-                hashAlgorithm.Dispose();
-            }
+            using var hashAlgorithm = checksumSource.HashAlgorithmFunc();
+            await using Stream sourceStream = await _adm.OpenInputStreamAsync(rInf.Key);
+            byte[] existingHash = await hashAlgorithm.ComputeHashAsync(sourceStream);
+            if (!rInf.Checksum.Value.AsSpan().SequenceEqual(existingHash)) AddFail(rInf);
         }
         return new ValidationProcessResult(1, resourceCount);
     }
