@@ -33,7 +33,7 @@ internal static class Common
         var encoding = Encoding.UTF8; // big assumption, there... what choice is there
         var outWriter = new ConsoleProxyTextWriter(console.Out, s_envNewLine, encoding);
         var errorWriter = new ConsoleProxyTextWriter(console.Error, s_envNewLine, encoding);
-        return new StyledLogHandler(outWriter, errorWriter, true, OperatingSystem.IsMacOS());
+        return new StyledLogHandler(outWriter, errorWriter, false, OperatingSystem.IsMacOS());
     }
 
     internal static int AccumulateErrorCode(int errorCode, int existingErrorCode)

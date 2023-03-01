@@ -84,12 +84,12 @@ public class FindCommand : ToolCommandBase
             }
             catch (Exception ex)
             {
-                PrintExceptionMessage(ex);
+                PrintExceptionMessage(ex, context.Console);
                 continue;
             }
             finally
             {
-                if (data == null) PrintWarningMessage($"!! [{id}] not found");
+                if (data == null) PrintWarningMessage($"!! [{id}] not found", context.Console);
             }
             if (data != null)
             {

@@ -59,7 +59,7 @@ public class ValidateCommand : ToolCommandBase
         hash = string.Equals(hash, "none", StringComparison.InvariantCultureIgnoreCase) ? null : hash;
         if (hash != null && !ChecksumSource.DefaultSources.ContainsKey(hash))
         {
-            PrintErrorMessage(Common.GetInvalidHashMessage(hash));
+            PrintErrorMessage(Common.GetInvalidHashMessage(hash), context.Console);
             return 2;
         }
         IToolLogHandler l = Common.GetDefaultToolLogHandler(context.Console);

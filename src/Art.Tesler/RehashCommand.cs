@@ -1,5 +1,6 @@
 ﻿using System.CommandLine;
 using System.CommandLine.Invocation;
+using System.CommandLine.IO;
 using System.Security.Cryptography;
 using Art.Common;
 
@@ -43,7 +44,7 @@ internal class RehashCommand : CommandBase
         string hash = context.ParseResult.GetValueForOption(HashOption)!;
         if (!ChecksumSource.DefaultSources.ContainsKey(hash))
         {
-            PrintErrorMessage(Common.GetInvalidHashMessage(hash));
+            PrintErrorMessage(Common.GetInvalidHashMessage(hash), context.Console);
             return 2;
         }
         using var adm = DataProvider.CreateArtifactDataManager(context);
@@ -71,7 +72,7 @@ internal class RehashCommand : CommandBase
             }
             if (!ChecksumSource.DefaultSources.TryGetValue(hash, out ChecksumSource? haNewV))
             {
-                PrintErrorMessage($"Failed to instantiate new hash algorithm for {hash}");
+                PrintErrorMessage($"Failed to instantiate new hash algorithm for {hash}", context.Console);
                 return 2;
             }
             Common.PrintFormat(rInf.GetInfoPathString(), detailed, () => rInf.GetInfoString(), context.Console);
@@ -91,14 +92,14 @@ internal class RehashCommand : CommandBase
             Common.PrintFormat(nInf.GetInfoPathString(), detailed, () => nInf.GetInfoString(), context.Console);
             rehashed++;
         }
-        Console.WriteLine();
+        context.Console.Out.WriteLine();
         if (failed.Count != 0)
         {
-            PrintErrorMessage($"{failed.Sum(v => v.Value.Count)} resources with checksums failed validation before rehash.");
+            PrintErrorMessage($"{failed.Sum(v => v.Value.Count)} resources with checksums failed validation before rehash.", context.Console);
             foreach (ArtifactResourceInfo value in failed.Values.SelectMany(v => v)) Common.Display(value, detailed, context.Console);
             return 1;
         }
-        Console.WriteLine($"{rehashed} resources successfully rehashed.");
+        context.Console.Out.WriteLine($"{rehashed} resources successfully rehashed.");
         return 0;
     }
 }

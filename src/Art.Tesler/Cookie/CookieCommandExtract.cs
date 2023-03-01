@@ -1,5 +1,6 @@
 using System.CommandLine;
 using System.CommandLine.Invocation;
+using System.CommandLine.IO;
 using System.CommandLine.Parsing;
 using System.Net;
 using System.Text;
@@ -33,26 +34,58 @@ public class CookieCommandExtract : CommandBase
         List<string> domains = context.ParseResult.GetValueForOption(DomainsOption)!;
         if (!CookieSource.TryGetBrowserFromName(browserName, out var source, browserProfile))
         {
-            PrintErrorMessage(Common.GetInvalidCookieSourceBrowserMessage(browserName));
+            PrintErrorMessage(Common.GetInvalidCookieSourceBrowserMessage(browserName), context.Console);
             return 2;
         }
         if (context.ParseResult.HasOption(OutputOption))
         {
             await using var output = File.CreateText(context.ParseResult.GetValueForOption(OutputOption)!);
-            await ExportAsync(source, domains, output);
+            await ExportAsync(source, domains, new TextWriterBlockWriter(output));
         }
         else
         {
-            await ExportAsync(source, domains, Console.Out);
+            await ExportAsync(source, domains, new StandardStreamWriterBlockWriter(context.Console.Out));
         }
         return 0;
     }
 
-    private static async Task ExportAsync(CookieSource source, IEnumerable<string> domains, TextWriter output)
+    private class StandardStreamWriterBlockWriter : IBlockWriter
+    {
+        private readonly IStandardStreamWriter _standardStreamWriter;
+
+        public StandardStreamWriterBlockWriter(IStandardStreamWriter standardStreamWriter)
+        {
+            _standardStreamWriter = standardStreamWriter;
+        }
+
+        public void Write(string text)
+        {
+            _standardStreamWriter.Write(text);
+        }
+    }
+
+    private class TextWriterBlockWriter : IBlockWriter
+    {
+        private readonly TextWriter _textWriter;
+
+        public TextWriterBlockWriter(TextWriter textWriter)
+        {
+            _textWriter = textWriter;
+        }
+
+        public void Write(string text) => _textWriter.Write(text);
+    }
+
+    private interface IBlockWriter
+    {
+        void Write(string text);
+    }
+
+    private static async Task ExportAsync(CookieSource source, IEnumerable<string> domains, IBlockWriter output)
     {
         CookieContainer cc = new();
         await source.LoadCookiesAsync(cc, domains.Select(v => new CookieFilter(v)).ToList());
-        await output.WriteAsync("# Netscape HTTP Cookie File\n");
+        output.Write("# Netscape HTTP Cookie File\n");
         StringBuilder sb = new();
         foreach (object? cookie in cc.GetAllCookies())
         {
@@ -64,7 +97,7 @@ public class CookieCommandExtract : CommandBase
             sb.Append(c.Expires == DateTime.MinValue ? 0 : (long)c.Expires.Subtract(DateTime.UnixEpoch).TotalSeconds).Append('\t');
             sb.Append(c.Name).Append('\t');
             sb.Append(c.Value).Append('\n');
-            await output.WriteAsync(sb.ToString());
+            output.Write(sb.ToString());
             sb.Clear();
         }
     }

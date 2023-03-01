@@ -1,5 +1,6 @@
 ﻿using System.CommandLine;
 using System.CommandLine.Invocation;
+using System.CommandLine.IO;
 
 namespace Art.Tesler;
 
@@ -18,28 +19,24 @@ public abstract class CommandBase : Command
         }
         catch (ArtUserException e)
         {
-            PrintExceptionMessage(e);
+            PrintExceptionMessage(e, context.Console);
             return -1;
         }
     }
 
-    protected static void PrintExceptionMessage(Exception e)
+    protected static void PrintExceptionMessage(Exception e, IConsole console)
     {
-        PrintErrorMessage(e.Message);
+        PrintErrorMessage(e.Message, console);
     }
 
-    protected static void PrintErrorMessage(string message)
+    protected static void PrintErrorMessage(string message, IConsole console)
     {
-        Console.ForegroundColor = ConsoleColor.Red;
-        Console.Error.WriteLine(message);
-        Console.ResetColor();
+        console.Error.WriteLine(message);
     }
 
-    protected static void PrintWarningMessage(string message)
+    protected static void PrintWarningMessage(string message, IConsole console)
     {
-        Console.ForegroundColor = ConsoleColor.Yellow;
-        Console.Error.WriteLine(message);
-        Console.ResetColor();
+        console.Error.WriteLine(message);
     }
 
     protected abstract Task<int> RunAsync(InvocationContext context);

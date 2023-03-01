@@ -74,7 +74,7 @@ public class DatabaseCommandDelete : DatabaseCommandBase
             if (doDelete) await arm.RemoveArtifactAsync(i.Key);
             v++;
         }
-        Console.WriteLine(doDelete ? $"Deleted {v} records." : $"{v} records would be affected.");
+        context.Console.WriteLine(doDelete ? $"Deleted {v} records." : $"{v} records would be affected.");
         return 0;
     }
 }

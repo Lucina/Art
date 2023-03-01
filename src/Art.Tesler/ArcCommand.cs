@@ -76,7 +76,7 @@ public class ArcCommand : ToolCommandBase
         hash = string.Equals(hash, "none", StringComparison.InvariantCultureIgnoreCase) ? null : hash;
         if (hash != null && !ChecksumSource.DefaultSources.ContainsKey(hash))
         {
-            PrintErrorMessage(Common.GetInvalidHashMessage(hash));
+            PrintErrorMessage(Common.GetInvalidHashMessage(hash), context.Console);
             return 2;
         }
         ResourceUpdateMode update = context.ParseResult.GetValueForOption(UpdateOption);

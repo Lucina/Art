@@ -162,7 +162,7 @@ public class ModuleManifestProvider : IModuleProvider
     {
         try
         {
-            content = JsonSerializer.Deserialize<ModuleManifestContent>(File.ReadAllText(file)) ?? throw new IOException($"Failed to deserialize manifest file {file}");
+            content = JsonSerializer.Deserialize(File.ReadAllText(file), SourceGenerationContext.s_context.ModuleManifestContent) ?? throw new IOException($"Failed to deserialize manifest file {file}");
             return true;
         }
         catch

@@ -1,5 +1,6 @@
 ﻿using System.Text.Json;
 using System.Text.Json.Serialization;
+using Art.Common.Modular;
 
 namespace Art.Common;
 
@@ -14,6 +15,7 @@ namespace Art.Common;
 [JsonSerializable(typeof(ArtifactToolProfile[]))]
 [JsonSerializable(typeof(ArtifactInfo))]
 [JsonSerializable(typeof(ArtifactResourceInfo))]
+[JsonSerializable(typeof(ModuleManifestContent))]
 internal partial class SourceGenerationContext : JsonSerializerContext
 {
     static SourceGenerationContext()
