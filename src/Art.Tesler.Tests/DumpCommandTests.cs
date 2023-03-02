@@ -35,7 +35,7 @@ public class DumpCommandTests : CommandTestBase
     }
 
     [Test]
-    public void Dump_MissingTool_Fails()
+    public void MissingTool_Fails()
     {
         var store = GetSingleStore(ProgrammableArtifactDumpTool.CreateRegistryEntry(_ => { }));
         var defaultPropertyProvider = CreateInMemoryDefaultPropertyProvider();
@@ -50,7 +50,7 @@ public class DumpCommandTests : CommandTestBase
     }
 
     [Test]
-    public void Dump_NoopTool_Success()
+    public void NoopTool_Success()
     {
         var store = GetSingleStore(ProgrammableArtifactDumpTool.CreateRegistryEntry(_ => { }));
         var defaultPropertyProvider = CreateInMemoryDefaultPropertyProvider();

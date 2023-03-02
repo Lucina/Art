@@ -29,11 +29,29 @@ internal static class Common
                 Display(r, detailed, console);
     }
 
-    internal static async Task DisplayAsync(ArtifactInfo i, IEnumerable<ArtifactResourceInfo> resources, bool detailed, IOutputPair console)
+    internal static Task DisplayAsync(IArtifactData d, bool listResource, bool detailed, IOutputPair console)
+    {
+        if (console is ObjectToolLogHandlerProvider provider)
+        {
+            var handler = provider.GetDefaultToolLogHandler();
+            handler.Log(new ArtifactDataObjectLog(null, null, LogLevel.Information, d));
+            return Task.CompletedTask;
+        }
+        if (listResource)
+        {
+            return DisplayAsync(d.Info, d.Values, detailed, console);
+        }
+        Display(d.Info, detailed, console);
+        return Task.CompletedTask;
+    }
+
+    private static async Task DisplayAsync(ArtifactInfo i, IEnumerable<ArtifactResourceInfo> resources, bool detailed, IOutputPair console)
     {
         Display(i, detailed, console);
         foreach (ArtifactResourceInfo r in resources)
+        {
             if (r.UsesMetadata)
+            {
                 try
                 {
                     ArtifactResourceInfo r2 = await r.WithMetadataAsync();
@@ -43,8 +61,12 @@ internal static class Common
                 {
                     Display(r, detailed, console);
                 }
+            }
             else
+            {
                 Display(r, detailed, console);
+            }
+        }
     }
 
     internal static void PrintFormat(string entry, bool detailed, Func<string> details, IOutputPair console)
@@ -58,11 +80,15 @@ internal static class Common
         }
     }
 
-    internal static void Display(ArtifactInfo i, bool detailed, IOutputPair console)
-        => PrintFormat(i.Key.Tool + "/" + i.Key.Group + ": " + i.GetInfoTitleString(), detailed, i.GetInfoString, console);
+    private static void Display(ArtifactInfo i, bool detailed, IOutputPair console)
+    {
+        PrintFormat(i.Key.Tool + "/" + i.Key.Group + ": " + i.GetInfoTitleString(), detailed, i.GetInfoString, console);
+    }
 
     internal static void Display(ArtifactResourceInfo r, bool detailed, IOutputPair console)
-        => PrintFormat("-- " + r.GetInfoPathString(), detailed, r.GetInfoString, console);
+    {
+        PrintFormat("-- " + r.GetInfoPathString(), detailed, r.GetInfoString, console);
+    }
 
     private static readonly Regex s_propRe = new(@"(.+?):(.+)");
 

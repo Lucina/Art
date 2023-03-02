@@ -104,10 +104,7 @@ public class FindCommand : ToolCommandBase
             }
             if (data != null)
             {
-                if (listResource)
-                    await Common.DisplayAsync(data.Info, data.Values, detailed, ToolOutput);
-                else
-                    Common.Display(data.Info, detailed, ToolOutput);
+                await Common.DisplayAsync(data, listResource, detailed, ToolOutput);
             }
         }
         return 0;

@@ -80,10 +80,9 @@ public class ListCommand : ToolCommandBase
         bool listResource = context.ParseResult.GetValueForOption(ListResourceOption);
         bool detailed = context.ParseResult.GetValueForOption(DetailedOption);
         await foreach (IArtifactData data in proxy.ListAsync())
-            if (listResource)
-                await Common.DisplayAsync(data.Info, data.Values, detailed, ToolOutput);
-            else
-                Common.Display(data.Info, detailed, ToolOutput);
+        {
+            await Common.DisplayAsync(data, listResource, detailed, ToolOutput);
+        }
         return 0;
     }
 }

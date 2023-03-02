@@ -13,7 +13,9 @@ namespace Art.Tesler.Tests;
 public class CommandTestBase
 {
     protected StringWriter? Out;
+    protected Queue<ObjectLog>? OutQueue;
     protected StringWriter? Error;
+    protected Queue<ObjectLog>? ErrorQueue;
     protected IOutputPair? ToolOutput;
     protected TestConsole? TestConsole;
     protected IDefaultPropertyProvider? DefaultPropertyProvider;
@@ -35,6 +37,27 @@ public class CommandTestBase
             Error.NewLine = newLine;
         }
         ToolOutput = toolLogHandlerProvider = new PlainToolLogHandlerProvider(Out, Error, () => throw new NotSupportedException());
+        console = TestConsole = new TestConsole(Out, Error, windowWidth, outputRedirected, errorRedirected, inputRedirected);
+    }
+
+    [MemberNotNull(nameof(Out))]
+    [MemberNotNull(nameof(OutQueue))]
+    [MemberNotNull(nameof(Error))]
+    [MemberNotNull(nameof(ErrorQueue))]
+    [MemberNotNull(nameof(ToolOutput))]
+    [MemberNotNull(nameof(TestConsole))]
+    internal void CreateObjectOutputs(out ObjectToolLogHandlerProvider toolLogHandlerProvider, out TestConsole console, string? newLine = null, int windowWidth = 100, bool outputRedirected = true, bool errorRedirected = true, bool inputRedirected = true)
+    {
+        Out = new StringWriter();
+        Error = new StringWriter();
+        if (newLine != null)
+        {
+            Out.NewLine = newLine;
+            Error.NewLine = newLine;
+        }
+        OutQueue = new Queue<ObjectLog>();
+        ErrorQueue = new Queue<ObjectLog>();
+        ToolOutput = toolLogHandlerProvider = new ObjectToolLogHandlerProvider(Out, Error, () => throw new NotSupportedException(), OutQueue, ErrorQueue);
         console = TestConsole = new TestConsole(Out, Error, windowWidth, outputRedirected, errorRedirected, inputRedirected);
     }
 
