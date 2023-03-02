@@ -105,7 +105,7 @@ public class FindCommandTests : CommandTestBase
         string[] line = { "-t", toolString, "-g", group, search };
         int rc = Command.Invoke(line, console);
         Assert.That(Out.ToString(), Is.Empty);
-        Assert.That(OutQueue, Is.Not.Empty);
+        Assert.That(OutQueue, Has.Count.EqualTo(1));
         Assert.That(Error.ToString(), Is.Empty);
         Assert.That(ErrorQueue, Is.Empty);
         Assert.That(rc, Is.EqualTo(0));
