@@ -13,6 +13,7 @@ namespace Art.Tesler.Tests;
 public class CommandTestBase
 {
     protected StringWriter? Out;
+    protected MemoryStream? OutStream;
     protected Queue<ObjectLog>? OutQueue;
     protected StringWriter? Error;
     protected Queue<ObjectLog>? ErrorQueue;
@@ -22,6 +23,26 @@ public class CommandTestBase
     protected ITeslerRegistrationProvider? RegistrationProvider;
     protected ITeslerDataProvider? DataProvider;
     protected IProfileResolver? ProfileResolver;
+
+    [MemberNotNull(nameof(Out))]
+    [MemberNotNull(nameof(OutStream))]
+    [MemberNotNull(nameof(Error))]
+    [MemberNotNull(nameof(ToolOutput))]
+    [MemberNotNull(nameof(TestConsole))]
+    internal void CreateStreamOutputs(out PlainToolLogHandlerProvider toolLogHandlerProvider, out TestConsole console, string? newLine = null, int windowWidth = 100, bool outputRedirected = true, bool errorRedirected = true, bool inputRedirected = true)
+    {
+        Out = new StringWriter();
+        OutStream = new MemoryStream();
+        Error = new StringWriter();
+        if (newLine != null)
+        {
+            Out.NewLine = newLine;
+            Error.NewLine = newLine;
+        }
+        OutStream = new MemoryStream();
+        ToolOutput = toolLogHandlerProvider = new PlainToolLogHandlerProvider(Out, Error, () => new NonDisposingStream(OutStream));
+        console = TestConsole = new TestConsole(Out, Error, windowWidth, outputRedirected, errorRedirected, inputRedirected);
+    }
 
     [MemberNotNull(nameof(Out))]
     [MemberNotNull(nameof(Error))]
