@@ -51,6 +51,7 @@ public record ArtifactToolDumpProxy
     /// <param name="cancellationToken">Cancellation token.</param>
     /// <returns>Task.</returns>
     /// <exception cref="InvalidOperationException">Thrown when an invalid configuration is detected.</exception>
+    /// <exception cref="NotSupportedException">Thrown when a tool does not natively and cannot be made to support dumping.</exception>
     public async ValueTask DumpAsync(CancellationToken cancellationToken = default)
     {
         if (ArtifactTool == null) throw new InvalidOperationException("Artifact tool cannot be null");

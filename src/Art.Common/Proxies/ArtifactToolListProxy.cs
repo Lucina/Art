@@ -44,6 +44,7 @@ public record ArtifactToolListProxy
     /// <param name="cancellationToken">Cancellation token.</param>
     /// <returns>Async-enumerable artifacts.</returns>
     /// <exception cref="InvalidOperationException">Thrown when an invalid configuration is detected.</exception>
+    /// <exception cref="NotSupportedException">Thrown when a tool does not natively and cannot be made to support listing.</exception>
     public async IAsyncEnumerable<IArtifactData> ListAsync([EnumeratorCancellation] CancellationToken cancellationToken = default)
     {
         if (ArtifactTool == null) throw new InvalidOperationException("Artifact tool cannot be null");
@@ -87,23 +88,43 @@ public record ArtifactToolListProxy
         }
         if (artifactTool is IArtifactDumpTool dumpTool)
         {
-            IArtifactDataManager previous = artifactTool.DataManager;
+            IArtifactDataManager previousAdm = artifactTool.DataManager;
+            IArtifactRegistrationManager previousArm = artifactTool.RegistrationManager;
             try
             {
-                InMemoryArtifactDataManager im = new();
-                artifactTool.DataManager = im;
+                InMemoryArtifactDataManager adm = new();
+                InMemoryArtifactRegistrationManager arm = new();
+                artifactTool.DataManager = adm;
+                artifactTool.RegistrationManager = arm;
                 await dumpTool.DumpAsync(cancellationToken).ConfigureAwait(false);
-                foreach ((ArtifactKey ak, List<ArtifactResourceInfo> resources) in im.Artifacts)
+                HashSet<ArtifactKey> known = new();
+                foreach ((ArtifactKey ak, List<ArtifactResourceInfo> resources) in adm.Artifacts)
                 {
-                    if (await artifactTool.RegistrationManager.TryGetArtifactAsync(ak, cancellationToken).ConfigureAwait(false) is not { } info) continue;
+                    if (await artifactTool.RegistrationManager.TryGetArtifactAsync(ak, cancellationToken).ConfigureAwait(false) is not { } info)
+                    {
+                        continue;
+                    }
+                    if (!known.Add(ak))
+                    {
+                        continue;
+                    }
                     ArtifactData data = new(info);
                     data.AddRange(resources);
                     yield return data;
                 }
+                foreach (var info in await arm.ListArtifactsAsync(cancellationToken).ConfigureAwait(false))
+                {
+                    if (!known.Add(info.Key))
+                    {
+                        continue;
+                    }
+                    yield return new ArtifactData(info);
+                }
             }
             finally
             {
-                artifactTool.DataManager = previous;
+                artifactTool.DataManager = previousAdm;
+                artifactTool.RegistrationManager = previousArm;
             }
             yield break;
         }
