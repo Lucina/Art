@@ -13,27 +13,13 @@ public abstract class CommonCommittableStream : CommittableStream
     /// <inheritdoc />
     protected override void Dispose(bool disposing)
     {
-        try
-        {
-            CommitInternal(ShouldCommit);
-        }
-        finally
-        {
-            base.Dispose(disposing);
-        }
+        CommitInternal(ShouldCommit);
     }
 
     /// <inheritdoc />
     public override async ValueTask DisposeAsync()
     {
-        try
-        {
-            await CommitInternalAsync(ShouldCommit).ConfigureAwait(false);
-        }
-        finally
-        {
-            await base.DisposeAsync().ConfigureAwait(false);
-        }
+        await CommitInternalAsync(ShouldCommit).ConfigureAwait(false);
     }
 
     private void CommitInternal(bool shouldCommit)
@@ -60,13 +46,13 @@ public abstract class CommonCommittableStream : CommittableStream
     }
 
     /// <summary>
-    /// Perform data commit.
+    /// Performs data commit.
     /// </summary>
     /// <param name="shouldCommit">If true, perform commit. Otherwise, perform appropriate cleanup.</param>
     protected abstract void Commit(bool shouldCommit);
 
     /// <summary>
-    /// Perform data commit.
+    /// Performs data commit.
     /// </summary>
     /// <param name="shouldCommit">If true, perform commit. Otherwise, perform appropriate cleanup.</param>
     protected virtual ValueTask CommitAsync(bool shouldCommit)

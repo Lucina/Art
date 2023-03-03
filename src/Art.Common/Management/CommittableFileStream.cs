@@ -7,7 +7,7 @@ namespace Art.Common.Management;
 /// This class is intended to only be used for file write scenarios.
 /// As such, creation of instances with <see cref="FileAccess"/> mode without <see cref="FileAccess.Write"/> will trigger <see cref="ArgumentException"/> upon construction.
 /// </remarks>
-public class CommittableFileStream : CommittableWrappingStream
+public class CommittableFileStream : CommittableDelegatingStream
 {
     /// <summary>
     /// Destination path.
@@ -17,7 +17,6 @@ public class CommittableFileStream : CommittableWrappingStream
     private readonly string _path;
     private readonly string _pathForStream;
     private readonly string? _tempPath;
-    private bool _committed;
 
     /// <summary>
     /// Creates a new instance of <see cref="CommittableFileStream"/>.
@@ -29,7 +28,7 @@ public class CommittableFileStream : CommittableWrappingStream
     {
         // Implicit write access
         EnsureAccess(_path = path, nameof(path), out _pathForStream, out _tempPath);
-        BaseStream = new FileStream(_pathForStream, mode);
+        InnerStream = new FileStream(_pathForStream, mode);
     }
 
     /// <summary>
@@ -43,7 +42,7 @@ public class CommittableFileStream : CommittableWrappingStream
     {
         EnsureWriting(access, nameof(access));
         EnsureAccess(_path = path, nameof(path), out _pathForStream, out _tempPath);
-        BaseStream = new FileStream(_pathForStream, mode, access);
+        InnerStream = new FileStream(_pathForStream, mode, access);
     }
 
     /// <summary>
@@ -58,7 +57,7 @@ public class CommittableFileStream : CommittableWrappingStream
     {
         EnsureWriting(access, nameof(access));
         EnsureAccess(_path = path, nameof(path), out _pathForStream, out _tempPath);
-        BaseStream = new FileStream(_pathForStream, mode, access, share);
+        InnerStream = new FileStream(_pathForStream, mode, access, share);
     }
 
     /// <summary>
@@ -74,7 +73,7 @@ public class CommittableFileStream : CommittableWrappingStream
     {
         EnsureWriting(access, nameof(access));
         EnsureAccess(_path = path, nameof(path), out _pathForStream, out _tempPath);
-        BaseStream = new FileStream(_pathForStream, mode, access, share, bufferSize);
+        InnerStream = new FileStream(_pathForStream, mode, access, share, bufferSize);
     }
 
     /// <summary>
@@ -91,7 +90,7 @@ public class CommittableFileStream : CommittableWrappingStream
     {
         EnsureWriting(access, nameof(access));
         EnsureAccess(_path = path, nameof(path), out _pathForStream, out _tempPath);
-        BaseStream = new FileStream(_pathForStream, mode, access, share, bufferSize, useAsync);
+        InnerStream = new FileStream(_pathForStream, mode, access, share, bufferSize, useAsync);
     }
 
     /// <summary>
@@ -108,7 +107,7 @@ public class CommittableFileStream : CommittableWrappingStream
     {
         EnsureWriting(access, nameof(access));
         EnsureAccess(_path = path, nameof(path), out _pathForStream, out _tempPath);
-        BaseStream = new FileStream(_pathForStream, mode, access, share, bufferSize, options);
+        InnerStream = new FileStream(_pathForStream, mode, access, share, bufferSize, options);
     }
 
     /// <summary>
@@ -127,7 +126,7 @@ public class CommittableFileStream : CommittableWrappingStream
             // Failing that, retry with size 0.
             try
             {
-                BaseStream = new FileStream(_pathForStream, options);
+                InnerStream = new FileStream(_pathForStream, options);
                 return;
             }
             catch (IOException)
@@ -135,7 +134,7 @@ public class CommittableFileStream : CommittableWrappingStream
                 options.PreallocationSize = 0;
             }
         }
-        BaseStream = new FileStream(_pathForStream, options);
+        InnerStream = new FileStream(_pathForStream, options);
     }
 
     private static void EnsureWriting(FileAccess access, string arg)
@@ -165,35 +164,16 @@ public class CommittableFileStream : CommittableWrappingStream
     }
 
     /// <inheritdoc />
-    protected override void Dispose(bool disposing)
-    {
-        DisposeStream();
-        base.Dispose(disposing);
-    }
-
-    /// <inheritdoc />
-    public override async ValueTask DisposeAsync()
-    {
-        await DisposeStreamAsync().ConfigureAwait(false);
-        await base.DisposeAsync().ConfigureAwait(false);
-    }
-
-    /// <inheritdoc />
     protected override void Commit(bool shouldCommit)
     {
-        if (_committed) return;
-        _committed = true;
-        DisposeStream();
         CommitCore(shouldCommit);
     }
 
     /// <inheritdoc />
-    protected override async ValueTask CommitAsync(bool shouldCommit)
+    protected override ValueTask CommitAsync(bool shouldCommit)
     {
-        if (_committed) return;
-        _committed = true;
-        await DisposeStreamAsync().ConfigureAwait(false);
         CommitCore(shouldCommit);
+        return ValueTask.CompletedTask;
     }
 
     private void CommitCore(bool shouldCommit)

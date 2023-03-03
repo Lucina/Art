@@ -3,7 +3,7 @@ namespace Art.Common.Management;
 /// <summary>
 /// Represents a wrapper around a <see cref="MemoryStream"/>.
 /// </summary>
-public class CommittableMemoryStream : CommittableWrappingStream
+public class CommittableMemoryStream : CommittableDelegatingStream
 {
     /// <summary>
     /// Target memory stream.
@@ -29,9 +29,8 @@ public class CommittableMemoryStream : CommittableWrappingStream
     /// Creates a new instance of <see cref="CommittableMemoryStream"/>.
     /// </summary>
     /// <param name="memoryStream">Stream to wrap.</param>
-    public CommittableMemoryStream(MemoryStream memoryStream)
+    public CommittableMemoryStream(MemoryStream memoryStream) : base(memoryStream)
     {
-        BaseStream = memoryStream;
         MemoryStream = memoryStream;
     }
 
