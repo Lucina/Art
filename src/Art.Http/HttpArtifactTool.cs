@@ -126,8 +126,23 @@ public abstract partial class HttpArtifactTool : ArtifactTool
     /// <summary>
     /// Creates a cookie container.
     /// </summary>
-    /// <param name="cancellationToken">Cancellation token.</param>
     /// <returns>A cookie container.</returns>
+    /// <remarks>
+    /// By default, this uses the <see cref="OptCookieBrowser"/>, <see cref="OptCookieBrowserDomains"/> <see cref="OptCookieBrowserProfile"/>, and <see cref="OptCookieFile"/> configuration options.
+    /// </remarks>
+    public virtual CookieContainer CreateCookieContainer()
+    {
+        CookieContainer cookies = new();
+        TryLoadBrowserCookiesFromOption(cookies, OptCookieBrowser, OptCookieBrowserDomains, OptCookieBrowserProfile);
+        TryLoadCookieFileFromOption(cookies, OptCookieFile);
+        return cookies;
+    }
+
+    /// <summary>
+    /// Creates a cookie container.
+    /// </summary>
+    /// <param name="cancellationToken">Cancellation token.</param>
+    /// <returns>Task returning a cookie container.</returns>
     /// <remarks>
     /// By default, this uses the <see cref="OptCookieBrowser"/>, <see cref="OptCookieBrowserDomains"/> <see cref="OptCookieBrowserProfile"/>, and <see cref="OptCookieFile"/> configuration options.
     /// </remarks>
@@ -146,8 +161,27 @@ public abstract partial class HttpArtifactTool : ArtifactTool
     /// <param name="optKeyBrowserName">Option key for browser name.</param>
     /// <param name="optKeyBrowserDomains">Option key for domains to filter by.</param>
     /// <param name="optKeyProfile">Optional option key for browser profile name.</param>
-    /// <param name="cancellationToken">Cancellation token.</param>
     /// <returns>True if necessary keys were found.</returns>
+    public bool TryLoadBrowserCookiesFromOption(CookieContainer cookies, string optKeyBrowserName, string optKeyBrowserDomains, string? optKeyProfile)
+    {
+        if (TryGetOption(optKeyBrowserName, out string? browserName, SourceGenerationContext.Default.String) && TryGetOption(optKeyBrowserDomains, out string[]? domains, SourceGenerationContext.Default.StringArray))
+        {
+            string? profile = optKeyProfile != null && TryGetOption(optKeyProfile, out string? profileValue, SourceGenerationContext.Default.String) ? profileValue : null;
+            var mappedDomains = domains.Select(v => new CookieFilter(v)).ToList();
+            CookieSource.LoadCookies(cookies, mappedDomains, browserName, profile);
+        }
+        return false;
+    }
+
+    /// <summary>
+    /// Attempts to load cookies from a browser based on the specified option keys.
+    /// </summary>
+    /// <param name="cookies">Cookie container to populate.</param>
+    /// <param name="optKeyBrowserName">Option key for browser name.</param>
+    /// <param name="optKeyBrowserDomains">Option key for domains to filter by.</param>
+    /// <param name="optKeyProfile">Optional option key for browser profile name.</param>
+    /// <param name="cancellationToken">Cancellation token.</param>
+    /// <returns>Task returning if necessary keys were found.</returns>
     public async Task<bool> TryLoadBrowserCookiesFromOptionAsync(CookieContainer cookies, string optKeyBrowserName, string optKeyBrowserDomains, string? optKeyProfile, CancellationToken cancellationToken = default)
     {
         if (TryGetOption(optKeyBrowserName, out string? browserName, SourceGenerationContext.Default.String) && TryGetOption(optKeyBrowserDomains, out string[]? domains, SourceGenerationContext.Default.StringArray))
@@ -164,8 +198,25 @@ public abstract partial class HttpArtifactTool : ArtifactTool
     /// </summary>
     /// <param name="cookies">Cookie container to populate.</param>
     /// <param name="optKey">Option key.</param>
-    /// <param name="cancellationToken">Cancellation token.</param>
     /// <returns>True if option key was found.</returns>
+    public bool TryLoadCookieFileFromOption(CookieContainer cookies, string optKey)
+    {
+        if (TryGetOption(optKey, out string? cookieFile, SourceGenerationContext.Default.String))
+        {
+            using StreamReader f = File.OpenText(cookieFile);
+            cookies.LoadCookieFile(f);
+            return true;
+        }
+        return false;
+    }
+
+    /// <summary>
+    /// Attempts to load cookies from a file based on the specified option key.
+    /// </summary>
+    /// <param name="cookies">Cookie container to populate.</param>
+    /// <param name="optKey">Option key.</param>
+    /// <param name="cancellationToken">Cancellation token.</param>
+    /// <returns>Task returning if option key was found.</returns>
     public async Task<bool> TryLoadCookieFileFromOptionAsync(CookieContainer cookies, string optKey, CancellationToken cancellationToken = default)
     {
         if (TryGetOption(optKey, out string? cookieFile, SourceGenerationContext.Default.String))

@@ -9,9 +9,96 @@ namespace Art.BrowserCookies.Chromium;
 public abstract record ChromiumCookieSource : CookieSource
 {
     /// <inheritdoc />
+    public override void LoadCookies(CookieContainer cookieContainer, CookieFilter domain)
+    {
+        LoadCookies(cookieContainer, new[] { domain });
+    }
+
+    /// <inheritdoc />
     public override Task LoadCookiesAsync(CookieContainer cookieContainer, CookieFilter domain, CancellationToken cancellationToken = default)
     {
         return LoadCookiesAsync(cookieContainer, new[] { domain }, cancellationToken);
+    }
+
+    /// <inheritdoc />
+    public override void LoadCookies(CookieContainer cookieContainer, IReadOnlyCollection<CookieFilter> domains)
+    {
+        foreach (var domain in domains)
+        {
+            domain.Validate();
+        }
+        IChromiumKeychain? keychain = null;
+        try
+        {
+            // NT epoch
+            DateTime expiryBase = new(1601, 1, 1);
+            string temp = Path.GetTempFileName();
+            try
+            {
+                File.Copy(sourceFileName: GetPath(UserDataKind.Cookies), destFileName: temp, overwrite: true);
+                using var connection = new SqliteConnection($"Data Source={temp};Pooling=False;");
+                connection.Open();
+                foreach ((string domain, bool includeSubdomains) in domains)
+                {
+                    var command = connection.CreateCommand();
+                    if (includeSubdomains)
+                    {
+                        command.CommandText = """
+                        SELECT name, "value", encrypted_value, path, expires_utc, is_secure, host_key
+                        FROM cookies
+                        WHERE host_key = $hostKey OR host_key LIKE $dotHostKey
+                        """;
+                        command.Parameters.AddWithValue("$dotHostKey", "%." + domain);
+                    }
+                    else
+                    {
+                        command.CommandText = """
+                        SELECT name, "value", encrypted_value, path, expires_utc, is_secure, host_key
+                        FROM cookies
+                        WHERE host_key = $hostKey OR host_key = $dotHostKey
+                        """;
+                        command.Parameters.AddWithValue("$dotHostKey", "." + domain);
+                    }
+                    command.Parameters.AddWithValue("$hostKey", domain);
+                    using var reader = command.ExecuteReader();
+                    while (reader.Read())
+                    {
+                        string value = reader.GetString(1);
+                        if (string.IsNullOrWhiteSpace(value))
+                        {
+                            byte[] buf = ReadBytes(reader.GetStream(2));
+                            if (buf.Length != 0)
+                            {
+                                value = (keychain ??= GetKeychain()).Unlock(buf);
+                            }
+                            else
+                            {
+                                value = "";
+                            }
+                        }
+                        long expiry = reader.GetInt64(4);
+                        DateTime expires = expiry == 0 ? DateTime.MinValue : expiryBase.AddMicroseconds(expiry);
+                        cookieContainer.Add(new Cookie
+                        {
+                            Expires = expires,
+                            Secure = reader.GetBoolean(5),
+                            Name = reader.GetString(0),
+                            Value = value,
+                            Path = reader.GetString(3),
+                            Domain = reader.GetString(6)
+                        });
+                    }
+                }
+            }
+            finally
+            {
+                File.Delete(temp);
+            }
+        }
+        finally
+        {
+            keychain?.Dispose();
+        }
     }
 
     /// <inheritdoc />
@@ -102,6 +189,12 @@ public abstract record ChromiumCookieSource : CookieSource
         stream.CopyTo(ms);
         return buf;
     }
+
+    /// <summary>
+    /// Synchronously gets a keychain accessor corresponding to this browser for the current user.
+    /// </summary>
+    /// <returns>Keychain.</returns>
+    protected abstract IChromiumKeychain GetKeychain();
 
     /// <summary>
     /// Gets a keychain accessor corresponding to this browser for the current user.

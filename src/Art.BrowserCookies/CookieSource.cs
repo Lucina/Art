@@ -38,6 +38,15 @@ public abstract record CookieSource
     }
 
     /// <summary>
+    /// Synchronously loads cookies for a domain into the specified <see cref="CookieContainer"/>.
+    /// </summary>
+    /// <param name="cookieContainer">Container to populate.</param>
+    /// <param name="domain">Target domain.</param>
+    /// <returns>Task.</returns>
+    /// <exception cref="ArgumentException">Thrown for invalid domain specification.</exception>
+    public abstract void LoadCookies(CookieContainer cookieContainer, CookieFilter domain);
+
+    /// <summary>
     /// Loads cookies for a domain into the specified <see cref="CookieContainer"/>.
     /// </summary>
     /// <param name="cookieContainer">Container to populate.</param>
@@ -46,6 +55,15 @@ public abstract record CookieSource
     /// <returns>Task.</returns>
     /// <exception cref="ArgumentException">Thrown for invalid domain specification.</exception>
     public abstract Task LoadCookiesAsync(CookieContainer cookieContainer, CookieFilter domain, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Synchronously loads cookies for a domain into the specified <see cref="CookieContainer"/>.
+    /// </summary>
+    /// <param name="cookieContainer">Container to populate.</param>
+    /// <param name="domains">Target domains.</param>
+    /// <returns>Task.</returns>
+    /// <exception cref="ArgumentException">Thrown for invalid domain specification.</exception>
+    public abstract void LoadCookies(CookieContainer cookieContainer, IReadOnlyCollection<CookieFilter> domains);
 
     /// <summary>
     /// Loads cookies for a domain into the specified <see cref="CookieContainer"/>.
@@ -94,6 +112,27 @@ public abstract record CookieSource
     /// <param name="cookieContainer">Container to populate.</param>
     /// <param name="domain">Target domain.</param>
     /// <param name="profile">Optional browser profile name.</param>
+    /// <param name="browserName">Browser name.</param>
+    /// <returns>Task.</returns>
+    /// <exception cref="ArgumentException">Thrown for invalid domain specification.</exception>
+    /// <exception cref="BrowserNotFoundException">Thrown for unknown browser name.</exception>
+    /// <exception cref="BrowserProfileNotFoundException">Thrown for unknown browser profile name.</exception>
+    public static void LoadCookies(CookieContainer cookieContainer, CookieFilter domain, string browserName, string? profile = null)
+    {
+        if (!TryGetBrowserFromName(browserName, out var cookieSource, profile))
+        {
+            throw new BrowserNotFoundException(browserName);
+        }
+        cookieSource = cookieSource.Resolve();
+        cookieSource.LoadCookies(cookieContainer, domain);
+    }
+
+    /// <summary>
+    /// Loads cookies for a domain into the specified <see cref="CookieContainer"/>.
+    /// </summary>
+    /// <param name="cookieContainer">Container to populate.</param>
+    /// <param name="domain">Target domain.</param>
+    /// <param name="profile">Optional browser profile name.</param>
     /// <param name="cancellationToken">Cancellation token.</param>
     /// <param name="browserName">Browser name.</param>
     /// <returns>Task.</returns>
@@ -108,6 +147,26 @@ public abstract record CookieSource
         }
         cookieSource = cookieSource.Resolve();
         return cookieSource.LoadCookiesAsync(cookieContainer, domain, cancellationToken);
+    }
+
+    /// <summary>
+    /// Loads cookies for a domain into the specified <see cref="CookieContainer"/>.
+    /// </summary>
+    /// <param name="cookieContainer">Container to populate.</param>
+    /// <param name="domains">Target domains.</param>
+    /// <param name="profile">Optional browser profile name.</param>
+    /// <param name="browserName">Browser name.</param>
+    /// <exception cref="ArgumentException">Thrown for invalid domain specification.</exception>
+    /// <exception cref="BrowserNotFoundException">Thrown for unknown browser name.</exception>
+    /// <exception cref="BrowserProfileNotFoundException">Thrown for unknown browser profile name.</exception>
+    public static void LoadCookies(CookieContainer cookieContainer, IReadOnlyCollection<CookieFilter> domains, string browserName, string? profile = null)
+    {
+        if (!TryGetBrowserFromName(browserName, out var cookieSource, profile))
+        {
+            throw new BrowserNotFoundException(browserName);
+        }
+        cookieSource = cookieSource.Resolve();
+        cookieSource.LoadCookies(cookieContainer, domains);
     }
 
     /// <summary>

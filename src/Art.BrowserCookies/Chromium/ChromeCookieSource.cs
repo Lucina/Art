@@ -62,6 +62,24 @@ public record ChromeCookieSource(string Profile = "Default") : ChromiumProfileCo
     }
 
     /// <inheritdoc />
+    protected override IChromiumKeychain GetKeychain()
+    {
+        if (OperatingSystem.IsWindows())
+        {
+            return ChromiumKeychainUtil.GetWindowsKeychain(GetUserDataDirectory());
+        }
+        if (OperatingSystem.IsMacOS())
+        {
+            return ChromiumKeychainUtil.GetMacosKeychain("Chrome Safe Storage");
+        }
+        if (OperatingSystem.IsLinux())
+        {
+            throw new NotImplementedException();
+        }
+        throw new PlatformNotSupportedException();
+    }
+
+    /// <inheritdoc />
     protected override Task<IChromiumKeychain> GetKeychainAsync(CancellationToken cancellationToken = default)
     {
         if (OperatingSystem.IsWindows())

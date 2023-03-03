@@ -64,6 +64,24 @@ public record EdgeCookieSource(string Profile = "Default") : ChromiumProfileCook
     }
 
     /// <inheritdoc />
+    protected override IChromiumKeychain GetKeychain()
+    {
+        if (OperatingSystem.IsWindows())
+        {
+            return ChromiumKeychainUtil.GetWindowsKeychain(GetUserDataDirectory());
+        }
+        if (OperatingSystem.IsMacOS())
+        {
+            return ChromiumKeychainUtil.GetMacosKeychain("Microsoft Edge Safe Storage");
+        }
+        if (OperatingSystem.IsLinux())
+        {
+            throw new NotImplementedException();
+        }
+        throw new PlatformNotSupportedException();
+    }
+
+    /// <inheritdoc />
     protected override Task<IChromiumKeychain> GetKeychainAsync(CancellationToken cancellationToken = default)
     {
         if (OperatingSystem.IsWindows())
