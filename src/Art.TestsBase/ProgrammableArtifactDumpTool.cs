@@ -1,11 +1,8 @@
-﻿using System;
-using System.Threading;
-using System.Threading.Tasks;
-using Art.Common;
+﻿using Art.Common;
 
-namespace Art.Tesler.Tests;
+namespace Art.TestsBase;
 
-internal class ProgrammableArtifactDumpTool : ArtifactTool, IArtifactDumpTool
+public class ProgrammableArtifactDumpTool : ArtifactTool, IArtifactDumpTool
 {
     public delegate void SynchronousDumpDelegate(ProgrammableArtifactDumpTool tool);
 

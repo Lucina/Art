@@ -1,12 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading;
-using Art.Common;
+﻿using Art.Common;
 
-namespace Art.Tesler.Tests;
+namespace Art.TestsBase;
 
-internal class ProgrammableArtifactListTool : ArtifactTool, IArtifactListTool
+public class ProgrammableArtifactListTool : ArtifactTool, IArtifactListTool
 {
     public delegate List<IArtifactData> SynchronousListDelegate(ProgrammableArtifactListTool tool);
 

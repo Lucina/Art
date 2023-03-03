@@ -1,6 +1,4 @@
-﻿using System;
-using System.IO;
-using System.Text;
+﻿using System.Text;
 using Art.Common.Management;
 using NUnit.Framework;
 

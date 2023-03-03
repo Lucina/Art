@@ -1,6 +1,6 @@
-﻿using System;
-using System.CommandLine;
+﻿using System.CommandLine;
 using System.Diagnostics.CodeAnalysis;
+using Art.TestsBase;
 
 namespace Art.Tesler.Tests;
 
@@ -28,9 +28,9 @@ public class ToolsCommandTests : CommandTestBase
     public void DefaultExecution_Single_Success()
     {
         CreateOutputs(out var toolOutput, out var console);
-        InitCommandDefault(toolOutput, GetSingleStore<ExampleArtifactFindTool>());
+        InitCommandDefault(toolOutput, GetSingleStore(ProgrammableArtifactDumpTool.CreateRegistryEntry(_ => { })));
         Assert.That(Command.Invoke(Array.Empty<string>(), console), Is.EqualTo(0));
-        Assert.That(Out.ToString(), Contains.Substring(nameof(ExampleArtifactFindTool)));
+        Assert.That(Out.ToString(), Contains.Substring(nameof(ProgrammableArtifactDumpTool)));
         Assert.That(Error.ToString(), Is.Empty);
     }
 
@@ -38,7 +38,7 @@ public class ToolsCommandTests : CommandTestBase
     public void Search_NoMatch_NotFound()
     {
         CreateOutputs(out var toolOutput, out var console);
-        InitCommandDefault(toolOutput, GetSingleStore<ExampleArtifactFindTool>());
+        InitCommandDefault(toolOutput, GetSingleStore(ProgrammableArtifactDumpTool.CreateRegistryEntry(_ => { })));
         string[] line = { "-s", "$$NOT_A_REAL_TOOL$$" };
         Assert.That(Command.Invoke(line, console), Is.EqualTo(0));
         Assert.That(Out.ToString(), Is.Empty);
@@ -49,10 +49,10 @@ public class ToolsCommandTests : CommandTestBase
     public void Search_SingleMatching_Found()
     {
         CreateOutputs(out var toolOutput, out var console);
-        InitCommandDefault(toolOutput, GetSingleStore<ExampleArtifactFindTool>());
-        string[] line = { "-s", nameof(ExampleArtifactFindTool) };
+        InitCommandDefault(toolOutput, GetSingleStore(ProgrammableArtifactDumpTool.CreateRegistryEntry(_ => { })));
+        string[] line = { "-s", nameof(ProgrammableArtifactDumpTool) };
         Assert.That(Command.Invoke(line, console), Is.EqualTo(0));
-        Assert.That(Out.ToString(), Contains.Substring(nameof(ExampleArtifactFindTool)));
+        Assert.That(Out.ToString(), Contains.Substring(nameof(ProgrammableArtifactDumpTool)));
         Assert.That(Error.ToString(), Is.Empty);
     }
 }

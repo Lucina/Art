@@ -1,9 +1,7 @@
-﻿using System;
-using System.Collections.Generic;
-using System.CommandLine;
+﻿using System.CommandLine;
 using System.Diagnostics.CodeAnalysis;
-using System.IO;
 using Art.Common.Resources;
+using Art.TestsBase;
 
 namespace Art.Tesler.Tests;
 

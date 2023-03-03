@@ -1,8 +1,8 @@
-﻿using System;
-using System.CommandLine;
+﻿using System.CommandLine;
 using System.Diagnostics.CodeAnalysis;
 using Art.Common;
 using Art.Common.Resources;
+using Art.TestsBase;
 
 namespace Art.Tesler.Tests;
 

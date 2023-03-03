@@ -29,6 +29,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Art.Tesler", "Art.Tesler\Ar
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Art.Tesler.Tests", "Art.Tesler.Tests\Art.Tesler.Tests.csproj", "{CCBD3446-FC87-4EAF-A0FF-8E04761DAF11}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Art.TestsBase", "Art.TestsBase\Art.TestsBase.csproj", "{90BD01C9-2D03-4841-AECE-A27E06B4A8B8}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -90,5 +92,9 @@ Global
 		{CCBD3446-FC87-4EAF-A0FF-8E04761DAF11}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{CCBD3446-FC87-4EAF-A0FF-8E04761DAF11}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{CCBD3446-FC87-4EAF-A0FF-8E04761DAF11}.Release|Any CPU.Build.0 = Release|Any CPU
+		{90BD01C9-2D03-4841-AECE-A27E06B4A8B8}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{90BD01C9-2D03-4841-AECE-A27E06B4A8B8}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{90BD01C9-2D03-4841-AECE-A27E06B4A8B8}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{90BD01C9-2D03-4841-AECE-A27E06B4A8B8}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal

@@ -1,9 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
-using System.CommandLine;
+﻿using System.CommandLine;
 using System.CommandLine.Invocation;
-using System.Threading;
-using System.Threading.Tasks;
 using Art.Common.Management;
 
 namespace Art.Tesler.Tests;

@@ -1,5 +1,4 @@
 ﻿using System.CommandLine.IO;
-using System.IO;
 
 namespace Art.Tesler.Tests;
 

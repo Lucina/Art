@@ -1,11 +1,8 @@
-﻿using System;
-using System.Threading;
-using System.Threading.Tasks;
-using Art.Common;
+﻿using Art.Common;
 
-namespace Art.Tesler.Tests;
+namespace Art.TestsBase;
 
-internal class ProgrammableArtifactFindTool : ArtifactTool, IArtifactFindTool
+public class ProgrammableArtifactFindTool : ArtifactTool, IArtifactFindTool
 {
     public delegate IArtifactData? SynchronousFindDelegate(ProgrammableArtifactFindTool tool, string id);
 
