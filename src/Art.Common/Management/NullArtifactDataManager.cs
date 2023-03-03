@@ -10,10 +10,6 @@ namespace Art.Common.Management;
 /// </summary>
 public class NullArtifactDataManager : IArtifactDataManager
 {
-    /// <summary>
-    /// Shared instance.
-    /// </summary>
-    public static readonly NullArtifactDataManager Instance = new();
     private bool _disposed;
 
     /// <inheritdoc />

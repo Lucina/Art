@@ -7,11 +7,6 @@ public class NullArtifactRegistrationManager : IArtifactRegistrationManager
 {
     private bool _disposed;
 
-    /// <summary>
-    /// Shared instance.
-    /// </summary>
-    public static readonly NullArtifactRegistrationManager Instance = new();
-
     /// <inheritdoc />
     public Task<List<ArtifactInfo>> ListArtifactsAsync(CancellationToken cancellationToken = default)
     {

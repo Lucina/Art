@@ -1,7 +1,7 @@
-﻿using System.Collections.Immutable;
-using System.Diagnostics.CodeAnalysis;
+﻿using System.Diagnostics.CodeAnalysis;
 using System.Runtime.Loader;
 using System.Text.Json;
+using Art.Common.Management;
 
 namespace Art.Common;
 
@@ -90,13 +90,13 @@ public partial class ArtifactTool : IArtifactTool
 
     private void InitializeCore(ArtifactToolConfig? config, ArtifactToolProfile? profile)
     {
-        config ??= ArtifactToolConfigUtil.DefaultInstance;
+        config ??= new ArtifactToolConfig(new NullArtifactRegistrationManager(), new NullArtifactDataManager());
         if (config.RegistrationManager == null) throw new ArgumentException("Cannot configure with null registration manager");
         if (config.DataManager == null) throw new ArgumentException("Cannot configure with null data manager");
         Config = config;
         RegistrationManager = config.RegistrationManager;
         DataManager = config.DataManager;
-        Profile = profile ?? new ArtifactToolProfile(ArtifactToolIDUtil.CreateToolString(GetType()), "default", ImmutableDictionary<string, JsonElement>.Empty);
+        Profile = profile ?? new ArtifactToolProfile(ArtifactToolIDUtil.CreateToolString(GetType()), null, null);
         if (Profile.Options != null)
             ConfigureOptions();
     }
