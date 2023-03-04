@@ -57,26 +57,23 @@ internal static class StringFillUtil
         {
             // it is impossible to drive without a license!
             // runes each take at least one utf16 code unit, so using length as max theoretical works
-            Span<RuneInfo> runes = stackalloc RuneInfo[spanCount];
+            Span<Rune> runes = stackalloc Rune[spanCount];
             int i = 0;
             foreach (var rune in content.EnumerateRunes())
             {
-                runes[i++] = new RuneInfo(rune);
+                runes[i++] = rune;
             }
             FillRight(runes[..i], stringBuilder, width);
         }
         else
         {
-            List<RuneInfo> list = new(spanCount * 2);
-            foreach (var rune in content.EnumerateRunes())
-            {
-                list.Add(new RuneInfo(rune));
-            }
+            List<Rune> list = new(spanCount * 2);
+            list.AddRange(content.EnumerateRunes());
             FillRight(CollectionsMarshal.AsSpan(list), stringBuilder, width);
         }
     }
 
-    private static void FillRight(Span<RuneInfo> span, StringBuilder stringBuilder, int width)
+    private static void FillRight(Span<Rune> span, StringBuilder stringBuilder, int width)
     {
         if (width < 1)
         {
@@ -91,9 +88,7 @@ internal static class StringFillUtil
         int startPos;
         for (startPos = span.Length - 1; startPos >= 1; startPos--)
         {
-            ref var info = ref span[startPos];
-            int runeWidth = EastAsianWidth.GetWidth(info.Rune.Value);
-            info.Width = runeWidth;
+            int runeWidth = EastAsianWidth.GetWidth(span[startPos].Value);
             if (availableWidth < runeWidth + 1)
             {
                 break;
@@ -102,9 +97,7 @@ internal static class StringFillUtil
         }
         if (startPos == 0)
         {
-            ref var firstInfo = ref span[0];
-            int firstRuneWidth = EastAsianWidth.GetWidth(firstInfo.Rune.Value);
-            firstInfo.Width = firstRuneWidth;
+            int firstRuneWidth = EastAsianWidth.GetWidth(span[0].Value);
             if (firstRuneWidth > availableWidth)
             {
                 startPos++;
@@ -129,21 +122,9 @@ internal static class StringFillUtil
         Span<char> buf = stackalloc char[2];
         for (int i = startPos; i < span.Length; i++)
         {
-            span[i].Rune.EncodeToUtf16(buf);
+            span[i].EncodeToUtf16(buf);
             stringBuilder.Append(buf);
             buf.Clear();
-        }
-    }
-
-    private struct RuneInfo
-    {
-        public Rune Rune;
-        public int Width;
-
-        public RuneInfo(Rune rune)
-        {
-            Rune = rune;
-            Width = 0;
         }
     }
 
