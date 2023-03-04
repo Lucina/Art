@@ -77,13 +77,13 @@ public abstract class BarContext : IDisposable
         _output.WriteLine();
     }
 
-    public static BarContext Create(TextWriter output, Func<bool> redirectedFunc, Func<int> widthFunc, TimeSpan interval = default)
+    public static BarContext Create(TextWriter output, bool forceFallback, Func<bool> redirectedFunc, Func<int> widthFunc, TimeSpan interval = default)
     {
         if (interval == default)
         {
             interval = DefaultInterval;
         }
-        if (OperatingSystem.IsWindowsVersionAtLeast(5, 1, 2600))
+        if (!forceFallback && OperatingSystem.IsWindowsVersionAtLeast(5, 1, 2600))
         {
             return new WindowsBarContext(output, redirectedFunc, widthFunc, interval);
         }

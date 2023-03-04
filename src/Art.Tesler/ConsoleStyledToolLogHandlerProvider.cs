@@ -7,36 +7,38 @@ namespace Art.Tesler;
 
 public class ConsoleStyledToolLogHandlerProvider : ToolLogHandlerProviderBase
 {
-    private readonly Func<bool> _redirectedFunc;
+    private readonly Func<bool> _errorRedirectedFunc;
     private readonly Func<int> _widthFunc;
 
-    public ConsoleStyledToolLogHandlerProvider(TextWriter outWriter, TextWriter errorWriter, Func<bool> redirectedFunc, Func<int> widthFunc, Func<Stream> outStreamAccessFunc)
+    public ConsoleStyledToolLogHandlerProvider(TextWriter outWriter, TextWriter errorWriter, Func<bool> errorRedirectedFunc, Func<int> widthFunc, Func<Stream> outStreamAccessFunc)
         : base(outWriter, errorWriter, outStreamAccessFunc)
     {
-        _redirectedFunc = redirectedFunc;
+        _errorRedirectedFunc = errorRedirectedFunc;
         _widthFunc = widthFunc;
     }
 
     public override IToolLogHandler GetStreamToolLogHandler()
     {
-        return new ConsoleStyledLogHandler(Out, Error, _redirectedFunc, _widthFunc, true);
+        return new ConsoleStyledLogHandler(Out, Error, true, _errorRedirectedFunc, _widthFunc, true);
     }
 
     public override IToolLogHandler GetDefaultToolLogHandler()
     {
-        return new ConsoleStyledLogHandler(Out, Error, _redirectedFunc, _widthFunc, false, OperatingSystem.IsMacOS());
+        return new ConsoleStyledLogHandler(Out, Error, false, _errorRedirectedFunc, _widthFunc, false, OperatingSystem.IsMacOS());
     }
 }
 
 public class ConsoleStyledLogHandler : StyledLogHandler
 {
-    private readonly Func<bool> _redirectedFunc;
+    private readonly bool _forceFallback;
+    private readonly Func<bool> _errorRedirectedFunc;
     private readonly Func<int> _widthFunc;
     private static readonly Guid s_downloadOperation = Guid.ParseExact("c6d42b18f0ae452385f180aa74e9ef29", "N");
 
-    public ConsoleStyledLogHandler(TextWriter outWriter, TextWriter errorWriter, Func<bool> redirectedFunc, Func<int> widthFunc, bool alwaysPrintToErrorStream, bool enableFancy = false) : base(outWriter, errorWriter, alwaysPrintToErrorStream, enableFancy)
+    public ConsoleStyledLogHandler(TextWriter outWriter, TextWriter errorWriter, bool forceFallback, Func<bool> errorRedirectedFunc, Func<int> widthFunc, bool alwaysPrintToErrorStream, bool enableFancy = false) : base(outWriter, errorWriter, alwaysPrintToErrorStream, enableFancy)
     {
-        _redirectedFunc = redirectedFunc;
+        _forceFallback = forceFallback;
+        _errorRedirectedFunc = errorRedirectedFunc;
         _widthFunc = widthFunc;
     }
 
@@ -44,7 +46,7 @@ public class ConsoleStyledLogHandler : StyledLogHandler
     {
         if (operationGuid.Equals(s_downloadOperation))
         {
-            operationProgressContext = new DownloadUpdateContext(operationName, Error, _redirectedFunc, _widthFunc);
+            operationProgressContext = new DownloadUpdateContext(operationName, Error, _forceFallback, _errorRedirectedFunc, _widthFunc);
             return true;
         }
         return base.TryGetOperationProgressContext(operationName, operationGuid, out operationProgressContext);
@@ -57,9 +59,9 @@ internal class DownloadUpdateContext : IOperationProgressContext
     private readonly Stopwatch _stopwatch;
     private TimedDownloadPrefabContentFiller _filler;
 
-    public DownloadUpdateContext(string name, TextWriter output, Func<bool> redirectedFunc, Func<int> widthFunc)
+    public DownloadUpdateContext(string name, TextWriter output, bool forceFallback, Func<bool> errorRedirectedFunc, Func<int> widthFunc)
     {
-        _context = BarContext.Create(output, redirectedFunc, widthFunc);
+        _context = BarContext.Create(output, forceFallback, errorRedirectedFunc, widthFunc);
         _filler = TimedDownloadPrefabContentFiller.Create(name);
         _context.Write(_filler);
         _stopwatch = new Stopwatch();
