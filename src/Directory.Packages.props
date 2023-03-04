@@ -10,6 +10,7 @@
     <PackageVersion Include="Microsoft.EntityFrameworkCore.Design" Version="7.0.3" />
     <PackageVersion Include="Microsoft.EntityFrameworkCore.Proxies" Version="7.0.3" />
     <PackageVersion Include="Microsoft.EntityFrameworkCore.Sqlite" Version="7.0.3" />
+    <PackageVersion Include="Microsoft.Windows.CsWin32" Version="0.2.188-beta" />
     <PackageVersion Include="System.CommandLine" Version="2.0.0-beta4.22272.1" />
     <PackageVersion Include="System.Security.Cryptography.ProtectedData" Version="7.0.1" />
     <!-- Test dependenices -->
