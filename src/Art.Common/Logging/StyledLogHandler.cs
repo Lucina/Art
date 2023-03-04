@@ -1,4 +1,6 @@
-﻿namespace Art.Common.Logging;
+﻿using System.Diagnostics.CodeAnalysis;
+
+namespace Art.Common.Logging;
 
 /// <summary>
 /// Log handler output to two backing <see cref="TextWriter"/> (out and err) with styles.
@@ -7,8 +9,16 @@ public class StyledLogHandler : IToolLogHandler
 {
     private readonly AutoResetEvent _wh;
     private readonly bool _itsumoError;
-    private readonly TextWriter _out;
-    private readonly TextWriter _error;
+
+    /// <summary>
+    /// Output stream.
+    /// </summary>
+    protected readonly TextWriter Out;
+
+    /// <summary>
+    /// Error stream.
+    /// </summary>
+    protected readonly TextWriter Error;
 
     private static readonly Dictionary<LogLevel, string> s_preDefault = new()
     {
@@ -39,8 +49,8 @@ public class StyledLogHandler : IToolLogHandler
     /// <param name="enableFancy">Enable fancy output.</param>
     public StyledLogHandler(TextWriter outWriter, TextWriter errorWriter, bool alwaysPrintToErrorStream, bool enableFancy = false)
     {
-        _out = outWriter ?? throw new ArgumentNullException(nameof(outWriter));
-        _error = errorWriter ?? throw new ArgumentNullException(nameof(errorWriter));
+        Out = outWriter ?? throw new ArgumentNullException(nameof(outWriter));
+        Error = errorWriter ?? throw new ArgumentNullException(nameof(errorWriter));
         _pre = enableFancy ? s_preOsx : s_preDefault;
         _wh = new AutoResetEvent(true);
         _itsumoError = alwaysPrintToErrorStream;
@@ -82,21 +92,28 @@ public class StyledLogHandler : IToolLogHandler
     {
         if (_itsumoError)
         {
-            return _error;
+            return Error;
         }
         return level switch
         {
-            LogLevel.Information => _out,
-            LogLevel.Entry => _out,
-            LogLevel.Title => _out,
-            LogLevel.Warning => _error,
-            LogLevel.Error => _error,
-            _ => _error
+            LogLevel.Information => Out,
+            LogLevel.Entry => Out,
+            LogLevel.Title => Out,
+            LogLevel.Warning => Error,
+            LogLevel.Error => Error,
+            _ => Error
         };
     }
 
     private void WriteTitle(TextWriter writer, LogLevel level, string title, string? group = null)
     {
         writer.WriteLine(group != null ? $"{_pre[level]} {group} {_pre[level]} {title}" : $"{_pre[level]} {title}");
+    }
+
+    /// <inheritdoc />
+    public virtual bool TryGetOperationProgressContext(string operationName, Guid operationGuid, [NotNullWhen(true)] out IOperationProgressContext? operationProgressContext)
+    {
+        operationProgressContext = null;
+        return false;
     }
 }

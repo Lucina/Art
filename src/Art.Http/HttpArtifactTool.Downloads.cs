@@ -1,10 +1,14 @@
-﻿using Art.Http.Resources;
+﻿using System.Buffers;
+using Art.Common;
+using Art.Http.Resources;
 
 namespace Art.Http;
 
 public partial class HttpArtifactTool
 {
     #region Direct downloads
+
+    private static readonly Guid s_downloadOperation = Guid.ParseExact("c6d42b18f0ae452385f180aa74e9ef29", "N");
 
     /// <summary>
     /// Downloads a resource.
@@ -28,7 +32,7 @@ public partial class HttpArtifactTool
         ConfigureHttpRequest(req);
         using HttpResponseMessage res = await HttpClient.SendAsync(req, DownloadCompletionOption, httpRequestConfig, cancellationToken).ConfigureAwait(false);
         ArtHttpResponseMessageException.EnsureSuccessStatusCode(res);
-        await res.Content.CopyToAsync(stream, cancellationToken).ConfigureAwait(false);
+        await CopyToWithLoggerAsync(res, stream, cancellationToken).ConfigureAwait(false);
     }
 
     /// <summary>
@@ -124,7 +128,7 @@ public partial class HttpArtifactTool
         // M3U behaviour depends on members always using this instance's HttpClient.
         using HttpResponseMessage res = await HttpClient.SendAsync(req, DownloadCompletionOption, httpRequestConfig, cancellationToken).ConfigureAwait(false);
         ArtHttpResponseMessageException.EnsureSuccessStatusCode(res);
-        await res.Content.CopyToAsync(stream, cancellationToken).ConfigureAwait(false);
+        await CopyToWithLoggerAsync(res, stream, cancellationToken).ConfigureAwait(false);
     }
 
     /// <summary>
@@ -216,7 +220,7 @@ public partial class HttpArtifactTool
         // M3U behaviour depends on members always using this instance's HttpClient.
         using HttpResponseMessage res = await HttpClient.SendAsync(requestMessage, DownloadCompletionOption, httpRequestConfig, cancellationToken).ConfigureAwait(false);
         ArtHttpResponseMessageException.EnsureSuccessStatusCode(res);
-        await res.Content.CopyToAsync(stream, cancellationToken).ConfigureAwait(false);
+        await CopyToWithLoggerAsync(res, stream, cancellationToken).ConfigureAwait(false);
     }
 
     /// <summary>
@@ -282,8 +286,53 @@ public partial class HttpArtifactTool
         OutputStreamOptions options = OutputStreamOptions.Default;
         if (response.Content.Headers.ContentLength is { } contentLength) options = options with { PreallocationSize = Math.Clamp(contentLength, 0, QueryBaseArtifactResourceInfo.MaxStreamDownloadPreallocationSize) };
         await using CommittableStream stream = await CreateOutputStreamAsync(key, options, cancellationToken).ConfigureAwait(false);
-        await response.Content.CopyToAsync(stream, cancellationToken).ConfigureAwait(false);
+        await CopyToWithLoggerAsync(response, stream, cancellationToken).ConfigureAwait(false);
         stream.ShouldCommit = true;
+    }
+
+    private async Task CopyToWithLoggerAsync(HttpResponseMessage sourceMessage, Stream targetStream, CancellationToken cancellationToken)
+    {
+        if (LogHandler is { } logHandler
+            && sourceMessage.Content.Headers.ContentLength is { } contentLength
+            && sourceMessage.RequestMessage is { } requestMessage
+            && requestMessage.RequestUri is { } requestUri
+            && requestUri.Segments is { Length: > 0 } segments)
+        {
+            string desc = $"Downloading {segments[^1]} ({DataSizes.GetSizeString(contentLength)})";
+            if (logHandler.TryGetOperationProgressContext(desc, s_downloadOperation, out var context))
+            {
+                using var ctx = context;
+                const int bufferSize = 8192;
+                byte[] buf = ArrayPool<byte>.Shared.Rent(bufferSize);
+                try
+                {
+                    var stream = await sourceMessage.Content.ReadAsStreamAsync(cancellationToken).ConfigureAwait(false);
+                    var mem = buf.AsMemory(0, bufferSize);
+                    long total = 0;
+                    while (true)
+                    {
+                        int read;
+                        if ((read = await stream.ReadAsync(mem, cancellationToken).ConfigureAwait(false)) != 0)
+                        {
+                            await targetStream.WriteAsync(mem[..read], cancellationToken).ConfigureAwait(false);
+                            total += read;
+                            ctx.Report(Math.Clamp((float)((double)total / contentLength), 0.0f, 1.0f));
+                        }
+                        else
+                        {
+                            ctx.Report(1.0f);
+                            break;
+                        }
+                    }
+                    return;
+                }
+                finally
+                {
+                    ArrayPool<byte>.Shared.Return(buf);
+                }
+            }
+        }
+        await sourceMessage.Content.CopyToAsync(targetStream, cancellationToken).ConfigureAwait(false);
     }
 
     #endregion

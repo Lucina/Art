@@ -1,4 +1,6 @@
-﻿namespace Art;
+﻿using System.Diagnostics.CodeAnalysis;
+
+namespace Art;
 
 /// <summary>
 /// Represents log handler for a tool.
@@ -14,4 +16,17 @@ public interface IToolLogHandler : ILogHandler
     /// <param name="body">Log body.</param>
     /// <param name="level">Log level.</param>
     void Log(string tool, string group, string? title, string? body, LogLevel level);
+
+    /// <summary>
+    /// Gets an operation progress context if possible.
+    /// </summary>
+    /// <param name="operationName">A human-readable description for the operation.</param>
+    /// <param name="operationGuid">GUID that identifies operation type.</param>
+    /// <param name="operationProgressContext">Context that can be used to report progress.</param>
+    /// <returns>True if successful.</returns>
+    bool TryGetOperationProgressContext(string operationName, Guid operationGuid, [NotNullWhen(true)] out IOperationProgressContext? operationProgressContext)
+    {
+        operationProgressContext = null;
+        return false;
+    }
 }

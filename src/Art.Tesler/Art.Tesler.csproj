@@ -11,6 +11,7 @@
     <ProjectReference Include="../Art.EF.Sqlite/Art.EF.Sqlite.csproj" />
     <ProjectReference Include="../Art.BrowserCookies/Art.BrowserCookies.csproj" />
     <ProjectReference Include="../Art.Common/Art.Common.csproj" />
+    <ProjectReference Include="../BarHelper/BarHelper.csproj" />
   </ItemGroup>
 
   <ItemGroup>

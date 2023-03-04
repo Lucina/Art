@@ -114,7 +114,8 @@ public class ArcCommand : ToolCommandBase
         foreach (ArtifactToolProfile profile in profiles)
         {
             var plugin = PluginStore.LoadRegistry(ArtifactToolProfileUtil.GetID(profile.Tool));
-            await ArtifactDumping.DumpAsync(plugin, profile, arm, adm, options, l).ConfigureAwait(false);
+            using IArtifactTool tool = await ArtifactTool.PrepareToolAsync(plugin, profile, arm, adm).ConfigureAwait(false);
+            await new ArtifactToolDumpProxy(tool, options ?? new ArtifactToolDumpOptions(), l).DumpAsync().ConfigureAwait(false);
         }
         return 0;
     }
