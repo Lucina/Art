@@ -84,7 +84,10 @@ public abstract class BarContext : IDisposable
 
     protected virtual void DrawLine(StringBuilder stringBuilder)
     {
-        _output.Write(stringBuilder.ToString());
+        foreach (var chunk in stringBuilder.GetChunks())
+        {
+            _output.Write(chunk.Span);
+        }
     }
 
     protected virtual void EndLine()
