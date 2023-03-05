@@ -298,7 +298,7 @@ public partial class HttpArtifactTool
             && requestMessage.RequestUri is { } requestUri
             && requestUri.Segments is { Length: > 0 } segments)
         {
-            string desc = $"Downloading {segments[^1]} ({DataSizes.GetSizeString(contentLength)})";
+            string desc = $"{segments[^1]} ({DataSizes.GetSizeString(contentLength)})";
             if (logHandler.TryGetOperationProgressContext(desc, s_downloadOperation, out var context))
             {
                 using var ctx = context;

@@ -10,6 +10,7 @@ namespace Art.M3U;
 public abstract class M3UDownloaderContextProcessor
 {
     private static readonly TimeSpan s_playlistDelay = TimeSpan.FromSeconds(1);
+    private static readonly Guid s_operationWaitingForResult = Guid.ParseExact("4fd5c851a88c430c8f8da54dbcf70ab2", "N");
 
     /// <summary>
     /// Heartbeat callback to use before an iteration.
@@ -111,66 +112,115 @@ public abstract class M3UDownloaderContextProcessor
     /// <param name="cancellationToken">Cancellation token.</param>
     protected async Task ProcessPlaylistAsync(bool oneOff, TimeSpan timeout, IPlaylistElementProcessor playlistElementProcessor, CancellationToken cancellationToken = default)
     {
-        FailCounter = 0;
-        HashSet<string> hs = new();
-        Stopwatch sw = new();
-        sw.Start();
-        TimeSpan remainingTimeout = timeout;
-        while (true)
+        IOperationProgressContext? operationProgressContext = null;
+        try
         {
-            try
+            FailCounter = 0;
+            HashSet<string> hs = new();
+            Stopwatch sw = new();
+            sw.Start();
+            TimeSpan remainingTimeout = timeout;
+            while (true)
             {
-                if (HeartbeatCallback != null) await HeartbeatCallback().ConfigureAwait(false);
-                Context.Tool.LogInformation($"Waiting up to {remainingTimeout.TotalSeconds:F3}s for new segments..."); // TODO soft update msg
-                M3UFile m3 = await Context.GetAsync(cancellationToken).ConfigureAwait(false);
-                if (Context.StreamInfo.EncryptionInfo is { Encrypted: true } ei && m3.EncryptionInfo is { Encrypted: true } ei2 && ei.Method == ei2.Method)
+                try
                 {
-                    ei2.Key ??= ei.Key; // assume key kept if it was supplied in the first place
-                    ei2.Iv ??= ei.Iv; // assume IV kept if it was supplied in the first place
-                }
-                //Context.Tool.LogInformation($"{m3.DataLines.Count} segments...");
-                int i = 0, j = 0;
-                foreach (string entry in m3.DataLines)
-                {
-                    long msn = m3.FirstMediaSequenceNumber + i++;
-                    var entryUri = new Uri(Context.MainUri, entry);
-                    // source could possibly be wonky and use query to differentiate?
-                    string entryKey = entry; //entryUri.Segments[^1];
-                    if (hs.Contains(entryKey))
+                    if (HeartbeatCallback != null) await HeartbeatCallback().ConfigureAwait(false);
+                    if (operationProgressContext == null)
                     {
-                        continue;
+                        if (Context.Tool.LogHandler?.TryGetOperationProgressContext("Waiting for new segments", s_operationWaitingForResult, out var op) ?? false)
+                        {
+                            operationProgressContext = op;
+                        }
+                        else
+                        {
+                            operationProgressContext = null;
+                        }
                     }
-                    await playlistElementProcessor.ProcessPlaylistElementAsync(entryUri, m3, msn, entry, cancellationToken).ConfigureAwait(false);
-                    hs.Add(entryKey);
-                    j++;
-                }
-                if (j != 0)
-                {
-                    sw.Restart();
-                }
-                else if (sw.IsRunning)
-                {
-                    var elapsed = sw.Elapsed;
-                    if (elapsed >= timeout)
+                    if (operationProgressContext != null)
                     {
-                        Context.Tool.LogInformation($"No new entries for timeout {timeout}, stopping");
+                        operationProgressContext.Report(Math.Clamp(1.0f - (float)remainingTimeout.Divide(timeout), 0.0f, 1.0f));
+                    }
+                    else
+                    {
+                        Context.Tool.LogInformation($"Waiting up to {remainingTimeout.TotalSeconds:F3}s for new segments...");
+                    }
+                    M3UFile m3 = await Context.GetAsync(cancellationToken).ConfigureAwait(false);
+                    if (Context.StreamInfo.EncryptionInfo is { Encrypted: true } ei && m3.EncryptionInfo is { Encrypted: true } ei2 && ei.Method == ei2.Method)
+                    {
+                        ei2.Key ??= ei.Key; // assume key kept if it was supplied in the first place
+                        ei2.Iv ??= ei.Iv; // assume IV kept if it was supplied in the first place
+                    }
+                    //Context.Tool.LogInformation($"{m3.DataLines.Count} segments...");
+                    int i = 0, j = 0;
+                    foreach (string entry in m3.DataLines)
+                    {
+                        long msn = m3.FirstMediaSequenceNumber + i++;
+                        var entryUri = new Uri(Context.MainUri, entry);
+                        // source could possibly be wonky and use query to differentiate?
+                        string entryKey = entry; //entryUri.Segments[^1];
+                        if (hs.Contains(entryKey))
+                        {
+                            continue;
+                        }
+                        if (operationProgressContext != null)
+                        {
+                            operationProgressContext.Dispose();
+                            operationProgressContext = null;
+                        }
+                        await playlistElementProcessor.ProcessPlaylistElementAsync(entryUri, m3, msn, entry, new ItemNo(i, m3.DataLines.Count), cancellationToken).ConfigureAwait(false);
+                        hs.Add(entryKey);
+                        j++;
+                    }
+                    if (j != 0)
+                    {
+                        sw.Restart();
+                    }
+                    else if (sw.IsRunning)
+                    {
+                        var elapsed = sw.Elapsed;
+                        if (elapsed >= timeout)
+                        {
+                            if (operationProgressContext != null)
+                            {
+                                operationProgressContext.Dispose();
+                                operationProgressContext = null;
+                            }
+                            Context.Tool.LogInformation($"No new entries for timeout {timeout}, stopping");
+                            return;
+                        }
+                        remainingTimeout = timeout.Subtract(elapsed);
+                    }
+                    else
+                    {
+                        if (operationProgressContext != null)
+                        {
+                            operationProgressContext.Dispose();
+                            operationProgressContext = null;
+                        }
+                        Context.Tool.LogError("Timer stopped running (error?)");
                         return;
                     }
-                    remainingTimeout = timeout.Subtract(elapsed);
+                    if (oneOff) break;
+                    await Task.Delay(s_playlistDelay, cancellationToken).ConfigureAwait(false);
+                    FailCounter = 0;
                 }
-                else
+                catch (ArtHttpResponseMessageException e)
                 {
-                    Context.Tool.LogError("Timer stopped running (error?)");
-                    return;
+                    if (operationProgressContext != null)
+                    {
+                        operationProgressContext.Dispose();
+                        operationProgressContext = null;
+                    }
+                    await HandleRequestExceptionAsync(e, cancellationToken).ConfigureAwait(false);
+                    sw.Restart();
                 }
-                if (oneOff) break;
-                await Task.Delay(s_playlistDelay, cancellationToken).ConfigureAwait(false);
-                FailCounter = 0;
             }
-            catch (ArtHttpResponseMessageException e)
+        }
+        finally
+        {
+            if (operationProgressContext != null)
             {
-                await HandleRequestExceptionAsync(e, cancellationToken).ConfigureAwait(false);
-                sw.Restart();
+                operationProgressContext.Dispose();
             }
         }
     }

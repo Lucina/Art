@@ -34,6 +34,7 @@ public class ConsoleStyledLogHandler : StyledLogHandler
     private readonly Func<bool> _errorRedirectedFunc;
     private readonly Func<int> _widthFunc;
     private static readonly Guid s_downloadOperation = Guid.ParseExact("c6d42b18f0ae452385f180aa74e9ef29", "N");
+    private static readonly Guid s_operationWaitingForResult = Guid.ParseExact("4fd5c851a88c430c8f8da54dbcf70ab2", "N");
 
     public ConsoleStyledLogHandler(TextWriter outWriter, TextWriter errorWriter, bool forceFallback, Func<bool> errorRedirectedFunc, Func<int> widthFunc, bool alwaysPrintToErrorStream, bool enableFancy = false) : base(outWriter, errorWriter, alwaysPrintToErrorStream, enableFancy)
     {
@@ -49,7 +50,36 @@ public class ConsoleStyledLogHandler : StyledLogHandler
             operationProgressContext = new DownloadUpdateContext(operationName, Error, _forceFallback, _errorRedirectedFunc, _widthFunc);
             return true;
         }
+        if (operationGuid.Equals(s_operationWaitingForResult))
+        {
+            operationProgressContext = new WaitUpdateContext(operationName, Error, _forceFallback, _errorRedirectedFunc, _widthFunc);
+            return true;
+        }
         return base.TryGetOperationProgressContext(operationName, operationGuid, out operationProgressContext);
+    }
+}
+
+internal class WaitUpdateContext : IOperationProgressContext
+{
+    private readonly BarContext _context;
+    private readonly EllipsisSuffixContentFiller _filler;
+
+    public WaitUpdateContext(string name, TextWriter output, bool forceFallback, Func<bool> errorRedirectedFunc, Func<int> widthFunc)
+    {
+        _context = BarContext.Create(output, forceFallback, errorRedirectedFunc, widthFunc);
+        _filler = new EllipsisSuffixContentFiller(name, 0);
+        _context.Write(_filler);
+    }
+
+    public void Report(float value)
+    {
+        _context.Update(_filler);
+    }
+
+    public void Dispose()
+    {
+        _context.Clear();
+        _context.Dispose();
     }
 }
 

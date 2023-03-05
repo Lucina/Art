@@ -11,9 +11,16 @@ internal class StreamOutputPlaylistElementProcessor : IPlaylistElementProcessor
         _targetStream = targetStream;
     }
 
-    public Task ProcessPlaylistElementAsync(Uri uri, M3UFile? file, long? mediaSequenceNumber = null, string? segmentName = null, CancellationToken cancellationToken = default)
+    public Task ProcessPlaylistElementAsync(Uri uri, M3UFile? file, long? mediaSequenceNumber = null, string? segmentName = null, ItemNo? itemNo = null, CancellationToken cancellationToken = default)
     {
-        _context.Tool.LogInformation($"Streaming segment {segmentName ?? "???"}...");
+        if (itemNo?.GetMessage() is { } itemNumberText)
+        {
+            _context.Tool.LogInformation($"Streaming segment {itemNumberText} {segmentName ?? "???"}");
+        }
+        else
+        {
+            _context.Tool.LogInformation($"Streaming segment {segmentName ?? "???"}");
+        }
         return _context.StreamSegmentAsync(_targetStream, uri, file, mediaSequenceNumber, cancellationToken);
     }
 }
