@@ -168,6 +168,14 @@ public class M3UDownloaderContext
     public M3UDownloaderContextStandardSaver CreateStandardSaver(bool oneOff, TimeSpan timeout) => new(this, oneOff, timeout);
 
     /// <summary>
+    /// Creates a basic stream output downloader.
+    /// </summary>
+    /// <param name="oneOff">If true, only request target once.</param>
+    /// <param name="timeout">Timeout when waiting for new entries.</param>
+    /// <returns>Downloader.</returns>
+    public M3UDownloaderContextStreamOutputSaver CreateStreamOutputSaver(bool oneOff, TimeSpan timeout) => new(this, oneOff, timeout);
+
+    /// <summary>
     /// Downloads a segment with an associated media sequence number.
     /// </summary>
     /// <param name="uri">URI to download.</param>
@@ -190,7 +198,6 @@ public class M3UDownloaderContext
     /// Outputs a segment to a target stream.
     /// </summary>
     /// <param name="targetStream">Target stream</param>
-    /// <param name="noFiles">If true, do not create output files.</param>
     /// <param name="uri">URI to download.</param>
     /// <param name="file">Optional specific file to use (defaults to <see cref="StreamInfo"/>).</param>
     /// <param name="mediaSequenceNumber">Media sequence number, if available.</param>
@@ -202,7 +209,7 @@ public class M3UDownloaderContext
     /// <paramref name="mediaSequenceNumber"/> is meant to support scenarios for decrypting media segments without an explicit IV,
     /// as the media sequence number determines the IV instead.
     /// </remarks>
-    public Task StreamSegmentAsync(Stream targetStream, bool noFiles, Uri uri, M3UFile? file, long? mediaSequenceNumber = null, CancellationToken cancellationToken = default)
+    public Task StreamSegmentAsync(Stream targetStream, Uri uri, M3UFile? file, long? mediaSequenceNumber = null, CancellationToken cancellationToken = default)
     {
         return StreamSegmentInternalAsync(targetStream, uri, file ?? StreamInfo, mediaSequenceNumber, cancellationToken);
     }

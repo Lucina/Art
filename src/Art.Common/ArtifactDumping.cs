@@ -237,10 +237,32 @@ public static class ArtifactDumping
         await UpdateResourceAsync(artifactTool, await artifactTool.DetermineUpdatedResourceAsync(resource, resourceUpdate, cancellationToken).ConfigureAwait(false), logHandler, checksumSource, cancellationToken).ConfigureAwait(false);
     }
 
+    private static bool GetResourceRetrievable(ArtifactResourceInfo resource)
+    {
+        return resource.CanExportStream || resource.CanGetStream;
+    }
+
+    private static async Task CopyResourceAsync(ArtifactResourceInfo resource, Stream targetStream, CancellationToken cancellationToken)
+    {
+        if (resource.CanExportStream)
+        {
+            await resource.ExportStreamAsync(targetStream, cancellationToken).ConfigureAwait(false);
+        }
+        else if (resource.CanGetStream)
+        {
+            await using var resourceStream = await resource.GetStreamAsync(cancellationToken).ConfigureAwait(false);
+            await resourceStream.CopyToAsync(targetStream, cancellationToken).ConfigureAwait(false);
+        }
+        else
+        {
+            throw new InvalidOperationException("Cannot copy stream from resource that does not support export or raw stream");
+        }
+    }
+
     private static async Task UpdateResourceAsync(IArtifactTool artifactTool, ArtifactResourceInfoWithState aris, IToolLogHandler? logHandler, ChecksumSource? checksumSource, CancellationToken cancellationToken)
     {
         (ArtifactResourceInfo versionedResource, ItemStateFlags rF) = aris;
-        if ((rF & ItemStateFlags.NewerIdentityMask) != 0 && versionedResource.CanExportStream)
+        if ((rF & ItemStateFlags.NewerIdentityMask) != 0 && GetResourceRetrievable(versionedResource))
         {
             OutputStreamOptions options = OutputStreamOptions.Default;
             versionedResource.AugmentOutputStreamOptions(ref options);
@@ -250,7 +272,7 @@ public static class ArtifactDumping
                 using var algorithm = checksumSource.CreateHashAlgorithm();
                 // Take this opportunity to hash the resource.
                 await using HashProxyStream hps = new(stream, algorithm, true, true);
-                await versionedResource.ExportStreamAsync(hps, cancellationToken).ConfigureAwait(false);
+                await CopyResourceAsync(versionedResource, hps, cancellationToken).ConfigureAwait(false);
                 stream.ShouldCommit = true;
                 Checksum newChecksum = new(checksumSource.Id, hps.GetHash());
                 if (!ChecksumUtility.DatawiseEquals(newChecksum, versionedResource.Checksum))
@@ -261,7 +283,7 @@ public static class ArtifactDumping
             }
             else if (stream is not ISinkStream) // if target output were a sink stream and hash isn't needed, then just don't bother exporting
             {
-                await versionedResource.ExportStreamAsync(stream, cancellationToken).ConfigureAwait(false);
+                await CopyResourceAsync(versionedResource, stream, cancellationToken).ConfigureAwait(false);
                 stream.ShouldCommit = true;
             }
         }

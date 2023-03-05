@@ -43,6 +43,13 @@ public abstract class BarContext : IDisposable
         DrawInternal(contentFiller);
     }
 
+    public void Clear()
+    {
+        _active = true;
+        DrawInternal(new BlankContentFiller());
+        _output.Write('\r');
+    }
+
     public void End()
     {
         if (!_active)
@@ -65,6 +72,14 @@ public abstract class BarContext : IDisposable
         }
         DrawLine(_stringBuilder);
         _stringBuilder.Clear();
+    }
+
+    internal struct BlankContentFiller : IContentFiller
+    {
+        public void Fill(StringBuilder stringBuilder, int width)
+        {
+            StringFillUtil.PadRemaining(stringBuilder, width);
+        }
     }
 
     protected virtual void DrawLine(StringBuilder stringBuilder)

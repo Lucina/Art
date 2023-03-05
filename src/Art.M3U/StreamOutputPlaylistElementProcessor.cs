@@ -1,0 +1,19 @@
+﻿namespace Art.M3U;
+
+internal class StreamOutputPlaylistElementProcessor : IPlaylistElementProcessor
+{
+    private readonly M3UDownloaderContext _context;
+    private readonly Stream _targetStream;
+
+    public StreamOutputPlaylistElementProcessor(M3UDownloaderContext context, Stream targetStream)
+    {
+        _context = context;
+        _targetStream = targetStream;
+    }
+
+    public Task ProcessPlaylistElementAsync(Uri uri, M3UFile? file, long? mediaSequenceNumber = null, string? segmentName = null, CancellationToken cancellationToken = default)
+    {
+        _context.Tool.LogInformation($"Streaming segment {segmentName ?? "???"}...");
+        return _context.StreamSegmentAsync(_targetStream, uri, file, mediaSequenceNumber, cancellationToken);
+    }
+}

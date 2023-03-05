@@ -128,8 +128,8 @@ internal static class StringFillUtil
         }
     }
 
-    internal static void PadRemaining(StringBuilder stringBuilder, int remaining)
+    internal static void PadRemaining(StringBuilder stringBuilder, int remaining, char c = ' ')
     {
-        stringBuilder.Insert(stringBuilder.Length, " ", remaining);
+        stringBuilder.Append(c, remaining);
     }
 }

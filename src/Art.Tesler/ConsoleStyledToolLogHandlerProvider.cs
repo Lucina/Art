@@ -77,8 +77,9 @@ internal class DownloadUpdateContext : IOperationProgressContext
 
     public void Dispose()
     {
-        _context.Write(_filler);
-        _context.End();
+        _context.Clear();
+        //_context.Write(_filler);
+        //_context.End();
         _context.Dispose();
     }
 }
