@@ -1,6 +1,5 @@
 ﻿using System.CommandLine;
 using System.CommandLine.Invocation;
-using System.CommandLine.Parsing;
 using Art.Common;
 using Art.Common.Management;
 using Art.Common.Proxies;
@@ -49,16 +48,10 @@ public class StreamCommand : ToolCommandBase
         {
             throw new ArtUserException("Multiple profiles were loaded from specified inputs, this command requires exactly one");
         }
-        var profile = profiles[0];
-        string? cookieFile = context.ParseResult.HasOption(CookieFileOption) ? context.ParseResult.GetValueForOption(CookieFileOption) : null;
-        string? userAgent = context.ParseResult.HasOption(UserAgentOption) ? context.ParseResult.GetValueForOption(UserAgentOption) : null;
-        IEnumerable<string> properties = context.ParseResult.HasOption(PropertiesOption) ? context.ParseResult.GetValueForOption(PropertiesOption)! : Array.Empty<string>();
-        var defaultPropertyProvider = GetOptionalDefaultPropertyProvider(context);
-        profile = profile.GetWithConsoleOptions(defaultPropertyProvider, properties, cookieFile, userAgent, ToolOutput);
-        var plugin = PluginStore.LoadRegistry(ArtifactToolProfileUtil.GetID(profile.Tool));
+        var profile = PrepareProfile(context, profiles[0]);
         using var arm = new InMemoryArtifactRegistrationManager();
         using var adm = new InMemoryArtifactDataManager();
-        using IArtifactTool tool = await ArtifactTool.PrepareToolAsync(plugin, profile, arm, adm).ConfigureAwait(false);
+        using var tool = await GetToolAsync(profile, arm, adm).ConfigureAwait(false);
         var listProxy = new ArtifactToolListProxy(tool, ArtifactToolListOptions.Default, l);
         var res = await listProxy.ListAsync().ToListAsync().ConfigureAwait(false);
         if (res.Count == 0)

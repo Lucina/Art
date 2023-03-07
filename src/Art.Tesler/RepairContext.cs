@@ -27,13 +27,17 @@ public class RepairContext
             ArtifactToolProfile artifactToolProfile = profile;
             var context = _pluginStore.LoadRegistry(ArtifactToolProfileUtil.GetID(profile.Tool)); // InvalidOperationException
             if (!context.TryLoad(artifactToolProfile.GetID(), out IArtifactTool? t))
+            {
                 throw new ArtifactToolNotFoundException(artifactToolProfile.Tool);
+            }
             ArtifactToolConfig config = new(_arm, _adm);
             using IArtifactTool tool = t;
             string group = artifactToolProfile.GetGroupOrFallback(tool.GroupFallback);
             artifactToolProfile = artifactToolProfile.WithCoreTool(t);
             if (!_failed.Keys.Any(v => v.Tool == artifactToolProfile.Tool && v.Group == group))
+            {
                 continue;
+            }
             await tool.InitializeAsync(config, artifactToolProfile).ConfigureAwait(false);
             switch (tool)
             {

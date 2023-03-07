@@ -74,7 +74,8 @@ public class ListCommand : ToolCommandBase
     {
         using var arm = new InMemoryArtifactRegistrationManager();
         using var adm = new NullArtifactDataManager();
-        using var tool = await GetSearchingToolAsync(context, profile, arm, adm);
+        profile = PrepareProfile(context, profile);
+        using var tool = await GetToolAsync(profile, arm, adm);
         ArtifactToolListOptions options = new();
         ArtifactToolListProxy proxy = new(tool, options, ToolLogHandlerProvider.GetDefaultToolLogHandler());
         bool listResource = context.ParseResult.GetValueForOption(ListResourceOption);

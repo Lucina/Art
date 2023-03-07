@@ -77,12 +77,10 @@ public class ValidateCommand : ToolCommandBase
         IToolLogHandler l = ToolLogHandlerProvider.GetDefaultToolLogHandler();
         List<ArtifactToolProfile> profiles = new();
         foreach (string profileFile in context.ParseResult.GetValueForArgument(ProfileFilesArg))
+        {
             profiles.AddRange(ArtifactToolProfileUtil.DeserializeProfilesFromFile(profileFile));
-        string? cookieFile = context.ParseResult.HasOption(CookieFileOption) ? context.ParseResult.GetValueForOption(CookieFileOption) : null;
-        string? userAgent = context.ParseResult.HasOption(UserAgentOption) ? context.ParseResult.GetValueForOption(UserAgentOption) : null;
-        IEnumerable<string> properties = context.ParseResult.HasOption(PropertiesOption) ? context.ParseResult.GetValueForOption(PropertiesOption)! : Array.Empty<string>();
-        var defaultPropertyProvider = GetOptionalDefaultPropertyProvider(context);
-        profiles = profiles.Select(p => p.GetWithConsoleOptions(defaultPropertyProvider, properties, cookieFile, userAgent, ToolOutput)).ToList();
+        }
+        profiles = PrepareProfiles(context, profiles).ToList();
         bool repair = context.ParseResult.GetValueForOption(RepairOption);
         if (profiles.Count == 0)
         {

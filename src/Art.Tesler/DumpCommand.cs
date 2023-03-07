@@ -118,7 +118,8 @@ public class DumpCommand : ToolCommandBase
     private async Task<int> ExecAsync(InvocationContext context, ArtifactToolProfile profile, IArtifactRegistrationManager arm, IArtifactDataManager adm, ChecksumSource? checksumSource)
     {
         ArtifactToolDumpOptions options = new(ChecksumSource: checksumSource);
-        using var tool = await GetToolAsync(context, profile, arm, adm);
+        profile = PrepareProfile(context, profile);
+        using var tool = await GetToolAsync(profile, arm, adm);
         ArtifactToolDumpProxy dProxy = new(tool, options, ToolLogHandlerProvider.GetDefaultToolLogHandler());
         await dProxy.DumpAsync();
         return 0;

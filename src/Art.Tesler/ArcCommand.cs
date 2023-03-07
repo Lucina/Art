@@ -107,15 +107,9 @@ public class ArcCommand : ToolCommandBase
         {
             ResolveAndAddProfiles(ProfileResolver, profiles, profileFile);
         }
-        string? cookieFile = context.ParseResult.HasOption(CookieFileOption) ? context.ParseResult.GetValueForOption(CookieFileOption) : null;
-        string? userAgent = context.ParseResult.HasOption(UserAgentOption) ? context.ParseResult.GetValueForOption(UserAgentOption) : null;
-        IEnumerable<string> properties = context.ParseResult.HasOption(PropertiesOption) ? context.ParseResult.GetValueForOption(PropertiesOption)! : Array.Empty<string>();
-        var defaultPropertyProvider = GetOptionalDefaultPropertyProvider(context);
-        profiles = profiles.Select(p => p.GetWithConsoleOptions(defaultPropertyProvider, properties, cookieFile, userAgent, ToolOutput)).ToList();
-        foreach (ArtifactToolProfile profile in profiles)
+        foreach (ArtifactToolProfile profile in PrepareProfiles(context, profiles))
         {
-            var plugin = PluginStore.LoadRegistry(ArtifactToolProfileUtil.GetID(profile.Tool));
-            using IArtifactTool tool = await ArtifactTool.PrepareToolAsync(plugin, profile, arm, adm).ConfigureAwait(false);
+            using var tool = await GetToolAsync(profile, arm, adm).ConfigureAwait(false);
             await new ArtifactToolDumpProxy(tool, options, l).DumpAsync().ConfigureAwait(false);
         }
         return 0;
