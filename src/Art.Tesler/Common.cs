@@ -167,14 +167,17 @@ internal static class Common
     }
 
     internal static ArtifactToolProfile GetWithConsoleOptions(this ArtifactToolProfile artifactToolProfile,
-        IDefaultPropertyProvider defaultPropertyProvider,
+        IDefaultPropertyProvider? defaultPropertyProvider,
         IEnumerable<string> properties,
         string? cookieFile,
         string? userAgent,
         IOutputPair console)
     {
         Dictionary<string, JsonElement> opts = new();
-        defaultPropertyProvider.WriteDefaultProperties(artifactToolProfile.GetID(), opts);
+        if (defaultPropertyProvider != null)
+        {
+            defaultPropertyProvider.WriteDefaultProperties(artifactToolProfile.GetID(), opts);
+        }
         if (artifactToolProfile.Options != null)
         {
             foreach (var pair in artifactToolProfile.Options)

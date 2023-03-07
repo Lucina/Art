@@ -19,6 +19,8 @@ public abstract class ToolCommandBase : CommandBase
 
     protected Option<List<string>> PropertiesOption;
 
+    protected Option<bool> NoDefaultPropertiesOption;
+
     protected ToolCommandBase(
         IToolLogHandlerProvider toolLogHandlerProvider,
         IArtifactToolRegistryStore pluginStore,
@@ -35,6 +37,7 @@ public abstract class ToolCommandBase : CommandBase
         AddOption(CookieFileOption);
         PropertiesOption = new Option<List<string>>(new[] { "-p", "--property" }, "Add a property") { ArgumentHelpName = "key:value", Arity = ArgumentArity.ZeroOrMore };
         AddOption(PropertiesOption);
+        NoDefaultPropertiesOption = new Option<bool>(new[] { "--no-default-properties" }, "Don't apply default properties");
     }
 
     protected async Task<IArtifactTool> GetSearchingToolAsync(InvocationContext context, ArtifactToolProfile artifactToolProfile, IArtifactRegistrationManager artifactRegistrationManager, IArtifactDataManager artifactDataManager, CancellationToken cancellationToken = default)
@@ -48,9 +51,19 @@ public abstract class ToolCommandBase : CommandBase
         string? cookieFile = context.ParseResult.HasOption(CookieFileOption) ? context.ParseResult.GetValueForOption(CookieFileOption) : null;
         string? userAgent = context.ParseResult.HasOption(UserAgentOption) ? context.ParseResult.GetValueForOption(UserAgentOption) : null;
         IEnumerable<string> properties = context.ParseResult.HasOption(PropertiesOption) ? context.ParseResult.GetValueForOption(PropertiesOption)! : Array.Empty<string>();
-        artifactToolProfile = artifactToolProfile.GetWithConsoleOptions(DefaultPropertyProvider, properties, cookieFile, userAgent, ToolOutput);
+        var defaultPropertyProvider = GetOptionalDefaultPropertyProvider(context);
+        artifactToolProfile = artifactToolProfile.GetWithConsoleOptions(defaultPropertyProvider, properties, cookieFile, userAgent, ToolOutput);
         IArtifactTool t = await ArtifactTool.PrepareToolAsync(plugin, artifactToolProfile, arm, adm, cancellationToken);
         return t;
+    }
+
+    protected IDefaultPropertyProvider? GetOptionalDefaultPropertyProvider(InvocationContext context)
+    {
+        if (context.ParseResult.GetValueForOption(NoDefaultPropertiesOption))
+        {
+            return null;
+        }
+        return DefaultPropertyProvider;
     }
 
     protected static void ResolveAndAddProfiles(IProfileResolver profileResolver, List<ArtifactToolProfile> profiles, string profileFile)

@@ -110,7 +110,8 @@ public class ArcCommand : ToolCommandBase
         string? cookieFile = context.ParseResult.HasOption(CookieFileOption) ? context.ParseResult.GetValueForOption(CookieFileOption) : null;
         string? userAgent = context.ParseResult.HasOption(UserAgentOption) ? context.ParseResult.GetValueForOption(UserAgentOption) : null;
         IEnumerable<string> properties = context.ParseResult.HasOption(PropertiesOption) ? context.ParseResult.GetValueForOption(PropertiesOption)! : Array.Empty<string>();
-        profiles = profiles.Select(p => p.GetWithConsoleOptions(DefaultPropertyProvider, properties, cookieFile, userAgent, ToolOutput)).ToList();
+        var defaultPropertyProvider = GetOptionalDefaultPropertyProvider(context);
+        profiles = profiles.Select(p => p.GetWithConsoleOptions(defaultPropertyProvider, properties, cookieFile, userAgent, ToolOutput)).ToList();
         foreach (ArtifactToolProfile profile in profiles)
         {
             var plugin = PluginStore.LoadRegistry(ArtifactToolProfileUtil.GetID(profile.Tool));
