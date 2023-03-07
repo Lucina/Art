@@ -3,17 +3,15 @@ using Art.Common.Proxies;
 
 namespace Art.Tesler;
 
-public class RepairContext
+public class RepairContext : ToolControlContext
 {
-    private readonly IArtifactToolRegistryStore _pluginStore;
     private readonly Dictionary<ArtifactKey, List<ArtifactResourceInfo>> _failed;
     private readonly IArtifactRegistrationManager _arm;
     private readonly IArtifactDataManager _adm;
     private readonly IToolLogHandler _l;
 
-    public RepairContext(IArtifactToolRegistryStore pluginStore, IReadOnlyDictionary<ArtifactKey, List<ArtifactResourceInfo>> failed, IArtifactRegistrationManager arm, IArtifactDataManager adm, IToolLogHandler l)
+    public RepairContext(IArtifactToolRegistryStore pluginStore, IReadOnlyDictionary<ArtifactKey, List<ArtifactResourceInfo>> failed, IArtifactRegistrationManager arm, IArtifactDataManager adm, IToolLogHandler l) : base(pluginStore)
     {
-        _pluginStore = pluginStore;
         _failed = new Dictionary<ArtifactKey, List<ArtifactResourceInfo>>(failed);
         _arm = arm;
         _adm = adm;
@@ -22,30 +20,25 @@ public class RepairContext
 
     public async Task<bool> RepairAsync(List<ArtifactToolProfile> profiles, bool detailed, ChecksumSource? checksumSource, IOutputPair console)
     {
-        foreach (ArtifactToolProfile profile in profiles)
+        foreach (ArtifactToolProfile originalProfile in profiles)
         {
-            ArtifactToolProfile artifactToolProfile = profile;
-            var context = _pluginStore.LoadRegistry(ArtifactToolProfileUtil.GetID(profile.Tool)); // InvalidOperationException
-            if (!context.TryLoad(artifactToolProfile.GetID(), out IArtifactTool? t))
-            {
-                throw new ArtifactToolNotFoundException(artifactToolProfile.Tool);
-            }
-            ArtifactToolConfig config = new(_arm, _adm);
-            using IArtifactTool tool = t;
-            string group = artifactToolProfile.GetGroupOrFallback(tool.GroupFallback);
-            artifactToolProfile = artifactToolProfile.WithCoreTool(t);
-            if (!_failed.Keys.Any(v => v.Tool == artifactToolProfile.Tool && v.Group == group))
+            using var tool = LoadTool(originalProfile);
+            var actualProfile = originalProfile.WithCoreTool(tool);
+            string toolName = actualProfile.Tool;
+            string group = actualProfile.GetGroupOrFallback(tool.GroupFallback);
+            if (!_failed.Keys.Any(v => v.Tool == toolName && v.Group == group))
             {
                 continue;
             }
-            await tool.InitializeAsync(config, artifactToolProfile).ConfigureAwait(false);
+            ArtifactToolConfig config = new(_arm, _adm);
+            await tool.InitializeAsync(config, actualProfile).ConfigureAwait(false);
             switch (tool)
             {
                 // ReSharper disable SuspiciousTypeConversion.Global
                 case IArtifactFindTool:
                     {
                         var proxy = new ArtifactToolFindProxy(tool, _l);
-                        foreach ((ArtifactKey key, List<ArtifactResourceInfo> list) in _failed.Where(v => v.Key.Tool == artifactToolProfile.Tool && v.Key.Group == group).ToList())
+                        foreach ((ArtifactKey key, List<ArtifactResourceInfo> list) in _failed.Where(v => v.Key.Tool == actualProfile.Tool && v.Key.Group == group).ToList())
                             if (await proxy.FindAsync(key.Id) is { } data) await Fixup(tool, key, list, data, checksumSource);
                             else _l.Log($"Failed to obtain artifact {key.Tool}/{key.Group}:{key.Id}", null, LogLevel.Error);
                         break;
