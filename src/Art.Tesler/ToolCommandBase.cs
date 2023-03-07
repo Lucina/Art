@@ -38,6 +38,7 @@ public abstract class ToolCommandBase : CommandBase
         PropertiesOption = new Option<List<string>>(new[] { "-p", "--property" }, "Add a property") { ArgumentHelpName = "key:value", Arity = ArgumentArity.ZeroOrMore };
         AddOption(PropertiesOption);
         NoDefaultPropertiesOption = new Option<bool>(new[] { "--no-default-properties" }, "Don't apply default properties");
+        AddOption(NoDefaultPropertiesOption);
     }
 
     protected ArtifactToolProfile PrepareProfile(InvocationContext context, ArtifactToolProfile artifactToolProfile)
