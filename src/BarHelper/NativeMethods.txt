@@ -1,3 +1,0 @@
-﻿CreateFile
-GetConsoleMode
-SetConsoleMode
