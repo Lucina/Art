@@ -62,18 +62,18 @@ public class ConsoleStyledLogHandler : StyledLogHandler
 internal class WaitUpdateContext : IOperationProgressContext
 {
     private readonly BarContext _context;
-    private readonly EllipsisSuffixContentFiller _filler;
+    private EllipsisSuffixContentFiller _filler;
 
     public WaitUpdateContext(string name, TextWriter output, bool forceFallback, Func<bool> errorRedirectedFunc, Func<int> widthFunc)
     {
         _context = BarContext.Create(output, forceFallback, errorRedirectedFunc, widthFunc);
         _filler = new EllipsisSuffixContentFiller(name, 0);
-        _context.Write(_filler);
+        _context.Write(ref _filler);
     }
 
     public void Report(float value)
     {
-        _context.Update(_filler);
+        _context.Update(ref _filler);
     }
 
     public void Dispose()
@@ -93,7 +93,7 @@ internal class DownloadUpdateContext : IOperationProgressContext
     {
         _context = BarContext.Create(output, forceFallback, errorRedirectedFunc, widthFunc);
         _filler = TimedDownloadPrefabContentFiller.Create(name);
-        _context.Write(_filler);
+        _context.Write(ref _filler);
         _stopwatch = new Stopwatch();
         _stopwatch.Start();
     }
@@ -102,7 +102,7 @@ internal class DownloadUpdateContext : IOperationProgressContext
     {
         _filler.SetDuration(_stopwatch.Elapsed);
         _filler.SetProgress(value);
-        _context.Update(_filler);
+        _context.Update(ref _filler);
     }
 
     public void Dispose()

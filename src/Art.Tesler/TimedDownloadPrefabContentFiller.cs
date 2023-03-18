@@ -10,39 +10,48 @@ public struct TimedDownloadPrefabContentFiller : IContentFiller
         return new TimedDownloadPrefabContentFiller(initialName);
     }
 
-    public BorderContentFiller<SplitContentFiller<StringContentFiller, FixedSplitContentFiller<StringContentFiller, FixedSplitContentFiller<ColorContentFiller<ProgressContentFiller>, StringContentFiller>>>> Content;
+    public StringContentFiller NameTextContent;
+    public StringContentFiller DurationTextContent;
+    public ProgressContentFiller ProgressContent;
+    public StringContentFiller ProgressTextContent;
+
+    public IContentFiller Content;
 
     public TimedDownloadPrefabContentFiller(string initialName)
     {
+        NameTextContent = StringContentFiller.Create(initialName, ContentAlignment.Left);
+        DurationTextContent = StringContentFiller.Create("0.0s", ContentAlignment.Right);
+        ProgressContent = ProgressContentFiller.Create();
+        ProgressTextContent = StringContentFiller.Create("0.0%", ContentAlignment.Right);
         Content = BorderContentFiller.Create("[", "]",
             SplitContentFiller.Create("|", 0.25f, 0.75f,
-                StringContentFiller.Create(initialName, ContentAlignment.Left),
+                ScrollingContentFiller.Create(TimeSpan.FromSeconds(0.4f),
+                    NameTextContent),
                 FixedSplitContentFiller.Create("|", 7, 0,
-                    StringContentFiller.Create("0.0s", ContentAlignment.Right),
+                    DurationTextContent,
                     FixedSplitContentFiller.Create("|", 6, 1,
-                        ColorContentFiller.Create(ConsoleColor.Green, ProgressContentFiller.Create()),
-                        StringContentFiller.Create("0.0%", ContentAlignment.Right)))));
+                        ColorContentFiller.Create(ConsoleColor.Green, ProgressContent), ProgressTextContent))));
     }
 
     public void SetName(string name)
     {
-        Content.Content.ContentLeft = new StringContentFiller(name, ContentAlignment.Left);
+        NameTextContent.Content = name;
     }
 
     public void SetDuration(TimeSpan duration)
     {
-        Content.Content.ContentRight.ContentLeft = new StringContentFiller($"{duration.TotalSeconds:F1}s", ContentAlignment.Right);
+        DurationTextContent.Content = $"{duration.TotalSeconds:F1}s";
     }
 
     public void SetProgress(float progress)
     {
         progress = Math.Clamp(progress, 0.0f, 1.0f);
-        Content.Content.ContentRight.ContentRight.ContentLeft.Content.Progress = progress;
-        Content.Content.ContentRight.ContentRight.ContentRight = new StringContentFiller($"{100.0f * progress:F1}%", ContentAlignment.Right);
+        ProgressContent.Progress = progress;
+        ProgressTextContent.Content = $"{100.0f * progress:F1}%";
     }
 
-    public void Fill(StringBuilder stringBuilder, int width)
+    public void Fill(StringBuilder stringBuilder, int width, int scrollOffset = 0)
     {
-        Content.Fill(stringBuilder, width);
+        Content.Fill(stringBuilder, width, scrollOffset);
     }
 }

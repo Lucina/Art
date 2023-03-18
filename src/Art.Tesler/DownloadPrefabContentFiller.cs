@@ -10,32 +10,39 @@ public struct DownloadPrefabContentFiller : IContentFiller
         return new DownloadPrefabContentFiller(initialName);
     }
 
-    public BorderContentFiller<SplitContentFiller<StringContentFiller, FixedSplitContentFiller<ColorContentFiller<ProgressContentFiller>, StringContentFiller>>> Content;
+    public StringContentFiller NameTextContent;
+    public ProgressContentFiller ProgressContent;
+    public StringContentFiller ProgressTextContent;
+
+    public IContentFiller Content;
 
     public DownloadPrefabContentFiller(string initialName)
     {
+        NameTextContent = StringContentFiller.Create(initialName, ContentAlignment.Left);
+        ProgressContent = ProgressContentFiller.Create();
+        ProgressTextContent = StringContentFiller.Create("0.0%", ContentAlignment.Right);
         Content = BorderContentFiller.Create("[", "]",
             SplitContentFiller.Create("|", 0.25f, 0.75f,
-                StringContentFiller.Create(initialName, ContentAlignment.Left),
+                NameTextContent,
                 FixedSplitContentFiller.Create("|", 6, 1,
-                    ColorContentFiller.Create(ConsoleColor.Green, ProgressContentFiller.Create()),
-                    StringContentFiller.Create("0.0%", ContentAlignment.Right))));
+                    ColorContentFiller.Create(ConsoleColor.Green, ProgressContent),
+                    ProgressTextContent)));
     }
 
     public void SetName(string name)
     {
-        Content.Content.ContentLeft = new StringContentFiller(name, ContentAlignment.Left);
+        NameTextContent.Content = name;
     }
 
     public void SetProgress(float progress)
     {
         progress = Math.Clamp(progress, 0.0f, 1.0f);
-        Content.Content.ContentRight.ContentLeft.Content.Progress = progress;
-        Content.Content.ContentRight.ContentRight = new StringContentFiller($"{100.0f * progress:F1}%", ContentAlignment.Right);
+        ProgressContent.Progress = progress;
+        ProgressTextContent.Content = $"{100.0f * progress:F1}%";
     }
 
-    public void Fill(StringBuilder stringBuilder, int width)
+    public void Fill(StringBuilder stringBuilder, int width, int scrollOffset = 0)
     {
-        Content.Fill(stringBuilder, width);
+        Content.Fill(stringBuilder, width, scrollOffset);
     }
 }
