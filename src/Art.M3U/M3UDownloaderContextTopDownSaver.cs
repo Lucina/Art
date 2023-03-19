@@ -8,7 +8,7 @@ namespace Art.M3U;
 /// <summary>
 /// Represents a top-down saver.
 /// </summary>
-public partial class M3UDownloaderContextTopDownSaver : M3UDownloaderContextSaver
+public partial class M3UDownloaderContextTopDownSaver : M3UDownloaderContextSaver, IExtraSaverOperation
 {
     [GeneratedRegex("(^[\\S\\s]*[^\\d]|)\\d+(\\.\\w+)$")]
     private static partial Regex GetBitRegex();
@@ -18,6 +18,8 @@ public partial class M3UDownloaderContextTopDownSaver : M3UDownloaderContextSave
 
     private readonly long _top;
     private readonly Func<string, long, string> _nameTransform;
+    private long _currentTop;
+    private bool _ended;
 
     internal M3UDownloaderContextTopDownSaver(M3UDownloaderContext context, long top)
         : this(context, top, TranslateNameDefault)
@@ -32,6 +34,7 @@ public partial class M3UDownloaderContextTopDownSaver : M3UDownloaderContextSave
     internal M3UDownloaderContextTopDownSaver(M3UDownloaderContext context, long top, Func<string, long, string> nameTransform) : base(context)
     {
         _top = top;
+        _currentTop = _top;
         _nameTransform = nameTransform;
     }
 
@@ -81,45 +84,77 @@ public partial class M3UDownloaderContextTopDownSaver : M3UDownloaderContextSave
     /// <inheritdoc />
     public override async Task RunAsync(CancellationToken cancellationToken = default)
     {
-        FailCounter = 0;
-        long top = _top;
+        Reset();
         while (true)
         {
+            if (HeartbeatCallback != null) await HeartbeatCallback().ConfigureAwait(false);
+            M3UFile m3;
+            Context.Tool.LogInformation("Reading main...");
             try
             {
-                if (top < 0) break;
-                if (HeartbeatCallback != null) await HeartbeatCallback().ConfigureAwait(false);
-                Context.Tool.LogInformation("Reading main...");
-                M3UFile m3 = await Context.GetAsync(cancellationToken).ConfigureAwait(false);
-                string str = m3.DataLines.First();
-                Uri origUri = new(Context.MainUri, str);
-                int idx = str.IndexOf('?');
-                if (idx >= 0) str = str[..idx];
-                Uri uri = new UriBuilder(new Uri(Context.MainUri, _nameTransform(str, top))) { Query = origUri.Query }.Uri;
-                Context.Tool.LogInformation($"Downloading segment {uri.Segments[^1]}...");
-                try
-                {
-                    // Don't assume MSN, and just accept failure (exception) when trying to decrypt with no IV
-                    // Also don't depend on current file since it probably won't do us good anyway for this use case
-                    await Context.DownloadSegmentAsync(uri, null, null, cancellationToken).ConfigureAwait(false);
-                    top--;
-                }
-                catch (ArtHttpResponseMessageException e)
-                {
-                    if (e.StatusCode == HttpStatusCode.NotFound)
-                    {
-                        Context.Tool.LogInformation("HTTP NotFound returned, ending operation");
-                        return;
-                    }
-                    await HandleRequestExceptionAsync(e, cancellationToken).ConfigureAwait(false);
-                }
-                await Task.Delay(500, cancellationToken).ConfigureAwait(false);
-                FailCounter = 0;
+                m3 = await Context.GetAsync(cancellationToken).ConfigureAwait(false);
             }
             catch (ArtHttpResponseMessageException e)
             {
                 await HandleRequestExceptionAsync(e, cancellationToken).ConfigureAwait(false);
+                continue;
             }
+            bool shouldContinue = await TickAsync(m3, cancellationToken).ConfigureAwait(false);
+            if (!shouldContinue)
+            {
+                return;
+            }
+            await Task.Delay(500, cancellationToken).ConfigureAwait(false);
         }
+    }
+
+    void IExtraSaverOperation.Reset()
+    {
+        Reset();
+    }
+
+    private void Reset()
+    {
+        _ended = false;
+        _currentTop = _top;
+        FailCounter = 0;
+    }
+
+    Task<bool> IExtraSaverOperation.TickAsync(M3UFile m3, CancellationToken cancellationToken)
+    {
+        return TickAsync(m3, cancellationToken);
+    }
+
+    private async Task<bool> TickAsync(M3UFile m3, CancellationToken cancellationToken = default)
+    {
+        if (_ended || _currentTop < 0)
+        {
+            return false;
+        }
+        string str = m3.DataLines.First();
+        Uri origUri = new(Context.MainUri, str);
+        int idx = str.IndexOf('?');
+        if (idx >= 0) str = str[..idx];
+        Uri uri = new UriBuilder(new Uri(Context.MainUri, _nameTransform(str, _currentTop))) { Query = origUri.Query }.Uri;
+        Context.Tool.LogInformation($"Top-downloading segment {uri.Segments[^1]}...");
+        try
+        {
+            // Don't assume MSN, and just accept failure (exception) when trying to decrypt with no IV
+            // Also don't depend on current file since it probably won't do us good anyway for this use case
+            await Context.DownloadSegmentAsync(uri, null, null, cancellationToken).ConfigureAwait(false);
+            _currentTop--;
+        }
+        catch (ArtHttpResponseMessageException e)
+        {
+            if (e.StatusCode == HttpStatusCode.NotFound)
+            {
+                Context.Tool.LogInformation("HTTP NotFound returned, ending top-down operation");
+                _ended = true;
+                return false;
+            }
+            await HandleRequestExceptionAsync(e, cancellationToken).ConfigureAwait(false);
+        }
+        FailCounter = 0;
+        return true;
     }
 }

@@ -164,8 +164,9 @@ public class M3UDownloaderContext
     /// </summary>
     /// <param name="oneOff">If true, only request target once.</param>
     /// <param name="timeout">Timeout when waiting for new entries.</param>
+    /// <param name="extraOperation">Extra operation to invoke during down time.</param>
     /// <returns>Downloader.</returns>
-    public M3UDownloaderContextStandardSaver CreateStandardSaver(bool oneOff, TimeSpan timeout) => new(this, oneOff, timeout);
+    public M3UDownloaderContextStandardSaver CreateStandardSaver(bool oneOff, TimeSpan timeout, IExtraSaverOperation? extraOperation = null) => new(this, oneOff, timeout, extraOperation);
 
     /// <summary>
     /// Creates a basic stream output downloader.

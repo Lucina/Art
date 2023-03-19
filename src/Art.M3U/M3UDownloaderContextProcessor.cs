@@ -109,9 +109,11 @@ public abstract class M3UDownloaderContextProcessor
     /// <param name="oneOff">If true, complete after one pass through playlist.</param>
     /// <param name="timeout">Timeout to use to determine when a stream seems to have ended.</param>
     /// <param name="playlistElementProcessor">Processor to handle playlist elements.</param>
+    /// <param name="extraOperation">Optional extra operation.</param>
     /// <param name="cancellationToken">Cancellation token.</param>
-    protected async Task ProcessPlaylistAsync(bool oneOff, TimeSpan timeout, IPlaylistElementProcessor playlistElementProcessor, CancellationToken cancellationToken = default)
+    protected async Task ProcessPlaylistAsync(bool oneOff, TimeSpan timeout, IPlaylistElementProcessor playlistElementProcessor, IExtraSaverOperation? extraOperation = null, CancellationToken cancellationToken = default)
     {
+        extraOperation?.Reset();
         IOperationProgressContext? operationProgressContext = null;
         try
         {
@@ -174,21 +176,47 @@ public abstract class M3UDownloaderContextProcessor
                     if (j != 0)
                     {
                         sw.Restart();
+                        remainingTimeout = timeout;
                     }
                     else if (sw.IsRunning)
                     {
-                        var elapsed = sw.Elapsed;
-                        if (elapsed >= timeout)
+                        if (extraOperation != null)
                         {
-                            if (operationProgressContext != null)
+                            try
                             {
-                                operationProgressContext.Dispose();
-                                operationProgressContext = null;
+                                Context.Tool.LogInformation("No new segments, executing extra operation...");
+                                bool shouldContinue = await extraOperation.TickAsync(m3, cancellationToken).ConfigureAwait(false);
+                                if (!shouldContinue)
+                                {
+                                    extraOperation = null;
+                                }
                             }
-                            Context.Tool.LogInformation($"No new entries for timeout {timeout}, stopping");
-                            return;
+                            catch (Exception e)
+                            {
+                                Context.Tool.LogError(e.Message, e.ToString());
+                                extraOperation = null;
+                            }
                         }
-                        remainingTimeout = timeout.Subtract(elapsed);
+                        if (extraOperation != null)
+                        {
+                            sw.Restart();
+                            remainingTimeout = timeout;
+                        }
+                        else
+                        {
+                            var elapsed = sw.Elapsed;
+                            if (elapsed >= timeout)
+                            {
+                                if (operationProgressContext != null)
+                                {
+                                    operationProgressContext.Dispose();
+                                    operationProgressContext = null;
+                                }
+                                Context.Tool.LogInformation($"No new entries for timeout {timeout}, stopping");
+                                return;
+                            }
+                            remainingTimeout = timeout.Subtract(elapsed);
+                        }
                     }
                     else
                     {

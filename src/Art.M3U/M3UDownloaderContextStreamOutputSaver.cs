@@ -26,6 +26,6 @@ public class M3UDownloaderContextStreamOutputSaver : M3UDownloaderContextProcess
     /// <exception cref="ArtHttpResponseMessageException">Thrown on HTTP response indicating non-successful response.</exception>
     public Task ExportAsync(Stream stream, CancellationToken cancellationToken = default)
     {
-        return ProcessPlaylistAsync(_oneOff, _timeout, new StreamOutputPlaylistElementProcessor(Context, stream), cancellationToken);
+        return ProcessPlaylistAsync(_oneOff, _timeout, new StreamOutputPlaylistElementProcessor(Context, stream), null, cancellationToken);
     }
 }
