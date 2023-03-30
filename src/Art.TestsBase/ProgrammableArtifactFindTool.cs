@@ -24,7 +24,7 @@ public class ProgrammableArtifactFindTool : ArtifactTool, IArtifactFindTool
 
     public static ArtifactToolRegistryEntry CreateRegistryEntry(SynchronousFindDelegate synchronousFindDelegate)
     {
-        return CreateRegistryEntry(ArtifactToolIDUtil.CreateToolId<ProgrammableArtifactFindTool>(), synchronousFindDelegate);
+        return CreateRegistryEntry(ArtifactToolIDUtil.CreateToolID<ProgrammableArtifactFindTool>(), synchronousFindDelegate);
     }
 
     public static ArtifactToolRegistryEntry CreateRegistryEntry(ArtifactToolID artifactToolId, SynchronousFindDelegate synchronousFindDelegate)
@@ -62,7 +62,7 @@ public class AsyncProgrammableArtifactFindTool : ArtifactTool, IArtifactFindTool
 
     public static ArtifactToolRegistryEntry CreateRegistryEntry(AsyncFindDelegate asyncFindDelegate)
     {
-        return CreateRegistryEntry(ArtifactToolIDUtil.CreateToolId<AsyncProgrammableArtifactFindTool>(), asyncFindDelegate);
+        return CreateRegistryEntry(ArtifactToolIDUtil.CreateToolID<AsyncProgrammableArtifactFindTool>(), asyncFindDelegate);
     }
 
     public static ArtifactToolRegistryEntry CreateRegistryEntry(ArtifactToolID artifactToolId, AsyncFindDelegate asyncFindDelegate)

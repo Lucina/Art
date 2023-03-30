@@ -24,7 +24,7 @@ public class ProgrammableArtifactListTool : ArtifactTool, IArtifactListTool
 
     public static ArtifactToolRegistryEntry CreateRegistryEntry(SynchronousListDelegate synchronousListDelegate)
     {
-        return CreateRegistryEntry(ArtifactToolIDUtil.CreateToolId<ProgrammableArtifactListTool>(), synchronousListDelegate);
+        return CreateRegistryEntry(ArtifactToolIDUtil.CreateToolID<ProgrammableArtifactListTool>(), synchronousListDelegate);
     }
 
     public static ArtifactToolRegistryEntry CreateRegistryEntry(ArtifactToolID artifactToolId, SynchronousListDelegate synchronousListDelegate)
@@ -62,7 +62,7 @@ public class AsyncProgrammableArtifactListTool : ArtifactTool, IArtifactListTool
 
     public static ArtifactToolRegistryEntry CreateRegistryEntry(AsyncListDelegate asyncListDelegate)
     {
-        return CreateRegistryEntry(ArtifactToolIDUtil.CreateToolId<AsyncProgrammableArtifactListTool>(), asyncListDelegate);
+        return CreateRegistryEntry(ArtifactToolIDUtil.CreateToolID<AsyncProgrammableArtifactListTool>(), asyncListDelegate);
     }
 
     public static ArtifactToolRegistryEntry CreateRegistryEntry(ArtifactToolID artifactToolId, AsyncListDelegate asyncListDelegate)

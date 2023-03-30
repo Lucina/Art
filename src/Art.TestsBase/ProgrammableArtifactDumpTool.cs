@@ -25,7 +25,7 @@ public class ProgrammableArtifactDumpTool : ArtifactTool, IArtifactDumpTool
 
     public static ArtifactToolRegistryEntry CreateRegistryEntry(SynchronousDumpDelegate synchronousDumpDelegate)
     {
-        return CreateRegistryEntry(ArtifactToolIDUtil.CreateToolId<ProgrammableArtifactDumpTool>(), synchronousDumpDelegate);
+        return CreateRegistryEntry(ArtifactToolIDUtil.CreateToolID<ProgrammableArtifactDumpTool>(), synchronousDumpDelegate);
     }
 
     public static ArtifactToolRegistryEntry CreateRegistryEntry(ArtifactToolID artifactToolId, SynchronousDumpDelegate synchronousDumpDelegate)
@@ -63,7 +63,7 @@ public class AsyncProgrammableArtifactDumpTool : ArtifactTool, IArtifactDumpTool
 
     public static ArtifactToolRegistryEntry CreateRegistryEntry(AsyncDumpDelegate asyncDumpDelegate)
     {
-        return CreateRegistryEntry(ArtifactToolIDUtil.CreateToolId<AsyncProgrammableArtifactDumpTool>(), asyncDumpDelegate);
+        return CreateRegistryEntry(ArtifactToolIDUtil.CreateToolID<AsyncProgrammableArtifactDumpTool>(), asyncDumpDelegate);
     }
 
     public static ArtifactToolRegistryEntry CreateRegistryEntry(ArtifactToolID artifactToolId, AsyncDumpDelegate asyncDumpDelegate)
