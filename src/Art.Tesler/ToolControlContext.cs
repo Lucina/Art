@@ -13,7 +13,7 @@ public class ToolControlContext
 
     protected IArtifactTool LoadTool(ArtifactToolProfile artifactToolProfile)
     {
-        var context = PluginStore.LoadRegistry(ArtifactToolProfileUtil.GetID(artifactToolProfile.Tool)); // InvalidOperationException
+        var context = PluginStore.LoadRegistry(ArtifactToolIDUtil.ParseID(artifactToolProfile.Tool)); // InvalidOperationException
         if (!context.TryLoad(artifactToolProfile.GetID(), out IArtifactTool? t))
         {
             throw new ArtifactToolNotFoundException(artifactToolProfile.Tool);

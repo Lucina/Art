@@ -1,5 +1,6 @@
 ﻿using System.CommandLine;
 using Art.Common;
+using Art.Tesler.Config;
 using Art.Tesler.Cookie;
 using Art.Tesler.Database;
 
@@ -33,7 +34,8 @@ public class TeslerRootCommand : RootCommand
             new ToolsCommand(toolLogHandlerProvider, pluginStore),
             new ValidateCommand(toolLogHandlerProvider, pluginStore, defaultPropertyProvider, dataProvider, registrationProvider),
             new DatabaseCommand(toolLogHandlerProvider, registrationProvider),
-            new CookieCommand(toolLogHandlerProvider)
+            new CookieCommand(toolLogHandlerProvider),
+            new ConfigCommand(toolLogHandlerProvider, defaultPropertyProvider, profileResolver)
         };
     }
 
@@ -59,7 +61,8 @@ public class TeslerRootCommand : RootCommand
             new ToolsCommand(toolLogHandlerProvider, pluginStore),
             new ValidateCommand(toolLogHandlerProvider, pluginStore, defaultPropertyProvider, dataProvider, registrationProvider),
             new DatabaseCommand(toolLogHandlerProvider, registrationProvider),
-            new CookieCommand(toolLogHandlerProvider)
+            new CookieCommand(toolLogHandlerProvider),
+            new ConfigCommand(toolLogHandlerProvider, defaultPropertyProvider, profileResolver)
         };
     }
 
@@ -85,7 +88,8 @@ public class TeslerRootCommand : RootCommand
             new ToolsCommand(toolLogHandlerProvider, pluginStore),
             new ValidateCommand(toolLogHandlerProvider, pluginStore, defaultPropertyProvider, dataProvider, registrationProvider),
             new DatabaseCommand(toolLogHandlerProvider, registrationProvider),
-            new CookieCommand(toolLogHandlerProvider)
+            new CookieCommand(toolLogHandlerProvider),
+            new ConfigCommand(toolLogHandlerProvider, defaultPropertyProvider, profileResolver)
         };
     }
 

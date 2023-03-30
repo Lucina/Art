@@ -208,7 +208,7 @@ public partial class ArtifactTool : IArtifactTool
     /// <exception cref="ArtifactToolNotFoundException">Thrown when tool is not found.</exception>
     public static Task<IArtifactTool> PrepareToolAsync(IArtifactToolRegistry artifactToolRegistry, ArtifactToolProfile artifactToolProfile, IArtifactRegistrationManager artifactRegistrationManager, IArtifactDataManager artifactDataManager, CancellationToken cancellationToken = default)
     {
-        if (!artifactToolRegistry.TryLoad(ArtifactToolProfileUtil.GetID(artifactToolProfile.Tool), out IArtifactTool? t))
+        if (!artifactToolRegistry.TryLoad(ArtifactToolIDUtil.ParseID(artifactToolProfile.Tool), out IArtifactTool? t))
             throw new ArtifactToolNotFoundException(artifactToolProfile.Tool);
         return PrepareToolInternalAsync(t, artifactToolProfile, artifactRegistrationManager, artifactDataManager, cancellationToken);
     }

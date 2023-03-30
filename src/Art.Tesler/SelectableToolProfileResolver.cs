@@ -12,8 +12,13 @@ public class SelectableToolProfileResolver : IProfileResolver
         _pluginStore = pluginStore;
     }
 
-    public bool TryGetProfiles(string text, [NotNullWhen(true)] out IEnumerable<ArtifactToolProfile>? profiles)
+    public bool TryGetProfiles(string text, [NotNullWhen(true)] out IEnumerable<ArtifactToolProfile>? profiles, ProfileResolutionFlags profileResolutionFlags = ProfileResolutionFlags.Default)
     {
+        if ((profileResolutionFlags & ProfileResolutionFlags.KeySelection) == 0)
+        {
+            profiles = null;
+            return false;
+        }
         if (_selectableRegistries == null)
         {
             _selectableRegistries = new List<IArtifactToolSelectableRegistry<string>>();

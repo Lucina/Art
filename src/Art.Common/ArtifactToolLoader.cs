@@ -18,7 +18,7 @@ public static class ArtifactToolLoader
     [RequiresUnreferencedCode($"Loading artifact tools might require types that cannot be statically analyzed. Consider using {nameof(IArtifactToolRegistry)} where possible.")]
     public static bool TryLoad(string toolId, [NotNullWhen(true)] out IArtifactTool? tool)
     {
-        return TryLoad(ArtifactToolProfileUtil.GetID(toolId), out tool);
+        return TryLoad(ArtifactToolIDUtil.ParseID(toolId), out tool);
     }
 
     /// <summary>
@@ -31,7 +31,7 @@ public static class ArtifactToolLoader
     [RequiresUnreferencedCode($"Loading artifact tools might require types that cannot be statically analyzed. Consider using {nameof(IArtifactToolRegistry)} where possible.")]
     public static bool TryLoad(AssemblyLoadContext assemblyLoadContext, string toolId, [NotNullWhen(true)] out IArtifactTool? tool)
     {
-        return TryLoad(assemblyLoadContext, ArtifactToolProfileUtil.GetID(toolId), out tool);
+        return TryLoad(assemblyLoadContext, ArtifactToolIDUtil.ParseID(toolId), out tool);
     }
 
     /// <summary>
@@ -44,7 +44,7 @@ public static class ArtifactToolLoader
     [RequiresUnreferencedCode($"Loading artifact tools might require types that cannot be statically analyzed. Consider using {nameof(IArtifactToolRegistry)} where possible.")]
     public static bool TryLoad(Assembly assembly, string toolId, [NotNullWhen(true)] out IArtifactTool? tool)
     {
-        return TryLoad(assembly, ArtifactToolProfileUtil.GetID(toolId), out tool);
+        return TryLoad(assembly, ArtifactToolIDUtil.ParseID(toolId), out tool);
     }
 
     /// <summary>

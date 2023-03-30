@@ -1,4 +1,6 @@
+using System.Diagnostics.CodeAnalysis;
 using System.Reflection;
+using System.Text.RegularExpressions;
 
 namespace Art.Common;
 
@@ -12,7 +14,7 @@ public static class ArtifactToolIDUtil
     /// </summary>
     /// <param name="type">Tool type.</param>
     /// <returns>Tool ID.</returns>
-    public static ArtifactToolID CreateToolId(Type type)
+    public static ArtifactToolID CreateToolID(Type type)
     {
         string assemblyName = type.Assembly.GetName().Name ?? throw new InvalidOperationException();
         string typeName = type.FullName ?? throw new InvalidOperationException();
@@ -36,11 +38,11 @@ public static class ArtifactToolIDUtil
     /// </summary>
     /// <param name="type">Tool type.</param>
     /// <returns>Tool ID.</returns>
-    public static ArtifactToolID CreateCoreToolId(Type type)
+    public static ArtifactToolID CreateCoreToolID(Type type)
     {
         Type? coreType = type;
         while (coreType != null && coreType.GetCustomAttribute<CoreAttribute>() == null) coreType = coreType.BaseType;
-        return CreateToolId(coreType ?? type);
+        return CreateToolID(coreType ?? type);
     }
 
     /// <summary>
@@ -60,9 +62,9 @@ public static class ArtifactToolIDUtil
     /// </summary>
     /// <typeparam name="TTool">Tool type.</typeparam>
     /// <returns>Tool ID.</returns>
-    public static ArtifactToolID CreateCoreToolId<TTool>() where TTool : IArtifactTool
+    public static ArtifactToolID CreateCoreToolID<TTool>() where TTool : IArtifactTool
     {
-        return CreateCoreToolId(typeof(TTool));
+        return CreateCoreToolID(typeof(TTool));
     }
 
     /// <summary>
@@ -80,9 +82,9 @@ public static class ArtifactToolIDUtil
     /// </summary>
     /// <typeparam name="TTool">Tool type.</typeparam>
     /// <returns>Tool ID.</returns>
-    public static ArtifactToolID CreateToolId<TTool>() where TTool : IArtifactTool
+    public static ArtifactToolID CreateToolID<TTool>() where TTool : IArtifactTool
     {
-        return CreateToolId(typeof(TTool));
+        return CreateToolID(typeof(TTool));
     }
 
     /// <summary>
@@ -93,5 +95,49 @@ public static class ArtifactToolIDUtil
     public static string CreateToolString<TTool>() where TTool : IArtifactTool
     {
         return CreateToolString(typeof(TTool));
+    }
+
+    private static readonly Regex s_toolRegex = new(@"^([\S\s]+)::([\S\s]+)$");
+
+    /// <summary>
+    /// Separates assembly and type name from <see cref="ArtifactToolProfile.Tool"/>.
+    /// </summary>
+    /// <param name="artifactToolProfile">Artifact tool profile.</param>
+    /// <returns>Separated assembly and type name.</returns>
+    /// <exception cref="ArgumentException">Thrown if this instance has an invalid <see cref="ArtifactToolProfile.Tool"/> value.</exception>
+    public static ArtifactToolID GetID(this ArtifactToolProfile artifactToolProfile) => ParseID(artifactToolProfile.Tool);
+
+    /// <summary>
+    /// Separates assembly and type name from <see cref="ArtifactToolProfile.Tool"/>.
+    /// </summary>
+    /// <param name="tool">Artifact tool target string(assembly::toolType)</param>
+    /// <param name="artifactToolId">Separated assembly and type name, if successful.</param>
+    /// <returns>True if successful.</returns>
+    /// <exception cref="ArgumentNullException">Thrown if <paramref name="tool"/> is null.</exception>
+    public static bool TryParseID(string tool, [NotNullWhen(true)] out ArtifactToolID? artifactToolId)
+    {
+        if (tool == null) throw new ArgumentNullException(nameof(tool));
+        if (s_toolRegex.Match(tool) is not { Success: true } match)
+        {
+            artifactToolId = null;
+            return false;
+        }
+
+        artifactToolId = new ArtifactToolID(match.Groups[1].Value, match.Groups[2].Value);
+        return true;
+    }
+    /// <summary>
+    /// Separates assembly and type name from <see cref="ArtifactToolProfile.Tool"/>.
+    /// </summary>
+    /// <param name="tool">Artifact tool target string(assembly::toolType)</param>
+    /// <returns>Separated assembly and type name.</returns>
+    /// <exception cref="ArgumentNullException">Thrown if <paramref name="tool"/> is null.</exception>
+    /// <exception cref="ArgumentException">Thrown for an invalid <paramref name="tool"/> value.</exception>
+    public static ArtifactToolID ParseID(string tool)
+    {
+        if (tool == null) throw new ArgumentNullException(nameof(tool));
+        if (s_toolRegex.Match(tool) is not { Success: true } match)
+            throw new ArgumentException("Tool string is in invalid format, must be \"<assembly>::<toolType>\"", nameof(tool));
+        return new ArtifactToolID(match.Groups[1].Value, match.Groups[2].Value);
     }
 }

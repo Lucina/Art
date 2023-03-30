@@ -10,5 +10,5 @@ public interface IArtifactToolSelfFactory<TSelf> : IArtifactToolFactory where TS
 
     static Type IArtifactToolFactory.GetArtifactToolType() => typeof(TSelf);
 
-    static ArtifactToolID IArtifactToolFactory.GetArtifactToolId() => ArtifactToolIDUtil.CreateToolId<TSelf>();
+    static ArtifactToolID IArtifactToolFactory.GetArtifactToolId() => ArtifactToolIDUtil.CreateToolID<TSelf>();
 }

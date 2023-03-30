@@ -1,5 +1,4 @@
 ﻿using System.Text.Json;
-using System.Text.RegularExpressions;
 
 namespace Art.Common;
 
@@ -205,8 +204,6 @@ public static class ArtifactToolProfileUtil
         return JsonSerializer.SerializeToElement(profiles, sourceGenerationContext.ArtifactToolProfileArray);
     }
 
-    private static readonly Regex s_toolRegex = new(@"^([\S\s]+)::([\S\s]+)$");
-
     /// <summary>
     /// Gets group value or fallback to <paramref name="fallback"/>.
     /// </summary>
@@ -214,29 +211,6 @@ public static class ArtifactToolProfileUtil
     /// <param name="fallback">Fallback value to use if profile does not contain a specified group value.</param>
     /// <returns>Group value.</returns>
     public static string GetGroupOrFallback(this ArtifactToolProfile artifactToolProfile, string fallback = "default") => artifactToolProfile.Group ?? fallback;
-
-    /// <summary>
-    /// Separates assembly and type name from <see cref="ArtifactToolProfile.Tool"/>.
-    /// </summary>
-    /// <param name="artifactToolProfile">Artifact tool profile.</param>
-    /// <returns>Separated assembly and type name.</returns>
-    /// <exception cref="ArgumentException">Thrown if this instance has an invalid <see cref="ArtifactToolProfile.Tool"/> value.</exception>
-    public static ArtifactToolID GetID(this ArtifactToolProfile artifactToolProfile) => GetID(artifactToolProfile.Tool);
-
-    /// <summary>
-    /// Separates assembly and type name from <see cref="ArtifactToolProfile.Tool"/>.
-    /// </summary>
-    /// <param name="tool">Artifact tool target string(assembly::toolType)</param>
-    /// <returns>Separated assembly and type name.</returns>
-    /// <exception cref="ArgumentNullException">Thrown if <paramref name="tool"/> is null.</exception>
-    /// <exception cref="ArgumentException">Thrown for an invalid <paramref name="tool"/> value.</exception>
-    public static ArtifactToolID GetID(string tool)
-    {
-        if (tool == null) throw new ArgumentNullException(nameof(tool));
-        if (s_toolRegex.Match(tool) is not { Success: true } match)
-            throw new ArgumentException("Tool string is in invalid format, must be \"<assembly>::<toolType>\"", nameof(tool));
-        return new ArtifactToolID(match.Groups[1].Value, match.Groups[2].Value);
-    }
 
     /// <summary>
     /// Creates a tool profile for the specified tool.

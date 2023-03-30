@@ -61,7 +61,7 @@ public abstract class ToolCommandBase : CommandBase
 
     protected async Task<IArtifactTool> GetToolAsync(ArtifactToolProfile artifactToolProfile, IArtifactRegistrationManager arm, IArtifactDataManager adm, CancellationToken cancellationToken = default)
     {
-        var plugin = PluginStore.LoadRegistry(ArtifactToolProfileUtil.GetID(artifactToolProfile.Tool));
+        var plugin = PluginStore.LoadRegistry(ArtifactToolIDUtil.ParseID(artifactToolProfile.Tool));
         return await ArtifactTool.PrepareToolAsync(plugin, artifactToolProfile, arm, adm, cancellationToken).ConfigureAwait(false);
     }
 

@@ -11,9 +11,9 @@ public class DictionaryProfileResolver : IProfileResolver
         _profileMap = profileMap;
     }
 
-    public bool TryGetProfiles(string text, [NotNullWhen(true)] out IEnumerable<ArtifactToolProfile>? profiles)
+    public bool TryGetProfiles(string text, [NotNullWhen(true)] out IEnumerable<ArtifactToolProfile>? profiles, ProfileResolutionFlags profileResolutionFlags = ProfileResolutionFlags.Default)
     {
-        if (_profileMap.TryGetValue(text, out var profileArr))
+        if ((profileResolutionFlags & ProfileResolutionFlags.Files) != 0 && _profileMap.TryGetValue(text, out var profileArr))
         {
             profiles = profileArr;
             return true;

@@ -81,7 +81,7 @@ public class Plugin : IArtifactToolSelectableRegistry<string>
     {
         return BaseAssembly.GetExportedTypes()
             .Where(t => t.IsAssignableTo(typeof(IArtifactTool)) && !t.IsAbstract && t.GetConstructor(Array.Empty<Type>()) != null)
-            .Select(v => new ArtifactToolDescription(v, ArtifactToolIDUtil.CreateToolId(v)));
+            .Select(v => new ArtifactToolDescription(v, ArtifactToolIDUtil.CreateToolID(v)));
     }
 
     /// <inheritdoc />
@@ -113,7 +113,7 @@ public class Plugin : IArtifactToolSelectableRegistry<string>
                 try
                 {
                     var entryType = typeof(ArtifactToolSelectableRegistryEntry<>).MakeGenericType(x);
-                    paramArr[0] = ArtifactToolIDUtil.CreateToolId(x);
+                    paramArr[0] = ArtifactToolIDUtil.CreateToolID(x);
                     if (Activator.CreateInstance(entryType, paramArr) is ArtifactToolSelectableRegistryEntry entry)
                     {
                         _selectableRegistryEntries.Add(entry);
