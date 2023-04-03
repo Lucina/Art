@@ -8,7 +8,7 @@ public record OutputStreamOptions
     /// <summary>
     /// Default options.
     /// </summary>
-    public static readonly OutputStreamOptions Default = new() { PreallocationSize = 0 };
+    public static readonly OutputStreamOptions Default = new() { PreallocationSize = 0, PreferTemporaryLocation = true };
 
     /// <summary>
     /// Stream preallocation size.
