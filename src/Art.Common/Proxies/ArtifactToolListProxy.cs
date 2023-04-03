@@ -68,14 +68,14 @@ public record ArtifactToolListProxy
                         break;
                     case ArtifactSkipMode.FastExit:
                         {
-                            ArtifactInfo? info = await artifactTool.RegistrationManager.TryGetArtifactAsync(new ArtifactKey(artifactTool.Profile.Tool, artifactTool.Profile.GetGroupOrFallback(data.Info.Key.Group), data.Info.Key.Id), cancellationToken).ConfigureAwait(false);
+                            ArtifactInfo? info = await artifactTool.RegistrationManager.TryGetArtifactAsync(data.Info.Key, cancellationToken).ConfigureAwait(false);
                             if (info != null)
                                 yield break;
                             break;
                         }
                     case ArtifactSkipMode.Known:
                         {
-                            ArtifactInfo? info = await artifactTool.RegistrationManager.TryGetArtifactAsync(new ArtifactKey(artifactTool.Profile.Tool, artifactTool.Profile.GetGroupOrFallback(data.Info.Key.Group), data.Info.Key.Id), cancellationToken).ConfigureAwait(false);
+                            ArtifactInfo? info = await artifactTool.RegistrationManager.TryGetArtifactAsync(data.Info.Key, cancellationToken).ConfigureAwait(false);
                             if (info != null)
                                 continue;
                             break;
