@@ -23,11 +23,6 @@ public interface IArtifactTool : IDisposable
     ArtifactToolProfile Profile { get; }
 
     /// <summary>
-    /// Configuration.
-    /// </summary>
-    ArtifactToolConfig Config { get; }
-
-    /// <summary>
     /// Allowed eager evaluation modes for this tool.
     /// </summary>
     EagerFlags AllowedEagerModes { get; }

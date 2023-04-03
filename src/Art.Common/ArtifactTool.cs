@@ -27,9 +27,6 @@ public partial class ArtifactTool : IArtifactTool
     public ArtifactToolProfile Profile { get; private set; }
 
     /// <inheritdoc />
-    public ArtifactToolConfig Config { get; private set; }
-
-    /// <inheritdoc />
     public virtual EagerFlags AllowedEagerModes => EagerFlags.None;
 
     /// <inheritdoc />
@@ -72,7 +69,6 @@ public partial class ArtifactTool : IArtifactTool
         RegistrationManager = null!;
         DataManager = null!;
         Profile = null!;
-        Config = null!;
     }
 
     #endregion
@@ -93,7 +89,6 @@ public partial class ArtifactTool : IArtifactTool
         config ??= new ArtifactToolConfig(new NullArtifactRegistrationManager(), new NullArtifactDataManager());
         if (config.RegistrationManager == null) throw new ArgumentException("Cannot configure with null registration manager");
         if (config.DataManager == null) throw new ArgumentException("Cannot configure with null data manager");
-        Config = config;
         RegistrationManager = config.RegistrationManager;
         DataManager = config.DataManager;
         Profile = profile ?? new ArtifactToolProfile(ArtifactToolIDUtil.CreateToolString(GetType()), null, null);

@@ -21,8 +21,8 @@ public class ArtifactToolTests
         var profile = new ArtifactToolProfile(toolString, null, null);
         var config = new ArtifactToolConfig(arm, adm);
         await tool.InitializeAsync(config: config, profile: profile);
-        Assert.That(tool.Config.DataManager, Is.EqualTo(adm));
-        Assert.That(tool.Config.RegistrationManager, Is.EqualTo(arm));
+        Assert.That(tool.DataManager, Is.EqualTo(adm));
+        Assert.That(tool.RegistrationManager, Is.EqualTo(arm));
         Assert.That(async () => await adm.ExistsAsync(fakeKey), Throws.Nothing);
         Assert.That(async () => await arm.TryGetResourceAsync(fakeKey), Throws.Nothing);
         tool.Dispose();
@@ -48,13 +48,13 @@ public class ArtifactToolTests
         var profile = new ArtifactToolProfile(toolString, null, null);
         var config = new ArtifactToolConfig(arm, adm);
         await tool.InitializeAsync(config: config, profile: profile);
-        Assert.That(tool.Config.DataManager, Is.EqualTo(adm));
-        Assert.That(tool.Config.RegistrationManager, Is.EqualTo(arm));
+        Assert.That(tool.DataManager, Is.EqualTo(adm));
+        Assert.That(tool.RegistrationManager, Is.EqualTo(arm));
         Assert.That(async () => await adm.ExistsAsync(fakeKey), Throws.Nothing);
         Assert.That(async () => await arm.TryGetResourceAsync(fakeKey), Throws.Nothing);
         await tool.InitializeAsync(profile: profile);
-        Assert.That(tool.Config.DataManager, Is.Not.EqualTo(adm));
-        Assert.That(tool.Config.RegistrationManager, Is.Not.EqualTo(arm));
+        Assert.That(tool.DataManager, Is.Not.EqualTo(adm));
+        Assert.That(tool.RegistrationManager, Is.Not.EqualTo(arm));
         Assert.That(async () => await adm.ExistsAsync(fakeKey), Throws.Nothing);
         Assert.That(async () => await arm.TryGetResourceAsync(fakeKey), Throws.Nothing);
         arm.Dispose();
@@ -127,8 +127,8 @@ public class ArtifactToolTests
         Assert.That(tool.Profile.Tool, Is.EqualTo(ArtifactToolIDUtil.CreateToolString<ProgrammableArtifactFindTool>()));
         Assert.That(tool.Profile.Group, Is.Null);
         Assert.That(tool.Profile.Options, Is.Null);
-        Assert.That(tool.Config.DataManager, Is.Not.Null);
-        Assert.That(tool.Config.RegistrationManager, Is.Not.Null);
+        Assert.That(tool.DataManager, Is.Not.Null);
+        Assert.That(tool.RegistrationManager, Is.Not.Null);
     }
 
     [Test]
@@ -147,14 +147,14 @@ public class ArtifactToolTests
         Assert.That(tool.Profile.Group, Is.EqualTo(group));
         Assert.That(tool.Profile.Options, Has.Count.EqualTo(1));
         Assert.That(tool.Profile.Options!["OPT"].GetInt32(), Is.EqualTo(1));
-        Assert.That(tool.Config.DataManager, Is.EqualTo(adm));
-        Assert.That(tool.Config.RegistrationManager, Is.EqualTo(arm));
+        Assert.That(tool.DataManager, Is.EqualTo(adm));
+        Assert.That(tool.RegistrationManager, Is.EqualTo(arm));
         await tool.InitializeAsync();
         Assert.That(tool.Profile.Tool, Is.EqualTo(ArtifactToolIDUtil.CreateToolString<ProgrammableArtifactFindTool>()));
         Assert.That(tool.Profile.Group, Is.Null);
         Assert.That(tool.Profile.Options, Is.Null);
-        Assert.That(tool.Config.DataManager, Is.Not.Null);
-        Assert.That(tool.Config.RegistrationManager, Is.Not.Null);
+        Assert.That(tool.DataManager, Is.Not.Null);
+        Assert.That(tool.RegistrationManager, Is.Not.Null);
     }
 
     [Test]
@@ -175,15 +175,15 @@ public class ArtifactToolTests
             Assert.That(tool.Profile.Group, Is.EqualTo(group));
             Assert.That(tool.Profile.Options, Has.Count.EqualTo(1));
             Assert.That(tool.Profile.Options!["OPT"].GetInt32(), Is.EqualTo(i));
-            Assert.That(tool.Config.DataManager, Is.EqualTo(adm));
-            Assert.That(tool.Config.RegistrationManager, Is.EqualTo(arm));
+            Assert.That(tool.DataManager, Is.EqualTo(adm));
+            Assert.That(tool.RegistrationManager, Is.EqualTo(arm));
         }
         await tool.InitializeAsync();
         Assert.That(tool.Profile.Tool, Is.EqualTo(ArtifactToolIDUtil.CreateToolString<ProgrammableArtifactFindTool>()));
         Assert.That(tool.Profile.Group, Is.Null);
         Assert.That(tool.Profile.Options, Is.Null);
-        Assert.That(tool.Config.DataManager, Is.Not.Null);
-        Assert.That(tool.Config.RegistrationManager, Is.Not.Null);
+        Assert.That(tool.DataManager, Is.Not.Null);
+        Assert.That(tool.RegistrationManager, Is.Not.Null);
     }
 
     [Test]
