@@ -172,7 +172,7 @@ public static class ArtifactDumping
                 throw new ArgumentOutOfRangeException(nameof(resourceUpdate));
         }
         ItemStateFlags iF = await artifactTool.CompareArtifactAsync(artifactData.Info, cancellationToken).ConfigureAwait(false);
-        logHandler?.Log(artifactTool.Profile.Tool, artifactTool.Profile.GetGroupOrFallback(artifactTool.GroupFallback), $"{((iF & ItemStateFlags.NewerIdentityMask) != 0 ? "[NEW] " : "")}{artifactData.Info.GetInfoTitleString()}", artifactData.Info.GetInfoString(), LogLevel.Entry);
+        logHandler?.Log(artifactTool.Profile.Tool, artifactTool.Profile.GetGroupOrFallback(artifactData.Info.Key.Group), $"{((iF & ItemStateFlags.NewerIdentityMask) != 0 ? "[NEW] " : "")}{artifactData.Info.GetInfoTitleString()}", artifactData.Info.GetInfoString(), LogLevel.Entry);
         if ((iF & ItemStateFlags.NewerIdentityMask) != 0)
             await artifactTool.RegistrationManager.AddArtifactAsync(artifactData.Info with { Full = false }, cancellationToken).ConfigureAwait(false);
         switch (resourceUpdate)
@@ -287,7 +287,7 @@ public static class ArtifactDumping
                 stream.ShouldCommit = true;
             }
         }
-        logHandler?.Log(artifactTool.Profile.Tool, artifactTool.Profile.GetGroupOrFallback(artifactTool.GroupFallback), $"-- {((rF & ItemStateFlags.NewerIdentityMask) != 0 ? "[NEW] " : "")}{versionedResource.GetInfoPathString()}", versionedResource.GetInfoString(), LogLevel.Entry);
+        logHandler?.Log(artifactTool.Profile.Tool, artifactTool.Profile.GetGroupOrFallback(aris.ArtifactResourceInfo.Key.Artifact.Group), $"-- {((rF & ItemStateFlags.NewerIdentityMask) != 0 ? "[NEW] " : "")}{versionedResource.GetInfoPathString()}", versionedResource.GetInfoString(), LogLevel.Entry);
         if ((rF & ItemStateFlags.DifferentMask) != 0)
             await artifactTool.RegistrationManager.AddResourceAsync(versionedResource, cancellationToken).ConfigureAwait(false);
     }
