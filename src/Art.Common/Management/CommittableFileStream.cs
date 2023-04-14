@@ -23,11 +23,12 @@ public class CommittableFileStream : CommittableDelegatingStream
     /// </summary>
     /// <param name="path">Destination path.</param>
     /// <param name="mode">File opening mode.</param>
+    /// <param name="preferTemporaryLocation">If true, prefer using temporary location when possible.</param>
     /// <seealso cref="FileStream(string,FileMode)"/>
-    public CommittableFileStream(string path, FileMode mode)
+    public CommittableFileStream(string path, FileMode mode, bool preferTemporaryLocation = false)
     {
         // Implicit write access
-        EnsureAccess(_path = path, nameof(path), out _pathForStream, out _tempPath);
+        EnsureAccess(_path = path, nameof(path), out _pathForStream, out _tempPath, preferTemporaryLocation);
         InnerStream = new FileStream(_pathForStream, mode);
     }
 
@@ -37,11 +38,12 @@ public class CommittableFileStream : CommittableDelegatingStream
     /// <param name="path">Destination path.</param>
     /// <param name="mode">File opening mode.</param>
     /// <param name="access">File access mode.</param>
+    /// <param name="preferTemporaryLocation">If true, prefer using temporary location when possible.</param>
     /// <seealso cref="FileStream(string,FileMode,FileAccess)"/>
-    public CommittableFileStream(string path, FileMode mode, FileAccess access)
+    public CommittableFileStream(string path, FileMode mode, FileAccess access, bool preferTemporaryLocation = false)
     {
         EnsureWriting(access, nameof(access));
-        EnsureAccess(_path = path, nameof(path), out _pathForStream, out _tempPath);
+        EnsureAccess(_path = path, nameof(path), out _pathForStream, out _tempPath, preferTemporaryLocation);
         InnerStream = new FileStream(_pathForStream, mode, access);
     }
 
@@ -52,11 +54,12 @@ public class CommittableFileStream : CommittableDelegatingStream
     /// <param name="mode">File opening mode.</param>
     /// <param name="access">File access mode.</param>
     /// <param name="share">File share mode.</param>
+    /// <param name="preferTemporaryLocation">If true, prefer using temporary location when possible.</param>
     /// <seealso cref="FileStream(string,FileMode,FileAccess,FileShare)"/>
-    public CommittableFileStream(string path, FileMode mode, FileAccess access, FileShare share)
+    public CommittableFileStream(string path, FileMode mode, FileAccess access, FileShare share, bool preferTemporaryLocation = false)
     {
         EnsureWriting(access, nameof(access));
-        EnsureAccess(_path = path, nameof(path), out _pathForStream, out _tempPath);
+        EnsureAccess(_path = path, nameof(path), out _pathForStream, out _tempPath, preferTemporaryLocation);
         InnerStream = new FileStream(_pathForStream, mode, access, share);
     }
 
@@ -68,11 +71,12 @@ public class CommittableFileStream : CommittableDelegatingStream
     /// <param name="access">File access mode.</param>
     /// <param name="share">File share mode.</param>
     /// <param name="bufferSize">Buffer size.</param>
+    /// <param name="preferTemporaryLocation">If true, prefer using temporary location when possible.</param>
     /// <seealso cref="FileStream(string,FileMode,FileAccess,FileShare,int)"/>
-    public CommittableFileStream(string path, FileMode mode, FileAccess access, FileShare share, int bufferSize)
+    public CommittableFileStream(string path, FileMode mode, FileAccess access, FileShare share, int bufferSize, bool preferTemporaryLocation = false)
     {
         EnsureWriting(access, nameof(access));
-        EnsureAccess(_path = path, nameof(path), out _pathForStream, out _tempPath);
+        EnsureAccess(_path = path, nameof(path), out _pathForStream, out _tempPath, preferTemporaryLocation);
         InnerStream = new FileStream(_pathForStream, mode, access, share, bufferSize);
     }
 
@@ -85,11 +89,12 @@ public class CommittableFileStream : CommittableDelegatingStream
     /// <param name="share">File share mode.</param>
     /// <param name="bufferSize">Buffer size.</param>
     /// <param name="useAsync">If true, try to enable async I/O.</param>
+    /// <param name="preferTemporaryLocation">If true, prefer using temporary location when possible.</param>
     /// <seealso cref="FileStream(string,FileMode,FileAccess,FileShare,int,bool)"/>
-    public CommittableFileStream(string path, FileMode mode, FileAccess access, FileShare share, int bufferSize, bool useAsync)
+    public CommittableFileStream(string path, FileMode mode, FileAccess access, FileShare share, int bufferSize, bool useAsync, bool preferTemporaryLocation = false)
     {
         EnsureWriting(access, nameof(access));
-        EnsureAccess(_path = path, nameof(path), out _pathForStream, out _tempPath);
+        EnsureAccess(_path = path, nameof(path), out _pathForStream, out _tempPath, preferTemporaryLocation);
         InnerStream = new FileStream(_pathForStream, mode, access, share, bufferSize, useAsync);
     }
 
@@ -102,11 +107,12 @@ public class CommittableFileStream : CommittableDelegatingStream
     /// <param name="share">File share mode.</param>
     /// <param name="bufferSize">Buffer size.</param>
     /// <param name="options">Advanced file options.</param>
+    /// <param name="preferTemporaryLocation">If true, prefer using temporary location when possible.</param>
     /// <seealso cref="FileStream(string,FileMode,FileAccess,FileShare,int,FileOptions)"/>
-    public CommittableFileStream(string path, FileMode mode, FileAccess access, FileShare share, int bufferSize, FileOptions options)
+    public CommittableFileStream(string path, FileMode mode, FileAccess access, FileShare share, int bufferSize, FileOptions options, bool preferTemporaryLocation = false)
     {
         EnsureWriting(access, nameof(access));
-        EnsureAccess(_path = path, nameof(path), out _pathForStream, out _tempPath);
+        EnsureAccess(_path = path, nameof(path), out _pathForStream, out _tempPath, preferTemporaryLocation);
         InnerStream = new FileStream(_pathForStream, mode, access, share, bufferSize, options);
     }
 
@@ -115,11 +121,12 @@ public class CommittableFileStream : CommittableDelegatingStream
     /// </summary>
     /// <param name="path">Destination path.</param>
     /// <param name="options">File stream options.</param>
+    /// <param name="preferTemporaryLocation">If true, prefer using temporary location when possible.</param>
     /// <seealso cref="FileStream(string,FileStreamOptions)"/>
-    public CommittableFileStream(string path, FileStreamOptions options)
+    public CommittableFileStream(string path, FileStreamOptions options, bool preferTemporaryLocation = false)
     {
         EnsureWriting(options.Access, nameof(options));
-        EnsureAccess(_path = path, nameof(path), out _pathForStream, out _tempPath);
+        EnsureAccess(_path = path, nameof(path), out _pathForStream, out _tempPath, preferTemporaryLocation);
         if (options.PreallocationSize != 0 && options.Mode is FileMode.Create or FileMode.CreateNew)
         {
             // Try to initialize with the provided preallocation size.
@@ -143,7 +150,7 @@ public class CommittableFileStream : CommittableDelegatingStream
             throw new ArgumentException($"Cannot create an instance of {nameof(CommittableFileStream)} that does not write", arg);
     }
 
-    private static void EnsureAccess(string path, string arg, out string pathForStream, out string? tempPath)
+    private static void EnsureAccess(string path, string arg, out string pathForStream, out string? tempPath, bool preferTemporaryLocation)
     {
         FileInfo fi = new(path);
         if (fi.Exists)
@@ -158,8 +165,16 @@ public class CommittableFileStream : CommittableDelegatingStream
             if (dir == null) throw new ArgumentException("Target path is not a valid file path", arg);
             DirectoryInfo di = new(dir);
             if (!di.Exists) throw new ArgumentException("Directory for file does not exist");
-            tempPath = null;
-            pathForStream = path;
+            if (preferTemporaryLocation)
+            {
+                tempPath = CreateRandomPathForSibling(path);
+                pathForStream = tempPath;
+            }
+            else
+            {
+                tempPath = null;
+                pathForStream = path;
+            }
         }
     }
 
@@ -180,7 +195,17 @@ public class CommittableFileStream : CommittableDelegatingStream
     {
         if (shouldCommit)
         {
-            if (_tempPath != null) File.Replace(_tempPath, _path, null, true);
+            if (_tempPath != null)
+            {
+                if (File.Exists(_path))
+                {
+                    File.Replace(_tempPath, _path, null, true);
+                }
+                else
+                {
+                    File.Move(_tempPath, _path);
+                }
+            }
         }
         else
         {

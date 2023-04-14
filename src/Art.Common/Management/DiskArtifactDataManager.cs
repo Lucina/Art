@@ -63,13 +63,15 @@ public class DiskArtifactDataManager : ArtifactDataManager
         string dir = Path.Combine(DiskPaths.GetBasePath(BaseDirectory, key.Artifact.Tool, key.Artifact.Group), key.Path);
         if (!Directory.Exists(dir)) Directory.CreateDirectory(dir);
         FileStreamOptions fso = new() { Mode = FileMode.Create, Access = FileAccess.ReadWrite };
+        bool preferTemporaryLocation = true;
         if (options is { } optionsActual)
         {
             long preallocationSize = optionsActual.PreallocationSize;
             if (preallocationSize < 0) throw new ArgumentException($"Invalid {nameof(OutputStreamOptions.PreallocationSize)} value", nameof(options));
             if (preallocationSize != 0) fso.PreallocationSize = preallocationSize;
+            preferTemporaryLocation = optionsActual.PreferTemporaryLocation;
         }
-        return new ValueTask<CommittableStream>(new CommittableFileStream(Path.Combine(dir, key.File.SafeifyFileName()), fso));
+        return new ValueTask<CommittableStream>(new CommittableFileStream(Path.Combine(dir, key.File.SafeifyFileName()), fso, preferTemporaryLocation: preferTemporaryLocation));
     }
 
     private void EnsureNotDisposed()
