@@ -20,25 +20,7 @@ public static class CookieFile
         while (tr.ReadLine() is { } line)
         {
             i++;
-            string[] elem = line.Split(new[] { ' ', '\t' }, StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
-            if (elem.Length == 0 || elem[0].StartsWith('#')) continue;
-            if (elem.Length < 6 || elem.Length > 7) throw new InvalidDataException($"Line {i} had invalid number of elements {elem.Length}");
-            string domain = elem[0];
-            //bool access = elem[1].Equals("true", StringComparison.InvariantCultureIgnoreCase);
-            string path = elem[2];
-            bool secure = elem[3].Equals("true", StringComparison.InvariantCultureIgnoreCase);
-            long expiration = long.Parse(elem[4], CultureInfo.InvariantCulture);
-            string name = elem[5];
-            string? value = elem.Length < 7 ? null : elem[6];
-            cc.Add(new Cookie
-            {
-                Expires = DateTime.UnixEpoch.AddSeconds(expiration),
-                Secure = secure,
-                Name = name,
-                Value = value,
-                Path = path,
-                Domain = domain
-            });
+            AddLine(cc, line, i);
         }
     }
 
@@ -55,25 +37,32 @@ public static class CookieFile
         while (await tr.ReadLineAsync(cancellationToken).ConfigureAwait(false) is { } line)
         {
             i++;
-            string[] elem = line.Split(new[] { ' ', '\t' }, StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
-            if (elem.Length == 0 || elem[0].StartsWith('#')) continue;
-            if (elem.Length < 6 || elem.Length > 7) throw new InvalidDataException($"Line {i} had invalid number of elements {elem.Length}");
-            string domain = elem[0];
-            //bool access = elem[1].Equals("true", StringComparison.InvariantCultureIgnoreCase);
-            string path = elem[2];
-            bool secure = elem[3].Equals("true", StringComparison.InvariantCultureIgnoreCase);
-            long expiration = long.Parse(elem[4], CultureInfo.InvariantCulture);
-            string name = elem[5];
-            string? value = elem.Length < 7 ? null : elem[6];
-            cc.Add(new Cookie
-            {
-                Expires = DateTime.UnixEpoch.AddSeconds(expiration),
-                Secure = secure,
-                Name = name,
-                Value = value,
-                Path = path,
-                Domain = domain
-            });
+            AddLine(cc, line, i);
         }
+    }
+
+    private static void AddLine(CookieContainer cc, string line, int i)
+    {
+        string[] elem = line.Split(new[] { '\t' }, StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+        if (elem.Length == 0 || elem[0].StartsWith('#')) return;
+        if (elem.Length < 6 || elem.Length > 7) throw new InvalidDataException($"Line {i} had invalid number of elements {elem.Length}");
+        string domain = elem[0];
+        //bool access = elem[1].Equals("true", StringComparison.InvariantCultureIgnoreCase);
+        string path = elem[2];
+        bool secure = elem[3].Equals("true", StringComparison.InvariantCultureIgnoreCase);
+        long expiration = long.Parse(elem[4], CultureInfo.InvariantCulture);
+        string name = elem[5];
+        string? value = elem.Length < 7 ? null : elem[6];
+        // TODO expiration 0?
+        DateTime expires = expiration == 0 ? DateTime.MaxValue : DateTime.UnixEpoch.AddSeconds(expiration);
+        cc.Add(new Cookie
+        {
+            Expires = expires,
+            Secure = secure,
+            Name = name,
+            Value = value,
+            Path = path,
+            Domain = domain
+        });
     }
 }

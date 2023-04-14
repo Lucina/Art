@@ -141,7 +141,7 @@ public partial class M3UDownloaderContextTopDownSaver : M3UDownloaderContextSave
         {
             // Don't assume MSN, and just accept failure (exception) when trying to decrypt with no IV
             // Also don't depend on current file since it probably won't do us good anyway for this use case
-            await Context.DownloadSegmentAsync(uri, null, null, cancellationToken).ConfigureAwait(false);
+            await Context.DownloadSegmentAsync(uri, null, null, null, cancellationToken).ConfigureAwait(false);
             _currentTop--;
         }
         catch (ArtHttpResponseMessageException e)

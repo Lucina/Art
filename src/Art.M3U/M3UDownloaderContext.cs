@@ -164,17 +164,19 @@ public class M3UDownloaderContext
     /// </summary>
     /// <param name="oneOff">If true, only request target once.</param>
     /// <param name="timeout">Timeout when waiting for new entries.</param>
+    /// <param name="segmentFilter">Optional segment filter.</param>
     /// <param name="extraOperation">Extra operation to invoke during down time.</param>
     /// <returns>Downloader.</returns>
-    public M3UDownloaderContextStandardSaver CreateStandardSaver(bool oneOff, TimeSpan timeout, IExtraSaverOperation? extraOperation = null) => new(this, oneOff, timeout, extraOperation);
+    public M3UDownloaderContextStandardSaver CreateStandardSaver(bool oneOff, TimeSpan timeout, Func<Uri, SegmentSettings>? segmentFilter = null, IExtraSaverOperation? extraOperation = null) => new(this, oneOff, timeout, segmentFilter, extraOperation);
 
     /// <summary>
     /// Creates a basic stream output downloader.
     /// </summary>
     /// <param name="oneOff">If true, only request target once.</param>
     /// <param name="timeout">Timeout when waiting for new entries.</param>
+    /// <param name="segmentFilter">Optional segment filter.</param>
     /// <returns>Downloader.</returns>
-    public M3UDownloaderContextStreamOutputSaver CreateStreamOutputSaver(bool oneOff, TimeSpan timeout) => new(this, oneOff, timeout);
+    public M3UDownloaderContextStreamOutputSaver CreateStreamOutputSaver(bool oneOff, TimeSpan timeout, Func<Uri, SegmentSettings>? segmentFilter = null) => new(this, oneOff, timeout, segmentFilter);
 
     /// <summary>
     /// Downloads a segment with an associated media sequence number.
@@ -182,6 +184,7 @@ public class M3UDownloaderContext
     /// <param name="uri">URI to download.</param>
     /// <param name="file">Optional specific file to use (defaults to <see cref="StreamInfo"/>).</param>
     /// <param name="mediaSequenceNumber">Media sequence number, if available.</param>
+    /// <param name="segmentSettings">Optional segment settings.</param>
     /// <param name="cancellationToken">Cancellation token.</param>
     /// <exception cref="HttpRequestException">Thrown for issues with request excluding non-success server responses.</exception>
     /// <exception cref="ArtHttpResponseMessageException">Thrown on HTTP response indicating non-successful response.</exception>
@@ -190,9 +193,9 @@ public class M3UDownloaderContext
     /// <paramref name="mediaSequenceNumber"/> is meant to support scenarios for decrypting media segments without an explicit IV,
     /// as the media sequence number determines the IV instead.
     /// </remarks>
-    public Task DownloadSegmentAsync(Uri uri, M3UFile? file, long? mediaSequenceNumber = null, CancellationToken cancellationToken = default)
+    public Task DownloadSegmentAsync(Uri uri, M3UFile? file, long? mediaSequenceNumber = null, SegmentSettings? segmentSettings = null, CancellationToken cancellationToken = default)
     {
-        return DownloadSegmentInternalAsync(uri, file ?? StreamInfo, mediaSequenceNumber, cancellationToken);
+        return DownloadSegmentInternalAsync(uri, file ?? StreamInfo, mediaSequenceNumber, segmentSettings, cancellationToken);
     }
 
     /// <summary>
@@ -202,6 +205,7 @@ public class M3UDownloaderContext
     /// <param name="uri">URI to download.</param>
     /// <param name="file">Optional specific file to use (defaults to <see cref="StreamInfo"/>).</param>
     /// <param name="mediaSequenceNumber">Media sequence number, if available.</param>
+    /// <param name="segmentSettings">Optional segment settings.</param>
     /// <param name="cancellationToken">Cancellation token.</param>
     /// <exception cref="HttpRequestException">Thrown for issues with request excluding non-success server responses.</exception>
     /// <exception cref="ArtHttpResponseMessageException">Thrown on HTTP response indicating non-successful response.</exception>
@@ -210,12 +214,12 @@ public class M3UDownloaderContext
     /// <paramref name="mediaSequenceNumber"/> is meant to support scenarios for decrypting media segments without an explicit IV,
     /// as the media sequence number determines the IV instead.
     /// </remarks>
-    public Task StreamSegmentAsync(Stream targetStream, Uri uri, M3UFile? file, long? mediaSequenceNumber = null, CancellationToken cancellationToken = default)
+    public Task StreamSegmentAsync(Stream targetStream, Uri uri, M3UFile? file, long? mediaSequenceNumber = null, SegmentSettings? segmentSettings = null, CancellationToken cancellationToken = default)
     {
-        return StreamSegmentInternalAsync(targetStream, uri, file ?? StreamInfo, mediaSequenceNumber, cancellationToken);
+        return StreamSegmentInternalAsync(targetStream, uri, file ?? StreamInfo, mediaSequenceNumber, segmentSettings, cancellationToken);
     }
 
-    private async Task DownloadSegmentInternalAsync(Uri uri, M3UFile file, long? mediaSequenceNumber, CancellationToken cancellationToken)
+    private async Task DownloadSegmentInternalAsync(Uri uri, M3UFile file, long? mediaSequenceNumber, SegmentSettings? segmentSettings, CancellationToken cancellationToken)
     {
         string fn = GetFileName(uri);
         ArtifactResourceKey ark = new(Config.ArtifactKey, fn, Config.ArtifactKey.Id);
@@ -226,7 +230,7 @@ public class M3UDownloaderContext
         }
         // don't need to always write msn (only necessary for later dec) but do it anyway...
         if (mediaSequenceNumber is { } msn) await WriteAncillaryFileAsync($"{fn}.msn.txt", Encoding.UTF8.GetBytes(msn.ToString(CultureInfo.InvariantCulture)), cancellationToken).ConfigureAwait(false);
-        ArtifactResourceInfo ari = GetResourceInternal(ark, uri, file, mediaSequenceNumber);
+        ArtifactResourceInfo ari = GetResourceInternal(ark, uri, file, mediaSequenceNumber, segmentSettings);
         await using (CommittableStream oStream = await Tool.DataManager.CreateOutputStreamAsync(ari.Key, OutputStreamOptions.Default, cancellationToken).ConfigureAwait(false))
         {
             await StreamSegmentInternalAsync(ari, oStream, cancellationToken).ConfigureAwait(false);
@@ -235,18 +239,18 @@ public class M3UDownloaderContext
         await Tool.RegistrationManager.AddResourceAsync(ari, cancellationToken).ConfigureAwait(false);
     }
 
-    private async Task StreamSegmentInternalAsync(Stream targetStream, Uri uri, M3UFile file, long? mediaSequenceNumber, CancellationToken cancellationToken)
+    private async Task StreamSegmentInternalAsync(Stream targetStream, Uri uri, M3UFile file, long? mediaSequenceNumber, SegmentSettings? segmentSettings, CancellationToken cancellationToken)
     {
         string fn = GetFileName(uri);
         ArtifactResourceKey ark = new(Config.ArtifactKey, fn, Config.ArtifactKey.Id);
-        ArtifactResourceInfo ari = GetResourceInternal(ark, uri, file, mediaSequenceNumber);
+        ArtifactResourceInfo ari = GetResourceInternal(ark, uri, file, mediaSequenceNumber, segmentSettings);
         var ms = new MemoryStream();
         await StreamSegmentInternalAsync(ari, ms, cancellationToken).ConfigureAwait(false);
         ms.Position = 0;
         await ms.CopyToAsync(targetStream, cancellationToken).ConfigureAwait(false);
     }
 
-    private ArtifactResourceInfo GetResourceInternal(ArtifactResourceKey artifactResourceKey, Uri uri, M3UFile file, long? mediaSequenceNumber = null)
+    private ArtifactResourceInfo GetResourceInternal(ArtifactResourceKey artifactResourceKey, Uri uri, M3UFile file, long? mediaSequenceNumber, SegmentSettings? segmentSettings)
     {
         // Use ResponseHeadersRead to make timeout only count up to headers
         var httpRequestConfig = new HttpRequestConfig(Referrer: Config.Referrer, HttpCompletionOption: HttpCompletionOption.ResponseHeadersRead, Timeout: TimeSpan.FromMilliseconds(Config.RequestTimeout));
@@ -255,7 +259,7 @@ public class M3UDownloaderContext
         {
             return ari;
         }
-        if (Config.Decrypt)
+        if (Config.Decrypt && segmentSettings is not { DisableDecryption: true })
         {
             ari = new EncryptedArtifactResourceInfo(ei.ToEncryptionInfo(mediaSequenceNumber), ari);
         }

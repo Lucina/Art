@@ -54,6 +54,16 @@ public static class ArtifactDataResourceExtensions
     }
 
     /// <summary>
+    /// Creates an instance of this resource with metadata retrieval blocked.
+    /// </summary>
+    /// <param name="resource">Resource to augment.</param>
+    /// <returns>Wrapped resource that will not retrieve metadata.</returns>
+    public static ArtifactDataResource NoMetadata(this ArtifactDataResource resource)
+    {
+        return resource with { Info = new NoMetadataArtifactResourceInfo(resource.Info) };
+    }
+
+    /// <summary>
     /// Creates an instance of this resource with an added decryption layer.
     /// </summary>
     /// <param name="resource">Resource to augment.</param>

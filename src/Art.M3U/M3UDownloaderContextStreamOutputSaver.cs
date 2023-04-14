@@ -9,11 +9,13 @@ public class M3UDownloaderContextStreamOutputSaver : M3UDownloaderContextProcess
 {
     private readonly bool _oneOff;
     private readonly TimeSpan _timeout;
+    private readonly Func<Uri, SegmentSettings>? _segmentFilter;
 
-    internal M3UDownloaderContextStreamOutputSaver(M3UDownloaderContext context, bool oneOff, TimeSpan timeout) : base(context)
+    internal M3UDownloaderContextStreamOutputSaver(M3UDownloaderContext context, bool oneOff, TimeSpan timeout, Func<Uri,SegmentSettings>? segmentFilter) : base(context)
     {
         _oneOff = oneOff;
         _timeout = timeout;
+        _segmentFilter = segmentFilter;
     }
 
     /// <summary>
@@ -26,6 +28,6 @@ public class M3UDownloaderContextStreamOutputSaver : M3UDownloaderContextProcess
     /// <exception cref="ArtHttpResponseMessageException">Thrown on HTTP response indicating non-successful response.</exception>
     public Task ExportAsync(Stream stream, CancellationToken cancellationToken = default)
     {
-        return ProcessPlaylistAsync(_oneOff, _timeout, new StreamOutputPlaylistElementProcessor(Context, stream), null, cancellationToken);
+        return ProcessPlaylistAsync(_oneOff, _timeout, new StreamOutputPlaylistElementProcessor(Context, stream), _segmentFilter, null, cancellationToken);
     }
 }

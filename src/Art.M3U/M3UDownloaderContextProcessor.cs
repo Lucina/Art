@@ -109,9 +109,10 @@ public abstract class M3UDownloaderContextProcessor
     /// <param name="oneOff">If true, complete after one pass through playlist.</param>
     /// <param name="timeout">Timeout to use to determine when a stream seems to have ended.</param>
     /// <param name="playlistElementProcessor">Processor to handle playlist elements.</param>
+    /// <param name="segmentFilter">Optional segment filter.</param>
     /// <param name="extraOperation">Optional extra operation.</param>
     /// <param name="cancellationToken">Cancellation token.</param>
-    protected async Task ProcessPlaylistAsync(bool oneOff, TimeSpan timeout, IPlaylistElementProcessor playlistElementProcessor, IExtraSaverOperation? extraOperation = null, CancellationToken cancellationToken = default)
+    protected async Task ProcessPlaylistAsync(bool oneOff, TimeSpan timeout, IPlaylistElementProcessor playlistElementProcessor, Func<Uri, SegmentSettings>? segmentFilter, IExtraSaverOperation? extraOperation = null, CancellationToken cancellationToken = default)
     {
         extraOperation?.Reset();
         IOperationProgressContext? operationProgressContext = null;
@@ -158,6 +159,15 @@ public abstract class M3UDownloaderContextProcessor
                     {
                         long msn = m3.FirstMediaSequenceNumber + i++;
                         var entryUri = new Uri(Context.MainUri, entry);
+                        SegmentSettings? segmentSettings = null;
+                        if (segmentFilter != null)
+                        {
+                            segmentSettings = segmentFilter.Invoke(entryUri);
+                            if (segmentSettings.Skip)
+                            {
+                                continue;
+                            }
+                        }
                         // source could possibly be wonky and use query to differentiate?
                         string entryKey = entry; //entryUri.Segments[^1];
                         if (hs.Contains(entryKey))
@@ -169,7 +179,7 @@ public abstract class M3UDownloaderContextProcessor
                             operationProgressContext.Dispose();
                             operationProgressContext = null;
                         }
-                        await playlistElementProcessor.ProcessPlaylistElementAsync(entryUri, m3, msn, entry, new ItemNo(i, m3.DataLines.Count), cancellationToken).ConfigureAwait(false);
+                        await playlistElementProcessor.ProcessPlaylistElementAsync(entryUri, m3, msn, segmentSettings, entry, new ItemNo(i, m3.DataLines.Count), cancellationToken).ConfigureAwait(false);
                         hs.Add(entryKey);
                         j++;
                     }

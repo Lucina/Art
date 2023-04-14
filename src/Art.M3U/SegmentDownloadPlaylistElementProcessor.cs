@@ -9,7 +9,7 @@ internal class SegmentDownloadPlaylistElementProcessor : IPlaylistElementProcess
         _context = context;
     }
 
-    public Task ProcessPlaylistElementAsync(Uri uri, M3UFile? file, long? mediaSequenceNumber = null, string? segmentName = null, ItemNo? itemNo = null, CancellationToken cancellationToken = default)
+    public Task ProcessPlaylistElementAsync(Uri uri, M3UFile? file, long? mediaSequenceNumber = null, SegmentSettings? segmentSettings = null, string? segmentName = null, ItemNo? itemNo = null, CancellationToken cancellationToken = default)
     {
         if (itemNo?.GetMessage() is { } itemNumberText)
         {
@@ -19,6 +19,6 @@ internal class SegmentDownloadPlaylistElementProcessor : IPlaylistElementProcess
         {
             _context.Tool.LogInformation($"Downloading segment {segmentName ?? "???"}");
         }
-        return _context.DownloadSegmentAsync(uri, file, mediaSequenceNumber, cancellationToken);
+        return _context.DownloadSegmentAsync(uri, file, mediaSequenceNumber, segmentSettings, cancellationToken);
     }
 }
