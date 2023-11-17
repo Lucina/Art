@@ -29,7 +29,7 @@ public class ValidationContext : ToolControlContext
         list.Add(r);
     }
 
-    public async Task<ValidationProcessResult> ProcessAsync(List<ArtifactInfo> artifacts, ChecksumSource? checksumSourceForAdd)
+    public async Task<ValidationProcessResult> ProcessAsync(IEnumerable<ArtifactInfo> artifacts, ChecksumSource? checksumSourceForAdd)
     {
         int artifactCount = 0, resourceCount = 0;
         if (checksumSourceForAdd == null)
@@ -130,7 +130,7 @@ public class ValidationContext : ToolControlContext
             if (originalProfile.Options.TryGetOption("artifactList", out string[]? artifactList, SourceGenerationContext.s_context.StringArray) && isFindTool)
             {
                 var set = artifactList.ToHashSet();
-                artifacts.RemoveAll(v => set.Contains(v.Key.Id));
+                artifacts.RemoveAll(v => !set.Contains(v.Key.Id));
             }
             var result = await ProcessAsync(artifacts, checksumSourceForAdd);
             _l.Log($"Processed {result.Artifacts} artifacts and {result.Resources} resources for profile {toolName}/{group}", null, LogLevel.Information);
