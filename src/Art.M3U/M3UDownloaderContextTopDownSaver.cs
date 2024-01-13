@@ -17,23 +17,25 @@ public partial class M3UDownloaderContextTopDownSaver : M3UDownloaderContextSave
     private static partial Regex GetBit2Regex();
 
     private readonly long _top;
+    private readonly long? _topMsn;
     private readonly Func<string, long, string> _nameTransform;
     private long _currentTop;
     private bool _ended;
 
-    internal M3UDownloaderContextTopDownSaver(M3UDownloaderContext context, long top)
-        : this(context, top, TranslateNameDefault)
+    internal M3UDownloaderContextTopDownSaver(M3UDownloaderContext context, long top, long? topMsn)
+        : this(context, top, topMsn, TranslateNameDefault)
     {
     }
 
-    internal M3UDownloaderContextTopDownSaver(M3UDownloaderContext context, long top, Func<long, string> idFormatter)
-        : this(context, top, (a, b) => TranslateNameDefault(a, idFormatter(b)))
+    internal M3UDownloaderContextTopDownSaver(M3UDownloaderContext context, long top, long? topMsn, Func<long, string> idFormatter)
+        : this(context, top, topMsn, (a, b) => TranslateNameDefault(a, idFormatter(b)))
     {
     }
 
-    internal M3UDownloaderContextTopDownSaver(M3UDownloaderContext context, long top, Func<string, long, string> nameTransform) : base(context)
+    internal M3UDownloaderContextTopDownSaver(M3UDownloaderContext context, long top, long? topMsn, Func<string, long, string> nameTransform) : base(context)
     {
         _top = top;
+        _topMsn = topMsn;
         _currentTop = _top;
         _nameTransform = nameTransform;
     }
@@ -139,9 +141,18 @@ public partial class M3UDownloaderContextTopDownSaver : M3UDownloaderContextSave
         Context.Tool.LogInformation($"Top-downloading segment {uri.Segments[^1]}...");
         try
         {
+            long? msn;
+            if (_topMsn is { } topMsn)
+            {
+                msn = _top - _currentTop + topMsn;
+            }
+            else
+            {
+                msn = null;
+            }
             // Don't assume MSN, and just accept failure (exception) when trying to decrypt with no IV
             // Also don't depend on current file since it probably won't do us good anyway for this use case
-            await Context.DownloadSegmentAsync(uri, null, null, null, cancellationToken).ConfigureAwait(false);
+            await Context.DownloadSegmentAsync(uri, null, msn, null, cancellationToken).ConfigureAwait(false);
             _currentTop--;
         }
         catch (ArtHttpResponseMessageException e)

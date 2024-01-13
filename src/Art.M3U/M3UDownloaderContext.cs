@@ -140,24 +140,27 @@ public class M3UDownloaderContext
     /// Creates a top-down (ID-based) downloader with default name translation function.
     /// </summary>
     /// <param name="top">Top ID.</param>
+    /// <param name="topMsn">Top media sequence number.</param>
     /// <returns>Downloader.</returns>
-    public M3UDownloaderContextTopDownSaver CreateTopDownSaver(long top) => new(this, top);
+    public M3UDownloaderContextTopDownSaver CreateTopDownSaver(long top, long? topMsn) => new(this, top, topMsn);
 
     /// <summary>
     /// Creates a top-down (ID-based) downloader.
     /// </summary>
     /// <param name="top">Top ID.</param>
+    /// <param name="topMsn">Top media sequence number.</param>
     /// <param name="idFormatter">ID string formatter.</param>
     /// <returns>Downloader.</returns>
-    public M3UDownloaderContextTopDownSaver CreateTopDownSaver(long top, Func<long, string> idFormatter) => new(this, top, idFormatter);
+    public M3UDownloaderContextTopDownSaver CreateTopDownSaver(long top, long? topMsn, Func<long, string> idFormatter) => new(this, top, topMsn, idFormatter);
 
     /// <summary>
     /// Creates a top-down (ID-based) downloader.
     /// </summary>
     /// <param name="top">Top ID.</param>
+    /// <param name="topMsn">Top media sequence number.</param>
     /// <param name="nameTransform">Name transformation function (for received IDs).</param>
     /// <returns>Downloader.</returns>
-    public M3UDownloaderContextTopDownSaver CreateTopDownSaver(long top, Func<string, long, string> nameTransform) => new(this, top, nameTransform);
+    public M3UDownloaderContextTopDownSaver CreateTopDownSaver(long top, long? topMsn, Func<string, long, string> nameTransform) => new(this, top, topMsn, nameTransform);
 
     /// <summary>
     /// Creates a basic downloader.
