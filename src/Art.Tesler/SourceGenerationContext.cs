@@ -4,6 +4,7 @@ using System.Text.Json.Serialization;
 namespace Art.Tesler;
 
 [JsonSourceGenerationOptions(WriteIndented = true)]
+[JsonSerializable(typeof(bool))]
 [JsonSerializable(typeof(ulong))]
 [JsonSerializable(typeof(long))]
 [JsonSerializable(typeof(double))]

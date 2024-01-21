@@ -96,15 +96,41 @@ internal static class Common
     {
         foreach (string prop in props)
         {
-            if (s_propRe.Match(prop) is not { Success: true } match) throw new ArgumentException($@"Invalid property entry ""{prop}""");
+            if (s_propRe.Match(prop) is not { Success: true } match)
+            {
+                throw new ArgumentException($@"Invalid property entry ""{prop}""");
+            }
             string k = match.Groups[1].Value;
             string val = match.Groups[2].Value;
             JsonElement v;
-            if (val.StartsWith('{') || val.StartsWith('[')) v = JsonSerializer.Deserialize(val, SourceGenerationContext.s_context.JsonElement);
-            else if (long.TryParse(val, out long valLong)) v = JsonSerializer.SerializeToElement(valLong, SourceGenerationContext.s_context.Int64);
-            else if (ulong.TryParse(val, out ulong valULong)) v = JsonSerializer.SerializeToElement(valULong, SourceGenerationContext.s_context.UInt64);
-            else if (double.TryParse(val, out double valDouble)) v = JsonSerializer.SerializeToElement(valDouble, SourceGenerationContext.s_context.Double);
-            else v = JsonSerializer.SerializeToElement(val, SourceGenerationContext.s_context.String);
+            if (val.StartsWith('{') || val.StartsWith('['))
+            {
+                v = JsonSerializer.Deserialize(val, SourceGenerationContext.s_context.JsonElement);
+            }
+            else if (long.TryParse(val, out long valLong))
+            {
+                v = JsonSerializer.SerializeToElement(valLong, SourceGenerationContext.s_context.Int64);
+            }
+            else if (ulong.TryParse(val, out ulong valULong))
+            {
+                v = JsonSerializer.SerializeToElement(valULong, SourceGenerationContext.s_context.UInt64);
+            }
+            else if (double.TryParse(val, out double valDouble))
+            {
+                v = JsonSerializer.SerializeToElement(valDouble, SourceGenerationContext.s_context.Double);
+            }
+            else if (string.Equals(val, "true", StringComparison.InvariantCulture))
+            {
+                v = JsonSerializer.SerializeToElement(true, SourceGenerationContext.s_context.Boolean);
+            }
+            else if (string.Equals(val, "false", StringComparison.InvariantCulture))
+            {
+                v = JsonSerializer.SerializeToElement(false, SourceGenerationContext.s_context.Boolean);
+            }
+            else
+            {
+                v = JsonSerializer.SerializeToElement(val, SourceGenerationContext.s_context.String);
+            }
             dictionary.AddPropWithWarning(k, v, console);
         }
     }
