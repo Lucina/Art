@@ -20,7 +20,7 @@ internal class ChromiumWindowsKeychain : IChromiumKeychain
         {
             throw new ArgumentException();
         }
-        _aes = new AesGcm(keyV10);
+        _aes = new AesGcm(keyV10, AeadTagBytes);
     }
 
     public string Unlock(byte[] buffer)
