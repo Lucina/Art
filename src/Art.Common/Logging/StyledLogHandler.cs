@@ -11,12 +11,17 @@ public class StyledLogHandler : IToolLogHandler
     private readonly bool _itsumoError;
 
     /// <summary>
-    /// Output stream.
+    /// Output writer.
     /// </summary>
     protected readonly TextWriter Out;
 
     /// <summary>
-    /// Error stream.
+    /// Warning writer.
+    /// </summary>
+    protected readonly TextWriter Warn;
+
+    /// <summary>
+    /// Error writer.
     /// </summary>
     protected readonly TextWriter Error;
 
@@ -44,12 +49,14 @@ public class StyledLogHandler : IToolLogHandler
     /// Initializes an instance of <see cref="StyledLogHandler"/>.
     /// </summary>
     /// <param name="outWriter">Writer for normal output.</param>
+    /// <param name="warnWriter">Writer for warning output.</param>
     /// <param name="errorWriter">Writer for error output.</param>
     /// <param name="alwaysPrintToErrorStream">If true, always print output to error stream.</param>
     /// <param name="enableFancy">Enable fancy output.</param>
-    public StyledLogHandler(TextWriter outWriter, TextWriter errorWriter, bool alwaysPrintToErrorStream, bool enableFancy = false)
+    public StyledLogHandler(TextWriter outWriter, TextWriter warnWriter, TextWriter errorWriter, bool alwaysPrintToErrorStream, bool enableFancy = false)
     {
         Out = outWriter ?? throw new ArgumentNullException(nameof(outWriter));
+        Warn = warnWriter ?? throw new ArgumentNullException(nameof(warnWriter));
         Error = errorWriter ?? throw new ArgumentNullException(nameof(errorWriter));
         _pre = enableFancy ? s_preOsx : s_preDefault;
         _wh = new AutoResetEvent(true);
@@ -99,7 +106,7 @@ public class StyledLogHandler : IToolLogHandler
             LogLevel.Information => Out,
             LogLevel.Entry => Out,
             LogLevel.Title => Out,
-            LogLevel.Warning => Error,
+            LogLevel.Warning => Warn,
             LogLevel.Error => Error,
             _ => Error
         };

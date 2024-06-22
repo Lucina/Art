@@ -15,11 +15,11 @@ public class PlainToolLogHandlerProvider : ToolLogHandlerProviderBase
 
     public override IToolLogHandler GetStreamToolLogHandler()
     {
-        return new PlainLogHandler(Out, Error, true);
+        return new PlainLogHandler(Out, Warn, Error, true);
     }
 
     public override IToolLogHandler GetDefaultToolLogHandler()
     {
-        return new PlainLogHandler(Out, Error, false);
+        return new PlainLogHandler(Out, Warn, Error, false);
     }
 }

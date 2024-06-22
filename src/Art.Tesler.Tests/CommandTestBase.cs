@@ -36,6 +36,7 @@ public class CommandTestBase
         if (newLine != null)
         {
             Out.NewLine = newLine;
+            Warn.NewLine = newLine;
             Error.NewLine = newLine;
         }
         OutStream = new MemoryStream();
@@ -56,6 +57,7 @@ public class CommandTestBase
         if (newLine != null)
         {
             Out.NewLine = newLine;
+            Warn.NewLine = newLine;
             Error.NewLine = newLine;
         }
         ToolOutput = toolLogHandlerProvider = new PlainToolLogHandlerProvider(Out, Warn, Error, () => throw new NotSupportedException());
@@ -77,6 +79,7 @@ public class CommandTestBase
         if (newLine != null)
         {
             Out.NewLine = newLine;
+            Warn.NewLine = newLine;
             Error.NewLine = newLine;
         }
         OutQueue = new Queue<ObjectLog>();
@@ -97,6 +100,7 @@ public class CommandTestBase
         if (newLine != null)
         {
             outWriter.NewLine = newLine;
+            Warn.NewLine = newLine;
             Error.NewLine = newLine;
         }
         ToolOutput = toolLogHandlerProvider = new PlainToolLogHandlerProvider(outWriter, Warn, Error, () => new NonDisposingStream(outStream));

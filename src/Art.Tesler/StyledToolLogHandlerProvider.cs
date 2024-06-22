@@ -15,11 +15,11 @@ public class StyledToolLogHandlerProvider : ToolLogHandlerProviderBase
 
     public override IToolLogHandler GetStreamToolLogHandler()
     {
-        return new StyledLogHandler(Out, Error, true);
+        return new StyledLogHandler(Out, Warn, Error, true);
     }
 
     public override IToolLogHandler GetDefaultToolLogHandler()
     {
-        return new StyledLogHandler(Out, Error, false, OperatingSystem.IsMacOS());
+        return new StyledLogHandler(Out, Warn, Error, false, OperatingSystem.IsMacOS());
     }
 }
