@@ -21,7 +21,7 @@ internal static class Common
         return errorCode != 0 ? errorCode : existingErrorCode;
     }
 
-    internal static async Task DisplayAsync(ArtifactInfo i, bool listResource, IArtifactRegistrationManager arm, bool detailed, IOutputPair console)
+    internal static async Task DisplayAsync(ArtifactInfo i, bool listResource, IArtifactRegistrationManager arm, bool detailed, IOutputControl console)
     {
         Display(i, detailed, console);
         if (listResource)
@@ -29,7 +29,7 @@ internal static class Common
                 Display(r, detailed, console);
     }
 
-    internal static Task DisplayAsync(IArtifactData d, bool listResource, bool detailed, IOutputPair console)
+    internal static Task DisplayAsync(IArtifactData d, bool listResource, bool detailed, IOutputControl console)
     {
         if (console is ObjectToolLogHandlerProvider provider)
         {
@@ -45,7 +45,7 @@ internal static class Common
         return Task.CompletedTask;
     }
 
-    private static async Task DisplayAsync(ArtifactInfo i, IEnumerable<ArtifactResourceInfo> resources, bool detailed, IOutputPair console)
+    private static async Task DisplayAsync(ArtifactInfo i, IEnumerable<ArtifactResourceInfo> resources, bool detailed, IOutputControl console)
     {
         Display(i, detailed, console);
         foreach (ArtifactResourceInfo r in resources)
@@ -69,7 +69,7 @@ internal static class Common
         }
     }
 
-    internal static void PrintFormat(string entry, bool detailed, Func<string> details, IOutputPair console)
+    internal static void PrintFormat(string entry, bool detailed, Func<string> details, IOutputControl console)
     {
         console.Out.WriteLine(entry);
         if (detailed)
@@ -80,19 +80,19 @@ internal static class Common
         }
     }
 
-    private static void Display(ArtifactInfo i, bool detailed, IOutputPair console)
+    private static void Display(ArtifactInfo i, bool detailed, IOutputControl console)
     {
         PrintFormat(i.Key.Tool + "/" + i.Key.Group + ": " + i.GetInfoTitleString(), detailed, i.GetInfoString, console);
     }
 
-    internal static void Display(ArtifactResourceInfo r, bool detailed, IOutputPair console)
+    internal static void Display(ArtifactResourceInfo r, bool detailed, IOutputControl console)
     {
         PrintFormat("-- " + r.GetInfoPathString(), detailed, r.GetInfoString, console);
     }
 
     private static readonly Regex s_propRe = new(@"(.+?):(.+)");
 
-    internal static void AddProps(this Dictionary<string, JsonElement> dictionary, IEnumerable<string> props, IOutputPair console)
+    internal static void AddProps(this Dictionary<string, JsonElement> dictionary, IEnumerable<string> props, IOutputControl console)
     {
         foreach (string prop in props)
         {
@@ -135,9 +135,9 @@ internal static class Common
         }
     }
 
-    private static void AddPropWithWarning(this Dictionary<string, JsonElement> dictionary, string k, JsonElement v, IOutputPair console)
+    private static void AddPropWithWarning(this Dictionary<string, JsonElement> dictionary, string k, JsonElement v, IOutputControl console)
     {
-        if (dictionary.ContainsKey(k)) console.Out.WriteLine($@"Warning: property {k} already exists with value ""{dictionary[k].ToString()}"", overwriting");
+        if (dictionary.ContainsKey(k)) console.Warn.WriteLine($@"Warning: property {k} already exists with value ""{dictionary[k].ToString()}"", overwriting");
         dictionary[k] = v;
     }
 
@@ -199,7 +199,7 @@ internal static class Common
         IEnumerable<string> properties,
         string? cookieFile,
         string? userAgent,
-        IOutputPair console)
+        IOutputControl console)
     {
         Dictionary<string, JsonElement> opts = new();
         if (toolDefaultPropertyProvider != null)
@@ -213,13 +213,13 @@ internal static class Common
                 }
                 else
                 {
-                    console.Out.WriteLine($"Warning: tool type {id} could not be found in the registry it should be stored in, configuration will not contain values inherited from base types");
+                    console.Warn.WriteLine($"Warning: tool type {id} could not be found in the registry it should be stored in, configuration will not contain values inherited from base types");
                     DefaultPropertyUtility.ApplyProperties(toolDefaultPropertyProvider, opts, id);
                 }
             }
             else
             {
-                console.Out.WriteLine($"Warning: tool type {id} could not be found, configuration will not contain values inherited from base types");
+                console.Warn.WriteLine($"Warning: tool type {id} could not be found, configuration will not contain values inherited from base types");
                 DefaultPropertyUtility.ApplyProperties(toolDefaultPropertyProvider, opts, id);
             }
         }

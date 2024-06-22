@@ -13,7 +13,7 @@ public class DatabaseCommandList : DatabaseCommandBase
     protected Option<string> OutputOption;
 
     public DatabaseCommandList(
-        IOutputPair toolOutput,
+        IOutputControl toolOutput,
         ITeslerRegistrationProvider registrationProvider,
         string name,
         string? description = null)

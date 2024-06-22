@@ -11,9 +11,10 @@ public class CommandTestBase
     protected StringWriter? Out;
     protected MemoryStream? OutStream;
     protected Queue<ObjectLog>? OutQueue;
+    protected StringWriter? Warn;
     protected StringWriter? Error;
     protected Queue<ObjectLog>? ErrorQueue;
-    protected IOutputPair? ToolOutput;
+    protected IOutputControl? ToolOutput;
     protected TestConsole? TestConsole;
     protected IToolDefaultPropertyProvider? ToolDefaultPropertyProvider;
     protected ITeslerRegistrationProvider? RegistrationProvider;
@@ -22,6 +23,7 @@ public class CommandTestBase
 
     [MemberNotNull(nameof(Out))]
     [MemberNotNull(nameof(OutStream))]
+    [MemberNotNull(nameof(Warn))]
     [MemberNotNull(nameof(Error))]
     [MemberNotNull(nameof(ToolOutput))]
     [MemberNotNull(nameof(TestConsole))]
@@ -29,6 +31,7 @@ public class CommandTestBase
     {
         Out = new StringWriter();
         OutStream = new MemoryStream();
+        Warn = new StringWriter();
         Error = new StringWriter();
         if (newLine != null)
         {
@@ -36,29 +39,32 @@ public class CommandTestBase
             Error.NewLine = newLine;
         }
         OutStream = new MemoryStream();
-        ToolOutput = toolLogHandlerProvider = new PlainToolLogHandlerProvider(Out, Error, () => new NonDisposingStream(OutStream));
+        ToolOutput = toolLogHandlerProvider = new PlainToolLogHandlerProvider(Out, Warn, Error, () => new NonDisposingStream(OutStream));
         console = TestConsole = new TestConsole(Out, Error, windowWidth, outputRedirected, errorRedirected, inputRedirected);
     }
 
     [MemberNotNull(nameof(Out))]
+    [MemberNotNull(nameof(Warn))]
     [MemberNotNull(nameof(Error))]
     [MemberNotNull(nameof(ToolOutput))]
     [MemberNotNull(nameof(TestConsole))]
     internal void CreateOutputs(out PlainToolLogHandlerProvider toolLogHandlerProvider, out TestConsole console, string? newLine = null, int windowWidth = 100, bool outputRedirected = true, bool errorRedirected = true, bool inputRedirected = true)
     {
         Out = new StringWriter();
+        Warn = new StringWriter();
         Error = new StringWriter();
         if (newLine != null)
         {
             Out.NewLine = newLine;
             Error.NewLine = newLine;
         }
-        ToolOutput = toolLogHandlerProvider = new PlainToolLogHandlerProvider(Out, Error, () => throw new NotSupportedException());
+        ToolOutput = toolLogHandlerProvider = new PlainToolLogHandlerProvider(Out, Warn, Error, () => throw new NotSupportedException());
         console = TestConsole = new TestConsole(Out, Error, windowWidth, outputRedirected, errorRedirected, inputRedirected);
     }
 
     [MemberNotNull(nameof(Out))]
     [MemberNotNull(nameof(OutQueue))]
+    [MemberNotNull(nameof(Warn))]
     [MemberNotNull(nameof(Error))]
     [MemberNotNull(nameof(ErrorQueue))]
     [MemberNotNull(nameof(ToolOutput))]
@@ -66,6 +72,7 @@ public class CommandTestBase
     internal void CreateObjectOutputs(out ObjectToolLogHandlerProvider toolLogHandlerProvider, out TestConsole console, string? newLine = null, int windowWidth = 100, bool outputRedirected = true, bool errorRedirected = true, bool inputRedirected = true)
     {
         Out = new StringWriter();
+        Warn = new StringWriter();
         Error = new StringWriter();
         if (newLine != null)
         {
@@ -74,23 +81,25 @@ public class CommandTestBase
         }
         OutQueue = new Queue<ObjectLog>();
         ErrorQueue = new Queue<ObjectLog>();
-        ToolOutput = toolLogHandlerProvider = new ObjectToolLogHandlerProvider(Out, Error, () => throw new NotSupportedException(), OutQueue, ErrorQueue);
+        ToolOutput = toolLogHandlerProvider = new ObjectToolLogHandlerProvider(Out, Warn, Error, () => throw new NotSupportedException(), OutQueue, ErrorQueue);
         console = TestConsole = new TestConsole(Out, Error, windowWidth, outputRedirected, errorRedirected, inputRedirected);
     }
 
+    [MemberNotNull(nameof(Warn))]
     [MemberNotNull(nameof(Error))]
     [MemberNotNull(nameof(ToolOutput))]
     [MemberNotNull(nameof(TestConsole))]
     internal void CreateOutputs(out PlainToolLogHandlerProvider toolLogHandlerProvider, out TestConsole console, Stream outStream, string? newLine = null, int windowWidth = 100, bool outputRedirected = true, bool errorRedirected = true, bool inputRedirected = true)
     {
         var outWriter = new StreamWriter(outStream, leaveOpen: true);
+        Warn = new StringWriter();
         Error = new StringWriter();
         if (newLine != null)
         {
             outWriter.NewLine = newLine;
             Error.NewLine = newLine;
         }
-        ToolOutput = toolLogHandlerProvider = new PlainToolLogHandlerProvider(outWriter, Error, () => new NonDisposingStream(outStream));
+        ToolOutput = toolLogHandlerProvider = new PlainToolLogHandlerProvider(outWriter, Warn, Error, () => new NonDisposingStream(outStream));
         console = TestConsole = new TestConsole(outWriter, Error, windowWidth, outputRedirected, errorRedirected, inputRedirected);
     }
 

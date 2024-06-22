@@ -9,7 +9,7 @@ public class ToolsCommandTests : CommandTestBase
     protected ToolsCommand? Command;
 
     [MemberNotNull(nameof(Command))]
-    protected void InitCommandDefault(IOutputPair toolOutput, IArtifactToolRegistryStore artifactToolRegistryStore)
+    protected void InitCommandDefault(IOutputControl toolOutput, IArtifactToolRegistryStore artifactToolRegistryStore)
     {
         Command = new ToolsCommand(toolOutput, artifactToolRegistryStore);
     }

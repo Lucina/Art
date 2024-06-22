@@ -14,14 +14,14 @@ public class ToolsCommand : CommandBase
     protected Option<bool> DetailedOption;
 
     public ToolsCommand(
-        IOutputPair toolOutput,
+        IOutputControl toolOutput,
         IArtifactToolRegistryStore pluginStore)
         : this(toolOutput, pluginStore, "tools", "List available tools.")
     {
     }
 
     public ToolsCommand(
-        IOutputPair toolOutput,
+        IOutputControl toolOutput,
         IArtifactToolRegistryStore pluginStore,
         string name,
         string? description = null)

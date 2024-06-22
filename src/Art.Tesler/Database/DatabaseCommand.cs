@@ -5,14 +5,14 @@ namespace Art.Tesler.Database;
 public class DatabaseCommand : Command
 {
     public DatabaseCommand(
-        IOutputPair toolOutput,
+        IOutputControl toolOutput,
         ITeslerRegistrationProvider registrationProvider)
         : this(toolOutput, registrationProvider, "db", "Perform operations on database.")
     {
     }
 
     public DatabaseCommand(
-        IOutputPair toolOutput,
+        IOutputControl toolOutput,
         ITeslerRegistrationProvider registrationProvider,
         string name,
         string? description = null)

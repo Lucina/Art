@@ -16,7 +16,7 @@ internal class RehashCommand : CommandBase
     protected Option<bool> DetailedOption;
 
     public RehashCommand(
-        IOutputPair toolOutput,
+        IOutputControl toolOutput,
         ITeslerDataProvider dataProvider,
         ITeslerRegistrationProvider registrationProvider)
         : this(toolOutput, dataProvider, registrationProvider, "rehash", "Recompute hashes for archive contents.")
@@ -24,7 +24,7 @@ internal class RehashCommand : CommandBase
     }
 
     public RehashCommand(
-        IOutputPair toolOutput,
+        IOutputControl toolOutput,
         ITeslerDataProvider dataProvider,
         ITeslerRegistrationProvider registrationProvider,
         string name,

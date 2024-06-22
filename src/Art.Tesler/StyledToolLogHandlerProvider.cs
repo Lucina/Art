@@ -4,8 +4,12 @@ namespace Art.Tesler;
 
 public class StyledToolLogHandlerProvider : ToolLogHandlerProviderBase
 {
-    public StyledToolLogHandlerProvider(TextWriter outWriter, TextWriter errorWriter, Func<Stream> outStreamAccessFunc)
-        : base(outWriter, errorWriter, outStreamAccessFunc)
+    public StyledToolLogHandlerProvider(
+        TextWriter outWriter,
+        TextWriter warnWriter,
+        TextWriter errorWriter,
+        Func<Stream> outStreamAccessFunc)
+        : base(outWriter, warnWriter, errorWriter, outStreamAccessFunc)
     {
     }
 

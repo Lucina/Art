@@ -19,7 +19,7 @@ public class ConfigCommandList : CommandBase
     protected Option<bool> IncludeDefaultsOption;
 
     public ConfigCommandList(
-        IOutputPair toolOutput,
+        IOutputControl toolOutput,
         IToolDefaultPropertyProvider toolDefaultPropertyProvider,
         IProfileResolver profileResolver,
         string name,

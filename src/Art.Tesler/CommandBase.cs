@@ -5,9 +5,9 @@ namespace Art.Tesler;
 
 public abstract class CommandBase : Command
 {
-    protected IOutputPair ToolOutput;
+    protected IOutputControl ToolOutput;
 
-    protected CommandBase(IOutputPair toolOutput, string name, string? description = null) : base(name, description)
+    protected CommandBase(IOutputControl toolOutput, string name, string? description = null) : base(name, description)
     {
         ToolOutput = toolOutput;
         this.SetHandler(RunInternalAsync);
@@ -26,17 +26,17 @@ public abstract class CommandBase : Command
         }
     }
 
-    protected static void PrintExceptionMessage(Exception e, IOutputPair console)
+    protected static void PrintExceptionMessage(Exception e, IOutputControl console)
     {
         PrintErrorMessage(e.Message, console);
     }
 
-    protected static void PrintErrorMessage(string message, IOutputPair console)
+    protected static void PrintErrorMessage(string message, IOutputControl console)
     {
         console.Error.WriteLine(message);
     }
 
-    protected static void PrintWarningMessage(string message, IOutputPair console)
+    protected static void PrintWarningMessage(string message, IOutputControl console)
     {
         console.Error.WriteLine(message);
     }

@@ -10,8 +10,14 @@ public class ConsoleStyledToolLogHandlerProvider : ToolLogHandlerProviderBase
     private readonly Func<bool> _errorRedirectedFunc;
     private readonly Func<int> _widthFunc;
 
-    public ConsoleStyledToolLogHandlerProvider(TextWriter outWriter, TextWriter errorWriter, Func<bool> errorRedirectedFunc, Func<int> widthFunc, Func<Stream> outStreamAccessFunc)
-        : base(outWriter, errorWriter, outStreamAccessFunc)
+    public ConsoleStyledToolLogHandlerProvider(
+        TextWriter outWriter,
+        TextWriter warnWriter,
+        TextWriter errorWriter,
+        Func<bool> errorRedirectedFunc,
+        Func<int> widthFunc,
+        Func<Stream> outStreamAccessFunc)
+        : base(outWriter, warnWriter, errorWriter, outStreamAccessFunc)
     {
         _errorRedirectedFunc = errorRedirectedFunc;
         _widthFunc = widthFunc;

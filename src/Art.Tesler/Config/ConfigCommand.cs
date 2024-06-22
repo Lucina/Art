@@ -6,7 +6,7 @@ namespace Art.Tesler.Config;
 public class ConfigCommand : Command
 {
     public ConfigCommand(
-        IOutputPair toolOutput,
+        IOutputControl toolOutput,
         IToolDefaultPropertyProvider toolDefaultPropertyProvider,
         IProfileResolver profileResolver)
         : this(toolOutput, toolDefaultPropertyProvider, profileResolver, "config", "Perform operations on tool [default] options.")
@@ -14,7 +14,7 @@ public class ConfigCommand : Command
     }
 
     public ConfigCommand(
-        IOutputPair toolOutput,
+        IOutputControl toolOutput,
         IToolDefaultPropertyProvider toolDefaultPropertyProvider,
         IProfileResolver profileResolver,
         string name,

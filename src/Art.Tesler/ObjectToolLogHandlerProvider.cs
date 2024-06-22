@@ -5,9 +5,14 @@ public class ObjectToolLogHandlerProvider : ToolLogHandlerProviderBase
     public Queue<ObjectLog> OutQueue;
     public Queue<ObjectLog> ErrorQueue;
 
-    public ObjectToolLogHandlerProvider(TextWriter outWriter, TextWriter errorWriter, Func<Stream> outStreamAccessFunc,
-        Queue<ObjectLog> outQueue, Queue<ObjectLog> errorQueue)
-        : base(outWriter, errorWriter, outStreamAccessFunc)
+    public ObjectToolLogHandlerProvider(
+        TextWriter outWriter,
+        TextWriter warnWriter,
+        TextWriter errorWriter,
+        Func<Stream> outStreamAccessFunc,
+        Queue<ObjectLog> outQueue,
+        Queue<ObjectLog> errorQueue)
+        : base(outWriter, warnWriter, errorWriter, outStreamAccessFunc)
     {
         OutQueue = outQueue;
         ErrorQueue = errorQueue;
