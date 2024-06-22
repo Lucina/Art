@@ -16,14 +16,6 @@ public interface IArtifactToolRegistryStore
     bool TryLoadRegistry(ArtifactToolID artifactToolId, [NotNullWhen(true)] out IArtifactToolRegistry? artifactToolRegistry);
 
     /// <summary>
-    /// Loads a registry that applies to the specified tool ID.
-    /// </summary>
-    /// <param name="artifactToolId">Tool ID to get a registry for.</param>
-    /// <returns>Registry.</returns>
-    [Obsolete("Use TryLoadRegistry instead")]
-    IArtifactToolRegistry LoadRegistry(ArtifactToolID artifactToolId);
-
-    /// <summary>
     /// Loads all available registries in this store.
     /// </summary>
     /// <returns>Registry sequence.</returns>

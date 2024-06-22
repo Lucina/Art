@@ -28,16 +28,6 @@ public class StaticArtifactToolRegistryStore : IArtifactToolRegistryStore
     }
 
     /// <inheritdoc />
-    public IArtifactToolRegistry LoadRegistry(ArtifactToolID artifactToolId)
-    {
-        if (!_artifactToolRegistry.Contains(artifactToolId))
-        {
-            throw new ArtUserException($"Registry does not contain an artifact tool with the ID {artifactToolId}");
-        }
-        return _artifactToolRegistry;
-    }
-
-    /// <inheritdoc />
     public IEnumerable<IArtifactToolRegistry> LoadAllRegistries()
     {
         yield return _artifactToolRegistry;

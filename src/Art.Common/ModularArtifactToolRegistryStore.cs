@@ -33,17 +33,6 @@ public class ModularArtifactToolRegistryStore : IArtifactToolRegistryStore
     }
 
     /// <inheritdoc />
-    public IArtifactToolRegistry LoadRegistry(ArtifactToolID artifactToolId)
-    {
-        string assembly = artifactToolId.Assembly;
-        if (!_moduleProvider.TryLocateModule(assembly, out var module))
-        {
-            throw new ArtUserException($"No applicable manifest for the assembly {assembly} could be found.");
-        }
-        return _moduleProvider.LoadModule(module);
-    }
-
-    /// <inheritdoc />
     public IEnumerable<IArtifactToolRegistry> LoadAllRegistries()
     {
         var modules = new Dictionary<string, IModuleLocation>();
