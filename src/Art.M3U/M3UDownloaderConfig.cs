@@ -10,6 +10,7 @@ namespace Art.M3U;
 /// <param name="PrioritizeResolution">Prioritize resolution in stream selection.</param>
 /// <param name="MaxFails">Maximum allowed consecutive failures.</param>
 /// <param name="Referrer">Stream download referrer.</param>
+/// <param name="Origin">Stream download origin.</param>
 /// <param name="RequestTimeout">Timeout for requests, in milliseconds.</param>
 /// <param name="RequestTimeoutRetries">Number of consecutive retries before attempting recovery.</param>
 public record M3UDownloaderConfig(
@@ -20,5 +21,7 @@ public record M3UDownloaderConfig(
     bool PrioritizeResolution = false,
     int MaxFails = 1,
     string? Referrer = null,
+    string? Origin = null,
+    IReadOnlyCollection<KeyValuePair<string, string>>? Headers = null,
     int RequestTimeout = 5000,
     int RequestTimeoutRetries = 10);

@@ -14,7 +14,15 @@ public static class ArtHttpExtensions
     public static void SetOriginAndReferrer(this HttpRequestMessage request, string? origin, string? referrer)
     {
         if (referrer != null)
+        {
+            if (origin != null)
+            {
+                request.Headers.Add("origin", origin);
+                request.Headers.Referrer = new Uri(referrer);
+                return;
+            }
             SetOriginAndReferrer(request, new Uri(referrer));
+        }
         else if (origin != null) SetOriginAndReferrer(request, new Uri(origin));
     }
 
