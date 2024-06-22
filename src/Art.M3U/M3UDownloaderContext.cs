@@ -83,7 +83,6 @@ public class M3UDownloaderContext
     {
         if (config.Headers == null)
         {
-            logHandler.Log("x", "y", "not applying headers", null, LogLevel.Information);
             return null;
         }
         return SetupRequest;
@@ -92,14 +91,6 @@ public class M3UDownloaderContext
             foreach (var v in config.Headers)
             {
                 hrm.Headers.Add(v.Key, v.Value);
-            }
-            logHandler.Log("x", "y", $"{hrm.Headers.Count()} headers", null, LogLevel.Information);
-            foreach (var v in hrm.Headers)
-            {
-                foreach (var val in v.Value)
-                {
-                    logHandler.Log("x", "y", $"{v}: {val}", null, LogLevel.Information);
-                }
             }
         }
     }

@@ -11,6 +11,7 @@ namespace Art.M3U;
 /// <param name="MaxFails">Maximum allowed consecutive failures.</param>
 /// <param name="Referrer">Stream download referrer.</param>
 /// <param name="Origin">Stream download origin.</param>
+/// <param name="Headers">Headers to add to each request.</param>
 /// <param name="RequestTimeout">Timeout for requests, in milliseconds.</param>
 /// <param name="RequestTimeoutRetries">Number of consecutive retries before attempting recovery.</param>
 public record M3UDownloaderConfig(
