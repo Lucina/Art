@@ -10,7 +10,7 @@ namespace Art.Tesler.Config;
 
 public class ConfigCommandList : CommandBase
 {
-    private readonly IDefaultPropertyProvider _defaultPropertyProvider;
+    private readonly IToolDefaultPropertyProvider _toolDefaultPropertyProvider;
     private readonly IProfileResolver _profileResolver;
 
     protected Option<string> DefaultsOption;
@@ -20,13 +20,13 @@ public class ConfigCommandList : CommandBase
 
     public ConfigCommandList(
         IOutputPair toolOutput,
-        IDefaultPropertyProvider defaultPropertyProvider,
+        IToolDefaultPropertyProvider toolDefaultPropertyProvider,
         IProfileResolver profileResolver,
         string name,
         string? description = null)
         : base(toolOutput, name, description)
     {
-        _defaultPropertyProvider = defaultPropertyProvider;
+        _toolDefaultPropertyProvider = toolDefaultPropertyProvider;
         _profileResolver = profileResolver;
         DefaultsOption = new Option<string>(new[] { "-d", "--defaults" }, "Tool to get defaults for")
         {
@@ -89,7 +89,7 @@ public class ConfigCommandList : CommandBase
             }
 
             var properties = new Dictionary<string, JsonElement>();
-            _defaultPropertyProvider.WriteDefaultProperties(toolID, properties);
+            DefaultPropertyUtility.ApplyProperties(_toolDefaultPropertyProvider, properties, toolID);
             WriteOutput($"Default properties for {toolID.GetToolString()}", properties, simple);
             return Task.FromResult(0);
         }
@@ -110,7 +110,7 @@ public class ConfigCommandList : CommandBase
                 {
                     var profile = profileList[0];
                     var properties = new Dictionary<string, JsonElement>();
-                    _defaultPropertyProvider.WriteDefaultProperties(profile.GetID(), properties);
+                    DefaultPropertyUtility.ApplyProperties(_toolDefaultPropertyProvider, properties, profile.GetID());
                     if (profile.Options is { } options)
                     {
                         foreach (var pair in options)
@@ -135,7 +135,7 @@ public class ConfigCommandList : CommandBase
                     {
                         var profile = profileList[i];
                         var properties = new Dictionary<string, JsonElement>();
-                        _defaultPropertyProvider.WriteDefaultProperties(profile.GetID(), properties);
+                        DefaultPropertyUtility.ApplyProperties(_toolDefaultPropertyProvider, properties, profile.GetID());
                         if (profile.Options is { } options)
                         {
                             foreach (var pair in options)

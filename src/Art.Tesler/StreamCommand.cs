@@ -15,20 +15,20 @@ public class StreamCommand : ToolCommandBase
     public StreamCommand(
         IToolLogHandlerProvider toolLogHandlerProvider,
         IArtifactToolRegistryStore pluginStore,
-        IDefaultPropertyProvider defaultPropertyProvider,
+        IToolDefaultPropertyProvider toolDefaultPropertyProvider,
         IProfileResolver profileResolver)
-        : this(toolLogHandlerProvider, pluginStore, defaultPropertyProvider, profileResolver, "stream", "Stream primary resource to standard output.")
+        : this(toolLogHandlerProvider, pluginStore, toolDefaultPropertyProvider, profileResolver, "stream", "Stream primary resource to standard output.")
     {
     }
 
     public StreamCommand(
         IToolLogHandlerProvider toolLogHandlerProvider,
         IArtifactToolRegistryStore pluginStore,
-        IDefaultPropertyProvider defaultPropertyProvider,
+        IToolDefaultPropertyProvider toolDefaultPropertyProvider,
         IProfileResolver profileResolver,
         string name,
         string? description = null)
-        : base(toolLogHandlerProvider, pluginStore, defaultPropertyProvider, name, description)
+        : base(toolLogHandlerProvider, pluginStore, toolDefaultPropertyProvider, name, description)
     {
         ProfileResolver = profileResolver;
         ProfileFileArg = new Argument<string>("profile", "Profile file") { HelpName = "profile", Arity = ArgumentArity.ExactlyOne };

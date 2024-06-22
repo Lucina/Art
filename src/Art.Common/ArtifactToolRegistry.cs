@@ -101,12 +101,19 @@ public class ArtifactToolRegistry : IArtifactToolSelectableRegistry<string>
         _entries.Clear();
     }
 
-    /// <summary>
-    /// Attempts to create an artifact tool for the specified name.
-    /// </summary>
-    /// <param name="artifactToolId">Artifact tool ID.</param>
-    /// <param name="tool">Crated artifact tool, if successful.</param>
-    /// <returns>True if successful.</returns>
+    /// <inheritdoc/>
+    public bool TryGetType(ArtifactToolID artifactToolId, [NotNullWhen(true)] out Type? type)
+    {
+        if (_entries.TryGetValue(artifactToolId, out var entry))
+        {
+            type = entry.GetArtifactToolType();
+            return true;
+        }
+        type = null;
+        return false;
+    }
+
+    /// <inheritdoc/>
     public bool TryLoad(ArtifactToolID artifactToolId, [NotNullWhen(true)] out IArtifactTool? tool)
     {
         if (_entries.TryGetValue(artifactToolId, out var entry))

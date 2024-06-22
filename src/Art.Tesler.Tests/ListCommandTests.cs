@@ -14,18 +14,18 @@ public class ListCommandTests : CommandTestBase
     protected void InitCommandDefault(
         IToolLogHandlerProvider toolLogHandlerProvider,
         IArtifactToolRegistryStore artifactToolRegistryStore,
-        IDefaultPropertyProvider defaultPropertyProvider)
+        IToolDefaultPropertyProvider toolDefaultPropertyProvider)
     {
-        Command = new ListCommand(toolLogHandlerProvider, artifactToolRegistryStore, defaultPropertyProvider);
+        Command = new ListCommand(toolLogHandlerProvider, artifactToolRegistryStore, toolDefaultPropertyProvider);
     }
 
     [Test]
     public void EmptyInvocation_Fails()
     {
         var store = GetSingleStore(ProgrammableArtifactListTool.CreateRegistryEntry(_ => new List<IArtifactData>()));
-        var defaultPropertyProvider = CreateInMemoryDefaultPropertyProvider();
+        var toolDefaultPropertyProvider = CreateInMemoryDefaultPropertyProvider();
         CreateObjectOutputs(out var toolOutput, out var console);
-        InitCommandDefault(toolOutput, store, defaultPropertyProvider);
+        InitCommandDefault(toolOutput, store, toolDefaultPropertyProvider);
         int rc = Command.Invoke(Array.Empty<string>(), console);
         Assert.That(Out.ToString(), Is.Not.Empty);
         Assert.That(OutQueue, Is.Empty);
@@ -38,9 +38,9 @@ public class ListCommandTests : CommandTestBase
     public void MissingTool_Fails()
     {
         var store = GetSingleStore(ProgrammableArtifactListTool.CreateRegistryEntry(_ => new List<IArtifactData>()));
-        var defaultPropertyProvider = CreateInMemoryDefaultPropertyProvider();
+        var toolDefaultPropertyProvider = CreateInMemoryDefaultPropertyProvider();
         CreateObjectOutputs(out var toolOutput, out var console);
-        InitCommandDefault(toolOutput, store, defaultPropertyProvider);
+        InitCommandDefault(toolOutput, store, toolDefaultPropertyProvider);
         string[] line = { "-t", new ArtifactToolID("NOT_AN_ASSEMBLY", "MALO").GetToolString() };
         int rc = Command.Invoke(line, console);
         Assert.That(Out.ToString(), Is.Empty);
@@ -54,9 +54,9 @@ public class ListCommandTests : CommandTestBase
     public void NoResults_Success()
     {
         var store = GetSingleStore(ProgrammableArtifactListTool.CreateRegistryEntry(_ => new List<IArtifactData>()));
-        var defaultPropertyProvider = CreateInMemoryDefaultPropertyProvider();
+        var toolDefaultPropertyProvider = CreateInMemoryDefaultPropertyProvider();
         CreateObjectOutputs(out var toolOutput, out var console);
-        InitCommandDefault(toolOutput, store, defaultPropertyProvider);
+        InitCommandDefault(toolOutput, store, toolDefaultPropertyProvider);
         string[] line = { "-t", ArtifactToolIDUtil.CreateToolString<ProgrammableArtifactListTool>() };
         int rc = Command.Invoke(line, console);
         Assert.That(Out.ToString(), Is.Empty);
@@ -78,9 +78,9 @@ public class ListCommandTests : CommandTestBase
             results.Add(data);
             return results;
         }));
-        var defaultPropertyProvider = CreateInMemoryDefaultPropertyProvider();
+        var toolDefaultPropertyProvider = CreateInMemoryDefaultPropertyProvider();
         CreateObjectOutputs(out var toolOutput, out var console);
-        InitCommandDefault(toolOutput, store, defaultPropertyProvider);
+        InitCommandDefault(toolOutput, store, toolDefaultPropertyProvider);
         string toolString = ArtifactToolIDUtil.CreateToolString<ProgrammableArtifactListTool>();
         string[] line = { "-t", toolString, "-g", group };
         int rc = Command.Invoke(line, console);
@@ -116,9 +116,9 @@ public class ListCommandTests : CommandTestBase
             results.Add(data2);
             return results;
         }));
-        var defaultPropertyProvider = CreateInMemoryDefaultPropertyProvider();
+        var toolDefaultPropertyProvider = CreateInMemoryDefaultPropertyProvider();
         CreateObjectOutputs(out var toolOutput, out var console);
-        InitCommandDefault(toolOutput, store, defaultPropertyProvider);
+        InitCommandDefault(toolOutput, store, toolDefaultPropertyProvider);
         string toolString = ArtifactToolIDUtil.CreateToolString<ProgrammableArtifactListTool>();
         string[] line = { "-t", toolString, "-g", group };
         int rc = Command.Invoke(line, console);

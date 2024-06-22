@@ -20,6 +20,19 @@ public class ModularArtifactToolRegistryStore : IArtifactToolRegistryStore
     }
 
     /// <inheritdoc />
+    public bool TryLoadRegistry(ArtifactToolID artifactToolId, [NotNullWhen(true)] out IArtifactToolRegistry? artifactToolRegistry)
+    {
+        string assembly = artifactToolId.Assembly;
+        if (!_moduleProvider.TryLocateModule(assembly, out var module))
+        {
+            artifactToolRegistry = null;
+            return false;
+        }
+        artifactToolRegistry = _moduleProvider.LoadModule(module);
+        return true;
+    }
+
+    /// <inheritdoc />
     public IArtifactToolRegistry LoadRegistry(ArtifactToolID artifactToolId)
     {
         string assembly = artifactToolId.Assembly;

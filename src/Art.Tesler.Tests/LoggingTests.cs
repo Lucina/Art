@@ -18,11 +18,11 @@ public class LoggingTests : CommandTestBase
     protected void InitCommandDefault(
         IToolLogHandlerProvider toolLogHandlerProvider,
         IArtifactToolRegistryStore artifactToolRegistryStore,
-        IDefaultPropertyProvider defaultPropertyProvider,
+        IToolDefaultPropertyProvider toolDefaultPropertyProvider,
         ITeslerDataProvider dataProvider,
         ITeslerRegistrationProvider registrationProvider)
     {
-        Command = new DumpCommand(toolLogHandlerProvider, artifactToolRegistryStore, defaultPropertyProvider, dataProvider, registrationProvider);
+        Command = new DumpCommand(toolLogHandlerProvider, artifactToolRegistryStore, toolDefaultPropertyProvider, dataProvider, registrationProvider);
     }
 
     [Test]
@@ -93,10 +93,10 @@ public class LoggingTests : CommandTestBase
     private int Execute(IToolLogHandlerProvider toolLogHandlerProvider, IConsole console, Action<ProgrammableArtifactDumpTool> action, string[] line)
     {
         var store = GetSingleStore(ProgrammableArtifactDumpTool.CreateRegistryEntry(t => action(t)));
-        var defaultPropertyProvider = CreateInMemoryDefaultPropertyProvider();
+        var toolDefaultPropertyProvider = CreateInMemoryDefaultPropertyProvider();
         var dataProvider = CreateSharedMemoryDataProvider();
         var registrationProvider = CreateSharedMemoryRegistrationProvider();
-        InitCommandDefault(toolLogHandlerProvider, store, defaultPropertyProvider, dataProvider, registrationProvider);
+        InitCommandDefault(toolLogHandlerProvider, store, toolDefaultPropertyProvider, dataProvider, registrationProvider);
         return Command.Invoke(line, console);
     }
 

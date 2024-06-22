@@ -15,7 +15,7 @@ public class CommandTestBase
     protected Queue<ObjectLog>? ErrorQueue;
     protected IOutputPair? ToolOutput;
     protected TestConsole? TestConsole;
-    protected IDefaultPropertyProvider? DefaultPropertyProvider;
+    protected IToolDefaultPropertyProvider? ToolDefaultPropertyProvider;
     protected ITeslerRegistrationProvider? RegistrationProvider;
     protected ITeslerDataProvider? DataProvider;
     protected IProfileResolver? ProfileResolver;
@@ -133,27 +133,27 @@ public class CommandTestBase
         return new StaticArtifactToolRegistryStore(registry);
     }
 
-    [MemberNotNull(nameof(DefaultPropertyProvider))]
-    internal IDefaultPropertyProvider CreateInMemoryDefaultPropertyProvider()
+    [MemberNotNull(nameof(ToolDefaultPropertyProvider))]
+    internal InMemoryToolDefaultPropertyProvider CreateInMemoryDefaultPropertyProvider()
     {
-        var result = new InMemoryDefaultPropertyProvider(ImmutableDictionary<string, JsonElement>.Empty, ImmutableDictionary<ArtifactToolID, IReadOnlyDictionary<string, JsonElement>>.Empty);
-        DefaultPropertyProvider = result;
+        var result = new InMemoryToolDefaultPropertyProvider(ImmutableDictionary<string, JsonElement>.Empty, ImmutableDictionary<ArtifactToolID, IReadOnlyDictionary<string, JsonElement>>.Empty);
+        ToolDefaultPropertyProvider = result;
         return result;
     }
 
-    [MemberNotNull(nameof(DefaultPropertyProvider))]
-    internal InMemoryDefaultPropertyProvider CreateInMemoryDefaultPropertyProvider(IReadOnlyDictionary<string, JsonElement> shared)
+    [MemberNotNull(nameof(ToolDefaultPropertyProvider))]
+    internal InMemoryToolDefaultPropertyProvider CreateInMemoryDefaultPropertyProvider(IReadOnlyDictionary<string, JsonElement> shared)
     {
-        var result = new InMemoryDefaultPropertyProvider(shared, ImmutableDictionary<ArtifactToolID, IReadOnlyDictionary<string, JsonElement>>.Empty);
-        DefaultPropertyProvider = result;
+        var result = new InMemoryToolDefaultPropertyProvider(shared, ImmutableDictionary<ArtifactToolID, IReadOnlyDictionary<string, JsonElement>>.Empty);
+        ToolDefaultPropertyProvider = result;
         return result;
     }
 
-    [MemberNotNull(nameof(DefaultPropertyProvider))]
-    internal InMemoryDefaultPropertyProvider CreateInMemoryDefaultPropertyProvider(IReadOnlyDictionary<string, JsonElement> shared, IReadOnlyDictionary<ArtifactToolID, IReadOnlyDictionary<string, JsonElement>> perTool)
+    [MemberNotNull(nameof(ToolDefaultPropertyProvider))]
+    internal InMemoryToolDefaultPropertyProvider CreateInMemoryDefaultPropertyProvider(IReadOnlyDictionary<string, JsonElement> shared, IReadOnlyDictionary<ArtifactToolID, IReadOnlyDictionary<string, JsonElement>> perTool)
     {
-        var result = new InMemoryDefaultPropertyProvider(shared, perTool);
-        DefaultPropertyProvider = result;
+        var result = new InMemoryToolDefaultPropertyProvider(shared, perTool);
+        ToolDefaultPropertyProvider = result;
         return result;
     }
 

@@ -192,17 +192,36 @@ internal static class Common
             .ToString();
     }
 
-    internal static ArtifactToolProfile GetWithConsoleOptions(this ArtifactToolProfile artifactToolProfile,
-        IDefaultPropertyProvider? defaultPropertyProvider,
+    internal static ArtifactToolProfile GetWithConsoleOptions(
+        this ArtifactToolProfile artifactToolProfile,
+        IArtifactToolRegistryStore registryStore,
+        IToolDefaultPropertyProvider? toolDefaultPropertyProvider,
         IEnumerable<string> properties,
         string? cookieFile,
         string? userAgent,
         IOutputPair console)
     {
         Dictionary<string, JsonElement> opts = new();
-        if (defaultPropertyProvider != null)
+        if (toolDefaultPropertyProvider != null)
         {
-            defaultPropertyProvider.WriteDefaultProperties(artifactToolProfile.GetID(), opts);
+            ArtifactToolID id = artifactToolProfile.GetID();
+            if (registryStore.TryLoadRegistry(id, out var registry))
+            {
+                if (registry.TryGetType(id, out var type))
+                {
+                    DefaultPropertyUtility.ApplyPropertiesDeep(toolDefaultPropertyProvider, opts, type);
+                }
+                else
+                {
+                    console.Out.WriteLine($"Warning: tool type {id} could not be found in the registry it should be stored in, configuration will not contain values inherited from base types");
+                    DefaultPropertyUtility.ApplyProperties(toolDefaultPropertyProvider, opts, id);
+                }
+            }
+            else
+            {
+                console.Out.WriteLine($"Warning: tool type {id} could not be found, configuration will not contain values inherited from base types");
+                DefaultPropertyUtility.ApplyProperties(toolDefaultPropertyProvider, opts, id);
+            }
         }
         if (artifactToolProfile.Options != null)
         {

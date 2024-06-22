@@ -22,19 +22,19 @@ public class ListCommand : ToolCommandBase
     public ListCommand(
         IToolLogHandlerProvider toolLogHandlerProvider,
         IArtifactToolRegistryStore pluginStore,
-        IDefaultPropertyProvider defaultPropertyProvider
+        IToolDefaultPropertyProvider toolDefaultPropertyProvider
     )
-        : this(toolLogHandlerProvider, pluginStore, defaultPropertyProvider, "list", "Execute artifact list tools.")
+        : this(toolLogHandlerProvider, pluginStore, toolDefaultPropertyProvider, "list", "Execute artifact list tools.")
     {
     }
 
     public ListCommand(
         IToolLogHandlerProvider toolLogHandlerProvider,
         IArtifactToolRegistryStore pluginStore,
-        IDefaultPropertyProvider defaultPropertyProvider,
+        IToolDefaultPropertyProvider toolDefaultPropertyProvider,
         string name,
         string? description = null)
-        : base(toolLogHandlerProvider, pluginStore, defaultPropertyProvider, name, description)
+        : base(toolLogHandlerProvider, pluginStore, toolDefaultPropertyProvider, name, description)
     {
         ProfileFileOption = new Option<string>(new[] { "-i", "--input" }, "Profile file") { ArgumentHelpName = "file" };
         AddOption(ProfileFileOption);
