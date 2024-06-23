@@ -1,13 +1,12 @@
 using System.Text.Json;
-using Art.Common;
 
 namespace Art.Tesler;
 
-public class DirectoryJsonRunnerDefaultPropertyProvider : IRunnerDefaultPropertyProvider
+public class FileJsonRunnerDefaultPropertyProvider : IRunnerDefaultPropertyProvider
 {
     private readonly string _propertyFile;
 
-    public DirectoryJsonRunnerDefaultPropertyProvider(string propertyFile)
+    public FileJsonRunnerDefaultPropertyProvider(string propertyFile)
     {
         _propertyFile = propertyFile;
     }
