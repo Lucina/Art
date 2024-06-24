@@ -2,6 +2,7 @@
 using System.CommandLine.Invocation;
 using System.CommandLine.Parsing;
 using Art.Common;
+using Art.Tesler.Properties;
 
 namespace Art.Tesler;
 

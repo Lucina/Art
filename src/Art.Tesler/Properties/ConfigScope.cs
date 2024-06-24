@@ -1,4 +1,4 @@
-namespace Art.Tesler
+namespace Art.Tesler.Properties
 {
     public enum ConfigScope
     {

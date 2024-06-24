@@ -1,6 +1,6 @@
 using System.Text.Json;
 
-namespace Art.Tesler;
+namespace Art.Tesler.Properties;
 
 public class NullToolPropertyProvider : IToolPropertyProvider
 {

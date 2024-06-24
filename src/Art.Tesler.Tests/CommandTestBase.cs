@@ -3,6 +3,7 @@ using System.Diagnostics.CodeAnalysis;
 using System.Text.Json;
 using Art.Common;
 using Art.Common.IO;
+using Art.Tesler.Properties;
 
 namespace Art.Tesler.Tests;
 

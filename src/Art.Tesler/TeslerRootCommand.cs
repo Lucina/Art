@@ -3,6 +3,7 @@ using Art.Common;
 using Art.Tesler.Config;
 using Art.Tesler.Cookie;
 using Art.Tesler.Database;
+using Art.Tesler.Properties;
 
 namespace Art.Tesler;
 

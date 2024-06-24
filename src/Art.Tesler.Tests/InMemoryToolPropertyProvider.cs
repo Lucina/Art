@@ -1,4 +1,5 @@
 ﻿using System.Text.Json;
+using Art.Tesler.Properties;
 
 namespace Art.Tesler.Tests;
 

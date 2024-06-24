@@ -1,14 +1,14 @@
 using System.Text.Json;
 using Art.Common;
 
-namespace Art.Tesler;
+namespace Art.Tesler.Properties;
 
-public class DirectoryJsonToolDefaultPropertyProvider : IToolPropertyProvider
+public class DirectoryJsonToolPropertyProvider : IToolPropertyProvider
 {
     private readonly string _directory;
     private readonly Func<ArtifactToolID, string> _fileNameTransform;
 
-    public DirectoryJsonToolDefaultPropertyProvider(string directory, Func<ArtifactToolID, string> fileNameTransform)
+    public DirectoryJsonToolPropertyProvider(string directory, Func<ArtifactToolID, string> fileNameTransform)
     {
         _directory = directory;
         _fileNameTransform = fileNameTransform;

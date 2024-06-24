@@ -1,4 +1,5 @@
 using System.CommandLine;
+using Art.Tesler.Properties;
 
 namespace Art.Tesler.Config;
 

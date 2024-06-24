@@ -3,6 +3,7 @@ using System.Text.Json;
 using System.Text.RegularExpressions;
 using Art.BrowserCookies;
 using Art.Common;
+using Art.Tesler.Properties;
 using EA;
 
 namespace Art.Tesler;
