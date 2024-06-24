@@ -11,7 +11,7 @@ public abstract class ToolCommandBase : CommandBase
 
     protected IArtifactToolRegistryStore PluginStore;
 
-    protected IToolDefaultPropertyProvider ToolDefaultPropertyProvider;
+    protected IToolPropertyProvider ToolPropertyProvider;
 
     protected Option<string> UserAgentOption;
 
@@ -24,13 +24,13 @@ public abstract class ToolCommandBase : CommandBase
     protected ToolCommandBase(
         IToolLogHandlerProvider toolLogHandlerProvider,
         IArtifactToolRegistryStore pluginStore,
-        IToolDefaultPropertyProvider toolDefaultPropertyProvider,
+        IToolPropertyProvider toolPropertyProvider,
         string name,
         string? description = null) : base(toolLogHandlerProvider, name, description)
     {
         ToolLogHandlerProvider = toolLogHandlerProvider;
         PluginStore = pluginStore;
-        ToolDefaultPropertyProvider = toolDefaultPropertyProvider;
+        ToolPropertyProvider = toolPropertyProvider;
         UserAgentOption = new Option<string>(new[] { "--user-agent" }, "Custom user agent string") { ArgumentHelpName = "user-agent" };
         AddOption(UserAgentOption);
         CookieFileOption = new Option<string>(new[] { "--cookie-file" }, "Cookie file") { ArgumentHelpName = "file" };
@@ -46,8 +46,8 @@ public abstract class ToolCommandBase : CommandBase
         string? cookieFile = context.ParseResult.HasOption(CookieFileOption) ? context.ParseResult.GetValueForOption(CookieFileOption) : null;
         string? userAgent = context.ParseResult.HasOption(UserAgentOption) ? context.ParseResult.GetValueForOption(UserAgentOption) : null;
         IEnumerable<string> properties = context.ParseResult.HasOption(PropertiesOption) ? context.ParseResult.GetValueForOption(PropertiesOption)! : Array.Empty<string>();
-        var toolDefaultPropertyProvider = GetOptionalToolDefaultPropertyProvider(context);
-        return artifactToolProfile.GetWithConsoleOptions(PluginStore, toolDefaultPropertyProvider, properties, cookieFile, userAgent, ToolOutput);
+        var toolPropertyProvider = GetOptionalToolPropertyProvider(context);
+        return artifactToolProfile.GetWithConsoleOptions(PluginStore, toolPropertyProvider, properties, cookieFile, userAgent, ToolOutput);
     }
 
     protected IEnumerable<ArtifactToolProfile> PrepareProfiles(InvocationContext context, IEnumerable<ArtifactToolProfile> artifactToolProfiles)
@@ -55,8 +55,8 @@ public abstract class ToolCommandBase : CommandBase
         string? cookieFile = context.ParseResult.HasOption(CookieFileOption) ? context.ParseResult.GetValueForOption(CookieFileOption) : null;
         string? userAgent = context.ParseResult.HasOption(UserAgentOption) ? context.ParseResult.GetValueForOption(UserAgentOption) : null;
         IEnumerable<string> properties = context.ParseResult.HasOption(PropertiesOption) ? context.ParseResult.GetValueForOption(PropertiesOption)! : Array.Empty<string>();
-        var toolDefaultPropertyProvider = GetOptionalToolDefaultPropertyProvider(context);
-        return artifactToolProfiles.Select(p => p.GetWithConsoleOptions(PluginStore, toolDefaultPropertyProvider, properties, cookieFile, userAgent, ToolOutput));
+        var toolPropertyProvider = GetOptionalToolPropertyProvider(context);
+        return artifactToolProfiles.Select(p => p.GetWithConsoleOptions(PluginStore, toolPropertyProvider, properties, cookieFile, userAgent, ToolOutput));
     }
 
     protected async Task<IArtifactTool> GetToolAsync(ArtifactToolProfile artifactToolProfile, IArtifactRegistrationManager arm, IArtifactDataManager adm, CancellationToken cancellationToken = default)
@@ -68,13 +68,13 @@ public abstract class ToolCommandBase : CommandBase
         return await ArtifactTool.PrepareToolAsync(plugin, artifactToolProfile, arm, adm, cancellationToken).ConfigureAwait(false);
     }
 
-    protected IToolDefaultPropertyProvider? GetOptionalToolDefaultPropertyProvider(InvocationContext context)
+    protected IToolPropertyProvider? GetOptionalToolPropertyProvider(InvocationContext context)
     {
         if (context.ParseResult.GetValueForOption(NoDefaultPropertiesOption))
         {
             return null;
         }
-        return ToolDefaultPropertyProvider;
+        return ToolPropertyProvider;
     }
 
     protected static void ResolveAndAddProfiles(IProfileResolver profileResolver, List<ArtifactToolProfile> profiles, string profileFile)

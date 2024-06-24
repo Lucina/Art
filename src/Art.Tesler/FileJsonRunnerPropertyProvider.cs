@@ -2,16 +2,16 @@ using System.Text.Json;
 
 namespace Art.Tesler;
 
-public class FileJsonRunnerDefaultPropertyProvider : IRunnerDefaultPropertyProvider
+public class FileJsonRunnerPropertyProvider : IRunnerPropertyProvider
 {
     private readonly string _propertyFile;
 
-    public FileJsonRunnerDefaultPropertyProvider(string propertyFile)
+    public FileJsonRunnerPropertyProvider(string propertyFile)
     {
         _propertyFile = propertyFile;
     }
 
-    public IEnumerable<KeyValuePair<string, JsonElement>> EnumerateDefaultProperties()
+    public IEnumerable<KeyValuePair<string, JsonElement>> GetProperties()
     {
         if (File.Exists(_propertyFile) && DirectoryJsonPropertyFileUtility.LoadPropertiesFromFile(_propertyFile) is { } map)
         {
@@ -20,7 +20,7 @@ public class FileJsonRunnerDefaultPropertyProvider : IRunnerDefaultPropertyProvi
         return Array.Empty<KeyValuePair<string, JsonElement>>();
     }
 
-    public bool TryGetDefaultProperty(string key, out JsonElement value)
+    public bool TryGetProperty(string key, out JsonElement value)
     {
         if (File.Exists(_propertyFile) && DirectoryJsonPropertyFileUtility.LoadPropertiesFromFile(_propertyFile) is { } map)
         {

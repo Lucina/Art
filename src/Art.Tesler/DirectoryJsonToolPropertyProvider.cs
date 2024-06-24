@@ -3,7 +3,7 @@ using Art.Common;
 
 namespace Art.Tesler;
 
-public class DirectoryJsonToolDefaultPropertyProvider : IToolDefaultPropertyProvider
+public class DirectoryJsonToolDefaultPropertyProvider : IToolPropertyProvider
 {
     private readonly string _directory;
     private readonly Func<ArtifactToolID, string> _fileNameTransform;
@@ -19,7 +19,7 @@ public class DirectoryJsonToolDefaultPropertyProvider : IToolDefaultPropertyProv
         return Path.Combine(_directory, _fileNameTransform(artifactToolId));
     }
 
-    public IEnumerable<KeyValuePair<string, JsonElement>> EnumerateDefaultProperties(ArtifactToolID artifactToolId)
+    public IEnumerable<KeyValuePair<string, JsonElement>> GetProperties(ArtifactToolID artifactToolId)
     {
         string propertyFilePath = GetPropertyFilePath(artifactToolId);
         if (File.Exists(propertyFilePath) && DirectoryJsonPropertyFileUtility.LoadPropertiesFromFile(propertyFilePath) is { } map)
@@ -29,7 +29,7 @@ public class DirectoryJsonToolDefaultPropertyProvider : IToolDefaultPropertyProv
         return Array.Empty<KeyValuePair<string, JsonElement>>();
     }
 
-    public bool TryGetDefaultProperty(ArtifactToolID artifactToolId, string key, out JsonElement value)
+    public bool TryGetProperty(ArtifactToolID artifactToolId, string key, out JsonElement value)
     {
         string propertyFilePath = GetPropertyFilePath(artifactToolId);
         if (File.Exists(propertyFilePath) && DirectoryJsonPropertyFileUtility.LoadPropertiesFromFile(propertyFilePath) is { } map)

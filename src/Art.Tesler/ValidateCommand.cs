@@ -24,21 +24,21 @@ public class ValidateCommand : ToolCommandBase
     public ValidateCommand(
         IToolLogHandlerProvider toolLogHandlerProvider,
         IArtifactToolRegistryStore pluginStore,
-        IToolDefaultPropertyProvider toolDefaultPropertyProvider,
+        IToolPropertyProvider toolPropertyProvider,
         ITeslerDataProvider dataProvider,
         ITeslerRegistrationProvider registrationProvider)
-        : this(toolLogHandlerProvider, pluginStore, toolDefaultPropertyProvider, dataProvider, registrationProvider, "validate", "Verify resource integrity.")
+        : this(toolLogHandlerProvider, pluginStore, toolPropertyProvider, dataProvider, registrationProvider, "validate", "Verify resource integrity.")
     {
     }
 
     public ValidateCommand(
         IToolLogHandlerProvider toolLogHandlerProvider,
         IArtifactToolRegistryStore pluginStore,
-        IToolDefaultPropertyProvider toolDefaultPropertyProvider,
+        IToolPropertyProvider toolPropertyProvider,
         ITeslerDataProvider dataProvider,
         ITeslerRegistrationProvider registrationProvider,
         string name,
-        string? description = null) : base(toolLogHandlerProvider, pluginStore, toolDefaultPropertyProvider, name, description)
+        string? description = null) : base(toolLogHandlerProvider, pluginStore, toolPropertyProvider, name, description)
     {
         DataProvider = dataProvider;
         DataProvider.Initialize(this);

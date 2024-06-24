@@ -3,36 +3,36 @@ using System.Text.Json;
 
 namespace Art.Tesler;
 
-public class GlobalLocalRunnerDefaultPropertyProvider : IRunnerDefaultPropertyProvider
+public class GlobalLocalRunnerPropertyProvider : IGlobalLocalRunnerPropertyProvider
 {
-    private readonly IRunnerDefaultPropertyProvider _globalProvider;
-    private readonly IRunnerDefaultPropertyProvider _localProvider;
+    private readonly IRunnerPropertyProvider _globalProvider;
+    private readonly IRunnerPropertyProvider _localProvider;
 
-    public GlobalLocalRunnerDefaultPropertyProvider(
-        IRunnerDefaultPropertyProvider globalProvider,
-        IRunnerDefaultPropertyProvider localProvider)
+    public GlobalLocalRunnerPropertyProvider(
+        IRunnerPropertyProvider globalProvider,
+        IRunnerPropertyProvider localProvider)
     {
         _globalProvider = globalProvider;
         _localProvider = localProvider;
     }
 
-    public IEnumerable<KeyValuePair<string, JsonElement>> EnumerateDefaultProperties()
+    public IEnumerable<KeyValuePair<string, JsonElement>> GetProperties()
     {
-        return _globalProvider.EnumerateDefaultProperties().Concat(_localProvider.EnumerateDefaultProperties());
+        return _globalProvider.GetProperties().Concat(_localProvider.GetProperties());
     }
 
     public IEnumerable<ConfigProperty> GetProperties(ConfigScopeFlags configScopeFlags)
     {
         if ((configScopeFlags & ConfigScopeFlags.Global) != 0)
         {
-            foreach (var pair in _globalProvider.EnumerateDefaultProperties())
+            foreach (var pair in _globalProvider.GetProperties())
             {
                 yield return new ConfigProperty(ConfigScope.Global, pair.Key, pair.Value);
             }
         }
         if ((configScopeFlags & ConfigScopeFlags.Local) != 0)
         {
-            foreach (var pair in _localProvider.EnumerateDefaultProperties())
+            foreach (var pair in _localProvider.GetProperties())
             {
                 yield return new ConfigProperty(ConfigScope.Local, pair.Key, pair.Value);
             }
@@ -43,7 +43,7 @@ public class GlobalLocalRunnerDefaultPropertyProvider : IRunnerDefaultPropertyPr
     {
         if ((configScopeFlags & ConfigScopeFlags.Local) != 0)
         {
-            if (_localProvider.TryGetDefaultProperty(key, out var subValue))
+            if (_localProvider.TryGetProperty(key, out var subValue))
             {
                 configProperty = new ConfigProperty(ConfigScope.Local, key, subValue);
                 return true;
@@ -51,7 +51,7 @@ public class GlobalLocalRunnerDefaultPropertyProvider : IRunnerDefaultPropertyPr
         }
         if ((configScopeFlags & ConfigScopeFlags.Global) != 0)
         {
-            if (_globalProvider.TryGetDefaultProperty(key, out var subValue))
+            if (_globalProvider.TryGetProperty(key, out var subValue))
             {
                 configProperty = new ConfigProperty(ConfigScope.Global, key, subValue);
                 return true;
@@ -61,7 +61,7 @@ public class GlobalLocalRunnerDefaultPropertyProvider : IRunnerDefaultPropertyPr
         return false;
     }
 
-    public bool TryGetDefaultProperty(string key, out JsonElement value)
+    public bool TryGetProperty(string key, out JsonElement value)
     {
         if (TryGetProperty(key, ConfigScopeFlags.All, out ConfigProperty configProperty))
         {

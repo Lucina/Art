@@ -24,19 +24,19 @@ public class FindCommand : ToolCommandBase
     public FindCommand(
         IToolLogHandlerProvider toolLogHandlerProvider,
         IArtifactToolRegistryStore pluginStore,
-        IToolDefaultPropertyProvider toolDefaultPropertyProvider
+        IToolPropertyProvider toolPropertyProvider
     )
-        : this(toolLogHandlerProvider, pluginStore, toolDefaultPropertyProvider, "find", "Execute artifact finder tools.")
+        : this(toolLogHandlerProvider, pluginStore, toolPropertyProvider, "find", "Execute artifact finder tools.")
     {
     }
 
     public FindCommand(
         IToolLogHandlerProvider toolLogHandlerProvider,
         IArtifactToolRegistryStore pluginStore,
-        IToolDefaultPropertyProvider toolDefaultPropertyProvider,
+        IToolPropertyProvider toolPropertyProvider,
         string name,
         string? description = null) :
-        base(toolLogHandlerProvider, pluginStore, toolDefaultPropertyProvider, name, description)
+        base(toolLogHandlerProvider, pluginStore, toolPropertyProvider, name, description)
     {
         IdsArg = new Argument<List<string>>("ids", "IDs") { HelpName = "id", Arity = ArgumentArity.OneOrMore };
         AddArgument(IdsArg);

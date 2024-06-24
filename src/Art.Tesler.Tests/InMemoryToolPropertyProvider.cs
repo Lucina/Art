@@ -2,18 +2,18 @@
 
 namespace Art.Tesler.Tests;
 
-internal class InMemoryToolDefaultPropertyProvider : IToolDefaultPropertyProvider
+internal class InMemoryToolPropertyProvider : IToolPropertyProvider
 {
     private readonly IReadOnlyDictionary<string, JsonElement> _shared;
     private readonly IReadOnlyDictionary<ArtifactToolID, IReadOnlyDictionary<string, JsonElement>> _perTool;
 
-    public InMemoryToolDefaultPropertyProvider(IReadOnlyDictionary<string, JsonElement> shared, IReadOnlyDictionary<ArtifactToolID, IReadOnlyDictionary<string, JsonElement>> perTool)
+    public InMemoryToolPropertyProvider(IReadOnlyDictionary<string, JsonElement> shared, IReadOnlyDictionary<ArtifactToolID, IReadOnlyDictionary<string, JsonElement>> perTool)
     {
         _shared = shared;
         _perTool = perTool;
     }
 
-    public IEnumerable<KeyValuePair<string, JsonElement>> EnumerateDefaultProperties(ArtifactToolID artifactToolId)
+    public IEnumerable<KeyValuePair<string, JsonElement>> GetProperties(ArtifactToolID artifactToolId)
     {
         if (_perTool.TryGetValue(artifactToolId, out var dict))
         {
@@ -25,7 +25,7 @@ internal class InMemoryToolDefaultPropertyProvider : IToolDefaultPropertyProvide
         }
     }
 
-    public bool TryGetDefaultProperty(ArtifactToolID artifactToolId, string key, out JsonElement value)
+    public bool TryGetProperty(ArtifactToolID artifactToolId, string key, out JsonElement value)
     {
         if (_perTool.TryGetValue(artifactToolId, out var dict))
         {

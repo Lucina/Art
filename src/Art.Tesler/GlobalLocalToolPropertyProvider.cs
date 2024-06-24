@@ -3,36 +3,36 @@ using System.Text.Json;
 
 namespace Art.Tesler;
 
-public class GlobalLocalToolDefaultPropertyProvider : IToolDefaultPropertyProvider
+public class GlobalLocalToolPropertyProvider : IGlobalLocalToolPropertyProvider
 {
-    private readonly IToolDefaultPropertyProvider _globalProvider;
-    private readonly IToolDefaultPropertyProvider _localProvider;
+    private readonly IToolPropertyProvider _globalProvider;
+    private readonly IToolPropertyProvider _localProvider;
 
-    public GlobalLocalToolDefaultPropertyProvider(
-        IToolDefaultPropertyProvider globalProvider,
-        IToolDefaultPropertyProvider localProvider)
+    public GlobalLocalToolPropertyProvider(
+        IToolPropertyProvider globalProvider,
+        IToolPropertyProvider localProvider)
     {
         _globalProvider = globalProvider;
         _localProvider = localProvider;
     }
 
-    public IEnumerable<KeyValuePair<string, JsonElement>> EnumerateDefaultProperties(ArtifactToolID artifactToolId)
+    public IEnumerable<KeyValuePair<string, JsonElement>> GetProperties(ArtifactToolID artifactToolId)
     {
-        return _globalProvider.EnumerateDefaultProperties(artifactToolId).Concat(_localProvider.EnumerateDefaultProperties(artifactToolId));
+        return _globalProvider.GetProperties(artifactToolId).Concat(_localProvider.GetProperties(artifactToolId));
     }
 
     public IEnumerable<ConfigProperty> GetProperties(ArtifactToolID artifactToolId, ConfigScopeFlags configScopeFlags)
     {
         if ((configScopeFlags & ConfigScopeFlags.Global) != 0)
         {
-            foreach (var pair in _globalProvider.EnumerateDefaultProperties(artifactToolId))
+            foreach (var pair in _globalProvider.GetProperties(artifactToolId))
             {
                 yield return new ConfigProperty(ConfigScope.Global, pair.Key, pair.Value);
             }
         }
         if ((configScopeFlags & ConfigScopeFlags.Local) != 0)
         {
-            foreach (var pair in _localProvider.EnumerateDefaultProperties(artifactToolId))
+            foreach (var pair in _localProvider.GetProperties(artifactToolId))
             {
                 yield return new ConfigProperty(ConfigScope.Local, pair.Key, pair.Value);
             }
@@ -43,7 +43,7 @@ public class GlobalLocalToolDefaultPropertyProvider : IToolDefaultPropertyProvid
     {
         if ((configScopeFlags & ConfigScopeFlags.Local) != 0)
         {
-            if (_localProvider.TryGetDefaultProperty(artifactToolId, key, out var subValue))
+            if (_localProvider.TryGetProperty(artifactToolId, key, out var subValue))
             {
                 configProperty = new ConfigProperty(ConfigScope.Local, key, subValue);
                 return true;
@@ -51,7 +51,7 @@ public class GlobalLocalToolDefaultPropertyProvider : IToolDefaultPropertyProvid
         }
         if ((configScopeFlags & ConfigScopeFlags.Global) != 0)
         {
-            if (_globalProvider.TryGetDefaultProperty(artifactToolId, key, out var subValue))
+            if (_globalProvider.TryGetProperty(artifactToolId, key, out var subValue))
             {
                 configProperty = new ConfigProperty(ConfigScope.Global, key, subValue);
                 return true;
@@ -61,7 +61,7 @@ public class GlobalLocalToolDefaultPropertyProvider : IToolDefaultPropertyProvid
         return false;
     }
 
-    public bool TryGetDefaultProperty(ArtifactToolID artifactToolId, string key, out JsonElement value)
+    public bool TryGetProperty(ArtifactToolID artifactToolId, string key, out JsonElement value)
     {
         if (TryGetProperty(artifactToolId, key, ConfigScopeFlags.All, out ConfigProperty configProperty))
         {

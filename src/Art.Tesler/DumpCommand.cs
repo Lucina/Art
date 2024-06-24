@@ -26,22 +26,22 @@ public class DumpCommand : ToolCommandBase
     public DumpCommand(
         IToolLogHandlerProvider toolLogHandlerProvider,
         IArtifactToolRegistryStore pluginStore,
-        IToolDefaultPropertyProvider toolDefaultPropertyProvider,
+        IToolPropertyProvider toolPropertyProvider,
         ITeslerDataProvider dataProvider,
         ITeslerRegistrationProvider registrationProvider)
-        : this(toolLogHandlerProvider, pluginStore, toolDefaultPropertyProvider, dataProvider, registrationProvider, "dump", "Execute artifact dump tools.")
+        : this(toolLogHandlerProvider, pluginStore, toolPropertyProvider, dataProvider, registrationProvider, "dump", "Execute artifact dump tools.")
     {
     }
 
     public DumpCommand(
         IToolLogHandlerProvider toolLogHandlerProvider,
         IArtifactToolRegistryStore pluginStore,
-        IToolDefaultPropertyProvider toolDefaultPropertyProvider,
+        IToolPropertyProvider toolPropertyProvider,
         ITeslerDataProvider dataProvider,
         ITeslerRegistrationProvider registrationProvider,
         string name,
         string? description = null)
-        : base(toolLogHandlerProvider, pluginStore, toolDefaultPropertyProvider, name, description)
+        : base(toolLogHandlerProvider, pluginStore, toolPropertyProvider, name, description)
     {
         DataProvider = dataProvider;
         DataProvider.Initialize(this);

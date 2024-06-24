@@ -32,24 +32,24 @@ public class ArcCommand : ToolCommandBase
     public ArcCommand(
         IToolLogHandlerProvider toolLogHandlerProvider,
         IArtifactToolRegistryStore pluginStore,
-        IToolDefaultPropertyProvider toolDefaultPropertyProvider,
+        IToolPropertyProvider toolPropertyProvider,
         ITeslerDataProvider dataProvider,
         ITeslerRegistrationProvider registrationProvider,
         IProfileResolver profileResolver)
-        : this(toolLogHandlerProvider, pluginStore, toolDefaultPropertyProvider, dataProvider, registrationProvider, profileResolver, "arc", "Execute archival artifact tools.")
+        : this(toolLogHandlerProvider, pluginStore, toolPropertyProvider, dataProvider, registrationProvider, profileResolver, "arc", "Execute archival artifact tools.")
     {
     }
 
     public ArcCommand(
         IToolLogHandlerProvider toolLogHandlerProvider,
         IArtifactToolRegistryStore pluginStore,
-        IToolDefaultPropertyProvider toolDefaultPropertyProvider,
+        IToolPropertyProvider toolPropertyProvider,
         ITeslerDataProvider dataProvider,
         ITeslerRegistrationProvider registrationProvider,
         IProfileResolver profileResolver,
         string name,
         string? description = null)
-        : base(toolLogHandlerProvider, pluginStore, toolDefaultPropertyProvider, name, description)
+        : base(toolLogHandlerProvider, pluginStore, toolPropertyProvider, name, description)
     {
         DataProvider = dataProvider;
         DataProvider.Initialize(this);

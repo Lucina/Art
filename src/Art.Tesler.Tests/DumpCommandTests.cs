@@ -13,22 +13,22 @@ public class DumpCommandTests : CommandTestBase
     protected void InitCommandDefault(
         IToolLogHandlerProvider toolLogHandlerProvider,
         IArtifactToolRegistryStore artifactToolRegistryStore,
-        IToolDefaultPropertyProvider toolDefaultPropertyProvider,
+        IToolPropertyProvider toolPropertyProvider,
         ITeslerDataProvider dataProvider,
         ITeslerRegistrationProvider registrationProvider)
     {
-        Command = new DumpCommand(toolLogHandlerProvider, artifactToolRegistryStore, toolDefaultPropertyProvider, dataProvider, registrationProvider);
+        Command = new DumpCommand(toolLogHandlerProvider, artifactToolRegistryStore, toolPropertyProvider, dataProvider, registrationProvider);
     }
 
     [Test]
     public void EmptyInvocation_Fails()
     {
         var store = GetSingleStore(ProgrammableArtifactDumpTool.CreateRegistryEntry(_ => { }));
-        var toolDefaultPropertyProvider = CreateInMemoryDefaultPropertyProvider();
+        var toolPropertyProvider = CreateInMemoryPropertyProvider();
         var dataProvider = CreateSharedMemoryDataProvider();
         var registrationProvider = CreateSharedMemoryRegistrationProvider();
         CreateOutputs(out var toolOutput, out var console);
-        InitCommandDefault(toolOutput, store, toolDefaultPropertyProvider, dataProvider, registrationProvider);
+        InitCommandDefault(toolOutput, store, toolPropertyProvider, dataProvider, registrationProvider);
         Assert.That(Command.Invoke(Array.Empty<string>(), console), Is.Not.EqualTo(0));
         Assert.That(Out.ToString(), Is.Not.Empty);
         Assert.That(Error.ToString(), Is.Not.Empty);
@@ -38,11 +38,11 @@ public class DumpCommandTests : CommandTestBase
     public void MissingTool_Fails()
     {
         var store = GetSingleStore(ProgrammableArtifactDumpTool.CreateRegistryEntry(_ => { }));
-        var toolDefaultPropertyProvider = CreateInMemoryDefaultPropertyProvider();
+        var toolPropertyProvider = CreateInMemoryPropertyProvider();
         var dataProvider = CreateSharedMemoryDataProvider();
         var registrationProvider = CreateSharedMemoryRegistrationProvider();
         CreateOutputs(out var toolOutput, out var console);
-        InitCommandDefault(toolOutput, store, toolDefaultPropertyProvider, dataProvider, registrationProvider);
+        InitCommandDefault(toolOutput, store, toolPropertyProvider, dataProvider, registrationProvider);
         string[] line = { "-t", new ArtifactToolID("NOT_AN_ASSEMBLY", "MALO").GetToolString() };
         Assert.That(Command.Invoke(line, console), Is.Not.EqualTo(0));
         Assert.That(Out.ToString(), Is.Empty);
@@ -53,11 +53,11 @@ public class DumpCommandTests : CommandTestBase
     public void NoopTool_Success()
     {
         var store = GetSingleStore(ProgrammableArtifactDumpTool.CreateRegistryEntry(_ => { }));
-        var toolDefaultPropertyProvider = CreateInMemoryDefaultPropertyProvider();
+        var toolPropertyProvider = CreateInMemoryPropertyProvider();
         var dataProvider = CreateSharedMemoryDataProvider();
         var registrationProvider = CreateSharedMemoryRegistrationProvider();
         CreateOutputs(out var toolOutput, out var console);
-        InitCommandDefault(toolOutput, store, toolDefaultPropertyProvider, dataProvider, registrationProvider);
+        InitCommandDefault(toolOutput, store, toolPropertyProvider, dataProvider, registrationProvider);
         string[] line = { "-t", ArtifactToolIDUtil.CreateToolString<ProgrammableArtifactDumpTool>() };
         Assert.That(Command.Invoke(line, console), Is.EqualTo(0));
         Assert.That(Out.ToString(), Is.Empty);

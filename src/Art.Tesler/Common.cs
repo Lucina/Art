@@ -195,32 +195,32 @@ internal static class Common
     internal static ArtifactToolProfile GetWithConsoleOptions(
         this ArtifactToolProfile artifactToolProfile,
         IArtifactToolRegistryStore registryStore,
-        IToolDefaultPropertyProvider? toolDefaultPropertyProvider,
+        IToolPropertyProvider? toolPropertyProvider,
         IEnumerable<string> properties,
         string? cookieFile,
         string? userAgent,
         IOutputControl console)
     {
         Dictionary<string, JsonElement> opts = new();
-        if (toolDefaultPropertyProvider != null)
+        if (toolPropertyProvider != null)
         {
             ArtifactToolID id = artifactToolProfile.GetID();
             if (registryStore.TryLoadRegistry(id, out var registry))
             {
                 if (registry.TryGetType(id, out var type))
                 {
-                    DefaultPropertyUtility.ApplyPropertiesDeep(toolDefaultPropertyProvider, opts, type);
+                    TeslerPropertyUtility.ApplyPropertiesDeep(toolPropertyProvider, opts, type);
                 }
                 else
                 {
                     console.Warn.WriteLine($"Warning: tool type {id} could not be found in the registry it should be stored in, configuration will not contain values inherited from base types");
-                    DefaultPropertyUtility.ApplyProperties(toolDefaultPropertyProvider, opts, id);
+                    TeslerPropertyUtility.ApplyProperties(toolPropertyProvider, opts, id);
                 }
             }
             else
             {
                 console.Warn.WriteLine($"Warning: tool type {id} could not be found, configuration will not contain values inherited from base types");
-                DefaultPropertyUtility.ApplyProperties(toolDefaultPropertyProvider, opts, id);
+                TeslerPropertyUtility.ApplyProperties(toolPropertyProvider, opts, id);
             }
         }
         if (artifactToolProfile.Options != null)
