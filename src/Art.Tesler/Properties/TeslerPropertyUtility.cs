@@ -1,8 +1,7 @@
 using System.Text.Json;
 using Art.Common;
-using Art.Tesler.Properties;
 
-namespace Art.Tesler;
+namespace Art.Tesler.Properties;
 
 public static class TeslerPropertyUtility
 {
@@ -38,5 +37,19 @@ public static class TeslerPropertyUtility
             ApplyPropertiesDeep(toolPropertyProvider, dictionary, baseType);
         }
         ApplyProperties(toolPropertyProvider, dictionary, ArtifactToolIDUtil.CreateToolID(type));
+    }
+
+    public static IEnumerable<ConfigProperty> GetPropertiesDeep(
+        IGlobalLocalToolPropertyProvider toolPropertyProvider,
+        Type type,
+        ConfigScopeFlags configScopeFlags
+    )
+    {
+        IEnumerable<ConfigProperty> enumerable = toolPropertyProvider.GetProperties(ArtifactToolIDUtil.CreateCoreToolID(type), configScopeFlags);
+        if (type.BaseType is { } baseType)
+        {
+            return GetPropertiesDeep(toolPropertyProvider, baseType, configScopeFlags).Concat(enumerable);
+        }
+        return enumerable;
     }
 }
