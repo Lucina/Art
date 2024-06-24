@@ -29,6 +29,17 @@ public class DirectoryJsonToolDefaultPropertyProvider : IToolDefaultPropertyProv
         return Array.Empty<KeyValuePair<string, JsonElement>>();
     }
 
+    public bool TryGetDefaultProperty(ArtifactToolID artifactToolId, string key, out JsonElement value)
+    {
+        string propertyFilePath = GetPropertyFilePath(artifactToolId);
+        if (File.Exists(propertyFilePath) && DirectoryJsonPropertyFileUtility.LoadPropertiesFromFile(propertyFilePath) is { } map)
+        {
+            return map.TryGetValue(key, out value);
+        }
+        value = default;
+        return false;
+    }
+
     public static string DefaultFileNameTransform(ArtifactToolID artifactToolId)
     {
         string toolNameSafe = artifactToolId.GetToolString().SafeifyFileName();

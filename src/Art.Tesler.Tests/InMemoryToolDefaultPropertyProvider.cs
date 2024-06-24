@@ -25,18 +25,15 @@ internal class InMemoryToolDefaultPropertyProvider : IToolDefaultPropertyProvide
         }
     }
 
-    public void WriteDefaultProperties(ArtifactToolID artifactToolId, Dictionary<string, JsonElement> dictionary)
+    public bool TryGetDefaultProperty(ArtifactToolID artifactToolId, string key, out JsonElement value)
     {
-        foreach (var sharedPair in _shared)
-        {
-            dictionary[sharedPair.Key] = sharedPair.Value;
-        }
         if (_perTool.TryGetValue(artifactToolId, out var dict))
         {
-            foreach (var toolPair in dict)
+            if (dict.TryGetValue(key, out value))
             {
-                dictionary[toolPair.Key] = toolPair.Value;
+                return true;
             }
         }
+        return _shared.TryGetValue(key, out value);
     }
 }

@@ -19,4 +19,14 @@ public class FileJsonRunnerDefaultPropertyProvider : IRunnerDefaultPropertyProvi
         }
         return Array.Empty<KeyValuePair<string, JsonElement>>();
     }
+
+    public bool TryGetDefaultProperty(string key, out JsonElement value)
+    {
+        if (File.Exists(_propertyFile) && DirectoryJsonPropertyFileUtility.LoadPropertiesFromFile(_propertyFile) is { } map)
+        {
+            return map.TryGetValue(key, out value);
+        }
+        value = default;
+        return false;
+    }
 }

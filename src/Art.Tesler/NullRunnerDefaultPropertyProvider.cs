@@ -8,4 +8,10 @@ public class NullRunnerDefaultPropertyProvider : IRunnerDefaultPropertyProvider
     {
         return Array.Empty<KeyValuePair<string, JsonElement>>();
     }
+
+    public bool TryGetDefaultProperty(string key, out JsonElement value)
+    {
+        value = default;
+        return false;
+    }
 }

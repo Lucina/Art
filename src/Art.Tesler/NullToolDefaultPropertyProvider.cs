@@ -8,4 +8,10 @@ public class NullDefaultPropertyProvider : IToolDefaultPropertyProvider
     {
         return Array.Empty<KeyValuePair<string, JsonElement>>();
     }
+
+    public bool TryGetDefaultProperty(ArtifactToolID artifactToolId, string key, out JsonElement value)
+    {
+        value = default;
+        return false;
+    }
 }

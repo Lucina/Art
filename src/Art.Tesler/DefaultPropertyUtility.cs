@@ -32,11 +32,10 @@ public static class DefaultPropertyUtility
         Type type
     )
     {
-        Type? currentType = type;
-        while (currentType != null)
+        if (type.BaseType is { } baseType)
         {
-            ApplyProperties(toolDefaultPropertyProvider, dictionary, ArtifactToolIDUtil.CreateToolID(currentType));
-            currentType = currentType.BaseType;
+            ApplyPropertiesDeep(toolDefaultPropertyProvider, dictionary, baseType);
         }
+        ApplyProperties(toolDefaultPropertyProvider, dictionary, ArtifactToolIDUtil.CreateToolID(type));
     }
 }
