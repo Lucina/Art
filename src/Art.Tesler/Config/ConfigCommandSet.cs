@@ -50,7 +50,7 @@ public class ConfigCommandSet : ConfigCommandGetSetBase
             // TODO implement
             throw new NotImplementedException();
         }
-        else if (context.ParseResult.HasOption(ProfileOption))
+        else if (context.ParseResult.HasOption(InputOption))
         {
             // TODO implement
             throw new NotImplementedException();

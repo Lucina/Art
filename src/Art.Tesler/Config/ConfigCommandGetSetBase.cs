@@ -9,7 +9,7 @@ public abstract class ConfigCommandGetSetBase : CommandBase
 {
     protected Option<bool> LocalOption;
     protected Option<bool> GlobalOption;
-    protected Option<string> ProfileOption;
+    protected Option<string> InputOption;
     protected Option<string> ToolOption;
     protected Argument<string> KeyArgument;
 
@@ -24,11 +24,11 @@ public abstract class ConfigCommandGetSetBase : CommandBase
             ArgumentHelpName = "tool-string"
         };
         AddOption(ToolOption);
-        ProfileOption = new Option<string>(new[] { "-p", "--profile" }, "Profile for which to get/set configuration property")
+        InputOption = new Option<string>(new[] { "-i", "--input" }, "Profile for which to get/set configuration property")
         {
             ArgumentHelpName = "profile-path"
         };
-        AddOption(ProfileOption);
+        AddOption(InputOption);
         LocalOption = new Option<bool>(new[] { "-l", "--local" }, "Use local option scope (default)");
         AddOption(LocalOption);
         GlobalOption = new Option<bool>(new[] { "-g", "--global" }, "Use global option scope");
@@ -43,11 +43,11 @@ public abstract class ConfigCommandGetSetBase : CommandBase
                 return;
             }
 
-            if (result.GetValueForOption(ProfileOption) != null)
+            if (result.GetValueForOption(InputOption) != null)
             {
                 if (result.GetValueForOption(LocalOption) && result.GetValueForOption(GlobalOption))
                 {
-                    result.ErrorMessage = $"{CommandHelper.GetOptionAliasList(new Option[] { LocalOption, GlobalOption })} may not be specified when {CommandHelper.GetOptionAlias(ProfileOption)} is specified";
+                    result.ErrorMessage = $"{CommandHelper.GetOptionAliasList(new Option[] { LocalOption, GlobalOption })} may not be specified when {CommandHelper.GetOptionAlias(InputOption)} is specified";
                     return;
                 }
             }

@@ -17,11 +17,12 @@ public class ConfigCommandList : CommandBase
 
     protected Option<bool> LocalOption;
     protected Option<bool> GlobalOption;
+    protected Option<bool> ProfileOption;
     protected Option<bool> AllOption;
-    protected Option<bool> SpecificOption;
-    protected Option<string> ProfileOption;
+    protected Option<string> InputOption;
     protected Option<string> ToolOption;
     protected Option<bool> EffectiveOption;
+    protected Option<bool> IgnoreBaseTypesOption;
 
     public ConfigCommandList(
         IOutputControl toolOutput,
@@ -42,22 +43,23 @@ public class ConfigCommandList : CommandBase
             ArgumentHelpName = "tool-string"
         };
         AddOption(ToolOption);
-        ProfileOption = new Option<string>(new[] { "-p", "--profile" }, "Profile for which to get configuration properties")
+        InputOption = new Option<string>(new[] { "-i", "--input" }, "Profile for which to get configuration properties")
         {
             ArgumentHelpName = "profile-path"
         };
-        AddOption(ProfileOption);
+        AddOption(InputOption);
         LocalOption = new Option<bool>(new[] { "-l", "--local" }, "Get properties in local option scope");
         AddOption(LocalOption);
         GlobalOption = new Option<bool>(new[] { "-g", "--global" }, "Get properties in global option scope");
         AddOption(GlobalOption);
+        ProfileOption = new Option<bool>(new[] { "-p", "--profile" }, "Get properties in profile option scope");
+        AddOption(ProfileOption);
         AllOption = new Option<bool>(new[] { "-a", "--all" }, "Get properties in all option scopes");
         AddOption(AllOption);
-        // TODO rework specificity, would be nice to select profile-only for profile and exclude-base for tools
-        SpecificOption = new Option<bool>(new[] { "-s", "--specific" }, "(Tools only) Don't retrieve properties for base types");
-        AddOption(SpecificOption);
         EffectiveOption = new Option<bool>(new[] { "-e", "--effective" }, "Gets effective config values (default)");
         AddOption(EffectiveOption);
+        IgnoreBaseTypesOption = new Option<bool>(new[] { "--ignore-base-types" }, "(Tools and profiles) Ignores base types");
+        AddOption(IgnoreBaseTypesOption);
         AddValidator(result =>
         {
             var optionSet = new HashSet<Option>();
@@ -66,39 +68,42 @@ public class ConfigCommandList : CommandBase
                 optionSet.Add(ToolOption);
             }
 
-            if (result.GetValueForOption(ProfileOption) != null)
+            if (result.GetValueForOption(InputOption) != null)
             {
-                optionSet.Add(ProfileOption);
+                optionSet.Add(InputOption);
             }
 
             if (optionSet.Count > 0)
             {
-                result.ErrorMessage = $"Only one option from {CommandHelper.GetOptionAliasList(new Option[] { ToolOption, ProfileOption })} may be specified";
+                result.ErrorMessage = $"Only one option from {CommandHelper.GetOptionAliasList(new Option[] { ToolOption, InputOption })} may be specified";
                 return;
             }
 
-            bool anyScopeSpecifiers = result.GetValueForOption(AllOption) || result.GetValueForOption(LocalOption) || result.GetValueForOption(GlobalOption);
+            bool anyScopeSpecifiers = result.GetValueForOption(AllOption) || result.GetValueForOption(LocalOption) || result.GetValueForOption(GlobalOption) || result.GetValueForOption(ProfileOption);
 
             if (result.GetValueForOption(EffectiveOption))
             {
-                if (anyScopeSpecifiers)
+                if (anyScopeSpecifiers || result.GetValueForOption(IgnoreBaseTypesOption))
                 {
-                    result.ErrorMessage = $"{CommandHelper.GetOptionAlias(EffectiveOption)} may not be used with options {CommandHelper.GetOptionAliasList(new Option[] { AllOption, LocalOption, GlobalOption })}";
+                    result.ErrorMessage = $"{CommandHelper.GetOptionAlias(EffectiveOption)} may not be used with options {CommandHelper.GetOptionAliasList(new Option[] { AllOption, LocalOption, GlobalOption, IgnoreBaseTypesOption })}";
                     return;
                 }
             }
 
-            if (result.GetValueForOption(SpecificOption))
+            if (result.GetValueForOption(ProfileOption))
             {
-                if (result.GetValueForOption(ToolOption) == null)
+                if (result.GetValueForOption(InputOption) == null)
                 {
-                    result.ErrorMessage = $"{CommandHelper.GetOptionAlias(SpecificOption)} must be used with {CommandHelper.GetOptionAlias(ToolOption)}";
+                    result.ErrorMessage = $"{CommandHelper.GetOptionAlias(ProfileOption)} must be used with {CommandHelper.GetOptionAlias(InputOption)}";
                     return;
                 }
+            }
 
-                if (!anyScopeSpecifiers)
+            if (result.GetValueForOption(IgnoreBaseTypesOption))
+            {
+                if (result.GetValueForOption(ToolOption) == null && result.GetValueForOption(InputOption) == null)
                 {
-                    result.ErrorMessage = $"{CommandHelper.GetOptionAlias(SpecificOption)} may not be specified without an option among {CommandHelper.GetOptionAliasList(new Option[] { AllOption, LocalOption, GlobalOption })}";
+                    result.ErrorMessage = $"{CommandHelper.GetOptionAlias(IgnoreBaseTypesOption)} must be used with {CommandHelper.GetOptionAlias(ToolOption)} or {CommandHelper.GetOptionAlias(InputOption)}";
                     return;
                 }
             }
@@ -120,7 +125,7 @@ public class ConfigCommandList : CommandBase
             {
                 case ScopedListingSettings scopedListingSettings:
                     {
-                        if (scopedListingSettings.Specific)
+                        if (scopedListingSettings.IgnoreBaseTypes)
                         {
                             foreach (var v in _toolPropertyProvider.GetProperties(toolID, scopedListingSettings.ConfigScopeFlags))
                             {
@@ -154,9 +159,9 @@ public class ConfigCommandList : CommandBase
             }
             return Task.FromResult(0);
         }
-        else if (context.ParseResult.HasOption(ProfileOption))
+        else if (context.ParseResult.HasOption(InputOption))
         {
-            string profileString = context.ParseResult.GetValueForOption(ProfileOption)!;
+            string profileString = context.ParseResult.GetValueForOption(InputOption)!;
             if (!_profileResolver.TryGetProfiles(profileString, out var profiles, ProfileResolutionFlags.Files))
             {
                 PrintErrorMessage($"Unable to identify profile file {profileString}", ToolOutput);
@@ -173,41 +178,55 @@ public class ConfigCommandList : CommandBase
                     PrintErrorMessage($"Unable to parse tool string \"{profile.Tool}\" in profile index {i}", ToolOutput);
                     return Task.FromResult(1);
                 }
+                var map = new Dictionary<string, ConfigProperty>();
                 switch (listingSettings)
                 {
                     case ScopedListingSettings scopedListingSettings:
                         {
-                            if (scopedListingSettings.Specific)
+                            if (scopedListingSettings.IgnoreBaseTypes)
                             {
                                 foreach (var v in _toolPropertyProvider.GetProperties(toolID, scopedListingSettings.ConfigScopeFlags))
                                 {
-                                    ToolOutput.Out.WriteLine(ConfigPropertyUtility.FormatPropertyForDisplay(i, profileGroup, toolID, v));
+                                    map[v.Key] = v;
                                 }
                             }
                             else
                             {
                                 foreach (var v in TeslerPropertyUtility.GetPropertiesDeep(_registryStore, _toolPropertyProvider, ToolOutput, toolID, scopedListingSettings.ConfigScopeFlags))
                                 {
-                                    ToolOutput.Out.WriteLine(ConfigPropertyUtility.FormatPropertyForDisplay(i, profileGroup, toolID, v));
+                                    map[v.Key] = v;
+                                }
+                            }
+                            if ((scopedListingSettings.ConfigScopeFlags & ConfigScopeFlags.Profile) != 0 && profile.Options != null)
+                            {
+                                foreach (var v in profile.Options)
+                                {
+                                    map[v.Key] = new ConfigProperty(ConfigScope.Profile, v.Key, v.Value);
                                 }
                             }
                             break;
                         }
                     case EffectiveListingSettings:
                         {
-                            var map = new Dictionary<string, ConfigProperty>();
                             foreach (var v in TeslerPropertyUtility.GetPropertiesDeep(_registryStore, _toolPropertyProvider, ToolOutput, toolID, ConfigScopeFlags.All))
                             {
                                 map[v.Key] = v;
                             }
-                            foreach (var v in map.Values)
+                            if (profile.Options != null)
                             {
-                                ToolOutput.Out.WriteLine(ConfigPropertyUtility.FormatPropertyForDisplay(i, profileGroup, toolID, v));
+                                foreach (var v in profile.Options)
+                                {
+                                    map[v.Key] = new ConfigProperty(ConfigScope.Profile, v.Key, v.Value);
+                                }
                             }
                             break;
                         }
                     default:
                         throw new InvalidOperationException($"Invalid listing setting type {listingSettings?.GetType()}");
+                }
+                foreach (var v in map.Values)
+                {
+                    ToolOutput.Out.WriteLine(ConfigPropertyUtility.FormatPropertyForDisplay(i, profileGroup, toolID, v));
                 }
             }
             return Task.FromResult(0);
@@ -245,7 +264,7 @@ public class ConfigCommandList : CommandBase
     }
 
     private record ListingSettings;
-    private record ScopedListingSettings(ConfigScopeFlags ConfigScopeFlags, bool Specific) : ListingSettings;
+    private record ScopedListingSettings(ConfigScopeFlags ConfigScopeFlags, bool IgnoreBaseTypes) : ListingSettings;
     private record EffectiveListingSettings : ListingSettings;
 
     private ListingSettings GetListingSettings(InvocationContext context)
@@ -267,9 +286,13 @@ public class ConfigCommandList : CommandBase
         {
             activeFlags = (activeFlags ?? ConfigScopeFlags.None) | ConfigScopeFlags.Global;
         }
+        if (context.ParseResult.GetValueForOption(ProfileOption))
+        {
+            activeFlags = (activeFlags ?? ConfigScopeFlags.None) | ConfigScopeFlags.Profile;
+        }
         if (activeFlags is { } flags)
         {
-            return new ScopedListingSettings(flags, context.ParseResult.GetValueForOption(SpecificOption));
+            return new ScopedListingSettings(flags, context.ParseResult.GetValueForOption(IgnoreBaseTypesOption));
         }
         return new EffectiveListingSettings();
     }
