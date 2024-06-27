@@ -5,12 +5,12 @@ namespace Art.Tesler.Properties;
 
 public class GlobalLocalToolPropertyProvider : IWritableScopedToolPropertyProvider
 {
-    private readonly IToolPropertyProvider _globalProvider;
-    private readonly IToolPropertyProvider _localProvider;
+    private readonly IWritableToolPropertyProvider _globalProvider;
+    private readonly IWritableToolPropertyProvider _localProvider;
 
     public GlobalLocalToolPropertyProvider(
-        IToolPropertyProvider globalProvider,
-        IToolPropertyProvider localProvider)
+        IWritableToolPropertyProvider globalProvider,
+        IWritableToolPropertyProvider localProvider)
     {
         _globalProvider = globalProvider;
         _localProvider = localProvider;
@@ -74,7 +74,12 @@ public class GlobalLocalToolPropertyProvider : IWritableScopedToolPropertyProvid
 
     public bool TrySetProperty(ArtifactToolID artifactToolId, ConfigProperty configProperty)
     {
-        // TODO implement
-        throw new NotImplementedException();
+        return configProperty.ConfigScope switch
+        {
+            ConfigScope.Local => _localProvider.TrySetProperty(artifactToolId, configProperty.Key, configProperty.Value),
+            ConfigScope.Global => _globalProvider.TrySetProperty(artifactToolId, configProperty.Key, configProperty.Value),
+            ConfigScope.Profile => false,
+            _ => false,
+        };
     }
 }

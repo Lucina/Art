@@ -14,7 +14,7 @@ public interface IRunnerPropertyProvider
     /// Attempts to get property with the specified key.
     /// </summary>
     /// <param name="key">Property key.</param>
-    /// <param name="value">Resolved property key if successful.</param>
+    /// <param name="value">Resolved property value if successful.</param>
     /// <returns>True if successful.</returns>
     public bool TryGetProperty(string key, out JsonElement value);
 }

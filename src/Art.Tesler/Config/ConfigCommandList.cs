@@ -72,13 +72,19 @@ public class ConfigCommandList : CommandBase
                 return;
             }
 
-            if (result.GetValueForOption(AllOption)
-             || result.GetValueForOption(LocalOption)
-             || result.GetValueForOption(GlobalOption))
+            if (result.GetValueForOption(SpecificOption))
             {
-                if (result.GetValueForOption(SpecificOption))
+                if (result.GetValueForOption(ToolOption) == null)
                 {
-                    result.ErrorMessage = $"{CommandHelper.GetOptionAlias(SpecificOption)} may not be specified when an option among {CommandHelper.GetOptionAliasList(new Option[] { ToolOption, ProfileOption })} is specified";
+                    result.ErrorMessage = $"{CommandHelper.GetOptionAlias(SpecificOption)} must be used with {CommandHelper.GetOptionAlias(ToolOption)}";
+                    return;
+                }
+
+                if (!result.GetValueForOption(AllOption)
+                 && !result.GetValueForOption(LocalOption)
+                 && !result.GetValueForOption(GlobalOption))
+                {
+                    result.ErrorMessage = $"{CommandHelper.GetOptionAlias(SpecificOption)} may not be specified without an option among {CommandHelper.GetOptionAliasList(new Option[] { AllOption, LocalOption, GlobalOption })}";
                     return;
                 }
             }
@@ -108,6 +114,8 @@ public class ConfigCommandList : CommandBase
                         // TODO implement
                         break;
                     }
+                default:
+                    throw new InvalidOperationException($"Invalid listing setting type {listingSettings?.GetType()}");
             }
             return Task.FromResult(0);
         }
@@ -125,6 +133,8 @@ public class ConfigCommandList : CommandBase
                         // TODO implement
                         break;
                     }
+                default:
+                    throw new InvalidOperationException($"Invalid listing setting type {listingSettings?.GetType()}");
             }
             return Task.FromResult(0);
         }
@@ -134,14 +144,22 @@ public class ConfigCommandList : CommandBase
             {
                 case ScopedListingSettings scopedListingSettings:
                     {
-                        // TODO implement
+                        foreach (var v in _runnerPropertyProvider.GetProperties(scopedListingSettings.ConfigScopeFlags))
+                        {
+                            ToolOutput.Out.WriteLine(ConfigPropertyUtility.FormatPropertyForDisplay(v));
+                        }
                         break;
                     }
                 case EffectiveListingSettings:
                     {
-                        // TODO implement
+                        foreach (var v in _runnerPropertyProvider.GetProperties(ConfigScopeFlags.All))
+                        {
+                            ToolOutput.Out.WriteLine(ConfigPropertyUtility.FormatPropertyForDisplay(v));
+                        }
                         break;
                     }
+                default:
+                    throw new InvalidOperationException($"Invalid listing setting type {listingSettings?.GetType()}");
             }
             return Task.FromResult(0);
         }

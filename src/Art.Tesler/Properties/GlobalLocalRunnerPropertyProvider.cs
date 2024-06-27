@@ -5,12 +5,12 @@ namespace Art.Tesler.Properties;
 
 public class GlobalLocalRunnerPropertyProvider : IWritableScopedRunnerPropertyProvider
 {
-    private readonly IRunnerPropertyProvider _globalProvider;
-    private readonly IRunnerPropertyProvider _localProvider;
+    private readonly IWritableRunnerPropertyProvider _globalProvider;
+    private readonly IWritableRunnerPropertyProvider _localProvider;
 
     public GlobalLocalRunnerPropertyProvider(
-        IRunnerPropertyProvider globalProvider,
-        IRunnerPropertyProvider localProvider)
+        IWritableRunnerPropertyProvider globalProvider,
+        IWritableRunnerPropertyProvider localProvider)
     {
         _globalProvider = globalProvider;
         _localProvider = localProvider;
@@ -74,7 +74,12 @@ public class GlobalLocalRunnerPropertyProvider : IWritableScopedRunnerPropertyPr
 
     public bool TrySetProperty(ConfigProperty configProperty)
     {
-        // TODO implement
-        throw new NotImplementedException();
+        return configProperty.ConfigScope switch
+        {
+            ConfigScope.Local => _localProvider.TrySetProperty(configProperty.Key, configProperty.Value),
+            ConfigScope.Global => _globalProvider.TrySetProperty(configProperty.Key, configProperty.Value),
+            ConfigScope.Profile => false,
+            _ => false,
+        };
     }
 }

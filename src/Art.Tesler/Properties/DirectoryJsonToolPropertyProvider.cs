@@ -3,7 +3,7 @@ using Art.Common;
 
 namespace Art.Tesler.Properties;
 
-public class DirectoryJsonToolPropertyProvider : IToolPropertyProvider
+public class DirectoryJsonToolPropertyProvider : IWritableToolPropertyProvider
 {
     private readonly string _directory;
     private readonly Func<ArtifactToolID, string> _fileNameTransform;
@@ -22,7 +22,7 @@ public class DirectoryJsonToolPropertyProvider : IToolPropertyProvider
     public IEnumerable<KeyValuePair<string, JsonElement>> GetProperties(ArtifactToolID artifactToolId)
     {
         string propertyFilePath = GetPropertyFilePath(artifactToolId);
-        if (File.Exists(propertyFilePath) && DirectoryJsonPropertyFileUtility.LoadPropertiesFromFile(propertyFilePath) is { } map)
+        if (File.Exists(propertyFilePath) && JsonPropertyFileUtility.LoadPropertiesFromFile(propertyFilePath) is { } map)
         {
             return map;
         }
@@ -32,7 +32,7 @@ public class DirectoryJsonToolPropertyProvider : IToolPropertyProvider
     public bool TryGetProperty(ArtifactToolID artifactToolId, string key, out JsonElement value)
     {
         string propertyFilePath = GetPropertyFilePath(artifactToolId);
-        if (File.Exists(propertyFilePath) && DirectoryJsonPropertyFileUtility.LoadPropertiesFromFile(propertyFilePath) is { } map)
+        if (File.Exists(propertyFilePath) && JsonPropertyFileUtility.LoadPropertiesFromFile(propertyFilePath) is { } map)
         {
             return map.TryGetValue(key, out value);
         }
@@ -44,5 +44,32 @@ public class DirectoryJsonToolPropertyProvider : IToolPropertyProvider
     {
         string toolNameSafe = artifactToolId.GetToolString().SafeifyFileName();
         return $"toolconfig-{toolNameSafe}.json";
+    }
+
+    public bool TrySetProperty(ArtifactToolID artifactToolId, string key, JsonElement value)
+    {
+        string propertyFilePath = GetPropertyFilePath(artifactToolId);
+        Dictionary<string, JsonElement>? map = null;
+        if (File.Exists(propertyFilePath))
+        {
+            map = JsonPropertyFileUtility.LoadPropertiesFromFileWritable(propertyFilePath);
+        }
+        bool toCreate;
+        if (map == null)
+        {
+            toCreate = true;
+            map = new Dictionary<string, JsonElement>();
+        }
+        else
+        {
+            toCreate = false;
+        }
+        map[key] = value;
+        if (toCreate)
+        {
+            ConfigDirectoryUtility.EnsureDirectoryForFileCreated(propertyFilePath);
+        }
+        JsonPropertyFileUtility.StorePropertiesToFile(propertyFilePath, map);
+        return true;
     }
 }

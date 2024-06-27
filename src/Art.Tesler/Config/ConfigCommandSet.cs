@@ -1,6 +1,7 @@
 ﻿using System.CommandLine;
 using System.CommandLine.Invocation;
 using System.CommandLine.Parsing;
+using System.Text.Json;
 using Art.Common;
 using Art.Tesler.Properties;
 
@@ -35,6 +36,9 @@ public class ConfigCommandSet : ConfigCommandGetSetBase
     protected override Task<int> RunAsync(InvocationContext context)
     {
         ConfigScope configScope = GetConfigScope(context);
+        string key = context.ParseResult.GetValueForArgument(KeyArgument);
+        JsonElement value = Common.ParsePropToJsonElement(context.ParseResult.GetValueForArgument(ValueArgument));
+        ConfigProperty property = new ConfigProperty(configScope, key, value);
         if (context.ParseResult.HasOption(ToolOption))
         {
             string toolString = context.ParseResult.GetValueForOption(ToolOption)!;
@@ -53,8 +57,17 @@ public class ConfigCommandSet : ConfigCommandGetSetBase
         }
         else
         {
-            // TODO implement
-            throw new NotImplementedException();
+            if (!_runnerPropertyProvider.TrySetProperty(property))
+            {
+                PrintFailureToSet(property);
+                return Task.FromResult(1);
+            }
         }
+        return Task.FromResult(0);
+    }
+
+    private void PrintFailureToSet(ConfigProperty property)
+    {
+        PrintErrorMessage($"Failed to set property {ConfigPropertyUtility.FormatPropertyKeyForDisplay(property.ConfigScope, property.Key)}", ToolOutput);
     }
 }

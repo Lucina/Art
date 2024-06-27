@@ -16,7 +16,7 @@ public interface IToolPropertyProvider
     /// </summary>
     /// <param name="artifactToolId">ID of tool to get properties for.</param>
     /// <param name="key">Property key.</param>
-    /// <param name="value">Resolved property key if successful.</param>
+    /// <param name="value">Resolved property value if successful.</param>
     /// <returns>True if successful.</returns>
     public bool TryGetProperty(ArtifactToolID artifactToolId, string key, out JsonElement value);
 }
