@@ -24,7 +24,7 @@ public class ConfigCommandList : CommandBase
     protected Option<string> ToolOption;
     protected Option<bool> EffectiveOption;
     protected Option<bool> IgnoreBaseTypesOption;
-    protected Option<bool> SimpleOption;
+    protected Option<bool> VerboseOption;
 
     public ConfigCommandList(
         IOutputControl toolOutput,
@@ -62,8 +62,8 @@ public class ConfigCommandList : CommandBase
         AddOption(EffectiveOption);
         IgnoreBaseTypesOption = new Option<bool>(new[] { "--ignore-base-types" }, "(Tools and profiles) Ignores base types");
         AddOption(IgnoreBaseTypesOption);
-        SimpleOption = new Option<bool>(new[] { "-s", "--simple" }, "Use simple output format (key=value)");
-        AddOption(SimpleOption);
+        VerboseOption = new Option<bool>(new[] { "-v", "--verbose" }, "Use verbose output format");
+        AddOption(VerboseOption);
         AddValidator(result =>
         {
             var optionSet = new HashSet<Option>();
@@ -116,9 +116,9 @@ public class ConfigCommandList : CommandBase
 
     protected override Task<int> RunAsync(InvocationContext context)
     {
-        PropertyFormatter propertyFormatter = context.ParseResult.GetValueForOption(SimpleOption)
-            ? SimplePropertyFormatter.Instance
-            : DefaultPropertyFormatter.Instance;
+        PropertyFormatter propertyFormatter = context.ParseResult.GetValueForOption(VerboseOption)
+            ? DefaultPropertyFormatter.Instance
+            : SimplePropertyFormatter.Instance;
         ListingSettings listingSettings = GetListingSettings(context);
         if (context.ParseResult.HasOption(ToolOption))
         {

@@ -20,9 +20,4 @@ public class SimplePropertyFormatter : PropertyFormatter
     {
         return ConfigPropertyUtility.FormatPropertyForDisplay(configProperty.Key, configProperty.Value);
     }
-
-    public override string FormatPropertyValue(JsonElement propertyValue)
-    {
-        return ConfigPropertyUtility.FormatPropertyValueForDisplay(propertyValue);
-    }
 }

@@ -20,9 +20,4 @@ public class DefaultPropertyFormatter : PropertyFormatter
     {
         return ConfigPropertyUtility.FormatPropertyForDisplay(profileIndex, artifactToolProfile.Group ?? "<unspecified>", artifactToolId, configProperty);
     }
-
-    public override string FormatPropertyValue(JsonElement propertyValue)
-    {
-        return ConfigPropertyUtility.FormatPropertyValueForDisplay(propertyValue);
-    }
 }

@@ -14,7 +14,7 @@ public class ConfigCommandGet : ConfigCommandGetSetBase
     private readonly IProfileResolver _profileResolver;
     private readonly IArtifactToolRegistryStore _registryStore;
     protected Option<bool> ExactScopeOption;
-    protected Option<bool> SimpleOption;
+    protected Option<bool> VerboseOption;
 
     public ConfigCommandGet(
         IOutputControl toolOutput,
@@ -32,15 +32,15 @@ public class ConfigCommandGet : ConfigCommandGetSetBase
         _registryStore = registryStore;
         ExactScopeOption = new Option<bool>(new[] { "-e", "--exact-scope" }, "Only check at the exact scope");
         AddOption(ExactScopeOption);
-        SimpleOption = new Option<bool>(new[] { "-s", "--simple" }, "Use simple output format (key=value)");
-        AddOption(SimpleOption);
+        VerboseOption = new Option<bool>(new[] { "-v", "--verbose" }, "Use verbose output format");
+        AddOption(VerboseOption);
     }
 
     protected override Task<int> RunAsync(InvocationContext context)
     {
-        PropertyFormatter propertyFormatter = context.ParseResult.GetValueForOption(SimpleOption)
-            ? SimplePropertyFormatter.Instance
-            : DefaultPropertyFormatter.Instance;
+        PropertyFormatter propertyFormatter = context.ParseResult.GetValueForOption(VerboseOption)
+            ? DefaultPropertyFormatter.Instance
+            : PropertyValueFormatter.Instance;
         ConfigScopeFlags configScopeFlags = GetConfigScopeFlags(context);
         string key = context.ParseResult.GetValueForArgument(KeyArgument);
         if (context.ParseResult.HasOption(ToolOption))
@@ -53,7 +53,7 @@ public class ConfigCommandGet : ConfigCommandGetSetBase
             }
             if (TeslerPropertyUtility.TryGetPropertyDeep(_registryStore, _toolPropertyProvider, ToolOutput, toolID, key, configScopeFlags, out var result))
             {
-                ToolOutput.Out.WriteLine(propertyFormatter.FormatPropertyValue(result.Value));
+                ToolOutput.Out.WriteLine(propertyFormatter.FormatProperty(toolID, result));
             }
         }
         else if (context.ParseResult.HasOption(InputOption))
@@ -70,18 +70,18 @@ public class ConfigCommandGet : ConfigCommandGetSetBase
             }
             if ((configScopeFlags & ConfigScopeFlags.Profile) != 0 && profile.Options is { } options && options.TryGetValue(key, out var profileValueResult))
             {
-                ToolOutput.Out.WriteLine(propertyFormatter.FormatPropertyValue(profileValueResult));
+                ToolOutput.Out.WriteLine(propertyFormatter.FormatProperty(selectedIndex, profile, toolID, new ConfigProperty(ConfigScope.Profile, key, profileValueResult)));
             }
             else if (TeslerPropertyUtility.TryGetPropertyDeep(_registryStore, _toolPropertyProvider, ToolOutput, toolID, key, configScopeFlags, out var result))
             {
-                ToolOutput.Out.WriteLine(propertyFormatter.FormatPropertyValue(result.Value));
+                ToolOutput.Out.WriteLine(propertyFormatter.FormatProperty(selectedIndex, profile, toolID, result));
             }
         }
         else
         {
             if (_runnerPropertyProvider.TryGetProperty(key, configScopeFlags, out var result))
             {
-                ToolOutput.Out.WriteLine(propertyFormatter.FormatPropertyValue(result.Value));
+                ToolOutput.Out.WriteLine(propertyFormatter.FormatProperty(result));
             }
         }
         return Task.FromResult(0);
