@@ -19,6 +19,7 @@ public class TeslerRootCommand : RootCommand
     public static TeslerRootCommand Create(
         IToolLogHandlerProvider toolLogHandlerProvider,
         IArtifactToolRegistryStore pluginStore,
+        IRunnerPropertyProvider runnerPropertyProvider,
         IToolPropertyProvider toolPropertyProvider,
         ITeslerDataProvider dataProvider,
         ITeslerRegistrationProvider registrationProvider,
@@ -36,12 +37,13 @@ public class TeslerRootCommand : RootCommand
             new ValidateCommand(toolLogHandlerProvider, pluginStore, toolPropertyProvider, dataProvider, registrationProvider),
             new DatabaseCommand(toolLogHandlerProvider, registrationProvider),
             new CookieCommand(toolLogHandlerProvider),
-            new ConfigCommand(toolLogHandlerProvider, toolPropertyProvider, profileResolver)
+            new ConfigCommand(toolLogHandlerProvider, runnerPropertyProvider, toolPropertyProvider, profileResolver, pluginStore)
         };
     }
 
     public static TeslerRootCommand CreateSinglePlugin<TTool>(
         IToolLogHandlerProvider toolLogHandlerProvider,
+        IRunnerPropertyProvider runnerPropertyProvider,
         IToolPropertyProvider toolPropertyProvider,
         ITeslerDataProvider dataProvider,
         ITeslerRegistrationProvider registrationProvider,
@@ -63,12 +65,13 @@ public class TeslerRootCommand : RootCommand
             new ValidateCommand(toolLogHandlerProvider, pluginStore, toolPropertyProvider, dataProvider, registrationProvider),
             new DatabaseCommand(toolLogHandlerProvider, registrationProvider),
             new CookieCommand(toolLogHandlerProvider),
-            new ConfigCommand(toolLogHandlerProvider, toolPropertyProvider, profileResolver)
+            new ConfigCommand(toolLogHandlerProvider, runnerPropertyProvider, toolPropertyProvider, profileResolver, pluginStore)
         };
     }
 
     public static TeslerRootCommand CreateSingleSelectablePlugin<TTool>(
         IToolLogHandlerProvider toolLogHandlerProvider,
+        IRunnerPropertyProvider runnerPropertyProvider,
         IToolPropertyProvider toolPropertyProvider,
         ITeslerDataProvider dataProvider,
         ITeslerRegistrationProvider registrationProvider,
@@ -90,18 +93,26 @@ public class TeslerRootCommand : RootCommand
             new ValidateCommand(toolLogHandlerProvider, pluginStore, toolPropertyProvider, dataProvider, registrationProvider),
             new DatabaseCommand(toolLogHandlerProvider, registrationProvider),
             new CookieCommand(toolLogHandlerProvider),
-            new ConfigCommand(toolLogHandlerProvider, toolPropertyProvider, profileResolver)
+            new ConfigCommand(toolLogHandlerProvider, runnerPropertyProvider, toolPropertyProvider, profileResolver, pluginStore)
         };
     }
 
     public static TeslerRootCommand Create(
         IToolLogHandlerProvider toolLogHandlerProvider,
         IArtifactToolRegistry artifactToolRegistry,
+        IRunnerPropertyProvider runnerPropertyProvider,
         IToolPropertyProvider toolPropertyProvider,
         ITeslerDataProvider dataProvider,
         ITeslerRegistrationProvider registrationProvider,
         IProfileResolver profileResolver)
     {
-        return Create(toolLogHandlerProvider, new StaticArtifactToolRegistryStore(artifactToolRegistry), toolPropertyProvider, dataProvider, registrationProvider, profileResolver);
+        return Create(
+            toolLogHandlerProvider,
+            new StaticArtifactToolRegistryStore(artifactToolRegistry),
+            runnerPropertyProvider,
+            toolPropertyProvider,
+            dataProvider,
+            registrationProvider,
+            profileResolver);
     }
 }

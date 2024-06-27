@@ -3,25 +3,42 @@ using Art.Tesler.Properties;
 
 namespace Art.Tesler.Config;
 
-// TODO need new commands for new config system; tightly coupled to local/global config scope concept
 public class ConfigCommand : Command
 {
     public ConfigCommand(
         IOutputControl toolOutput,
+        IRunnerPropertyProvider runnerPropertyProvider,
         IToolPropertyProvider toolPropertyProvider,
-        IProfileResolver profileResolver)
-        : this(toolOutput, toolPropertyProvider, profileResolver, "config", "Perform operations on tool [default] options.")
+        IProfileResolver profileResolver,
+        IArtifactToolRegistryStore registryStore)
+        : this(
+            toolOutput,
+            runnerPropertyProvider,
+            toolPropertyProvider,
+            profileResolver,
+            registryStore,
+            "config",
+            "Perform operations on tool [default] options.")
     {
     }
 
     public ConfigCommand(
         IOutputControl toolOutput,
+        IRunnerPropertyProvider runnerPropertyProvider,
         IToolPropertyProvider toolPropertyProvider,
         IProfileResolver profileResolver,
+        IArtifactToolRegistryStore registryStore,
         string name,
         string? description = null)
         : base(name, description)
     {
-        AddCommand(new ConfigCommandList(toolOutput, toolPropertyProvider, profileResolver, "list", "Lists options."));
+        AddCommand(new ConfigCommandList(
+            toolOutput,
+            runnerPropertyProvider,
+            toolPropertyProvider,
+            profileResolver,
+            registryStore,
+            "list",
+            "Lists options."));
     }
 }

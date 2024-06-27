@@ -1,9 +1,7 @@
-using System.Collections.Immutable;
 using System.CommandLine;
 using System.CommandLine.Invocation;
 using System.CommandLine.Parsing;
 using System.Text;
-using System.Text.Json;
 using Art.Common;
 using Art.Tesler.Properties;
 
@@ -11,45 +9,56 @@ namespace Art.Tesler.Config;
 
 public class ConfigCommandList : CommandBase
 {
+    private readonly IRunnerPropertyProvider _runnerPropertyProvider;
     private readonly IToolPropertyProvider _toolPropertyProvider;
     private readonly IProfileResolver _profileResolver;
+    private readonly IArtifactToolRegistryStore _registryStore;
 
-    protected Option<string> DefaultsOption;
+    protected Option<bool> LocalOption;
+    protected Option<bool> GlobalOption;
+    protected Option<bool> AllOption;
+    protected Option<bool> SpecificOption;
     protected Option<string> ProfileOption;
-    protected Option<bool> SimpleOption;
-    protected Option<bool> IncludeDefaultsOption;
+    protected Option<string> ToolOption;
 
     public ConfigCommandList(
         IOutputControl toolOutput,
+        IRunnerPropertyProvider runnerPropertyProvider,
         IToolPropertyProvider toolPropertyProvider,
         IProfileResolver profileResolver,
+        IArtifactToolRegistryStore registryStore,
         string name,
         string? description = null)
         : base(toolOutput, name, description)
     {
+        _runnerPropertyProvider = runnerPropertyProvider;
         _toolPropertyProvider = toolPropertyProvider;
         _profileResolver = profileResolver;
-        DefaultsOption = new Option<string>(new[] { "-d", "--defaults" }, "Tool to get defaults for")
+        _registryStore = registryStore;
+        ToolOption = new Option<string>(new[] { "-t", "--tool" }, "Tool to get options for")
         {
             ArgumentHelpName = "tool-string"
         };
-        AddOption(DefaultsOption);
+        AddOption(ToolOption);
         ProfileOption = new Option<string>(new[] { "-p", "--profile" }, "Profile to get options for")
         {
             ArgumentHelpName = "profile-path"
         };
         AddOption(ProfileOption);
-        SimpleOption = new Option<bool>(new[] { "-s", "--simple" }, "Print simple output");
-        AddOption(SimpleOption);
-        IncludeDefaultsOption =
-            new Option<bool>(new[] { "-i", "--include-defaults" }, "Include default options for profile");
-        AddOption(IncludeDefaultsOption);
+        LocalOption = new Option<bool>(new[] { "-l", "--local" }, "Include local option scope");
+        AddOption(LocalOption);
+        GlobalOption = new Option<bool>(new[] { "-g", "--global" }, "Include global option scope");
+        AddOption(GlobalOption);
+        AllOption = new Option<bool>(new[] { "-a", "--all" }, "Include all option scopes");
+        AddOption(AllOption);
+        SpecificOption = new Option<bool>(new[] { "-s", "--specific" }, "(Tools only) Don't retrieve properties for base types");
+        AddOption(SpecificOption);
         AddValidator(result =>
         {
             var optionSet = new HashSet<Option>();
-            if (result.GetValueForOption(DefaultsOption) != null)
+            if (result.GetValueForOption(ToolOption) != null)
             {
-                optionSet.Add(DefaultsOption);
+                optionSet.Add(ToolOption);
             }
 
             if (result.GetValueForOption(ProfileOption) != null)
@@ -57,130 +66,116 @@ public class ConfigCommandList : CommandBase
                 optionSet.Add(ProfileOption);
             }
 
-            var all = new Option[] { DefaultsOption, ProfileOption };
-            switch (optionSet.Count)
+            if (optionSet.Count > 0)
             {
-                case 0:
-                    result.ErrorMessage = $"One filter from {GetOptionAliasList(all)} must be specified";
-                    return;
-                case > 1:
-                    result.ErrorMessage = $"Exactly one filter from {GetOptionAliasList(all)} must be specified";
-                    return;
+                result.ErrorMessage = $"Only one option from {GetOptionAliasList(new Option[] { ToolOption, ProfileOption })} may be specified";
+                return;
             }
 
-            if (result.GetValueForOption(ProfileOption) == null && result.GetValueForOption(IncludeDefaultsOption))
+            if (result.GetValueForOption(AllOption)
+             || result.GetValueForOption(LocalOption)
+             || result.GetValueForOption(GlobalOption))
             {
-                result.ErrorMessage =
-                    $"Cannot use {IncludeDefaultsOption.Aliases.FirstOrDefault()} with {optionSet.FirstOrDefault()}";
+                if (result.GetValueForOption(SpecificOption))
+                {
+                    result.ErrorMessage = $"{GetOptionAlias(SpecificOption)} may not be specified when an option among {GetOptionAliasList(new Option[] { ToolOption, ProfileOption })} is specified";
+                    return;
+                }
             }
         });
     }
 
     protected override Task<int> RunAsync(InvocationContext context)
     {
-        bool simple = context.ParseResult.HasOption(SimpleOption);
-        bool includeDefaults = context.ParseResult.HasOption(IncludeDefaultsOption);
-        if (context.ParseResult.HasOption(DefaultsOption))
+        ListingSettings listingSettings = GetListingSettings(context);
+        if (context.ParseResult.HasOption(ToolOption))
         {
-            string toolString = context.ParseResult.GetValueForOption(DefaultsOption)!;
+            string toolString = context.ParseResult.GetValueForOption(ToolOption)!;
             if (!ArtifactToolIDUtil.TryParseID(toolString, out var toolID))
             {
                 PrintErrorMessage($"Unable to parse tool string \"{toolString}\"", ToolOutput);
                 return Task.FromResult(1);
             }
-
-            var properties = new Dictionary<string, JsonElement>();
-            TeslerPropertyUtility.ApplyProperties(_toolPropertyProvider, properties, toolID);
-            WriteOutput($"Default properties for {toolID.GetToolString()}", properties, simple);
+            switch (listingSettings)
+            {
+                case ScopedListingSettings scopedListingSettings:
+                    {
+                        // TODO implement
+                        break;
+                    }
+                case EffectiveListingSettings:
+                    {
+                        // TODO implement
+                        break;
+                    }
+            }
             return Task.FromResult(0);
         }
-
-        if (context.ParseResult.HasOption(ProfileOption))
+        else if (context.ParseResult.HasOption(ProfileOption))
         {
-            string profileString = context.ParseResult.GetValueForOption(ProfileOption)!;
-            if (!_profileResolver.TryGetProfiles(profileString, out var profiles, ProfileResolutionFlags.Files))
+            switch (listingSettings)
             {
-                PrintErrorMessage($"Unable to identify profile file {profileString}", ToolOutput);
-                return Task.FromResult(2);
-            }
-
-            var profileList = profiles.ToList();
-            if (profileList.Count == 1)
-            {
-                if (includeDefaults)
-                {
-                    var profile = profileList[0];
-                    var properties = new Dictionary<string, JsonElement>();
-                    TeslerPropertyUtility.ApplyProperties(_toolPropertyProvider, properties, profile.GetID());
-                    if (profile.Options is { } options)
+                case ScopedListingSettings scopedListingSettings:
                     {
-                        foreach (var pair in options)
-                        {
-                            properties[pair.Key] = pair.Value;
-                        }
+                        // TODO implement
+                        break;
                     }
-
-                    WriteOutput($"Properties for {profileString}", properties, simple);
-                }
-                else
-                {
-                    WriteOutput($"Properties for {profileString}",
-                        profileList[0].Options ?? ImmutableDictionary<string, JsonElement>.Empty, simple);
-                }
-            }
-            else
-            {
-                for (int i = 0; i < profileList.Count; i++)
-                {
-                    if (includeDefaults)
+                case EffectiveListingSettings:
                     {
-                        var profile = profileList[i];
-                        var properties = new Dictionary<string, JsonElement>();
-                        TeslerPropertyUtility.ApplyProperties(_toolPropertyProvider, properties, profile.GetID());
-                        if (profile.Options is { } options)
-                        {
-                            foreach (var pair in options)
-                            {
-                                properties[pair.Key] = pair.Value;
-                            }
-                        }
-
-                        WriteOutput($"Properties for {profileString}:{i}", properties, simple);
+                        // TODO implement
+                        break;
                     }
-                    else
-                    {
-                        WriteOutput($"Properties for {profileString}:{i}",
-                            profileList[i].Options ?? ImmutableDictionary<string, JsonElement>.Empty, simple);
-                    }
-                }
             }
-
             return Task.FromResult(0);
-        }
-
-        return Task.FromResult(0);
-    }
-
-    protected void WriteOutput(string title, IEnumerable<KeyValuePair<string, JsonElement>> properties, bool simple)
-    {
-        if (simple)
-        {
-            foreach ((string? key, JsonElement value) in properties)
-            {
-                ToolOutput.Out.Write(key);
-                ToolOutput.Out.Write("=");
-                ToolOutput.Out.WriteLine(value.ToString());
-            }
         }
         else
         {
-            ToolOutput.Out.Write(title);
-            ToolOutput.Out.WriteLine(":");
-            foreach ((string? key, JsonElement value) in properties)
+            switch (listingSettings)
             {
-                ToolOutput.Out.WriteLine($"- {key}: {value.ToString()}");
+                case ScopedListingSettings scopedListingSettings:
+                    {
+                        // TODO implement
+                        break;
+                    }
+                case EffectiveListingSettings:
+                    {
+                        // TODO implement
+                        break;
+                    }
             }
+            return Task.FromResult(0);
         }
+    }
+
+    private record ListingSettings;
+    private record ScopedListingSettings(ConfigScopeFlags ConfigScopeFlags, bool Specific) : ListingSettings;
+    private record EffectiveListingSettings : ListingSettings;
+
+    private ListingSettings GetListingSettings(InvocationContext context)
+    {
+        ConfigScopeFlags? activeFlags = null;
+        if (context.ParseResult.HasOption(AllOption))
+        {
+            activeFlags = (activeFlags ?? ConfigScopeFlags.None) | ConfigScopeFlags.All;
+        }
+        if (context.ParseResult.HasOption(LocalOption))
+        {
+            activeFlags = (activeFlags ?? ConfigScopeFlags.None) | ConfigScopeFlags.Local;
+        }
+        if (context.ParseResult.HasOption(GlobalOption))
+        {
+            activeFlags = (activeFlags ?? ConfigScopeFlags.None) | ConfigScopeFlags.Global;
+        }
+        if (activeFlags is { } flags)
+        {
+            return new ScopedListingSettings(flags, context.ParseResult.HasOption(SpecificOption));
+        }
+        return new EffectiveListingSettings();
+    }
+
+    private static string GetOptionAlias(Option option)
+    {
+        return option.Aliases.FirstOrDefault() ?? option.Name;
     }
 
     private static string GetOptionAliasList(IEnumerable<Option> options, string separator = ", ")
