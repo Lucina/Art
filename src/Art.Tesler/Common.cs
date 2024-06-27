@@ -208,24 +208,7 @@ internal static class Common
         Dictionary<string, JsonElement> opts = new();
         if (toolPropertyProvider != null)
         {
-            ArtifactToolID id = artifactToolProfile.GetID();
-            if (registryStore.TryLoadRegistry(id, out var registry))
-            {
-                if (registry.TryGetType(id, out var type))
-                {
-                    TeslerPropertyUtility.ApplyPropertiesDeep(toolPropertyProvider, opts, type);
-                }
-                else
-                {
-                    console.Warn.WriteLine($"Warning: tool type {id} could not be found in the registry it should be stored in, configuration will not contain values inherited from base types");
-                    TeslerPropertyUtility.ApplyProperties(toolPropertyProvider, opts, id);
-                }
-            }
-            else
-            {
-                console.Warn.WriteLine($"Warning: tool type {id} could not be found, configuration will not contain values inherited from base types");
-                TeslerPropertyUtility.ApplyProperties(toolPropertyProvider, opts, id);
-            }
+            TeslerPropertyUtility.ApplyPropertiesDeep(registryStore, toolPropertyProvider, console, opts, artifactToolProfile.GetID());
         }
         if (artifactToolProfile.Options != null)
         {

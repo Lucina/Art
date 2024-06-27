@@ -53,6 +53,7 @@ public class ConfigCommandList : CommandBase
         AddOption(GlobalOption);
         AllOption = new Option<bool>(new[] { "-a", "--all" }, "Get properties in all option scopes");
         AddOption(AllOption);
+        // TODO rework specificity, would be nice to select profile-only for profile and exclude-base for tools
         SpecificOption = new Option<bool>(new[] { "-s", "--specific" }, "(Tools only) Don't retrieve properties for base types");
         AddOption(SpecificOption);
         EffectiveOption = new Option<bool>(new[] { "-e", "--effective" }, "Gets effective config values (default)");
@@ -119,12 +120,33 @@ public class ConfigCommandList : CommandBase
             {
                 case ScopedListingSettings scopedListingSettings:
                     {
-                        // TODO implement
+                        if (scopedListingSettings.Specific)
+                        {
+                            foreach (var v in _toolPropertyProvider.GetProperties(toolID, scopedListingSettings.ConfigScopeFlags))
+                            {
+                                ToolOutput.Out.WriteLine(ConfigPropertyUtility.FormatPropertyForDisplay(toolID, v));
+                            }
+                        }
+                        else
+                        {
+                            foreach (var v in TeslerPropertyUtility.GetPropertiesDeep(_registryStore, _toolPropertyProvider, ToolOutput, toolID, scopedListingSettings.ConfigScopeFlags))
+                            {
+                                ToolOutput.Out.WriteLine(ConfigPropertyUtility.FormatPropertyForDisplay(toolID, v));
+                            }
+                        }
                         break;
                     }
                 case EffectiveListingSettings:
                     {
-                        // TODO implement
+                        var map = new Dictionary<string, ConfigProperty>();
+                        foreach (var v in TeslerPropertyUtility.GetPropertiesDeep(_registryStore, _toolPropertyProvider, ToolOutput, toolID, ConfigScopeFlags.All))
+                        {
+                            map[v.Key] = v;
+                        }
+                        foreach (var v in map.Values)
+                        {
+                            ToolOutput.Out.WriteLine(ConfigPropertyUtility.FormatPropertyForDisplay(toolID, v));
+                        }
                         break;
                     }
                 default:
@@ -134,20 +156,59 @@ public class ConfigCommandList : CommandBase
         }
         else if (context.ParseResult.HasOption(ProfileOption))
         {
-            switch (listingSettings)
+            string profileString = context.ParseResult.GetValueForOption(ProfileOption)!;
+            if (!_profileResolver.TryGetProfiles(profileString, out var profiles, ProfileResolutionFlags.Files))
             {
-                case ScopedListingSettings scopedListingSettings:
-                    {
-                        // TODO implement
-                        break;
-                    }
-                case EffectiveListingSettings:
-                    {
-                        // TODO implement
-                        break;
-                    }
-                default:
-                    throw new InvalidOperationException($"Invalid listing setting type {listingSettings?.GetType()}");
+                PrintErrorMessage($"Unable to identify profile file {profileString}", ToolOutput);
+                return Task.FromResult(2);
+            }
+
+            var profileList = profiles.ToList();
+            for (int i = 0; i < profileList.Count; i++)
+            {
+                var profile = profileList[i];
+                string profileGroup = profile.Group ?? "<unspecified>";
+                if (!ArtifactToolIDUtil.TryParseID(profile.Tool, out var toolID))
+                {
+                    PrintErrorMessage($"Unable to parse tool string \"{profile.Tool}\" in profile index {i}", ToolOutput);
+                    return Task.FromResult(1);
+                }
+                switch (listingSettings)
+                {
+                    case ScopedListingSettings scopedListingSettings:
+                        {
+                            if (scopedListingSettings.Specific)
+                            {
+                                foreach (var v in _toolPropertyProvider.GetProperties(toolID, scopedListingSettings.ConfigScopeFlags))
+                                {
+                                    ToolOutput.Out.WriteLine(ConfigPropertyUtility.FormatPropertyForDisplay(i, profileGroup, toolID, v));
+                                }
+                            }
+                            else
+                            {
+                                foreach (var v in TeslerPropertyUtility.GetPropertiesDeep(_registryStore, _toolPropertyProvider, ToolOutput, toolID, scopedListingSettings.ConfigScopeFlags))
+                                {
+                                    ToolOutput.Out.WriteLine(ConfigPropertyUtility.FormatPropertyForDisplay(i, profileGroup, toolID, v));
+                                }
+                            }
+                            break;
+                        }
+                    case EffectiveListingSettings:
+                        {
+                            var map = new Dictionary<string, ConfigProperty>();
+                            foreach (var v in TeslerPropertyUtility.GetPropertiesDeep(_registryStore, _toolPropertyProvider, ToolOutput, toolID, ConfigScopeFlags.All))
+                            {
+                                map[v.Key] = v;
+                            }
+                            foreach (var v in map.Values)
+                            {
+                                ToolOutput.Out.WriteLine(ConfigPropertyUtility.FormatPropertyForDisplay(i, profileGroup, toolID, v));
+                            }
+                            break;
+                        }
+                    default:
+                        throw new InvalidOperationException($"Invalid listing setting type {listingSettings?.GetType()}");
+                }
             }
             return Task.FromResult(0);
         }

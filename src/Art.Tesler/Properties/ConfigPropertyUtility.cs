@@ -23,4 +23,9 @@ public static class ConfigPropertyUtility
     {
         return $"{artifactToolId}::{property.ConfigScope}::{property.Key}={property.Value}";
     }
+
+    public static string FormatPropertyForDisplay(int profileIndex, string profileGroup, ArtifactToolID artifactToolId, ConfigProperty property)
+    {
+        return $"{profileIndex}::{profileGroup}::{artifactToolId}::{property.ConfigScope}::{property.Key}={property.Value}";
+    }
 }
