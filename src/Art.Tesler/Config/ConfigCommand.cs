@@ -53,7 +53,6 @@ public class ConfigCommand : Command
             runnerPropertyProvider,
             toolPropertyProvider,
             profileResolver,
-            registryStore,
             "set",
             "Sets a configuration property."));
     }

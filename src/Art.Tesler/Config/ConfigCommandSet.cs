@@ -13,14 +13,12 @@ public class ConfigCommandSet : ConfigCommandGetSetBase
     private readonly IWritableScopedRunnerPropertyProvider _runnerPropertyProvider;
     private readonly IWritableScopedToolPropertyProvider _toolPropertyProvider;
     private readonly IProfileResolver _profileResolver;
-    private readonly IArtifactToolRegistryStore _registryStore;
 
     public ConfigCommandSet(
         IOutputControl toolOutput,
         IWritableScopedRunnerPropertyProvider runnerPropertyProvider,
         IWritableScopedToolPropertyProvider toolPropertyProvider,
         IProfileResolver profileResolver,
-        IArtifactToolRegistryStore registryStore,
         string name,
         string? description = null)
         : base(toolOutput, name, description)
@@ -28,7 +26,6 @@ public class ConfigCommandSet : ConfigCommandGetSetBase
         _runnerPropertyProvider = runnerPropertyProvider;
         _toolPropertyProvider = toolPropertyProvider;
         _profileResolver = profileResolver;
-        _registryStore = registryStore;
         ValueArgument = new Argument<string>("value", "Configuration property value") { HelpName = "value", Arity = ArgumentArity.ExactlyOne };
         AddArgument(ValueArgument);
     }
@@ -39,7 +36,6 @@ public class ConfigCommandSet : ConfigCommandGetSetBase
         string key = context.ParseResult.GetValueForArgument(KeyArgument);
         JsonElement value = Common.ParsePropToJsonElement(context.ParseResult.GetValueForArgument(ValueArgument));
         ConfigProperty property = new ConfigProperty(configScope, key, value);
-        bool anyFailure = false;
         if (context.ParseResult.HasOption(ToolOption))
         {
             string toolString = context.ParseResult.GetValueForOption(ToolOption)!;
@@ -48,30 +44,84 @@ public class ConfigCommandSet : ConfigCommandGetSetBase
                 PrintErrorMessage($"Unable to parse tool string \"{toolString}\"", ToolOutput);
                 return Task.FromResult(1);
             }
-            // TODO implement
+            switch (configScope)
+            {
+                case ConfigScope.Local:
+                    if (!TrySetToolPropertyNonProfile(toolID, new ConfigProperty(ConfigScope.Local, key, value)))
+                    {
+                        return Task.FromResult(1);
+                    }
+                    break;
+                case ConfigScope.Global:
+                    if (!TrySetToolPropertyNonProfile(toolID, new ConfigProperty(ConfigScope.Global, key, value)))
+                    {
+                        return Task.FromResult(1);
+                    }
+                    break;
+                case ConfigScope.Profile:
+                default:
+                    throw new InvalidOperationException($"Invalid config scope {configScope} for tool");
+            }
             throw new NotImplementedException();
         }
         else if (context.ParseResult.HasOption(InputOption))
         {
-            // TODO implement
-            throw new NotImplementedException();
+            if (!TryGetProfilesWithIndex(_profileResolver, context, out var profiles, out int selectedIndex, out int errorCode))
+            {
+                return Task.FromResult(errorCode);
+            }
+            var profile = profiles[selectedIndex];
+            if (!ArtifactToolIDUtil.TryParseID(profile.Tool, out var toolID))
+            {
+                PrintErrorMessage($"Unable to parse tool string \"{profile.Tool}\"", ToolOutput);
+                return Task.FromResult(1);
+            }
+            switch (configScope)
+            {
+                case ConfigScope.Local:
+                    if (!TrySetToolPropertyNonProfile(toolID, new ConfigProperty(ConfigScope.Local, key, value)))
+                    {
+                        return Task.FromResult(1);
+                    }
+                    break;
+                case ConfigScope.Global:
+                    if (!TrySetToolPropertyNonProfile(toolID, new ConfigProperty(ConfigScope.Global, key, value)))
+                    {
+                        return Task.FromResult(1);
+                    }
+                    break;
+                case ConfigScope.Profile:
+                    Dictionary<string, JsonElement> map = profile.Options != null ? new(profile.Options) : new();
+                    map[key] = value;
+                    List<ArtifactToolProfile> copy = new(profiles)
+                    {
+                        [selectedIndex] = profile with { Options = map }
+                    };
+                    // TODO implement setting
+                    throw new NotImplementedException();
+                    break;
+                default:
+                    throw new InvalidOperationException($"Invalid config scope {configScope} for profile");
+            }
         }
         else
         {
-            if (!_runnerPropertyProvider.TrySetProperty(property))
+            if (!TrySetRunnerProperty(property))
             {
-                PrintFailureToSet(property);
                 return Task.FromResult(1);
             }
-            anyFailure |= !TrySetRunnerProperty(property);
         }
-        return Task.FromResult(anyFailure ? 1 : 0);
+        return Task.FromResult(0);
     }
 
-    private bool TrySetToolProperty( ConfigProperty configProperty)
+    private bool TrySetToolPropertyNonProfile(ArtifactToolID artifactToolId, ConfigProperty configProperty)
     {
-        // TODO implement
-        throw new NotImplementedException();
+        if (!_toolPropertyProvider.TrySetProperty(artifactToolId, configProperty))
+        {
+            PrintFailureToSet(configProperty);
+            return false;
+        }
+        return true;
     }
 
     private bool TrySetRunnerProperty(ConfigProperty configProperty)
