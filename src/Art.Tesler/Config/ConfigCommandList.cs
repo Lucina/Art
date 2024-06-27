@@ -23,6 +23,7 @@ public class ConfigCommandList : CommandBase
     protected Option<string> ToolOption;
     protected Option<bool> EffectiveOption;
     protected Option<bool> IgnoreBaseTypesOption;
+    protected Option<bool> SimpleOption;
 
     public ConfigCommandList(
         IOutputControl toolOutput,
@@ -60,6 +61,8 @@ public class ConfigCommandList : CommandBase
         AddOption(EffectiveOption);
         IgnoreBaseTypesOption = new Option<bool>(new[] { "--ignore-base-types" }, "(Tools and profiles) Ignores base types");
         AddOption(IgnoreBaseTypesOption);
+        SimpleOption = new Option<bool>(new[] { "-s", "--simple" }, "Use simple output format (key=value)");
+        AddOption(SimpleOption);
         AddValidator(result =>
         {
             var optionSet = new HashSet<Option>();
@@ -112,6 +115,9 @@ public class ConfigCommandList : CommandBase
 
     protected override Task<int> RunAsync(InvocationContext context)
     {
+        PropertyFormatter propertyFormatter = context.ParseResult.GetValueForOption(SimpleOption)
+            ? SimplePropertyFormatter.Instance
+            : DefaultPropertyFormatter.Instance;
         ListingSettings listingSettings = GetListingSettings(context);
         if (context.ParseResult.HasOption(ToolOption))
         {
@@ -129,14 +135,14 @@ public class ConfigCommandList : CommandBase
                         {
                             foreach (var v in _toolPropertyProvider.GetProperties(toolID, scopedListingSettings.ConfigScopeFlags))
                             {
-                                ToolOutput.Out.WriteLine(ConfigPropertyUtility.FormatPropertyForDisplay(toolID, v));
+                                ToolOutput.Out.WriteLine(propertyFormatter.FormatProperty(toolID, v));
                             }
                         }
                         else
                         {
                             foreach (var v in TeslerPropertyUtility.GetPropertiesDeep(_registryStore, _toolPropertyProvider, ToolOutput, toolID, scopedListingSettings.ConfigScopeFlags))
                             {
-                                ToolOutput.Out.WriteLine(ConfigPropertyUtility.FormatPropertyForDisplay(toolID, v));
+                                ToolOutput.Out.WriteLine(propertyFormatter.FormatProperty(toolID, v));
                             }
                         }
                         break;
@@ -150,7 +156,7 @@ public class ConfigCommandList : CommandBase
                         }
                         foreach (var v in map.Values)
                         {
-                            ToolOutput.Out.WriteLine(ConfigPropertyUtility.FormatPropertyForDisplay(toolID, v));
+                            ToolOutput.Out.WriteLine(propertyFormatter.FormatProperty(toolID, v));
                         }
                         break;
                     }
@@ -178,7 +184,6 @@ public class ConfigCommandList : CommandBase
                     PrintErrorMessage($"Unable to parse tool string \"{profile.Tool}\" in profile index {i}", ToolOutput);
                     return Task.FromResult(1);
                 }
-                var map = new Dictionary<string, ConfigProperty>();
                 switch (listingSettings)
                 {
                     case ScopedListingSettings scopedListingSettings:
@@ -187,27 +192,28 @@ public class ConfigCommandList : CommandBase
                             {
                                 foreach (var v in _toolPropertyProvider.GetProperties(toolID, scopedListingSettings.ConfigScopeFlags))
                                 {
-                                    map[v.Key] = v;
+                                    ToolOutput.Out.WriteLine(propertyFormatter.FormatProperty(i, profileGroup, toolID, v));
                                 }
                             }
                             else
                             {
                                 foreach (var v in TeslerPropertyUtility.GetPropertiesDeep(_registryStore, _toolPropertyProvider, ToolOutput, toolID, scopedListingSettings.ConfigScopeFlags))
                                 {
-                                    map[v.Key] = v;
+                                    ToolOutput.Out.WriteLine(propertyFormatter.FormatProperty(i, profileGroup, toolID, v));
                                 }
                             }
                             if ((scopedListingSettings.ConfigScopeFlags & ConfigScopeFlags.Profile) != 0 && profile.Options != null)
                             {
                                 foreach (var v in profile.Options)
                                 {
-                                    map[v.Key] = new ConfigProperty(ConfigScope.Profile, v.Key, v.Value);
+                                    ToolOutput.Out.WriteLine(propertyFormatter.FormatProperty(i, profileGroup, toolID, new ConfigProperty(ConfigScope.Profile, v.Key, v.Value)));
                                 }
                             }
                             break;
                         }
                     case EffectiveListingSettings:
                         {
+                            var map = new Dictionary<string, ConfigProperty>();
                             foreach (var v in TeslerPropertyUtility.GetPropertiesDeep(_registryStore, _toolPropertyProvider, ToolOutput, toolID, ConfigScopeFlags.All))
                             {
                                 map[v.Key] = v;
@@ -219,14 +225,14 @@ public class ConfigCommandList : CommandBase
                                     map[v.Key] = new ConfigProperty(ConfigScope.Profile, v.Key, v.Value);
                                 }
                             }
+                            foreach (var v in map.Values)
+                            {
+                                ToolOutput.Out.WriteLine(propertyFormatter.FormatProperty(i, profileGroup, toolID, v));
+                            }
                             break;
                         }
                     default:
                         throw new InvalidOperationException($"Invalid listing setting type {listingSettings?.GetType()}");
-                }
-                foreach (var v in map.Values)
-                {
-                    ToolOutput.Out.WriteLine(ConfigPropertyUtility.FormatPropertyForDisplay(i, profileGroup, toolID, v));
                 }
             }
             return Task.FromResult(0);
@@ -239,7 +245,7 @@ public class ConfigCommandList : CommandBase
                     {
                         foreach (var v in _runnerPropertyProvider.GetProperties(scopedListingSettings.ConfigScopeFlags))
                         {
-                            ToolOutput.Out.WriteLine(ConfigPropertyUtility.FormatPropertyForDisplay(v));
+                            ToolOutput.Out.WriteLine(propertyFormatter.FormatProperty(v));
                         }
                         break;
                     }
@@ -252,7 +258,7 @@ public class ConfigCommandList : CommandBase
                         }
                         foreach (var v in map.Values)
                         {
-                            ToolOutput.Out.WriteLine(ConfigPropertyUtility.FormatPropertyForDisplay(v));
+                            ToolOutput.Out.WriteLine(propertyFormatter.FormatProperty(v));
                         }
                         break;
                     }
@@ -260,6 +266,55 @@ public class ConfigCommandList : CommandBase
                     throw new InvalidOperationException($"Invalid listing setting type {listingSettings?.GetType()}");
             }
             return Task.FromResult(0);
+        }
+    }
+
+    private abstract class PropertyFormatter
+    {
+        public abstract string FormatProperty(ConfigProperty configProperty);
+
+        public abstract string FormatProperty(ArtifactToolID artifactToolId, ConfigProperty configProperty);
+
+        public abstract string FormatProperty(int profileIndex, string profileGroup, ArtifactToolID artifactToolId, ConfigProperty configProperty);
+    }
+
+    private class DefaultPropertyFormatter : PropertyFormatter
+    {
+        public static readonly DefaultPropertyFormatter Instance = new();
+
+        public override string FormatProperty(ConfigProperty configProperty)
+        {
+            return ConfigPropertyUtility.FormatPropertyForDisplay(configProperty);
+        }
+
+        public override string FormatProperty(ArtifactToolID artifactToolId, ConfigProperty configProperty)
+        {
+            return ConfigPropertyUtility.FormatPropertyForDisplay(configProperty);
+        }
+
+        public override string FormatProperty(int profileIndex, string profileGroup, ArtifactToolID artifactToolId, ConfigProperty configProperty)
+        {
+            return ConfigPropertyUtility.FormatPropertyForDisplay(profileIndex, profileGroup, artifactToolId, configProperty);
+        }
+    }
+
+    private class SimplePropertyFormatter : PropertyFormatter
+    {
+        public static readonly SimplePropertyFormatter Instance = new();
+
+        public override string FormatProperty(ConfigProperty configProperty)
+        {
+            return ConfigPropertyUtility.FormatPropertyForDisplay(configProperty.Key, configProperty.Value);
+        }
+
+        public override string FormatProperty(ArtifactToolID artifactToolId, ConfigProperty configProperty)
+        {
+            return ConfigPropertyUtility.FormatPropertyForDisplay(configProperty.Key, configProperty.Value);
+        }
+
+        public override string FormatProperty(int profileIndex, string profileGroup, ArtifactToolID artifactToolId, ConfigProperty configProperty)
+        {
+            return ConfigPropertyUtility.FormatPropertyForDisplay(configProperty.Key, configProperty.Value);
         }
     }
 
