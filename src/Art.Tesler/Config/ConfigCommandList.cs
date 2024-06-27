@@ -2,6 +2,7 @@ using System.CommandLine;
 using System.CommandLine.Invocation;
 using System.CommandLine.Parsing;
 using System.Text;
+using System.Text.Json;
 using Art.Common;
 using Art.Tesler.Properties;
 
@@ -20,6 +21,7 @@ public class ConfigCommandList : CommandBase
     protected Option<bool> SpecificOption;
     protected Option<string> ProfileOption;
     protected Option<string> ToolOption;
+    protected Option<bool> EffectiveOption;
 
     public ConfigCommandList(
         IOutputControl toolOutput,
@@ -45,14 +47,16 @@ public class ConfigCommandList : CommandBase
             ArgumentHelpName = "profile-path"
         };
         AddOption(ProfileOption);
-        LocalOption = new Option<bool>(new[] { "-l", "--local" }, "Include local option scope");
+        LocalOption = new Option<bool>(new[] { "-l", "--local" }, "Get properties in local option scope");
         AddOption(LocalOption);
-        GlobalOption = new Option<bool>(new[] { "-g", "--global" }, "Include global option scope");
+        GlobalOption = new Option<bool>(new[] { "-g", "--global" }, "Get properties in global option scope");
         AddOption(GlobalOption);
-        AllOption = new Option<bool>(new[] { "-a", "--all" }, "Include all option scopes");
+        AllOption = new Option<bool>(new[] { "-a", "--all" }, "Get properties in all option scopes");
         AddOption(AllOption);
         SpecificOption = new Option<bool>(new[] { "-s", "--specific" }, "(Tools only) Don't retrieve properties for base types");
         AddOption(SpecificOption);
+        EffectiveOption = new Option<bool>(new[] { "-e", "--effective" }, "Gets effective config values (default)");
+        AddOption(EffectiveOption);
         AddValidator(result =>
         {
             var optionSet = new HashSet<Option>();
@@ -72,6 +76,17 @@ public class ConfigCommandList : CommandBase
                 return;
             }
 
+            bool anyScopeSpecifiers = result.GetValueForOption(AllOption) || result.GetValueForOption(LocalOption) || result.GetValueForOption(GlobalOption);
+
+            if (result.GetValueForOption(EffectiveOption))
+            {
+                if (anyScopeSpecifiers)
+                {
+                    result.ErrorMessage = $"{CommandHelper.GetOptionAlias(EffectiveOption)} may not be used with options {CommandHelper.GetOptionAliasList(new Option[] { AllOption, LocalOption, GlobalOption })}";
+                    return;
+                }
+            }
+
             if (result.GetValueForOption(SpecificOption))
             {
                 if (result.GetValueForOption(ToolOption) == null)
@@ -80,9 +95,7 @@ public class ConfigCommandList : CommandBase
                     return;
                 }
 
-                if (!result.GetValueForOption(AllOption)
-                 && !result.GetValueForOption(LocalOption)
-                 && !result.GetValueForOption(GlobalOption))
+                if (!anyScopeSpecifiers)
                 {
                     result.ErrorMessage = $"{CommandHelper.GetOptionAlias(SpecificOption)} may not be specified without an option among {CommandHelper.GetOptionAliasList(new Option[] { AllOption, LocalOption, GlobalOption })}";
                     return;
@@ -152,7 +165,12 @@ public class ConfigCommandList : CommandBase
                     }
                 case EffectiveListingSettings:
                     {
+                        Dictionary<string, ConfigProperty> map = new();
                         foreach (var v in _runnerPropertyProvider.GetProperties(ConfigScopeFlags.All))
+                        {
+                            map[v.Key] = v;
+                        }
+                        foreach (var v in map.Values)
                         {
                             ToolOutput.Out.WriteLine(ConfigPropertyUtility.FormatPropertyForDisplay(v));
                         }
@@ -171,22 +189,26 @@ public class ConfigCommandList : CommandBase
 
     private ListingSettings GetListingSettings(InvocationContext context)
     {
+        if (context.ParseResult.GetValueForOption(EffectiveOption))
+        {
+            return new EffectiveListingSettings();
+        }
         ConfigScopeFlags? activeFlags = null;
-        if (context.ParseResult.HasOption(AllOption))
+        if (context.ParseResult.GetValueForOption(AllOption))
         {
             activeFlags = (activeFlags ?? ConfigScopeFlags.None) | ConfigScopeFlags.All;
         }
-        if (context.ParseResult.HasOption(LocalOption))
+        if (context.ParseResult.GetValueForOption(LocalOption))
         {
             activeFlags = (activeFlags ?? ConfigScopeFlags.None) | ConfigScopeFlags.Local;
         }
-        if (context.ParseResult.HasOption(GlobalOption))
+        if (context.ParseResult.GetValueForOption(GlobalOption))
         {
             activeFlags = (activeFlags ?? ConfigScopeFlags.None) | ConfigScopeFlags.Global;
         }
         if (activeFlags is { } flags)
         {
-            return new ScopedListingSettings(flags, context.ParseResult.HasOption(SpecificOption));
+            return new ScopedListingSettings(flags, context.ParseResult.GetValueForOption(SpecificOption));
         }
         return new EffectiveListingSettings();
     }
