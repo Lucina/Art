@@ -67,7 +67,7 @@ public class DirectoryJsonToolPropertyProvider : IWritableToolPropertyProvider
         map[key] = value;
         if (toCreate)
         {
-            ConfigDirectoryUtility.EnsureDirectoryForFileCreated(propertyFilePath);
+            ArtIOUtility.EnsureDirectoryForFileCreated(propertyFilePath);
         }
         JsonPropertyFileUtility.StorePropertiesToFile(propertyFilePath, map);
         return true;

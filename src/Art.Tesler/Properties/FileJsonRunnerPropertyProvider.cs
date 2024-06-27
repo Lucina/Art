@@ -1,4 +1,5 @@
 using System.Text.Json;
+using Art.Common;
 
 namespace Art.Tesler.Properties;
 
@@ -50,7 +51,7 @@ public class FileJsonRunnerPropertyProvider : IWritableRunnerPropertyProvider
         map[key] = value;
         if (toCreate)
         {
-            ConfigDirectoryUtility.EnsureDirectoryForFileCreated(_propertyFile);
+            ArtIOUtility.EnsureDirectoryForFileCreated(_propertyFile);
         }
         JsonPropertyFileUtility.StorePropertiesToFile(_propertyFile, map);
         return true;

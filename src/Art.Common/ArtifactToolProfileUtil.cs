@@ -68,10 +68,38 @@ public static class ArtifactToolProfileUtil
         SerializeProfilesToFileInternal(path, new SourceGenerationContext(options), profiles);
     }
 
-    private static void SerializeProfilesToFileInternal(string path, SourceGenerationContext sourceGenerationContext, params ArtifactToolProfile[] profiles)
+    /// <summary>
+    /// Serializes profiles.
+    /// </summary>
+    /// <param name="path">Path to write profiles to.</param>
+    /// <param name="profiles">Array of profiles.</param>
+    /// <exception cref="ArgumentNullException">Thrown if <paramref name="profiles"/> is null.</exception>
+    /// <exception cref="InvalidDataException">Thrown if null value encountered.</exception>
+    public static void SerializeProfilesToFile(string path, IReadOnlyList<ArtifactToolProfile> profiles)
+    {
+        if (profiles == null) throw new ArgumentNullException(nameof(profiles));
+        SerializeProfilesToFileInternal(path, SourceGenerationContext.s_context, profiles);
+    }
+
+    /// <summary>
+    /// Serializes profiles.
+    /// </summary>
+    /// <param name="path">Path to write profiles to.</param>
+    /// <param name="options">Custom serializer options.</param>
+    /// <param name="profiles">Array of profiles.</param>
+    /// <exception cref="ArgumentNullException">Thrown if <paramref name="options"/> or <paramref name="profiles"/> are null.</exception>
+    /// <exception cref="InvalidDataException">Thrown if null value encountered.</exception>
+    public static void SerializeProfilesToFile(string path, JsonSerializerOptions options, IReadOnlyList<ArtifactToolProfile> profiles)
+    {
+        if (options == null) throw new ArgumentNullException(nameof(options));
+        if (profiles == null) throw new ArgumentNullException(nameof(profiles));
+        SerializeProfilesToFileInternal(path, new SourceGenerationContext(options), profiles);
+    }
+
+    private static void SerializeProfilesToFileInternal(string path, SourceGenerationContext sourceGenerationContext, IReadOnlyList<ArtifactToolProfile> profiles)
     {
         using var fs = File.Create(path);
-        JsonSerializer.Serialize(fs, profiles, sourceGenerationContext.ArtifactToolProfileArray);
+        JsonSerializer.Serialize(fs, profiles, sourceGenerationContext.IReadOnlyListArtifactToolProfile);
     }
 
     /// <summary>

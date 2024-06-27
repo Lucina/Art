@@ -16,7 +16,7 @@ public class SimplePropertyFormatter : PropertyFormatter
         return ConfigPropertyUtility.FormatPropertyForDisplay(configProperty.Key, configProperty.Value);
     }
 
-    public override string FormatProperty(int profileIndex, string profileGroup, ArtifactToolID artifactToolId, ConfigProperty configProperty)
+    public override string FormatProperty(int profileIndex, ArtifactToolProfile artifactToolProfile, ArtifactToolID artifactToolId, ConfigProperty configProperty)
     {
         return ConfigPropertyUtility.FormatPropertyForDisplay(configProperty.Key, configProperty.Value);
     }

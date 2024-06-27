@@ -4,6 +4,7 @@ using System.CommandLine.Parsing;
 using System.Text;
 using System.Text.Json;
 using Art.Common;
+using Art.Tesler.Profiles;
 using Art.Tesler.Properties;
 
 namespace Art.Tesler.Config;
@@ -183,7 +184,6 @@ public class ConfigCommandList : CommandBase
                     PrintErrorMessage($"Unable to parse tool string \"{profile.Tool}\" in profile index {i}", ToolOutput);
                     return Task.FromResult(1);
                 }
-                string profileGroup = ConfigCommandUtility.GetGroupName(profile);
                 switch (listingSettings)
                 {
                     case ScopedListingSettings scopedListingSettings:
@@ -192,21 +192,21 @@ public class ConfigCommandList : CommandBase
                             {
                                 foreach (var v in _toolPropertyProvider.GetProperties(toolID, scopedListingSettings.ConfigScopeFlags))
                                 {
-                                    ToolOutput.Out.WriteLine(propertyFormatter.FormatProperty(i, profileGroup, toolID, v));
+                                    ToolOutput.Out.WriteLine(propertyFormatter.FormatProperty(i, profile, toolID, v));
                                 }
                             }
                             else
                             {
                                 foreach (var v in TeslerPropertyUtility.GetPropertiesDeep(_registryStore, _toolPropertyProvider, ToolOutput, toolID, scopedListingSettings.ConfigScopeFlags))
                                 {
-                                    ToolOutput.Out.WriteLine(propertyFormatter.FormatProperty(i, profileGroup, toolID, v));
+                                    ToolOutput.Out.WriteLine(propertyFormatter.FormatProperty(i, profile, toolID, v));
                                 }
                             }
                             if ((scopedListingSettings.ConfigScopeFlags & ConfigScopeFlags.Profile) != 0 && profile.Options != null)
                             {
                                 foreach (var v in profile.Options)
                                 {
-                                    ToolOutput.Out.WriteLine(propertyFormatter.FormatProperty(i, profileGroup, toolID, new ConfigProperty(ConfigScope.Profile, v.Key, v.Value)));
+                                    ToolOutput.Out.WriteLine(propertyFormatter.FormatProperty(i, profile, toolID, new ConfigProperty(ConfigScope.Profile, v.Key, v.Value)));
                                 }
                             }
                             break;
@@ -227,7 +227,7 @@ public class ConfigCommandList : CommandBase
                             }
                             foreach (var v in map.Values)
                             {
-                                ToolOutput.Out.WriteLine(propertyFormatter.FormatProperty(i, profileGroup, toolID, v));
+                                ToolOutput.Out.WriteLine(propertyFormatter.FormatProperty(i, profile, toolID, v));
                             }
                             break;
                         }

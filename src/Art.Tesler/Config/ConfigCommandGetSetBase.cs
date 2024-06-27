@@ -1,6 +1,7 @@
 ﻿using System.CommandLine;
 using System.CommandLine.Invocation;
 using System.Diagnostics.CodeAnalysis;
+using Art.Tesler.Profiles;
 using Art.Tesler.Properties;
 
 namespace Art.Tesler.Config;

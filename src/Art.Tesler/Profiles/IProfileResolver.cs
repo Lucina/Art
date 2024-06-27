@@ -1,6 +1,6 @@
 ﻿using System.Diagnostics.CodeAnalysis;
 
-namespace Art.Tesler;
+namespace Art.Tesler.Profiles;
 
 public interface IProfileResolver
 {

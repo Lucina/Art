@@ -1,7 +1,7 @@
 ﻿using System.Diagnostics.CodeAnalysis;
 using Art.Common;
 
-namespace Art.Tesler;
+namespace Art.Tesler.Profiles;
 
 public class DiskProfileResolver : IProfileResolver
 {

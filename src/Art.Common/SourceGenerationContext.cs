@@ -13,6 +13,7 @@ namespace Art.Common;
 [JsonSerializable(typeof(JsonElement))]
 [JsonSerializable(typeof(ArtifactToolProfile))]
 [JsonSerializable(typeof(ArtifactToolProfile[]))]
+[JsonSerializable(typeof(IReadOnlyList<ArtifactToolProfile>))]
 [JsonSerializable(typeof(ArtifactInfo))]
 [JsonSerializable(typeof(ArtifactResourceInfo))]
 [JsonSerializable(typeof(ModuleManifestContent))]

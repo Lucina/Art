@@ -4,6 +4,7 @@ using System.CommandLine.Parsing;
 using Art.Common;
 using Art.Common.Management;
 using Art.Common.Proxies;
+using Art.Tesler.Profiles;
 using Art.Tesler.Properties;
 
 namespace Art.Tesler;
