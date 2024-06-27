@@ -25,6 +25,7 @@ public class ConfigCommandList : CommandBase
     protected Option<bool> EffectiveOption;
     protected Option<bool> IgnoreBaseTypesOption;
     protected Option<bool> VerboseOption;
+    protected Option<bool> PrettyPrintOption;
 
     public ConfigCommandList(
         IOutputControl toolOutput,
@@ -64,6 +65,8 @@ public class ConfigCommandList : CommandBase
         AddOption(IgnoreBaseTypesOption);
         VerboseOption = new Option<bool>(new[] { "-v", "--verbose" }, "Use verbose output format");
         AddOption(VerboseOption);
+        PrettyPrintOption = new Option<bool>(new[] { "--pretty-print" }, "Pretty-print values");
+        AddOption(PrettyPrintOption);
         AddValidator(result =>
         {
             var optionSet = new HashSet<Option>();
@@ -116,9 +119,10 @@ public class ConfigCommandList : CommandBase
 
     protected override Task<int> RunAsync(InvocationContext context)
     {
+        bool prettyPrint = context.ParseResult.GetValueForOption(PrettyPrintOption);
         PropertyFormatter propertyFormatter = context.ParseResult.GetValueForOption(VerboseOption)
-            ? DefaultPropertyFormatter.Instance
-            : SimplePropertyFormatter.Instance;
+            ? new DefaultPropertyFormatter(prettyPrint)
+            : new SimplePropertyFormatter(prettyPrint);
         ListingSettings listingSettings = GetListingSettings(context);
         if (context.ParseResult.HasOption(ToolOption))
         {

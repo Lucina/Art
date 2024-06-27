@@ -15,6 +15,7 @@ public class ConfigCommandGet : ConfigCommandGetSetBase
     private readonly IArtifactToolRegistryStore _registryStore;
     protected Option<bool> ExactScopeOption;
     protected Option<bool> VerboseOption;
+    protected Option<bool> PrettyPrintOption;
 
     public ConfigCommandGet(
         IOutputControl toolOutput,
@@ -34,13 +35,16 @@ public class ConfigCommandGet : ConfigCommandGetSetBase
         AddOption(ExactScopeOption);
         VerboseOption = new Option<bool>(new[] { "-v", "--verbose" }, "Use verbose output format");
         AddOption(VerboseOption);
+        PrettyPrintOption = new Option<bool>(new[] { "--pretty-print" }, "Pretty-print values");
+        AddOption(PrettyPrintOption);
     }
 
     protected override Task<int> RunAsync(InvocationContext context)
     {
+        bool prettyPrint = context.ParseResult.GetValueForOption(PrettyPrintOption);
         PropertyFormatter propertyFormatter = context.ParseResult.GetValueForOption(VerboseOption)
-            ? DefaultPropertyFormatter.Instance
-            : PropertyValueFormatter.Instance;
+            ? new DefaultPropertyFormatter(prettyPrint)
+            : new PropertyValueFormatter(prettyPrint);
         ConfigScopeFlags configScopeFlags = GetConfigScopeFlags(context);
         string key = context.ParseResult.GetValueForArgument(KeyArgument);
         if (context.ParseResult.HasOption(ToolOption))
