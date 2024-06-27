@@ -49,27 +49,46 @@ public class DirectoryJsonToolPropertyProvider : IWritableToolPropertyProvider
     public bool TrySetProperty(ArtifactToolID artifactToolId, string key, JsonElement value)
     {
         string propertyFilePath = GetPropertyFilePath(artifactToolId);
-        Dictionary<string, JsonElement>? map = null;
+        Dictionary<string, JsonElement>? map;
         if (File.Exists(propertyFilePath))
         {
             map = JsonPropertyFileUtility.LoadPropertiesFromFileWritable(propertyFilePath);
         }
-        bool toCreate;
-        if (map == null)
-        {
-            toCreate = true;
-            map = new Dictionary<string, JsonElement>();
-        }
         else
         {
-            toCreate = false;
+            map = null;
         }
-        map[key] = value;
+        map = TeslerPropertyUtility.AddPairToOptionsMap(map, key, value, out bool toCreate);
         if (toCreate)
         {
             ArtIOUtility.EnsureDirectoryForFileCreated(propertyFilePath);
         }
         JsonPropertyFileUtility.StorePropertiesToFile(propertyFilePath, map);
+        return true;
+    }
+
+    public bool TryUnsetProperty(ArtifactToolID artifactToolId, string key)
+    {
+        string propertyFilePath = GetPropertyFilePath(artifactToolId);
+        Dictionary<string, JsonElement>? map;
+        if (File.Exists(propertyFilePath))
+        {
+            map = JsonPropertyFileUtility.LoadPropertiesFromFileWritable(propertyFilePath);
+        }
+        else
+        {
+            return true;
+        }
+        TeslerPropertyUtility.RemoveKeyFromOptionsMap(map, key, out bool toDelete);
+        if (toDelete)
+        {
+            File.Delete(propertyFilePath);
+            return true;
+        }
+        if (map != null)
+        {
+            JsonPropertyFileUtility.StorePropertiesToFile(propertyFilePath, map);
+        }
         return true;
     }
 }

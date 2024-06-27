@@ -14,7 +14,7 @@ public interface IToolPropertyProvider
     /// <summary>
     /// Attempts to get property with the specified key.
     /// </summary>
-    /// <param name="artifactToolId">ID of tool to get properties for.</param>
+    /// <param name="artifactToolId">ID of tool to get property for.</param>
     /// <param name="key">Property key.</param>
     /// <param name="value">Resolved property value if successful.</param>
     /// <returns>True if successful.</returns>

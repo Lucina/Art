@@ -1,4 +1,3 @@
-using System.Diagnostics.CodeAnalysis;
 using System.Text.Json;
 using Art.Common;
 
@@ -150,6 +149,77 @@ public static class TeslerPropertyUtility
         {
             console?.Warn.WriteLine($"Warning: tool type {artifactToolId} could not be found, configuration will not contain values inherited from base types");
             return toolPropertyProvider.TryGetProperty(artifactToolId, key, configScopeFlags, out configProperty);
+        }
+    }
+
+    public static Dictionary<string, JsonElement>? GetOptionsMapWithAddedPair(IReadOnlyDictionary<string, JsonElement>? existingOptions, string key, JsonElement value)
+    {
+        Dictionary<string, JsonElement> map = existingOptions != null ? new(existingOptions) : new();
+        map[key] = value;
+        return map;
+    }
+
+    public static Dictionary<string, JsonElement>? GetOptionsMapWithRemovedKey(IReadOnlyDictionary<string, JsonElement>? existingOptions, string key)
+    {
+        Dictionary<string, JsonElement>? map;
+        if (existingOptions == null)
+        {
+            map = null;
+        }
+        else
+        {
+            if (existingOptions.ContainsKey(key))
+            {
+                if (existingOptions.Count == 1)
+                {
+                    map = null;
+                }
+                else
+                {
+                    map = new Dictionary<string, JsonElement>(existingOptions);
+                    map.Remove(key);
+                }
+            }
+            else
+            {
+                map = null;
+            }
+        }
+        return map;
+    }
+
+    public static Dictionary<string, JsonElement> AddPairToOptionsMap(Dictionary<string, JsonElement>? map, string key, JsonElement value, out bool toCreate)
+    {
+        if (map == null)
+        {
+            toCreate = true;
+            map = new Dictionary<string, JsonElement>();
+        }
+        else
+        {
+            toCreate = false;
+        }
+        map[key] = value;
+        return map;
+    }
+
+    public static void RemoveKeyFromOptionsMap(Dictionary<string, JsonElement>? map, string key, out bool toDelete)
+    {
+        if (map == null)
+        {
+            toDelete = true;
+        }
+        else
+        {
+            if (map.Count == 0 || !map.ContainsKey(key))
+            {
+                toDelete = true;
+            }
+            else
+            {
+                toDelete = map.Count == 1;
+                map.Remove(key);
+            }
         }
     }
 }

@@ -33,27 +33,45 @@ public class FileJsonRunnerPropertyProvider : IWritableRunnerPropertyProvider
 
     public bool TrySetProperty(string key, JsonElement value)
     {
-        Dictionary<string, JsonElement>? map = null;
+        Dictionary<string, JsonElement>? map;
         if (File.Exists(_propertyFile))
         {
             map = JsonPropertyFileUtility.LoadPropertiesFromFileWritable(_propertyFile);
         }
-        bool toCreate;
-        if (map == null)
-        {
-            toCreate = true;
-            map = new Dictionary<string, JsonElement>();
-        }
         else
         {
-            toCreate = false;
+            map = null;
         }
-        map[key] = value;
+        map = TeslerPropertyUtility.AddPairToOptionsMap(map, key, value, out bool toCreate);
         if (toCreate)
         {
             ArtIOUtility.EnsureDirectoryForFileCreated(_propertyFile);
         }
         JsonPropertyFileUtility.StorePropertiesToFile(_propertyFile, map);
+        return true;
+    }
+
+    public bool TryUnsetProperty(string key)
+    {
+        Dictionary<string, JsonElement>? map;
+        if (File.Exists(_propertyFile))
+        {
+            map = JsonPropertyFileUtility.LoadPropertiesFromFileWritable(_propertyFile);
+        }
+        else
+        {
+            return true;
+        }
+        TeslerPropertyUtility.RemoveKeyFromOptionsMap(map, key, out bool toDelete);
+        if (toDelete)
+        {
+            File.Delete(_propertyFile);
+            return true;
+        }
+        if (map != null)
+        {
+            JsonPropertyFileUtility.StorePropertiesToFile(_propertyFile, map);
+        }
         return true;
     }
 }

@@ -8,14 +8,13 @@ using Art.Tesler.Properties;
 
 namespace Art.Tesler.Config;
 
-public class ConfigCommandSet : ConfigCommandGetSetBase
+public class ConfigCommandUnset : ConfigCommandGetSetBase
 {
-    protected Argument<string> ValueArgument;
     private readonly IWritableScopedRunnerPropertyProvider _runnerPropertyProvider;
     private readonly IWritableScopedToolPropertyProvider _toolPropertyProvider;
     private readonly IProfileResolver _profileResolver;
 
-    public ConfigCommandSet(
+    public ConfigCommandUnset(
         IOutputControl toolOutput,
         IWritableScopedRunnerPropertyProvider runnerPropertyProvider,
         IWritableScopedToolPropertyProvider toolPropertyProvider,
@@ -27,16 +26,13 @@ public class ConfigCommandSet : ConfigCommandGetSetBase
         _runnerPropertyProvider = runnerPropertyProvider;
         _toolPropertyProvider = toolPropertyProvider;
         _profileResolver = profileResolver;
-        ValueArgument = new Argument<string>("value", "Configuration property value") { HelpName = "value", Arity = ArgumentArity.ExactlyOne };
-        AddArgument(ValueArgument);
     }
 
     protected override Task<int> RunAsync(InvocationContext context)
     {
         ConfigScope configScope = GetConfigScope(context);
         string key = context.ParseResult.GetValueForArgument(KeyArgument);
-        JsonElement value = Common.ParsePropToJsonElement(context.ParseResult.GetValueForArgument(ValueArgument));
-        ConfigProperty property = new ConfigProperty(configScope, key, value);
+        ConfigPropertyIdentifier propertyIdentifier = new(configScope, key);
         if (context.ParseResult.HasOption(ToolOption))
         {
             string toolString = context.ParseResult.GetValueForOption(ToolOption)!;
@@ -48,13 +44,13 @@ public class ConfigCommandSet : ConfigCommandGetSetBase
             switch (configScope)
             {
                 case ConfigScope.Local:
-                    if (!TrySetToolPropertyNonProfile(toolID, new ConfigProperty(ConfigScope.Local, key, value)))
+                    if (!TryUnsetToolPropertyNonProfile(toolID, new ConfigPropertyIdentifier(ConfigScope.Local, key)))
                     {
                         return Task.FromResult(1);
                     }
                     break;
                 case ConfigScope.Global:
-                    if (!TrySetToolPropertyNonProfile(toolID, new ConfigProperty(ConfigScope.Global, key, value)))
+                    if (!TryUnsetToolPropertyNonProfile(toolID, new ConfigPropertyIdentifier(ConfigScope.Global, key)))
                     {
                         return Task.FromResult(1);
                     }
@@ -84,13 +80,13 @@ public class ConfigCommandSet : ConfigCommandGetSetBase
             switch (configScope)
             {
                 case ConfigScope.Local:
-                    if (!TrySetToolPropertyNonProfile(toolID, new ConfigProperty(ConfigScope.Local, key, value)))
+                    if (!TryUnsetToolPropertyNonProfile(toolID, new ConfigPropertyIdentifier(ConfigScope.Local, key)))
                     {
                         return Task.FromResult(1);
                     }
                     break;
                 case ConfigScope.Global:
-                    if (!TrySetToolPropertyNonProfile(toolID, new ConfigProperty(ConfigScope.Global, key, value)))
+                    if (!TryUnsetToolPropertyNonProfile(toolID, new ConfigPropertyIdentifier(ConfigScope.Global, key)))
                     {
                         return Task.FromResult(1);
                     }
@@ -98,7 +94,7 @@ public class ConfigCommandSet : ConfigCommandGetSetBase
                 case ConfigScope.Profile:
                     List<ArtifactToolProfile> copy = new(profiles.Values)
                     {
-                        [selectedIndex] = profile with { Options = TeslerPropertyUtility.GetOptionsMapWithAddedPair(profile.Options, key, value) }
+                        [selectedIndex] = profile with { Options = TeslerPropertyUtility.GetOptionsMapWithRemovedKey(profile.Options, key) }
                     };
                     writableResolvedProfiles.WriteProfiles(copy);
                     break;
@@ -108,7 +104,7 @@ public class ConfigCommandSet : ConfigCommandGetSetBase
         }
         else
         {
-            if (!TrySetRunnerProperty(property))
+            if (!TryUnsetRunnerProperty(propertyIdentifier))
             {
                 return Task.FromResult(1);
             }
@@ -116,29 +112,29 @@ public class ConfigCommandSet : ConfigCommandGetSetBase
         return Task.FromResult(0);
     }
 
-    private bool TrySetToolPropertyNonProfile(ArtifactToolID artifactToolId, ConfigProperty configProperty)
+    private bool TryUnsetToolPropertyNonProfile(ArtifactToolID artifactToolId, ConfigPropertyIdentifier configPropertyIdentifier)
     {
-        if (!_toolPropertyProvider.TrySetProperty(artifactToolId, configProperty))
+        if (!_toolPropertyProvider.TryUnsetProperty(artifactToolId, configPropertyIdentifier))
         {
-            PrintFailureToSet(configProperty);
+            PrintFailureToRemove(configPropertyIdentifier);
             return false;
         }
         return true;
     }
 
-    private bool TrySetRunnerProperty(ConfigProperty configProperty)
+    private bool TryUnsetRunnerProperty(ConfigPropertyIdentifier configPropertyIdentifier)
     {
-        if (!_runnerPropertyProvider.TrySetProperty(configProperty))
+        if (!_runnerPropertyProvider.TryUnsetProperty(configPropertyIdentifier))
         {
-            PrintFailureToSet(configProperty);
+            PrintFailureToRemove(configPropertyIdentifier);
             return false;
         }
         return true;
 
     }
 
-    private void PrintFailureToSet(ConfigProperty property)
+    private void PrintFailureToRemove(ConfigPropertyIdentifier configPropertyIdentifier)
     {
-        PrintErrorMessage($"Failed to set property {ConfigPropertyUtility.FormatPropertyKeyForDisplay(property.ConfigScope, property.Key)}", ToolOutput);
+        PrintErrorMessage($"Failed to set property {ConfigPropertyUtility.FormatPropertyKeyForDisplay(configPropertyIdentifier)}", ToolOutput);
     }
 }

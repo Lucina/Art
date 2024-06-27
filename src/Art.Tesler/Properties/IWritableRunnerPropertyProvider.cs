@@ -11,4 +11,11 @@ public interface IWritableRunnerPropertyProvider : IRunnerPropertyProvider
     /// <param name="value">Property value.</param>
     /// <returns>True if successful.</returns>
     public bool TrySetProperty(string key, JsonElement value);
+
+    /// <summary>
+    /// Attempts to unset property for the specified key.
+    /// </summary>
+    /// <param name="key">Property key.</param>
+    /// <returns>True if successful.</returns>
+    public bool TryUnsetProperty(string key);
 }

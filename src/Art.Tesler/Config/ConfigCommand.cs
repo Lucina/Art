@@ -56,5 +56,12 @@ public class ConfigCommand : Command
             profileResolver,
             "set",
             "Sets a configuration property."));
+        AddCommand(new ConfigCommandUnset(
+            toolOutput,
+            runnerPropertyProvider,
+            toolPropertyProvider,
+            profileResolver,
+            "unset",
+            "Unsets a configuration property."));
     }
 }

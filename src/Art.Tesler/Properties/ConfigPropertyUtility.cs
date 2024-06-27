@@ -5,6 +5,11 @@ namespace Art.Tesler.Properties;
 
 public static class ConfigPropertyUtility
 {
+    public static string FormatPropertyKeyForDisplay(ConfigPropertyIdentifier configPropertyIdentifier)
+    {
+        return $"{configPropertyIdentifier.ConfigScope}::{configPropertyIdentifier.Key}";
+    }
+
     public static string FormatPropertyKeyForDisplay(ConfigScope configScope, string key)
     {
         return $"{configScope}::{key}";
@@ -38,14 +43,25 @@ public static class ConfigPropertyUtility
     }
 }
 
-
-[JsonSourceGenerationOptions(WriteIndented = false)]
+[JsonSourceGenerationOptions(
+    PropertyNameCaseInsensitive = true,
+    WriteIndented = false,
+    AllowTrailingCommas = true,
+    ReadCommentHandling = JsonCommentHandling.Skip,
+    DefaultIgnoreCondition = JsonIgnoreCondition.Never)]
 [JsonSerializable(typeof(JsonElement))]
 internal partial class StandardConfigPropertySourceGenerationContext : JsonSerializerContext
 {
     static StandardConfigPropertySourceGenerationContext()
     {
-        var options = new JsonSerializerOptions { PropertyNameCaseInsensitive = true, WriteIndented = false, AllowTrailingCommas = true, ReadCommentHandling = JsonCommentHandling.Skip };
+        var options = new JsonSerializerOptions
+        {
+            PropertyNameCaseInsensitive = true,
+            WriteIndented = false,
+            AllowTrailingCommas = true,
+            ReadCommentHandling = JsonCommentHandling.Skip,
+            DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull
+        };
         options.Converters.Add(new JsonStringEnumConverter());
         s_context = new StandardConfigPropertySourceGenerationContext(options);
     }
@@ -53,13 +69,25 @@ internal partial class StandardConfigPropertySourceGenerationContext : JsonSeria
     internal static readonly StandardConfigPropertySourceGenerationContext s_context;
 }
 
-[JsonSourceGenerationOptions(WriteIndented = true)]
+[JsonSourceGenerationOptions(
+    PropertyNameCaseInsensitive = true,
+    WriteIndented = true,
+    AllowTrailingCommas = true,
+    ReadCommentHandling = JsonCommentHandling.Skip,
+    DefaultIgnoreCondition = JsonIgnoreCondition.Never)]
 [JsonSerializable(typeof(JsonElement))]
 internal partial class PrettyPrintConfigPropertySourceGenerationContext : JsonSerializerContext
 {
     static PrettyPrintConfigPropertySourceGenerationContext()
     {
-        var options = new JsonSerializerOptions { PropertyNameCaseInsensitive = true, WriteIndented = true, AllowTrailingCommas = true, ReadCommentHandling = JsonCommentHandling.Skip };
+        var options = new JsonSerializerOptions
+        {
+            PropertyNameCaseInsensitive = true,
+            WriteIndented = true,
+            AllowTrailingCommas = true,
+            ReadCommentHandling = JsonCommentHandling.Skip,
+            DefaultIgnoreCondition = JsonIgnoreCondition.Never
+        };
         options.Converters.Add(new JsonStringEnumConverter());
         s_context = new PrettyPrintConfigPropertySourceGenerationContext(options);
     }

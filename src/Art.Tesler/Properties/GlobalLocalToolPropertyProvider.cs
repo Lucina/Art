@@ -82,4 +82,15 @@ public class GlobalLocalToolPropertyProvider : IWritableScopedToolPropertyProvid
             _ => false,
         };
     }
+
+    public bool TryUnsetProperty(ArtifactToolID artifactToolId, ConfigPropertyIdentifier configPropertyIdentifier)
+    {
+        return configPropertyIdentifier.ConfigScope switch
+        {
+            ConfigScope.Local => _localProvider.TryUnsetProperty(artifactToolId, configPropertyIdentifier.Key),
+            ConfigScope.Global => _globalProvider.TryUnsetProperty(artifactToolId, configPropertyIdentifier.Key),
+            ConfigScope.Profile => false,
+            _ => false,
+        };
+    }
 }

@@ -82,4 +82,15 @@ public class GlobalLocalRunnerPropertyProvider : IWritableScopedRunnerPropertyPr
             _ => false,
         };
     }
+
+    public bool TryUnsetProperty(ConfigPropertyIdentifier configPropertyIdentifier)
+    {
+        return configPropertyIdentifier.ConfigScope switch
+        {
+            ConfigScope.Local => _localProvider.TryUnsetProperty(configPropertyIdentifier.Key),
+            ConfigScope.Global => _globalProvider.TryUnsetProperty(configPropertyIdentifier.Key),
+            ConfigScope.Profile => false,
+            _ => false,
+        };
+    }
 }
