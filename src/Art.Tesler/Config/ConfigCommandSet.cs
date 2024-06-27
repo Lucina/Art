@@ -39,6 +39,7 @@ public class ConfigCommandSet : ConfigCommandGetSetBase
         string key = context.ParseResult.GetValueForArgument(KeyArgument);
         JsonElement value = Common.ParsePropToJsonElement(context.ParseResult.GetValueForArgument(ValueArgument));
         ConfigProperty property = new ConfigProperty(configScope, key, value);
+        bool anyFailure = false;
         if (context.ParseResult.HasOption(ToolOption))
         {
             string toolString = context.ParseResult.GetValueForOption(ToolOption)!;
@@ -62,8 +63,26 @@ public class ConfigCommandSet : ConfigCommandGetSetBase
                 PrintFailureToSet(property);
                 return Task.FromResult(1);
             }
+            anyFailure |= !TrySetRunnerProperty(property);
         }
-        return Task.FromResult(0);
+        return Task.FromResult(anyFailure ? 1 : 0);
+    }
+
+    private bool TrySetToolProperty( ConfigProperty configProperty)
+    {
+        // TODO implement
+        throw new NotImplementedException();
+    }
+
+    private bool TrySetRunnerProperty(ConfigProperty configProperty)
+    {
+        if (!_runnerPropertyProvider.TrySetProperty(configProperty))
+        {
+            PrintFailureToSet(configProperty);
+            return false;
+        }
+        return true;
+
     }
 
     private void PrintFailureToSet(ConfigProperty property)

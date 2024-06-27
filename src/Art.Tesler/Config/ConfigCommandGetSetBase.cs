@@ -9,6 +9,7 @@ public abstract class ConfigCommandGetSetBase : CommandBase
 {
     protected Option<bool> LocalOption;
     protected Option<bool> GlobalOption;
+    protected Option<bool> ProfileOption;
     protected Option<string> InputOption;
     protected Option<string> ToolOption;
     protected Argument<string> KeyArgument;
@@ -29,17 +30,57 @@ public abstract class ConfigCommandGetSetBase : CommandBase
             ArgumentHelpName = "profile-path"
         };
         AddOption(InputOption);
-        LocalOption = new Option<bool>(new[] { "-l", "--local" }, "Use local option scope (default)");
+        LocalOption = new Option<bool>(new[] { "-l", "--local" }, "Use local option scope");
         AddOption(LocalOption);
         GlobalOption = new Option<bool>(new[] { "-g", "--global" }, "Use global option scope");
         AddOption(GlobalOption);
+        ProfileOption = new Option<bool>(new[] { "-p", "--profile" }, "Use profile option scope");
+        AddOption(ProfileOption);
         KeyArgument = new Argument<string>("key", "Configuration property key") { HelpName = "key", Arity = ArgumentArity.ExactlyOne };
         AddArgument(KeyArgument);
         AddValidator(result =>
         {
-            if (result.GetValueForOption(LocalOption) && result.GetValueForOption(GlobalOption))
+            HashSet<Option> optionSet = new();
+            if (result.GetValueForOption(ToolOption) != null)
             {
-                result.ErrorMessage = $"Only one option from {CommandHelper.GetOptionAliasList(new Option[] { LocalOption, GlobalOption })} may be specified";
+                optionSet.Add(ToolOption);
+            }
+
+            if (result.GetValueForOption(InputOption) != null)
+            {
+                optionSet.Add(InputOption);
+            }
+
+            if (optionSet.Count > 1)
+            {
+                result.ErrorMessage = $"Only one option from {CommandHelper.GetOptionAliasList(new Option[] { ToolOption, InputOption })} may be specified";
+                return;
+            }
+
+            optionSet.Clear();
+
+            if (result.GetValueForOption(LocalOption))
+            {
+                optionSet.Add(LocalOption);
+            }
+            if (result.GetValueForOption(GlobalOption))
+            {
+                optionSet.Add(GlobalOption);
+            }
+            if (result.GetValueForOption(ProfileOption))
+            {
+                optionSet.Add(ProfileOption);
+            }
+
+            if (optionSet.Count > 1)
+            {
+                result.ErrorMessage = $"Only one option from {CommandHelper.GetOptionAliasList(new Option[] { LocalOption, GlobalOption, ProfileOption })} may be specified";
+                return;
+            }
+
+            if (result.GetValueForOption(ProfileOption) && result.GetValueForOption(InputOption) == null)
+            {
+                result.ErrorMessage = $"{CommandHelper.GetOptionAlias(ProfileOption)} may not be used without {CommandHelper.GetOptionAlias(InputOption)}";
                 return;
             }
 
@@ -56,6 +97,10 @@ public abstract class ConfigCommandGetSetBase : CommandBase
 
     protected ConfigScope GetConfigScope(InvocationContext context)
     {
+        if (context.ParseResult.GetValueForOption(ProfileOption))
+        {
+            return ConfigScope.Profile;
+        }
         if (context.ParseResult.GetValueForOption(GlobalOption))
         {
             return ConfigScope.Global;

@@ -76,7 +76,7 @@ public class ConfigCommandList : CommandBase
                 optionSet.Add(InputOption);
             }
 
-            if (optionSet.Count > 0)
+            if (optionSet.Count > 1)
             {
                 result.ErrorMessage = $"Only one option from {CommandHelper.GetOptionAliasList(new Option[] { ToolOption, InputOption })} may be specified";
                 return;
@@ -178,12 +178,12 @@ public class ConfigCommandList : CommandBase
             for (int i = 0; i < profileList.Count; i++)
             {
                 var profile = profileList[i];
-                string profileGroup = profile.Group ?? "<unspecified>";
                 if (!ArtifactToolIDUtil.TryParseID(profile.Tool, out var toolID))
                 {
                     PrintErrorMessage($"Unable to parse tool string \"{profile.Tool}\" in profile index {i}", ToolOutput);
                     return Task.FromResult(1);
                 }
+                string profileGroup = ConfigCommandUtility.GetGroupName(profile);
                 switch (listingSettings)
                 {
                     case ScopedListingSettings scopedListingSettings:
@@ -266,55 +266,6 @@ public class ConfigCommandList : CommandBase
                     throw new InvalidOperationException($"Invalid listing setting type {listingSettings?.GetType()}");
             }
             return Task.FromResult(0);
-        }
-    }
-
-    private abstract class PropertyFormatter
-    {
-        public abstract string FormatProperty(ConfigProperty configProperty);
-
-        public abstract string FormatProperty(ArtifactToolID artifactToolId, ConfigProperty configProperty);
-
-        public abstract string FormatProperty(int profileIndex, string profileGroup, ArtifactToolID artifactToolId, ConfigProperty configProperty);
-    }
-
-    private class DefaultPropertyFormatter : PropertyFormatter
-    {
-        public static readonly DefaultPropertyFormatter Instance = new();
-
-        public override string FormatProperty(ConfigProperty configProperty)
-        {
-            return ConfigPropertyUtility.FormatPropertyForDisplay(configProperty);
-        }
-
-        public override string FormatProperty(ArtifactToolID artifactToolId, ConfigProperty configProperty)
-        {
-            return ConfigPropertyUtility.FormatPropertyForDisplay(configProperty);
-        }
-
-        public override string FormatProperty(int profileIndex, string profileGroup, ArtifactToolID artifactToolId, ConfigProperty configProperty)
-        {
-            return ConfigPropertyUtility.FormatPropertyForDisplay(profileIndex, profileGroup, artifactToolId, configProperty);
-        }
-    }
-
-    private class SimplePropertyFormatter : PropertyFormatter
-    {
-        public static readonly SimplePropertyFormatter Instance = new();
-
-        public override string FormatProperty(ConfigProperty configProperty)
-        {
-            return ConfigPropertyUtility.FormatPropertyForDisplay(configProperty.Key, configProperty.Value);
-        }
-
-        public override string FormatProperty(ArtifactToolID artifactToolId, ConfigProperty configProperty)
-        {
-            return ConfigPropertyUtility.FormatPropertyForDisplay(configProperty.Key, configProperty.Value);
-        }
-
-        public override string FormatProperty(int profileIndex, string profileGroup, ArtifactToolID artifactToolId, ConfigProperty configProperty)
-        {
-            return ConfigPropertyUtility.FormatPropertyForDisplay(configProperty.Key, configProperty.Value);
         }
     }
 

@@ -1,3 +1,4 @@
+using System.Diagnostics.CodeAnalysis;
 using System.Text.Json;
 using Art.Common;
 
@@ -42,8 +43,7 @@ public static class TeslerPropertyUtility
     public static IEnumerable<ConfigProperty> GetPropertiesDeep(
         IScopedToolPropertyProvider toolPropertyProvider,
         Type type,
-        ConfigScopeFlags configScopeFlags
-    )
+        ConfigScopeFlags configScopeFlags)
     {
         IEnumerable<ConfigProperty> enumerable = toolPropertyProvider.GetProperties(ArtifactToolIDUtil.CreateCoreToolID(type), configScopeFlags);
         if (type.BaseType is { } baseType)
@@ -51,6 +51,26 @@ public static class TeslerPropertyUtility
             return GetPropertiesDeep(toolPropertyProvider, baseType, configScopeFlags).Concat(enumerable);
         }
         return enumerable;
+    }
+
+    public static bool TryGetPropertyDeep(
+        IScopedToolPropertyProvider toolPropertyProvider,
+        Type type,
+        string key,
+        ConfigScopeFlags configScopeFlags,
+        out ConfigProperty configProperty)
+    {
+        if (toolPropertyProvider.TryGetProperty(ArtifactToolIDUtil.CreateCoreToolID(type), key, configScopeFlags, out configProperty))
+        {
+            return true;
+        }
+        IEnumerable<ConfigProperty> enumerable = toolPropertyProvider.GetProperties(ArtifactToolIDUtil.CreateCoreToolID(type), configScopeFlags);
+        if (type.BaseType is { } baseType)
+        {
+            return TryGetPropertyDeep(toolPropertyProvider, baseType, key, configScopeFlags, out configProperty);
+        }
+        configProperty = default;
+        return false;
     }
 
     public static void ApplyPropertiesDeep(
@@ -102,6 +122,34 @@ public static class TeslerPropertyUtility
         {
             console?.Warn.WriteLine($"Warning: tool type {artifactToolId} could not be found, configuration will not contain values inherited from base types");
             return toolPropertyProvider.GetProperties(artifactToolId, configScopeFlags);
+        }
+    }
+
+    public static bool TryGetPropertyDeep(
+        IArtifactToolRegistryStore registryStore,
+        IScopedToolPropertyProvider toolPropertyProvider,
+        IOutputControl? console,
+        ArtifactToolID artifactToolId,
+        string key,
+        ConfigScopeFlags configScopeFlags,
+        out ConfigProperty configProperty)
+    {
+        if (registryStore.TryLoadRegistry(artifactToolId, out var registry))
+        {
+            if (registry.TryGetType(artifactToolId, out var type))
+            {
+                return TryGetPropertyDeep(toolPropertyProvider, type, key, configScopeFlags, out configProperty);
+            }
+            else
+            {
+                console?.Warn.WriteLine($"Warning: tool type {artifactToolId} could not be found in the registry it should be stored in, configuration will not contain values inherited from base types");
+                return toolPropertyProvider.TryGetProperty(artifactToolId, key, configScopeFlags, out configProperty);
+            }
+        }
+        else
+        {
+            console?.Warn.WriteLine($"Warning: tool type {artifactToolId} could not be found, configuration will not contain values inherited from base types");
+            return toolPropertyProvider.TryGetProperty(artifactToolId, key, configScopeFlags, out configProperty);
         }
     }
 }

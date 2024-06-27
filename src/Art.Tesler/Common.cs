@@ -93,7 +93,7 @@ internal static class Common
 
     internal static JsonElement ParsePropToJsonElement(string prop)
     {
-        if (prop.StartsWith('{') || prop.StartsWith('['))
+        if (prop.StartsWith('{') || prop.StartsWith('[') || prop.StartsWith('"'))
         {
             return JsonSerializer.Deserialize(prop, SourceGenerationContext.s_context.JsonElement);
         }

@@ -11,21 +11,26 @@ public static class ConfigPropertyUtility
 
     public static string FormatPropertyForDisplay(string key, JsonElement value)
     {
-        return $"{key}={value}";
+        return $"{key}={FormatPropertyValueForDisplay(value)}";
     }
 
-    public static string FormatPropertyForDisplay(ConfigProperty property)
+    public static string FormatPropertyForDisplay(ConfigProperty configProperty)
     {
-        return $"{property.ConfigScope}::{property.Key}={property.Value}";
+        return $"{configProperty.ConfigScope}::{configProperty.Key}={FormatPropertyValueForDisplay(configProperty.Value)}";
     }
 
-    public static string FormatPropertyForDisplay(ArtifactToolID artifactToolId, ConfigProperty property)
+    public static string FormatPropertyForDisplay(ArtifactToolID artifactToolId, ConfigProperty configProperty)
     {
-        return $"{artifactToolId}::{property.ConfigScope}::{property.Key}={property.Value}";
+        return $"{artifactToolId}::{configProperty.ConfigScope}::{configProperty.Key}={FormatPropertyValueForDisplay(configProperty.Value)}";
     }
 
-    public static string FormatPropertyForDisplay(int profileIndex, string profileGroup, ArtifactToolID artifactToolId, ConfigProperty property)
+    public static string FormatPropertyForDisplay(int profileIndex, string profileGroup, ArtifactToolID artifactToolId, ConfigProperty configProperty)
     {
-        return $"{profileIndex}::{profileGroup}::{artifactToolId}::{property.ConfigScope}::{property.Key}={property.Value}";
+        return $"{profileIndex}::{profileGroup}::{artifactToolId}::{configProperty.ConfigScope}::{configProperty.Key}={FormatPropertyValueForDisplay(configProperty.Value)}";
+    }
+
+    public static string FormatPropertyValueForDisplay(JsonElement value)
+    {
+        return JsonSerializer.Serialize(value, SourceGenerationContext.s_context.JsonElement);
     }
 }

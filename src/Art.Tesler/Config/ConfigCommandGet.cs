@@ -12,7 +12,9 @@ public class ConfigCommandGet : ConfigCommandGetSetBase
     private readonly IScopedToolPropertyProvider _toolPropertyProvider;
     private readonly IProfileResolver _profileResolver;
     private readonly IArtifactToolRegistryStore _registryStore;
-    protected Option<bool> EffectiveOption;
+    protected Option<bool> ExactScopeOption;
+    protected Option<bool> SimpleOption;
+    protected Option<int?> ProfileIndexOption;
 
     public ConfigCommandGet(
         IOutputControl toolOutput,
@@ -28,12 +30,19 @@ public class ConfigCommandGet : ConfigCommandGetSetBase
         _toolPropertyProvider = toolPropertyProvider;
         _profileResolver = profileResolver;
         _registryStore = registryStore;
-        EffectiveOption = new Option<bool>(new[] { "-e", "--effective" }, "Gets effective value at the specified scope");
-        AddOption(EffectiveOption);
+        ExactScopeOption = new Option<bool>(new[] { "-e", "--exact-scope" }, "Only check at the exact scope");
+        AddOption(ExactScopeOption);
+        SimpleOption = new Option<bool>(new[] { "-s", "--simple" }, "Use simple output format (key=value)");
+        AddOption(SimpleOption);
+        ProfileIndexOption = new Option<int?>(new[] { "--profile-index" }, "Profile index");
+        AddOption(ProfileIndexOption);
     }
 
     protected override Task<int> RunAsync(InvocationContext context)
     {
+        PropertyFormatter propertyFormatter = context.ParseResult.GetValueForOption(SimpleOption)
+            ? SimplePropertyFormatter.Instance
+            : DefaultPropertyFormatter.Instance;
         ConfigScopeFlags configScopeFlags = GetConfigScopeFlags(context);
         string key = context.ParseResult.GetValueForArgument(KeyArgument);
         if (context.ParseResult.HasOption(ToolOption))
@@ -44,19 +53,61 @@ public class ConfigCommandGet : ConfigCommandGetSetBase
                 PrintErrorMessage($"Unable to parse tool string \"{toolString}\"", ToolOutput);
                 return Task.FromResult(1);
             }
-            // TODO implement
-            throw new NotImplementedException();
+            if (TeslerPropertyUtility.TryGetPropertyDeep(_registryStore, _toolPropertyProvider, ToolOutput, toolID, key, configScopeFlags, out var result))
+            {
+                ToolOutput.Out.WriteLine(propertyFormatter.FormatPropertyValue(result.Value));
+            }
         }
         else if (context.ParseResult.HasOption(InputOption))
         {
-            // TODO implement
-            throw new NotImplementedException();
+            string profileString = context.ParseResult.GetValueForOption(InputOption)!;
+            if (!_profileResolver.TryGetProfiles(profileString, out var profiles, ProfileResolutionFlags.Files))
+            {
+                PrintErrorMessage($"Unable to identify profile file {profileString}", ToolOutput);
+                return Task.FromResult(2);
+            }
+
+            var profileList = profiles.ToList();
+            int selectedIndex;
+            if (context.ParseResult.GetValueForOption(ProfileIndexOption) is { } profileIndexResult)
+            {
+                selectedIndex = profileIndexResult;
+            }
+            else if (profileList.Count != 1)
+            {
+                PrintErrorMessage($"There are {profileList.Count} profiles in profile file {profileString} - select one with {CommandHelper.GetOptionAlias(ProfileIndexOption)}", ToolOutput);
+                return Task.FromResult(3);
+            }
+            else
+            {
+                selectedIndex = 0;
+            }
+            if ((uint)selectedIndex >= profileList.Count)
+            {
+                PrintErrorMessage($"{CommandHelper.GetOptionAlias(ProfileIndexOption)} {selectedIndex} is out of range for {profileList.Count} profiles in profile file {profileString}", ToolOutput);
+                return Task.FromResult(4);
+            }
+            var profile = profileList[selectedIndex];
+            if (!ArtifactToolIDUtil.TryParseID(profile.Tool, out var toolID))
+            {
+                PrintErrorMessage($"Unable to parse tool string \"{profile.Tool}\"", ToolOutput);
+                return Task.FromResult(1);
+            }
+            string profileGroup = ConfigCommandUtility.GetGroupName(profile);
+            if ((configScopeFlags & ConfigScopeFlags.Profile) != 0 && profile.Options is { } options && options.TryGetValue(key, out var profileValueResult))
+            {
+                ToolOutput.Out.WriteLine(propertyFormatter.FormatPropertyValue(profileValueResult));
+            }
+            else if (TeslerPropertyUtility.TryGetPropertyDeep(_registryStore, _toolPropertyProvider, ToolOutput, toolID, key, configScopeFlags, out var result))
+            {
+                ToolOutput.Out.WriteLine(propertyFormatter.FormatPropertyValue(result.Value));
+            }
         }
         else
         {
             if (_runnerPropertyProvider.TryGetProperty(key, configScopeFlags, out var result))
             {
-                ToolOutput.Out.WriteLine(ConfigPropertyUtility.FormatPropertyForDisplay(result));
+                ToolOutput.Out.WriteLine(propertyFormatter.FormatPropertyValue(result.Value));
             }
         }
         return Task.FromResult(0);
@@ -65,12 +116,12 @@ public class ConfigCommandGet : ConfigCommandGetSetBase
     private ConfigScopeFlags GetConfigScopeFlags(InvocationContext context)
     {
         ConfigScope configScope = GetConfigScope(context);
-        bool effective = context.ParseResult.GetValueForOption(EffectiveOption);
+        bool exactScope = context.ParseResult.GetValueForOption(ExactScopeOption);
         return configScope switch
         {
-            ConfigScope.Global => effective ? ConfigScopeFlags.Local : ConfigScopeFlags.Global,
-            ConfigScope.Local => effective ? ConfigScopeFlags.Local | ConfigScopeFlags.Global : ConfigScopeFlags.Local,
-            ConfigScope.Profile => effective ? ConfigScopeFlags.Local | ConfigScopeFlags.Global | ConfigScopeFlags.Profile : ConfigScopeFlags.Profile,
+            ConfigScope.Global => exactScope ? ConfigScopeFlags.Global : ConfigScopeFlags.Global,
+            ConfigScope.Local => exactScope ? ConfigScopeFlags.Local : ConfigScopeFlags.Local | ConfigScopeFlags.Global,
+            ConfigScope.Profile => exactScope ? ConfigScopeFlags.Profile : ConfigScopeFlags.Local | ConfigScopeFlags.Global | ConfigScopeFlags.Profile,
             _ => throw new InvalidOperationException($"Invalid scope value {configScope}")
         };
     }
