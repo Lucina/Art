@@ -85,6 +85,6 @@ public abstract class ToolCommandBase : CommandBase
         {
             throw new ArtUserException($"Could not resolve profile for input \"{profileFile}\"");
         }
-        profiles.AddRange(profilesResult);
+        profiles.AddRange(profilesResult.Values);
     }
 }

@@ -11,16 +11,16 @@ public class AggregateProfileResolver : IProfileResolver
         _profileResolvers = profileResolvers;
     }
 
-    public bool TryGetProfiles(string text, [NotNullWhen(true)] out IEnumerable<ArtifactToolProfile>? profiles, ProfileResolutionFlags profileResolutionFlags = ProfileResolutionFlags.Default)
+    public bool TryGetProfiles(string text, [NotNullWhen(true)] out IResolvedProfiles? resolvedProfiles, ProfileResolutionFlags profileResolutionFlags = ProfileResolutionFlags.Default)
     {
         foreach (var resolver in _profileResolvers)
         {
-            if (resolver.TryGetProfiles(text, out profiles, profileResolutionFlags))
+            if (resolver.TryGetProfiles(text, out resolvedProfiles, profileResolutionFlags))
             {
                 return true;
             }
         }
-        profiles = null;
+        resolvedProfiles = null;
         return false;
     }
 }

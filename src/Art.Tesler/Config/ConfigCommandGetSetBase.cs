@@ -1,5 +1,6 @@
 ﻿using System.CommandLine;
 using System.CommandLine.Invocation;
+using System.CommandLine.Parsing;
 using System.Diagnostics.CodeAnalysis;
 using Art.Tesler.Profiles;
 using Art.Tesler.Properties;
@@ -111,21 +112,22 @@ public abstract class ConfigCommandGetSetBase : CommandBase
     protected bool TryGetProfilesWithIndex(
         IProfileResolver profileResolver,
         InvocationContext context,
-        [NotNullWhen(true)] out List<ArtifactToolProfile>? profileList,
+        [NotNullWhen(true)] out IResolvedProfiles? resolvedProfiles,
+        out string profileString,
         out int selectedIndex,
         out int errorCode)
     {
-        string profileString = context.ParseResult.GetValueForOption(InputOption)!;
-        if (!profileResolver.TryGetProfiles(profileString, out var profiles, ProfileResolutionFlags.Files))
+        profileString = context.ParseResult.GetValueForOption(InputOption)!;
+        if (!profileResolver.TryGetProfiles(profileString, out resolvedProfiles, ProfileResolutionFlags.Files))
         {
             PrintErrorMessage($"Unable to identify profile file {profileString}", ToolOutput);
-            profileList = null;
+            resolvedProfiles = null;
             selectedIndex = default;
             errorCode = ErrorProfileLoad;
             return false;
         }
 
-        profileList = profiles.ToList();
+        var profileList = resolvedProfiles.Values;
         if (context.ParseResult.GetValueForOption(ProfileIndexOption) is { } profileIndexResult)
         {
             selectedIndex = profileIndexResult;
@@ -165,6 +167,6 @@ public abstract class ConfigCommandGetSetBase : CommandBase
         {
             return ConfigScope.Local;
         }
-        return ConfigScope.Local;
+        return context.ParseResult.HasOption(InputOption) ? ConfigScope.Profile : ConfigScope.Local;
     }
 }

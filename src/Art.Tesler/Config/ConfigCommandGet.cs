@@ -62,14 +62,14 @@ public class ConfigCommandGet : ConfigCommandGetSetBase
         }
         else if (context.ParseResult.HasOption(InputOption))
         {
-            if (!TryGetProfilesWithIndex(_profileResolver, context, out var profiles, out int selectedIndex, out int errorCode))
+            if (!TryGetProfilesWithIndex(_profileResolver, context, out var profiles, out string profileString, out int selectedIndex, out int errorCode))
             {
                 return Task.FromResult(errorCode);
             }
-            var profile = profiles[selectedIndex];
+            var profile = profiles.Values[selectedIndex];
             if (!ArtifactToolIDUtil.TryParseID(profile.Tool, out var toolID))
             {
-                PrintErrorMessage($"Unable to parse tool string \"{profile.Tool}\"", ToolOutput);
+                PrintErrorMessage($"Unable to parse tool string \"{profile.Tool}\" for profile {selectedIndex} in {profileString}", ToolOutput);
                 return Task.FromResult(1);
             }
             if ((configScopeFlags & ConfigScopeFlags.Profile) != 0 && profile.Options is { } options && options.TryGetValue(key, out var profileValueResult))

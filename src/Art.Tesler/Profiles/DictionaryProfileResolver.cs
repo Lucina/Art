@@ -4,21 +4,21 @@ namespace Art.Tesler.Profiles;
 
 public class DictionaryProfileResolver : IProfileResolver
 {
-    private readonly IReadOnlyDictionary<string, IReadOnlyCollection<ArtifactToolProfile>> _profileMap;
+    private readonly IReadOnlyDictionary<string, IReadOnlyList<ArtifactToolProfile>> _profileMap;
 
-    public DictionaryProfileResolver(IReadOnlyDictionary<string, IReadOnlyCollection<ArtifactToolProfile>> profileMap)
+    public DictionaryProfileResolver(IReadOnlyDictionary<string, IReadOnlyList<ArtifactToolProfile>> profileMap)
     {
         _profileMap = profileMap;
     }
 
-    public bool TryGetProfiles(string text, [NotNullWhen(true)] out IEnumerable<ArtifactToolProfile>? profiles, ProfileResolutionFlags profileResolutionFlags = ProfileResolutionFlags.Default)
+    public bool TryGetProfiles(string text, [NotNullWhen(true)] out IResolvedProfiles? resolvedProfiles, ProfileResolutionFlags profileResolutionFlags = ProfileResolutionFlags.Default)
     {
         if ((profileResolutionFlags & ProfileResolutionFlags.Files) != 0 && _profileMap.TryGetValue(text, out var profileArr))
         {
-            profiles = profileArr;
+            resolvedProfiles = new DefaultResolvedProfiles(profileArr);
             return true;
         }
-        profiles = null;
+        resolvedProfiles = null;
         return false;
     }
 }

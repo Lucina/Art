@@ -12,11 +12,11 @@ public class SelectableToolProfileResolver : IProfileResolver
         _pluginStore = pluginStore;
     }
 
-    public bool TryGetProfiles(string text, [NotNullWhen(true)] out IEnumerable<ArtifactToolProfile>? profiles, ProfileResolutionFlags profileResolutionFlags = ProfileResolutionFlags.Default)
+    public bool TryGetProfiles(string text, [NotNullWhen(true)] out IResolvedProfiles? resolvedProfiles, ProfileResolutionFlags profileResolutionFlags = ProfileResolutionFlags.Default)
     {
         if ((profileResolutionFlags & ProfileResolutionFlags.KeySelection) == 0)
         {
-            profiles = null;
+            resolvedProfiles = null;
             return false;
         }
         if (_selectableRegistries == null)
@@ -32,10 +32,10 @@ public class SelectableToolProfileResolver : IProfileResolver
         }
         if (!PurificationUtil.TryIdentify(_selectableRegistries, text, out var profile))
         {
-            profiles = null;
+            resolvedProfiles = null;
             return false;
         }
-        profiles = new[] { profile };
+        resolvedProfiles = new DefaultResolvedProfiles(new[] { profile });
         return true;
     }
 }

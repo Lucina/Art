@@ -1,5 +1,6 @@
 ﻿using System.CommandLine;
 using System.Diagnostics.CodeAnalysis;
+using Art.Tesler.Profiles;
 using Art.Tesler.Properties;
 using Art.TestsBase;
 

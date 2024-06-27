@@ -22,12 +22,12 @@ public static class ConfigPropertyUtility
 
     public static string FormatPropertyForDisplay(ArtifactToolID artifactToolId, ConfigProperty configProperty, bool prettyPrint)
     {
-        return $"{artifactToolId}::{configProperty.ConfigScope}::{configProperty.Key}={FormatPropertyValueForDisplay(configProperty.Value, prettyPrint)}";
+        return $"{artifactToolId.GetToolString()}::{configProperty.ConfigScope}::{configProperty.Key}={FormatPropertyValueForDisplay(configProperty.Value, prettyPrint)}";
     }
 
     public static string FormatPropertyForDisplay(int profileIndex, string profileGroup, ArtifactToolID artifactToolId, ConfigProperty configProperty, bool prettyPrint)
     {
-        return $"{profileIndex}::{profileGroup}::{artifactToolId}::{configProperty.ConfigScope}::{configProperty.Key}={FormatPropertyValueForDisplay(configProperty.Value, prettyPrint)}";
+        return $"{profileIndex}::{profileGroup}::{artifactToolId.GetToolString()}::{configProperty.ConfigScope}::{configProperty.Key}={FormatPropertyValueForDisplay(configProperty.Value, prettyPrint)}";
     }
 
     public static string FormatPropertyValueForDisplay(JsonElement value, bool prettyPrint)

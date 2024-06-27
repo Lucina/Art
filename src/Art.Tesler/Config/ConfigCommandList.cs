@@ -179,7 +179,7 @@ public class ConfigCommandList : CommandBase
                 return Task.FromResult(2);
             }
 
-            var profileList = profiles.ToList();
+            var profileList = profiles.Values;
             for (int i = 0; i < profileList.Count; i++)
             {
                 var profile = profileList[i];

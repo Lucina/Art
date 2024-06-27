@@ -63,18 +63,22 @@ public class ConfigCommandSet : ConfigCommandGetSetBase
                 default:
                     throw new InvalidOperationException($"Invalid config scope {configScope} for tool");
             }
-            throw new NotImplementedException();
         }
         else if (context.ParseResult.HasOption(InputOption))
         {
-            if (!TryGetProfilesWithIndex(_profileResolver, context, out var profiles, out int selectedIndex, out int errorCode))
+            if (!TryGetProfilesWithIndex(_profileResolver, context, out var profiles, out string profileString, out int selectedIndex, out int errorCode))
             {
                 return Task.FromResult(errorCode);
             }
-            var profile = profiles[selectedIndex];
+            if (profiles is not IWritableResolvedProfiles writableResolvedProfiles)
+            {
+                PrintErrorMessage($"Source for profiles in {profileString} is not writable", ToolOutput);
+                return Task.FromResult(7);
+            }
+            var profile = profiles.Values[selectedIndex];
             if (!ArtifactToolIDUtil.TryParseID(profile.Tool, out var toolID))
             {
-                PrintErrorMessage($"Unable to parse tool string \"{profile.Tool}\"", ToolOutput);
+                PrintErrorMessage($"Unable to parse tool string \"{profile.Tool}\" for profile {selectedIndex} in {profileString}", ToolOutput);
                 return Task.FromResult(1);
             }
             switch (configScope)
@@ -94,15 +98,14 @@ public class ConfigCommandSet : ConfigCommandGetSetBase
                 case ConfigScope.Profile:
                     Dictionary<string, JsonElement> map = profile.Options != null ? new(profile.Options) : new();
                     map[key] = value;
-                    List<ArtifactToolProfile> copy = new(profiles)
+                    List<ArtifactToolProfile> copy = new(profiles.Values)
                     {
                         [selectedIndex] = profile with { Options = map }
                     };
-                    // TODO implement setting
-                    throw new NotImplementedException();
+                    writableResolvedProfiles.WriteProfiles(copy);
                     break;
                 default:
-                    throw new InvalidOperationException($"Invalid config scope {configScope} for profile");
+                    throw new InvalidOperationException($"Invalid config scope {configScope} for profile {selectedIndex} in {profileString}");
             }
         }
         else

@@ -3,6 +3,7 @@ using System.Diagnostics.CodeAnalysis;
 using System.Text.Json;
 using Art.Common;
 using Art.Common.IO;
+using Art.Tesler.Profiles;
 using Art.Tesler.Properties;
 
 namespace Art.Tesler.Tests;
@@ -190,13 +191,13 @@ public class CommandTestBase
     [MemberNotNull(nameof(ProfileResolver))]
     internal DictionaryProfileResolver CreateDictionaryProfileResolver()
     {
-        var result = new DictionaryProfileResolver(ImmutableDictionary<string, IReadOnlyCollection<ArtifactToolProfile>>.Empty);
+        var result = new DictionaryProfileResolver(ImmutableDictionary<string, IReadOnlyList<ArtifactToolProfile>>.Empty);
         ProfileResolver = result;
         return result;
     }
 
     [MemberNotNull(nameof(ProfileResolver))]
-    internal DictionaryProfileResolver CreateDictionaryProfileResolver(IReadOnlyDictionary<string, IReadOnlyCollection<ArtifactToolProfile>> map)
+    internal DictionaryProfileResolver CreateDictionaryProfileResolver(IReadOnlyDictionary<string, IReadOnlyList<ArtifactToolProfile>> map)
     {
         var result = new DictionaryProfileResolver(map);
         ProfileResolver = result;
@@ -206,6 +207,6 @@ public class CommandTestBase
     [MemberNotNull(nameof(ProfileResolver))]
     internal DictionaryProfileResolver CreateDictionaryProfileResolver(string profileName, params ArtifactToolProfile[] profiles)
     {
-        return CreateDictionaryProfileResolver(new Dictionary<string, IReadOnlyCollection<ArtifactToolProfile>> { [profileName] = profiles });
+        return CreateDictionaryProfileResolver(new Dictionary<string, IReadOnlyList<ArtifactToolProfile>> { [profileName] = profiles });
     }
 }
