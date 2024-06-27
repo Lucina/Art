@@ -1,6 +1,6 @@
 namespace Art.Tesler.Properties;
 
-public interface IGlobalLocalRunnerPropertyProvider : IRunnerPropertyProvider
+public interface IScopedRunnerPropertyProvider : IRunnerPropertyProvider
 {
     IEnumerable<ConfigProperty> GetProperties(ConfigScopeFlags configScopeFlags);
 

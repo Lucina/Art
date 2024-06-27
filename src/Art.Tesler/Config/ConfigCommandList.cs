@@ -9,8 +9,8 @@ namespace Art.Tesler.Config;
 
 public class ConfigCommandList : CommandBase
 {
-    private readonly IRunnerPropertyProvider _runnerPropertyProvider;
-    private readonly IToolPropertyProvider _toolPropertyProvider;
+    private readonly IScopedRunnerPropertyProvider _runnerPropertyProvider;
+    private readonly IScopedToolPropertyProvider _toolPropertyProvider;
     private readonly IProfileResolver _profileResolver;
     private readonly IArtifactToolRegistryStore _registryStore;
 
@@ -23,8 +23,8 @@ public class ConfigCommandList : CommandBase
 
     public ConfigCommandList(
         IOutputControl toolOutput,
-        IRunnerPropertyProvider runnerPropertyProvider,
-        IToolPropertyProvider toolPropertyProvider,
+        IScopedRunnerPropertyProvider runnerPropertyProvider,
+        IScopedToolPropertyProvider toolPropertyProvider,
         IProfileResolver profileResolver,
         IArtifactToolRegistryStore registryStore,
         string name,
@@ -35,12 +35,12 @@ public class ConfigCommandList : CommandBase
         _toolPropertyProvider = toolPropertyProvider;
         _profileResolver = profileResolver;
         _registryStore = registryStore;
-        ToolOption = new Option<string>(new[] { "-t", "--tool" }, "Tool to get options for")
+        ToolOption = new Option<string>(new[] { "-t", "--tool" }, "Tool for which to get configuration properties")
         {
             ArgumentHelpName = "tool-string"
         };
         AddOption(ToolOption);
-        ProfileOption = new Option<string>(new[] { "-p", "--profile" }, "Profile to get options for")
+        ProfileOption = new Option<string>(new[] { "-p", "--profile" }, "Profile for which to get configuration properties")
         {
             ArgumentHelpName = "profile-path"
         };
@@ -68,7 +68,7 @@ public class ConfigCommandList : CommandBase
 
             if (optionSet.Count > 0)
             {
-                result.ErrorMessage = $"Only one option from {GetOptionAliasList(new Option[] { ToolOption, ProfileOption })} may be specified";
+                result.ErrorMessage = $"Only one option from {CommandHelper.GetOptionAliasList(new Option[] { ToolOption, ProfileOption })} may be specified";
                 return;
             }
 
@@ -78,7 +78,7 @@ public class ConfigCommandList : CommandBase
             {
                 if (result.GetValueForOption(SpecificOption))
                 {
-                    result.ErrorMessage = $"{GetOptionAlias(SpecificOption)} may not be specified when an option among {GetOptionAliasList(new Option[] { ToolOption, ProfileOption })} is specified";
+                    result.ErrorMessage = $"{CommandHelper.GetOptionAlias(SpecificOption)} may not be specified when an option among {CommandHelper.GetOptionAliasList(new Option[] { ToolOption, ProfileOption })} is specified";
                     return;
                 }
             }
@@ -171,17 +171,5 @@ public class ConfigCommandList : CommandBase
             return new ScopedListingSettings(flags, context.ParseResult.HasOption(SpecificOption));
         }
         return new EffectiveListingSettings();
-    }
-
-    private static string GetOptionAlias(Option option)
-    {
-        return option.Aliases.FirstOrDefault() ?? option.Name;
-    }
-
-    private static string GetOptionAliasList(IEnumerable<Option> options, string separator = ", ")
-    {
-        return new StringBuilder()
-            .AppendJoin(separator, options.Select(v => v.Aliases.FirstOrDefault() ?? v.Name))
-            .ToString();
     }
 }

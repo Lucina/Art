@@ -7,8 +7,8 @@ public class ConfigCommand : Command
 {
     public ConfigCommand(
         IOutputControl toolOutput,
-        IRunnerPropertyProvider runnerPropertyProvider,
-        IToolPropertyProvider toolPropertyProvider,
+        IWritableScopedRunnerPropertyProvider runnerPropertyProvider,
+        IWritableScopedToolPropertyProvider toolPropertyProvider,
         IProfileResolver profileResolver,
         IArtifactToolRegistryStore registryStore)
         : this(
@@ -18,14 +18,14 @@ public class ConfigCommand : Command
             profileResolver,
             registryStore,
             "config",
-            "Perform operations on tool [default] options.")
+            "Perform operations on configuration properties.")
     {
     }
 
     public ConfigCommand(
         IOutputControl toolOutput,
-        IRunnerPropertyProvider runnerPropertyProvider,
-        IToolPropertyProvider toolPropertyProvider,
+        IWritableScopedRunnerPropertyProvider runnerPropertyProvider,
+        IWritableScopedToolPropertyProvider toolPropertyProvider,
         IProfileResolver profileResolver,
         IArtifactToolRegistryStore registryStore,
         string name,
@@ -39,6 +39,22 @@ public class ConfigCommand : Command
             profileResolver,
             registryStore,
             "list",
-            "Lists options."));
+            "Lists configuration properties."));
+        AddCommand(new ConfigCommandGet(
+            toolOutput,
+            runnerPropertyProvider,
+            toolPropertyProvider,
+            profileResolver,
+            registryStore,
+            "get",
+            "Gets a configuration property."));
+        AddCommand(new ConfigCommandSet(
+            toolOutput,
+            runnerPropertyProvider,
+            toolPropertyProvider,
+            profileResolver,
+            registryStore,
+            "set",
+            "Sets a configuration property."));
     }
 }

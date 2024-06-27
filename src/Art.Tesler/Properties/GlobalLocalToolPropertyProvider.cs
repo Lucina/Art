@@ -3,7 +3,7 @@ using System.Text.Json;
 
 namespace Art.Tesler.Properties;
 
-public class GlobalLocalToolPropertyProvider : IGlobalLocalToolPropertyProvider
+public class GlobalLocalToolPropertyProvider : IWritableScopedToolPropertyProvider
 {
     private readonly IToolPropertyProvider _globalProvider;
     private readonly IToolPropertyProvider _localProvider;
@@ -70,5 +70,11 @@ public class GlobalLocalToolPropertyProvider : IGlobalLocalToolPropertyProvider
         }
         value = default;
         return false;
+    }
+
+    public bool TrySetProperty(ArtifactToolID artifactToolId, ConfigProperty configProperty)
+    {
+        // TODO implement
+        throw new NotImplementedException();
     }
 }

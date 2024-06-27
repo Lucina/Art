@@ -3,7 +3,7 @@ using System.Text.Json;
 
 namespace Art.Tesler.Properties;
 
-public class GlobalLocalRunnerPropertyProvider : IGlobalLocalRunnerPropertyProvider
+public class GlobalLocalRunnerPropertyProvider : IWritableScopedRunnerPropertyProvider
 {
     private readonly IRunnerPropertyProvider _globalProvider;
     private readonly IRunnerPropertyProvider _localProvider;
@@ -70,5 +70,11 @@ public class GlobalLocalRunnerPropertyProvider : IGlobalLocalRunnerPropertyProvi
         }
         value = default;
         return false;
+    }
+
+    public bool TrySetProperty(ConfigProperty configProperty)
+    {
+        // TODO implement
+        throw new NotImplementedException();
     }
 }

@@ -19,8 +19,8 @@ public class TeslerRootCommand : RootCommand
     public static TeslerRootCommand Create(
         IToolLogHandlerProvider toolLogHandlerProvider,
         IArtifactToolRegistryStore pluginStore,
-        IRunnerPropertyProvider runnerPropertyProvider,
-        IToolPropertyProvider toolPropertyProvider,
+        IWritableScopedRunnerPropertyProvider runnerPropertyProvider,
+        IWritableScopedToolPropertyProvider toolPropertyProvider,
         ITeslerDataProvider dataProvider,
         ITeslerRegistrationProvider registrationProvider,
         IProfileResolver profileResolver)
@@ -43,8 +43,8 @@ public class TeslerRootCommand : RootCommand
 
     public static TeslerRootCommand CreateSinglePlugin<TTool>(
         IToolLogHandlerProvider toolLogHandlerProvider,
-        IRunnerPropertyProvider runnerPropertyProvider,
-        IToolPropertyProvider toolPropertyProvider,
+        IWritableScopedRunnerPropertyProvider runnerPropertyProvider,
+        IWritableScopedToolPropertyProvider toolPropertyProvider,
         ITeslerDataProvider dataProvider,
         ITeslerRegistrationProvider registrationProvider,
         IProfileResolver profileResolver)
@@ -71,8 +71,8 @@ public class TeslerRootCommand : RootCommand
 
     public static TeslerRootCommand CreateSingleSelectablePlugin<TTool>(
         IToolLogHandlerProvider toolLogHandlerProvider,
-        IRunnerPropertyProvider runnerPropertyProvider,
-        IToolPropertyProvider toolPropertyProvider,
+        IWritableScopedRunnerPropertyProvider runnerPropertyProvider,
+        IWritableScopedToolPropertyProvider toolPropertyProvider,
         ITeslerDataProvider dataProvider,
         ITeslerRegistrationProvider registrationProvider,
         IProfileResolver profileResolver)
@@ -100,8 +100,8 @@ public class TeslerRootCommand : RootCommand
     public static TeslerRootCommand Create(
         IToolLogHandlerProvider toolLogHandlerProvider,
         IArtifactToolRegistry artifactToolRegistry,
-        IRunnerPropertyProvider runnerPropertyProvider,
-        IToolPropertyProvider toolPropertyProvider,
+        IWritableScopedRunnerPropertyProvider runnerPropertyProvider,
+        IWritableScopedToolPropertyProvider toolPropertyProvider,
         ITeslerDataProvider dataProvider,
         ITeslerRegistrationProvider registrationProvider,
         IProfileResolver profileResolver)

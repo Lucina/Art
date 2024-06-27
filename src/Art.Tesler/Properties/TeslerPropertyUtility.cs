@@ -40,7 +40,7 @@ public static class TeslerPropertyUtility
     }
 
     public static IEnumerable<ConfigProperty> GetPropertiesDeep(
-        IGlobalLocalToolPropertyProvider toolPropertyProvider,
+        IScopedToolPropertyProvider toolPropertyProvider,
         Type type,
         ConfigScopeFlags configScopeFlags
     )

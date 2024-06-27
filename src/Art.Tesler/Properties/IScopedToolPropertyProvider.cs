@@ -1,6 +1,6 @@
 namespace Art.Tesler.Properties;
 
-public interface IGlobalLocalToolPropertyProvider : IToolPropertyProvider
+public interface IScopedToolPropertyProvider : IToolPropertyProvider
 {
     IEnumerable<ConfigProperty> GetProperties(ArtifactToolID artifactToolId, ConfigScopeFlags configScopeFlags);
 
