@@ -3,6 +3,8 @@ using System.CommandLine.Invocation;
 using Art.Common;
 using Art.Common.Management;
 using Art.Common.Proxies;
+using Art.Tesler.Profiles;
+using Art.Tesler.Properties;
 
 namespace Art.Tesler;
 
@@ -15,20 +17,20 @@ public class StreamCommand : ToolCommandBase
     public StreamCommand(
         IToolLogHandlerProvider toolLogHandlerProvider,
         IArtifactToolRegistryStore pluginStore,
-        IDefaultPropertyProvider defaultPropertyProvider,
+        IToolPropertyProvider toolPropertyProvider,
         IProfileResolver profileResolver)
-        : this(toolLogHandlerProvider, pluginStore, defaultPropertyProvider, profileResolver, "stream", "Stream primary resource to standard output.")
+        : this(toolLogHandlerProvider, pluginStore, toolPropertyProvider, profileResolver, "stream", "Stream primary resource to standard output.")
     {
     }
 
     public StreamCommand(
         IToolLogHandlerProvider toolLogHandlerProvider,
         IArtifactToolRegistryStore pluginStore,
-        IDefaultPropertyProvider defaultPropertyProvider,
+        IToolPropertyProvider toolPropertyProvider,
         IProfileResolver profileResolver,
         string name,
         string? description = null)
-        : base(toolLogHandlerProvider, pluginStore, defaultPropertyProvider, name, description)
+        : base(toolLogHandlerProvider, pluginStore, toolPropertyProvider, name, description)
     {
         ProfileResolver = profileResolver;
         ProfileFileArg = new Argument<string>("profile", "Profile file") { HelpName = "profile", Arity = ArgumentArity.ExactlyOne };

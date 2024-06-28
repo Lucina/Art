@@ -8,17 +8,20 @@ public class PlainLogHandler : IToolLogHandler
     private readonly AutoResetEvent _wh;
     private readonly bool _itsumoError;
     private readonly TextWriter _out;
+    private readonly TextWriter _warn;
     private readonly TextWriter _error;
 
     /// <summary>
     /// Initializes an instance of <see cref="StyledLogHandler"/>.
     /// </summary>
     /// <param name="outWriter">Writer for normal output.</param>
+    /// <param name="warnWriter">Writer for warning output.</param>
     /// <param name="errorWriter">Writer for error output.</param>
     /// <param name="alwaysPrintToErrorStream">If true, always print output to error stream.</param>
-    public PlainLogHandler(TextWriter outWriter, TextWriter errorWriter, bool alwaysPrintToErrorStream)
+    public PlainLogHandler(TextWriter outWriter, TextWriter warnWriter, TextWriter errorWriter, bool alwaysPrintToErrorStream)
     {
         _out = outWriter ?? throw new ArgumentNullException(nameof(outWriter));
+        _warn = warnWriter ?? throw new ArgumentNullException(nameof(warnWriter));
         _error = errorWriter ?? throw new ArgumentNullException(nameof(errorWriter));
         _wh = new AutoResetEvent(true);
         _itsumoError = alwaysPrintToErrorStream;
@@ -91,7 +94,7 @@ public class PlainLogHandler : IToolLogHandler
             LogLevel.Information => _out,
             LogLevel.Entry => _out,
             LogLevel.Title => _out,
-            LogLevel.Warning => _error,
+            LogLevel.Warning => _warn,
             LogLevel.Error => _error,
             _ => _error
         };

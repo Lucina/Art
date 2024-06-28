@@ -16,8 +16,7 @@ public static class ArtifactToolIDUtil
     /// <returns>Tool ID.</returns>
     public static ArtifactToolID CreateToolID(Type type)
     {
-        string assemblyName = type.Assembly.GetName().Name ?? throw new InvalidOperationException();
-        string typeName = type.FullName ?? throw new InvalidOperationException();
+        var (assemblyName, typeName) = GetAssemblyAndTypeNames(type);
         return new ArtifactToolID(assemblyName, typeName);
     }
 
@@ -28,9 +27,15 @@ public static class ArtifactToolIDUtil
     /// <returns>Tool string.</returns>
     public static string CreateToolString(Type type)
     {
-        string assemblyName = type.Assembly.GetName().Name ?? throw new InvalidOperationException();
-        string typeName = type.FullName ?? throw new InvalidOperationException();
+        var (assemblyName, typeName) = GetAssemblyAndTypeNames(type);
         return $"{assemblyName}::{typeName}";
+    }
+
+    private static (string assemblyName, string typeName) GetAssemblyAndTypeNames(Type type)
+    {
+        return (
+            assemblyName: type.Assembly.GetName().Name ?? throw new InvalidOperationException(),
+            typeName: type.FullName ?? throw new InvalidOperationException());
     }
 
     /// <summary>

@@ -1,5 +1,7 @@
 ﻿using System.CommandLine;
 using System.Diagnostics.CodeAnalysis;
+using Art.Tesler.Profiles;
+using Art.Tesler.Properties;
 using Art.TestsBase;
 
 namespace Art.Tesler.Tests;
@@ -16,24 +18,24 @@ public class ArcCommandTests : CommandTestBase
     protected void InitCommandDefault(
         IToolLogHandlerProvider toolLogHandlerProvider,
         IArtifactToolRegistryStore artifactToolRegistryStore,
-        IDefaultPropertyProvider defaultPropertyProvider,
+        IToolPropertyProvider toolPropertyProvider,
         ITeslerDataProvider dataProvider,
         ITeslerRegistrationProvider registrationProvider,
         IProfileResolver profileResolver)
     {
-        Command = new ArcCommand(toolLogHandlerProvider, artifactToolRegistryStore, defaultPropertyProvider, dataProvider, registrationProvider, profileResolver);
+        Command = new ArcCommand(toolLogHandlerProvider, artifactToolRegistryStore, toolPropertyProvider, dataProvider, registrationProvider, profileResolver);
     }
 
     [Test]
     public void NoProfilesPassed_Fails()
     {
         var store = GetEmptyStore();
-        var defaultPropertyProvider = CreateInMemoryDefaultPropertyProvider();
+        var toolPropertyProvider = CreateInMemoryPropertyProvider();
         var dataProvider = CreateSharedMemoryDataProvider();
         var registrationProvider = CreateSharedMemoryRegistrationProvider();
         var profileResolver = CreateDictionaryProfileResolver();
         CreateOutputs(out var toolOutput, out var console);
-        InitCommandDefault(toolOutput, store, defaultPropertyProvider, dataProvider, registrationProvider, profileResolver);
+        InitCommandDefault(toolOutput, store, toolPropertyProvider, dataProvider, registrationProvider, profileResolver);
         Assert.That(Command.Invoke(Array.Empty<string>(), console), Is.Not.EqualTo(0));
         Assert.That(Out.ToString(), Is.Not.Empty);
         Assert.That(Error.ToString(), Is.Not.Empty);
@@ -43,12 +45,12 @@ public class ArcCommandTests : CommandTestBase
     public void OneItemPassed_Unmatched_Fails()
     {
         var store = GetEmptyStore();
-        var defaultPropertyProvider = CreateInMemoryDefaultPropertyProvider();
+        var toolPropertyProvider = CreateInMemoryPropertyProvider();
         var dataProvider = CreateSharedMemoryDataProvider();
         var registrationProvider = CreateSharedMemoryRegistrationProvider();
         var profileResolver = CreateDictionaryProfileResolver();
         CreateOutputs(out var toolOutput, out var console);
-        InitCommandDefault(toolOutput, store, defaultPropertyProvider, dataProvider, registrationProvider, profileResolver);
+        InitCommandDefault(toolOutput, store, toolPropertyProvider, dataProvider, registrationProvider, profileResolver);
         string[] line = { BadProfileName };
         Assert.That(Command.Invoke(line, console), Is.Not.EqualTo(0));
         Assert.That(Out.ToString(), Is.Empty);
@@ -59,12 +61,12 @@ public class ArcCommandTests : CommandTestBase
     public void OneItemPassed_AllMatch_WithNoResultingProfiles_Success()
     {
         var store = GetEmptyStore();
-        var defaultPropertyProvider = CreateInMemoryDefaultPropertyProvider();
+        var toolPropertyProvider = CreateInMemoryPropertyProvider();
         var dataProvider = CreateSharedMemoryDataProvider();
         var registrationProvider = CreateSharedMemoryRegistrationProvider();
         var profileResolver = CreateDictionaryProfileResolver(ProfileName);
         CreateOutputs(out var toolOutput, out var console);
-        InitCommandDefault(toolOutput, store, defaultPropertyProvider, dataProvider, registrationProvider, profileResolver);
+        InitCommandDefault(toolOutput, store, toolPropertyProvider, dataProvider, registrationProvider, profileResolver);
         string[] line = { ProfileName };
         Assert.That(Command.Invoke(line, console), Is.EqualTo(0));
         Assert.That(Out.ToString(), Is.Empty);
@@ -76,12 +78,12 @@ public class ArcCommandTests : CommandTestBase
     {
         int ctr = 0;
         var store = GetSingleStore(ProgrammableArtifactDumpTool.CreateRegistryEntry(s_toolId, _ => ctr++));
-        var defaultPropertyProvider = CreateInMemoryDefaultPropertyProvider();
+        var toolPropertyProvider = CreateInMemoryPropertyProvider();
         var dataProvider = CreateSharedMemoryDataProvider();
         var registrationProvider = CreateSharedMemoryRegistrationProvider();
         var profileResolver = CreateDictionaryProfileResolver(ProfileName, new ArtifactToolProfile(s_toolId.GetToolString(), null, null));
         CreateOutputs(out var toolOutput, out var console);
-        InitCommandDefault(toolOutput, store, defaultPropertyProvider, dataProvider, registrationProvider, profileResolver);
+        InitCommandDefault(toolOutput, store, toolPropertyProvider, dataProvider, registrationProvider, profileResolver);
         string[] line = { ProfileName };
         Assert.That(Command.Invoke(line, console), Is.EqualTo(0));
         Assert.That(Out.ToString(), Is.Empty);
@@ -94,12 +96,12 @@ public class ArcCommandTests : CommandTestBase
     {
         int ctr = 0;
         var store = GetSingleStore(ProgrammableArtifactDumpTool.CreateRegistryEntry(s_toolId, _ => ctr++));
-        var defaultPropertyProvider = CreateInMemoryDefaultPropertyProvider();
+        var toolPropertyProvider = CreateInMemoryPropertyProvider();
         var dataProvider = CreateSharedMemoryDataProvider();
         var registrationProvider = CreateSharedMemoryRegistrationProvider();
         var profileResolver = CreateDictionaryProfileResolver(ProfileName, new ArtifactToolProfile(s_badToolId.GetToolString(), null, null));
         CreateOutputs(out var toolOutput, out var console);
-        InitCommandDefault(toolOutput, store, defaultPropertyProvider, dataProvider, registrationProvider, profileResolver);
+        InitCommandDefault(toolOutput, store, toolPropertyProvider, dataProvider, registrationProvider, profileResolver);
         string[] line = { ProfileName };
         Assert.That(Command.Invoke(line, console), Is.Not.EqualTo(0));
         Assert.That(Out.ToString(), Is.Empty);

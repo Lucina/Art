@@ -2,6 +2,8 @@ using System.CommandLine;
 using System.CommandLine.Invocation;
 using System.CommandLine.Parsing;
 using Art.Common;
+using Art.Tesler.Profiles;
+using Art.Tesler.Properties;
 
 namespace Art.Tesler;
 
@@ -11,7 +13,7 @@ public abstract class ToolCommandBase : CommandBase
 
     protected IArtifactToolRegistryStore PluginStore;
 
-    protected IDefaultPropertyProvider DefaultPropertyProvider;
+    protected IToolPropertyProvider ToolPropertyProvider;
 
     protected Option<string> UserAgentOption;
 
@@ -24,13 +26,13 @@ public abstract class ToolCommandBase : CommandBase
     protected ToolCommandBase(
         IToolLogHandlerProvider toolLogHandlerProvider,
         IArtifactToolRegistryStore pluginStore,
-        IDefaultPropertyProvider defaultPropertyProvider,
+        IToolPropertyProvider toolPropertyProvider,
         string name,
         string? description = null) : base(toolLogHandlerProvider, name, description)
     {
         ToolLogHandlerProvider = toolLogHandlerProvider;
         PluginStore = pluginStore;
-        DefaultPropertyProvider = defaultPropertyProvider;
+        ToolPropertyProvider = toolPropertyProvider;
         UserAgentOption = new Option<string>(new[] { "--user-agent" }, "Custom user agent string") { ArgumentHelpName = "user-agent" };
         AddOption(UserAgentOption);
         CookieFileOption = new Option<string>(new[] { "--cookie-file" }, "Cookie file") { ArgumentHelpName = "file" };
@@ -46,8 +48,8 @@ public abstract class ToolCommandBase : CommandBase
         string? cookieFile = context.ParseResult.HasOption(CookieFileOption) ? context.ParseResult.GetValueForOption(CookieFileOption) : null;
         string? userAgent = context.ParseResult.HasOption(UserAgentOption) ? context.ParseResult.GetValueForOption(UserAgentOption) : null;
         IEnumerable<string> properties = context.ParseResult.HasOption(PropertiesOption) ? context.ParseResult.GetValueForOption(PropertiesOption)! : Array.Empty<string>();
-        var defaultPropertyProvider = GetOptionalDefaultPropertyProvider(context);
-        return artifactToolProfile.GetWithConsoleOptions(defaultPropertyProvider, properties, cookieFile, userAgent, ToolOutput);
+        var toolPropertyProvider = GetOptionalToolPropertyProvider(context);
+        return artifactToolProfile.GetWithConsoleOptions(PluginStore, toolPropertyProvider, properties, cookieFile, userAgent, ToolOutput);
     }
 
     protected IEnumerable<ArtifactToolProfile> PrepareProfiles(InvocationContext context, IEnumerable<ArtifactToolProfile> artifactToolProfiles)
@@ -55,23 +57,26 @@ public abstract class ToolCommandBase : CommandBase
         string? cookieFile = context.ParseResult.HasOption(CookieFileOption) ? context.ParseResult.GetValueForOption(CookieFileOption) : null;
         string? userAgent = context.ParseResult.HasOption(UserAgentOption) ? context.ParseResult.GetValueForOption(UserAgentOption) : null;
         IEnumerable<string> properties = context.ParseResult.HasOption(PropertiesOption) ? context.ParseResult.GetValueForOption(PropertiesOption)! : Array.Empty<string>();
-        var defaultPropertyProvider = GetOptionalDefaultPropertyProvider(context);
-        return artifactToolProfiles.Select(p => p.GetWithConsoleOptions(defaultPropertyProvider, properties, cookieFile, userAgent, ToolOutput));
+        var toolPropertyProvider = GetOptionalToolPropertyProvider(context);
+        return artifactToolProfiles.Select(p => p.GetWithConsoleOptions(PluginStore, toolPropertyProvider, properties, cookieFile, userAgent, ToolOutput));
     }
 
     protected async Task<IArtifactTool> GetToolAsync(ArtifactToolProfile artifactToolProfile, IArtifactRegistrationManager arm, IArtifactDataManager adm, CancellationToken cancellationToken = default)
     {
-        var plugin = PluginStore.LoadRegistry(ArtifactToolIDUtil.ParseID(artifactToolProfile.Tool));
+        if (!PluginStore.TryLoadRegistry(ArtifactToolIDUtil.ParseID(artifactToolProfile.Tool), out var plugin))
+        {
+            throw new ArtifactToolNotFoundException(artifactToolProfile.Tool);
+        }
         return await ArtifactTool.PrepareToolAsync(plugin, artifactToolProfile, arm, adm, cancellationToken).ConfigureAwait(false);
     }
 
-    protected IDefaultPropertyProvider? GetOptionalDefaultPropertyProvider(InvocationContext context)
+    protected IToolPropertyProvider? GetOptionalToolPropertyProvider(InvocationContext context)
     {
         if (context.ParseResult.GetValueForOption(NoDefaultPropertiesOption))
         {
             return null;
         }
-        return DefaultPropertyProvider;
+        return ToolPropertyProvider;
     }
 
     protected static void ResolveAndAddProfiles(IProfileResolver profileResolver, List<ArtifactToolProfile> profiles, string profileFile)
@@ -80,6 +85,6 @@ public abstract class ToolCommandBase : CommandBase
         {
             throw new ArtUserException($"Could not resolve profile for input \"{profileFile}\"");
         }
-        profiles.AddRange(profilesResult);
+        profiles.AddRange(profilesResult.Values);
     }
 }

@@ -2,6 +2,7 @@
 using System.CommandLine.Invocation;
 using System.CommandLine.Parsing;
 using Art.Common;
+using Art.Tesler.Properties;
 
 namespace Art.Tesler;
 
@@ -24,21 +25,21 @@ public class ValidateCommand : ToolCommandBase
     public ValidateCommand(
         IToolLogHandlerProvider toolLogHandlerProvider,
         IArtifactToolRegistryStore pluginStore,
-        IDefaultPropertyProvider defaultPropertyProvider,
+        IToolPropertyProvider toolPropertyProvider,
         ITeslerDataProvider dataProvider,
         ITeslerRegistrationProvider registrationProvider)
-        : this(toolLogHandlerProvider, pluginStore, defaultPropertyProvider, dataProvider, registrationProvider, "validate", "Verify resource integrity.")
+        : this(toolLogHandlerProvider, pluginStore, toolPropertyProvider, dataProvider, registrationProvider, "validate", "Verify resource integrity.")
     {
     }
 
     public ValidateCommand(
         IToolLogHandlerProvider toolLogHandlerProvider,
         IArtifactToolRegistryStore pluginStore,
-        IDefaultPropertyProvider defaultPropertyProvider,
+        IToolPropertyProvider toolPropertyProvider,
         ITeslerDataProvider dataProvider,
         ITeslerRegistrationProvider registrationProvider,
         string name,
-        string? description = null) : base(toolLogHandlerProvider, pluginStore, defaultPropertyProvider, name, description)
+        string? description = null) : base(toolLogHandlerProvider, pluginStore, toolPropertyProvider, name, description)
     {
         DataProvider = dataProvider;
         DataProvider.Initialize(this);

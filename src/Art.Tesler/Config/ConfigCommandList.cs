@@ -1,191 +1,309 @@
-using System.Collections.Immutable;
 using System.CommandLine;
 using System.CommandLine.Invocation;
 using System.CommandLine.Parsing;
 using System.Text;
 using System.Text.Json;
 using Art.Common;
+using Art.Tesler.Profiles;
+using Art.Tesler.Properties;
 
 namespace Art.Tesler.Config;
 
 public class ConfigCommandList : CommandBase
 {
-    private readonly IDefaultPropertyProvider _defaultPropertyProvider;
+    private readonly IScopedRunnerPropertyProvider _runnerPropertyProvider;
+    private readonly IScopedToolPropertyProvider _toolPropertyProvider;
     private readonly IProfileResolver _profileResolver;
+    private readonly IArtifactToolRegistryStore _registryStore;
 
-    protected Option<string> DefaultsOption;
-    protected Option<string> ProfileOption;
-    protected Option<bool> SimpleOption;
-    protected Option<bool> IncludeDefaultsOption;
+    protected Option<bool> LocalOption;
+    protected Option<bool> GlobalOption;
+    protected Option<bool> ProfileOption;
+    protected Option<bool> AllOption;
+    protected Option<string> InputOption;
+    protected Option<string> ToolOption;
+    protected Option<bool> EffectiveOption;
+    protected Option<bool> IgnoreBaseTypesOption;
+    protected Option<bool> VerboseOption;
+    protected Option<bool> PrettyPrintOption;
 
     public ConfigCommandList(
-        IOutputPair toolOutput,
-        IDefaultPropertyProvider defaultPropertyProvider,
+        IOutputControl toolOutput,
+        IScopedRunnerPropertyProvider runnerPropertyProvider,
+        IScopedToolPropertyProvider toolPropertyProvider,
         IProfileResolver profileResolver,
+        IArtifactToolRegistryStore registryStore,
         string name,
         string? description = null)
         : base(toolOutput, name, description)
     {
-        _defaultPropertyProvider = defaultPropertyProvider;
+        _runnerPropertyProvider = runnerPropertyProvider;
+        _toolPropertyProvider = toolPropertyProvider;
         _profileResolver = profileResolver;
-        DefaultsOption = new Option<string>(new[] { "-d", "--defaults" }, "Tool to get defaults for")
+        _registryStore = registryStore;
+        ToolOption = new Option<string>(new[] { "-t", "--tool" }, "Tool for which to get configuration properties")
         {
             ArgumentHelpName = "tool-string"
         };
-        AddOption(DefaultsOption);
-        ProfileOption = new Option<string>(new[] { "-p", "--profile" }, "Profile to get options for")
+        AddOption(ToolOption);
+        InputOption = new Option<string>(new[] { "-i", "--input" }, "Profile for which to get configuration properties")
         {
             ArgumentHelpName = "profile-path"
         };
+        AddOption(InputOption);
+        LocalOption = new Option<bool>(new[] { "-l", "--local" }, "Get properties in local option scope");
+        AddOption(LocalOption);
+        GlobalOption = new Option<bool>(new[] { "-g", "--global" }, "Get properties in global option scope");
+        AddOption(GlobalOption);
+        ProfileOption = new Option<bool>(new[] { "-p", "--profile" }, "Get properties in profile option scope");
         AddOption(ProfileOption);
-        SimpleOption = new Option<bool>(new[] { "-s", "--simple" }, "Print simple output");
-        AddOption(SimpleOption);
-        IncludeDefaultsOption =
-            new Option<bool>(new[] { "-i", "--include-defaults" }, "Include default options for profile");
-        AddOption(IncludeDefaultsOption);
+        AllOption = new Option<bool>(new[] { "-a", "--all" }, "Get properties in all option scopes");
+        AddOption(AllOption);
+        EffectiveOption = new Option<bool>(new[] { "-e", "--effective" }, "Gets effective config values (default)");
+        AddOption(EffectiveOption);
+        IgnoreBaseTypesOption = new Option<bool>(new[] { "--ignore-base-types" }, "(Tools and profiles) Ignores base types");
+        AddOption(IgnoreBaseTypesOption);
+        VerboseOption = new Option<bool>(new[] { "-v", "--verbose" }, "Use verbose output format");
+        AddOption(VerboseOption);
+        PrettyPrintOption = new Option<bool>(new[] { "--pretty-print" }, "Pretty-print values");
+        AddOption(PrettyPrintOption);
         AddValidator(result =>
         {
             var optionSet = new HashSet<Option>();
-            if (result.GetValueForOption(DefaultsOption) != null)
+            if (result.GetValueForOption(ToolOption) != null)
             {
-                optionSet.Add(DefaultsOption);
+                optionSet.Add(ToolOption);
             }
 
-            if (result.GetValueForOption(ProfileOption) != null)
+            if (result.GetValueForOption(InputOption) != null)
             {
-                optionSet.Add(ProfileOption);
+                optionSet.Add(InputOption);
             }
 
-            var all = new Option[] { DefaultsOption, ProfileOption };
-            switch (optionSet.Count)
+            if (optionSet.Count > 1)
             {
-                case 0:
-                    result.ErrorMessage = $"One filter from {GetOptionAliasList(all)} must be specified";
+                result.ErrorMessage = $"Only one option from {CommandHelper.GetOptionAliasList(new Option[] { ToolOption, InputOption })} may be specified";
+                return;
+            }
+
+            bool anyScopeSpecifiers = result.GetValueForOption(AllOption) || result.GetValueForOption(LocalOption) || result.GetValueForOption(GlobalOption) || result.GetValueForOption(ProfileOption);
+
+            if (result.GetValueForOption(EffectiveOption))
+            {
+                if (anyScopeSpecifiers || result.GetValueForOption(IgnoreBaseTypesOption))
+                {
+                    result.ErrorMessage = $"{CommandHelper.GetOptionAlias(EffectiveOption)} may not be used with options {CommandHelper.GetOptionAliasList(new Option[] { AllOption, LocalOption, GlobalOption, IgnoreBaseTypesOption })}";
                     return;
-                case > 1:
-                    result.ErrorMessage = $"Exactly one filter from {GetOptionAliasList(all)} must be specified";
-                    return;
+                }
             }
 
-            if (result.GetValueForOption(ProfileOption) == null && result.GetValueForOption(IncludeDefaultsOption))
+            if (result.GetValueForOption(ProfileOption))
             {
-                result.ErrorMessage =
-                    $"Cannot use {IncludeDefaultsOption.Aliases.FirstOrDefault()} with {optionSet.FirstOrDefault()}";
+                if (result.GetValueForOption(InputOption) == null)
+                {
+                    result.ErrorMessage = $"{CommandHelper.GetOptionAlias(ProfileOption)} must be used with {CommandHelper.GetOptionAlias(InputOption)}";
+                    return;
+                }
+            }
+
+            if (result.GetValueForOption(IgnoreBaseTypesOption))
+            {
+                if (result.GetValueForOption(ToolOption) == null && result.GetValueForOption(InputOption) == null)
+                {
+                    result.ErrorMessage = $"{CommandHelper.GetOptionAlias(IgnoreBaseTypesOption)} must be used with {CommandHelper.GetOptionAlias(ToolOption)} or {CommandHelper.GetOptionAlias(InputOption)}";
+                    return;
+                }
             }
         });
     }
 
     protected override Task<int> RunAsync(InvocationContext context)
     {
-        bool simple = context.ParseResult.HasOption(SimpleOption);
-        bool includeDefaults = context.ParseResult.HasOption(IncludeDefaultsOption);
-        if (context.ParseResult.HasOption(DefaultsOption))
+        bool prettyPrint = context.ParseResult.GetValueForOption(PrettyPrintOption);
+        PropertyFormatter propertyFormatter = context.ParseResult.GetValueForOption(VerboseOption)
+            ? new DefaultPropertyFormatter(prettyPrint)
+            : new SimplePropertyFormatter(prettyPrint);
+        ListingSettings listingSettings = GetListingSettings(context);
+        if (context.ParseResult.HasOption(ToolOption))
         {
-            string toolString = context.ParseResult.GetValueForOption(DefaultsOption)!;
+            string toolString = context.ParseResult.GetValueForOption(ToolOption)!;
             if (!ArtifactToolIDUtil.TryParseID(toolString, out var toolID))
             {
                 PrintErrorMessage($"Unable to parse tool string \"{toolString}\"", ToolOutput);
                 return Task.FromResult(1);
             }
-
-            var properties = new Dictionary<string, JsonElement>();
-            _defaultPropertyProvider.WriteDefaultProperties(toolID, properties);
-            WriteOutput($"Default properties for {toolID.GetToolString()}", properties, simple);
+            switch (listingSettings)
+            {
+                case ScopedListingSettings scopedListingSettings:
+                    {
+                        if (scopedListingSettings.IgnoreBaseTypes)
+                        {
+                            foreach (var v in _toolPropertyProvider.GetProperties(toolID, scopedListingSettings.ConfigScopeFlags))
+                            {
+                                ToolOutput.Out.WriteLine(propertyFormatter.FormatProperty(toolID, v));
+                            }
+                        }
+                        else
+                        {
+                            foreach (var v in TeslerPropertyUtility.GetPropertiesDeep(_registryStore, _toolPropertyProvider, ToolOutput, toolID, scopedListingSettings.ConfigScopeFlags))
+                            {
+                                ToolOutput.Out.WriteLine(propertyFormatter.FormatProperty(toolID, v));
+                            }
+                        }
+                        break;
+                    }
+                case EffectiveListingSettings:
+                    {
+                        var map = new Dictionary<string, ConfigProperty>();
+                        foreach (var v in TeslerPropertyUtility.GetPropertiesDeep(_registryStore, _toolPropertyProvider, ToolOutput, toolID, ConfigScopeFlags.All))
+                        {
+                            map[v.Key] = v;
+                        }
+                        foreach (var v in map.Values)
+                        {
+                            ToolOutput.Out.WriteLine(propertyFormatter.FormatProperty(toolID, v));
+                        }
+                        break;
+                    }
+                default:
+                    throw new InvalidOperationException($"Invalid listing setting type {listingSettings?.GetType()}");
+            }
             return Task.FromResult(0);
         }
-
-        if (context.ParseResult.HasOption(ProfileOption))
+        else if (context.ParseResult.HasOption(InputOption))
         {
-            string profileString = context.ParseResult.GetValueForOption(ProfileOption)!;
+            string profileString = context.ParseResult.GetValueForOption(InputOption)!;
             if (!_profileResolver.TryGetProfiles(profileString, out var profiles, ProfileResolutionFlags.Files))
             {
                 PrintErrorMessage($"Unable to identify profile file {profileString}", ToolOutput);
                 return Task.FromResult(2);
             }
 
-            var profileList = profiles.ToList();
-            if (profileList.Count == 1)
+            var profileList = profiles.Values;
+            for (int i = 0; i < profileList.Count; i++)
             {
-                if (includeDefaults)
+                var profile = profileList[i];
+                if (!ArtifactToolIDUtil.TryParseID(profile.Tool, out var toolID))
                 {
-                    var profile = profileList[0];
-                    var properties = new Dictionary<string, JsonElement>();
-                    _defaultPropertyProvider.WriteDefaultProperties(profile.GetID(), properties);
-                    if (profile.Options is { } options)
-                    {
-                        foreach (var pair in options)
-                        {
-                            properties[pair.Key] = pair.Value;
-                        }
-                    }
-
-                    WriteOutput($"Properties for {profileString}", properties, simple);
+                    PrintErrorMessage($"Unable to parse tool string \"{profile.Tool}\" in profile index {i}", ToolOutput);
+                    return Task.FromResult(1);
                 }
-                else
+                switch (listingSettings)
                 {
-                    WriteOutput($"Properties for {profileString}",
-                        profileList[0].Options ?? ImmutableDictionary<string, JsonElement>.Empty, simple);
-                }
-            }
-            else
-            {
-                for (int i = 0; i < profileList.Count; i++)
-                {
-                    if (includeDefaults)
-                    {
-                        var profile = profileList[i];
-                        var properties = new Dictionary<string, JsonElement>();
-                        _defaultPropertyProvider.WriteDefaultProperties(profile.GetID(), properties);
-                        if (profile.Options is { } options)
+                    case ScopedListingSettings scopedListingSettings:
                         {
-                            foreach (var pair in options)
+                            if (scopedListingSettings.IgnoreBaseTypes)
                             {
-                                properties[pair.Key] = pair.Value;
+                                foreach (var v in _toolPropertyProvider.GetProperties(toolID, scopedListingSettings.ConfigScopeFlags))
+                                {
+                                    ToolOutput.Out.WriteLine(propertyFormatter.FormatProperty(i, profile, toolID, v));
+                                }
                             }
+                            else
+                            {
+                                foreach (var v in TeslerPropertyUtility.GetPropertiesDeep(_registryStore, _toolPropertyProvider, ToolOutput, toolID, scopedListingSettings.ConfigScopeFlags))
+                                {
+                                    ToolOutput.Out.WriteLine(propertyFormatter.FormatProperty(i, profile, toolID, v));
+                                }
+                            }
+                            if ((scopedListingSettings.ConfigScopeFlags & ConfigScopeFlags.Profile) != 0 && profile.Options != null)
+                            {
+                                foreach (var v in profile.Options)
+                                {
+                                    ToolOutput.Out.WriteLine(propertyFormatter.FormatProperty(i, profile, toolID, new ConfigProperty(ConfigScope.Profile, v.Key, v.Value)));
+                                }
+                            }
+                            break;
                         }
-
-                        WriteOutput($"Properties for {profileString}:{i}", properties, simple);
-                    }
-                    else
-                    {
-                        WriteOutput($"Properties for {profileString}:{i}",
-                            profileList[i].Options ?? ImmutableDictionary<string, JsonElement>.Empty, simple);
-                    }
+                    case EffectiveListingSettings:
+                        {
+                            var map = new Dictionary<string, ConfigProperty>();
+                            foreach (var v in TeslerPropertyUtility.GetPropertiesDeep(_registryStore, _toolPropertyProvider, ToolOutput, toolID, ConfigScopeFlags.All))
+                            {
+                                map[v.Key] = v;
+                            }
+                            if (profile.Options != null)
+                            {
+                                foreach (var v in profile.Options)
+                                {
+                                    map[v.Key] = new ConfigProperty(ConfigScope.Profile, v.Key, v.Value);
+                                }
+                            }
+                            foreach (var v in map.Values)
+                            {
+                                ToolOutput.Out.WriteLine(propertyFormatter.FormatProperty(i, profile, toolID, v));
+                            }
+                            break;
+                        }
+                    default:
+                        throw new InvalidOperationException($"Invalid listing setting type {listingSettings?.GetType()}");
                 }
             }
-
             return Task.FromResult(0);
-        }
-
-        return Task.FromResult(0);
-    }
-
-    protected void WriteOutput(string title, IEnumerable<KeyValuePair<string, JsonElement>> properties, bool simple)
-    {
-        if (simple)
-        {
-            foreach ((string? key, JsonElement value) in properties)
-            {
-                ToolOutput.Out.Write(key);
-                ToolOutput.Out.Write("=");
-                ToolOutput.Out.WriteLine(value.ToString());
-            }
         }
         else
         {
-            ToolOutput.Out.Write(title);
-            ToolOutput.Out.WriteLine(":");
-            foreach ((string? key, JsonElement value) in properties)
+            switch (listingSettings)
             {
-                ToolOutput.Out.WriteLine($"- {key}: {value.ToString()}");
+                case ScopedListingSettings scopedListingSettings:
+                    {
+                        foreach (var v in _runnerPropertyProvider.GetProperties(scopedListingSettings.ConfigScopeFlags))
+                        {
+                            ToolOutput.Out.WriteLine(propertyFormatter.FormatProperty(v));
+                        }
+                        break;
+                    }
+                case EffectiveListingSettings:
+                    {
+                        Dictionary<string, ConfigProperty> map = new();
+                        foreach (var v in _runnerPropertyProvider.GetProperties(ConfigScopeFlags.All))
+                        {
+                            map[v.Key] = v;
+                        }
+                        foreach (var v in map.Values)
+                        {
+                            ToolOutput.Out.WriteLine(propertyFormatter.FormatProperty(v));
+                        }
+                        break;
+                    }
+                default:
+                    throw new InvalidOperationException($"Invalid listing setting type {listingSettings?.GetType()}");
             }
+            return Task.FromResult(0);
         }
     }
 
-    private static string GetOptionAliasList(IEnumerable<Option> options, string separator = ", ")
+    private record ListingSettings;
+    private record ScopedListingSettings(ConfigScopeFlags ConfigScopeFlags, bool IgnoreBaseTypes) : ListingSettings;
+    private record EffectiveListingSettings : ListingSettings;
+
+    private ListingSettings GetListingSettings(InvocationContext context)
     {
-        return new StringBuilder()
-            .AppendJoin(separator, options.Select(v => v.Aliases.FirstOrDefault() ?? v.Name))
-            .ToString();
+        if (context.ParseResult.GetValueForOption(EffectiveOption))
+        {
+            return new EffectiveListingSettings();
+        }
+        ConfigScopeFlags? activeFlags = null;
+        if (context.ParseResult.GetValueForOption(AllOption))
+        {
+            activeFlags = (activeFlags ?? ConfigScopeFlags.None) | ConfigScopeFlags.All;
+        }
+        if (context.ParseResult.GetValueForOption(LocalOption))
+        {
+            activeFlags = (activeFlags ?? ConfigScopeFlags.None) | ConfigScopeFlags.Local;
+        }
+        if (context.ParseResult.GetValueForOption(GlobalOption))
+        {
+            activeFlags = (activeFlags ?? ConfigScopeFlags.None) | ConfigScopeFlags.Global;
+        }
+        if (context.ParseResult.GetValueForOption(ProfileOption))
+        {
+            activeFlags = (activeFlags ?? ConfigScopeFlags.None) | ConfigScopeFlags.Profile;
+        }
+        if (activeFlags is { } flags)
+        {
+            return new ScopedListingSettings(flags, context.ParseResult.GetValueForOption(IgnoreBaseTypesOption));
+        }
+        return new EffectiveListingSettings();
     }
 }

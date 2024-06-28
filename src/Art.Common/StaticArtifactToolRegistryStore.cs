@@ -1,4 +1,6 @@
-﻿namespace Art.Common;
+﻿using System.Diagnostics.CodeAnalysis;
+
+namespace Art.Common;
 
 /// <summary>
 /// Represents a store of a single <see cref="IArtifactToolRegistry"/>.
@@ -14,13 +16,15 @@ public class StaticArtifactToolRegistryStore : IArtifactToolRegistryStore
     public StaticArtifactToolRegistryStore(IArtifactToolRegistry artifactToolRegistry) => _artifactToolRegistry = artifactToolRegistry;
 
     /// <inheritdoc />
-    public IArtifactToolRegistry LoadRegistry(ArtifactToolID artifactToolId)
+    public bool TryLoadRegistry(ArtifactToolID artifactToolId, [NotNullWhen(true)] out IArtifactToolRegistry? artifactToolRegistry)
     {
         if (!_artifactToolRegistry.Contains(artifactToolId))
         {
-            throw new ArtUserException($"Registry does not contain an artifact tool with the ID {artifactToolId}");
+            artifactToolRegistry = null;
+            return false;
         }
-        return _artifactToolRegistry;
+        artifactToolRegistry = _artifactToolRegistry;
+        return true;
     }
 
     /// <inheritdoc />

@@ -113,4 +113,48 @@ public static class ArtifactToolLoader
             return false;
         }
     }
+
+    /// <summary>
+    /// Attempts to get the <see cref="Type"/> of an artifact tool from an assembly name and tool type name.
+    /// </summary>
+    /// <param name="assemblyLoadContext">Custom <see cref="AssemblyLoadContext"/>.</param>
+    /// <param name="artifactToolId">Artifact tool ID.</param>
+    /// <param name="type">Type.</param>
+    /// <returns>True if successfully located and created a tool.</returns>
+    [RequiresUnreferencedCode($"Loading artifact tools might require types that cannot be statically analyzed. Consider using {nameof(IArtifactToolRegistry)} where possible.")]
+    public static bool TryGetType(AssemblyLoadContext assemblyLoadContext, ArtifactToolID artifactToolId, [NotNullWhen(true)] out Type? type)
+    {
+        try
+        {
+            Assembly assembly = assemblyLoadContext.LoadFromAssemblyName(new AssemblyName(artifactToolId.Assembly));
+            return TryGetType(assembly, artifactToolId, out type);
+        }
+        catch
+        {
+            type = null;
+            return false;
+        }
+    }
+
+    /// <summary>
+    /// Attempts to et the <see cref="Type"/> of an artifact tool from an assembly and tool type name.
+    /// </summary>
+    /// <param name="assembly">Assembly.</param>
+    /// <param name="artifactToolId">Artifact tool ID.</param>
+    /// <param name="type">Type.</param>
+    /// <returns>True if successfully located and created a tool.</returns>
+    [RequiresUnreferencedCode($"Loading artifact tools might require types that cannot be statically analyzed. Consider using {nameof(IArtifactToolRegistry)} where possible.")]
+    public static bool TryGetType(Assembly assembly, ArtifactToolID artifactToolId, [NotNullWhen(true)] out Type? type)
+    {
+        try
+        {
+            type = assembly.GetType(artifactToolId.Type);
+            return type != null;
+        }
+        catch
+        {
+            type = null;
+            return false;
+        }
+    }
 }

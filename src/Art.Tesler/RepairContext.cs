@@ -18,7 +18,7 @@ public class RepairContext : ToolControlContext
         _l = l;
     }
 
-    public async Task<bool> RepairAsync(List<ArtifactToolProfile> profiles, bool detailed, ChecksumSource? checksumSource, IOutputPair console)
+    public async Task<bool> RepairAsync(List<ArtifactToolProfile> profiles, bool detailed, ChecksumSource? checksumSource, IOutputControl console)
     {
         foreach (ArtifactToolProfile originalProfile in profiles)
         {

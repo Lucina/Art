@@ -4,6 +4,7 @@ using System.CommandLine.Parsing;
 using Art.Common;
 using Art.Common.Management;
 using Art.Common.Proxies;
+using Art.Tesler.Properties;
 
 namespace Art.Tesler;
 
@@ -22,19 +23,19 @@ public class ListCommand : ToolCommandBase
     public ListCommand(
         IToolLogHandlerProvider toolLogHandlerProvider,
         IArtifactToolRegistryStore pluginStore,
-        IDefaultPropertyProvider defaultPropertyProvider
+        IToolPropertyProvider toolPropertyProvider
     )
-        : this(toolLogHandlerProvider, pluginStore, defaultPropertyProvider, "list", "Execute artifact list tools.")
+        : this(toolLogHandlerProvider, pluginStore, toolPropertyProvider, "list", "Execute artifact list tools.")
     {
     }
 
     public ListCommand(
         IToolLogHandlerProvider toolLogHandlerProvider,
         IArtifactToolRegistryStore pluginStore,
-        IDefaultPropertyProvider defaultPropertyProvider,
+        IToolPropertyProvider toolPropertyProvider,
         string name,
         string? description = null)
-        : base(toolLogHandlerProvider, pluginStore, defaultPropertyProvider, name, description)
+        : base(toolLogHandlerProvider, pluginStore, toolPropertyProvider, name, description)
     {
         ProfileFileOption = new Option<string>(new[] { "-i", "--input" }, "Profile file") { ArgumentHelpName = "file" };
         AddOption(ProfileFileOption);

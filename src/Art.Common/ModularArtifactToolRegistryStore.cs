@@ -20,14 +20,16 @@ public class ModularArtifactToolRegistryStore : IArtifactToolRegistryStore
     }
 
     /// <inheritdoc />
-    public IArtifactToolRegistry LoadRegistry(ArtifactToolID artifactToolId)
+    public bool TryLoadRegistry(ArtifactToolID artifactToolId, [NotNullWhen(true)] out IArtifactToolRegistry? artifactToolRegistry)
     {
         string assembly = artifactToolId.Assembly;
         if (!_moduleProvider.TryLocateModule(assembly, out var module))
         {
-            throw new ArtUserException($"No applicable manifest for the assembly {assembly} could be found.");
+            artifactToolRegistry = null;
+            return false;
         }
-        return _moduleProvider.LoadModule(module);
+        artifactToolRegistry = _moduleProvider.LoadModule(module);
+        return true;
     }
 
     /// <inheritdoc />

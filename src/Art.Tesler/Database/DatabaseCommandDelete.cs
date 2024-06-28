@@ -13,7 +13,7 @@ public class DatabaseCommandDelete : DatabaseCommandBase
     protected Option<bool> DoDeleteOption;
 
     public DatabaseCommandDelete(
-        IOutputPair toolOutput,
+        IOutputControl toolOutput,
         ITeslerRegistrationProvider registrationProvider,
         string name,
         string? description = null)

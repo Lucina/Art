@@ -6,13 +6,20 @@ public abstract class ToolLogHandlerProviderBase : IToolLogHandlerProvider
 
     public TextWriter Out { get; }
 
+    public TextWriter Warn { get; }
+
     public TextWriter Error { get; }
 
     public Func<Stream> OutStreamAccessFunc { get; }
 
-    protected ToolLogHandlerProviderBase(TextWriter outWriter, TextWriter errorWriter, Func<Stream> outStreamAccessFunc)
+    protected ToolLogHandlerProviderBase(
+        TextWriter outWriter,
+        TextWriter warnWriter,
+        TextWriter errorWriter,
+        Func<Stream> outStreamAccessFunc)
     {
         Out = outWriter;
+        Warn = warnWriter;
         Error = errorWriter;
         OutStreamAccessFunc = outStreamAccessFunc;
     }

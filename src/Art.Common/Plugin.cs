@@ -71,6 +71,12 @@ public class Plugin : IArtifactToolSelectableRegistry<string>
     }
 
     /// <inheritdoc />
+    public bool TryGetType(ArtifactToolID artifactToolId, [NotNullWhen(true)] out Type? type)
+    {
+        return ArtifactToolLoader.TryGetType(Context, artifactToolId, out type);
+    }
+
+    /// <inheritdoc />
     public bool TryLoad(ArtifactToolID artifactToolId, [NotNullWhen(true)] out IArtifactTool? tool)
     {
         return ArtifactToolLoader.TryLoad(Context, artifactToolId, out tool);

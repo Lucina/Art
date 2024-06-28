@@ -4,6 +4,7 @@ using System.CommandLine.Parsing;
 using Art.Common;
 using Art.Common.Management;
 using Art.Common.Proxies;
+using Art.Tesler.Properties;
 
 namespace Art.Tesler;
 
@@ -24,19 +25,19 @@ public class FindCommand : ToolCommandBase
     public FindCommand(
         IToolLogHandlerProvider toolLogHandlerProvider,
         IArtifactToolRegistryStore pluginStore,
-        IDefaultPropertyProvider defaultPropertyProvider
+        IToolPropertyProvider toolPropertyProvider
     )
-        : this(toolLogHandlerProvider, pluginStore, defaultPropertyProvider, "find", "Execute artifact finder tools.")
+        : this(toolLogHandlerProvider, pluginStore, toolPropertyProvider, "find", "Execute artifact finder tools.")
     {
     }
 
     public FindCommand(
         IToolLogHandlerProvider toolLogHandlerProvider,
         IArtifactToolRegistryStore pluginStore,
-        IDefaultPropertyProvider defaultPropertyProvider,
+        IToolPropertyProvider toolPropertyProvider,
         string name,
         string? description = null) :
-        base(toolLogHandlerProvider, pluginStore, defaultPropertyProvider, name, description)
+        base(toolLogHandlerProvider, pluginStore, toolPropertyProvider, name, description)
     {
         IdsArg = new Argument<List<string>>("ids", "IDs") { HelpName = "id", Arity = ArgumentArity.OneOrMore };
         AddArgument(IdsArg);

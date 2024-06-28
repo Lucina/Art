@@ -15,7 +15,7 @@ public class CookieCommandExtract : CommandBase
     protected Option<string> OutputOption;
     protected Option<bool> NoSubdomainsOption;
 
-    public CookieCommandExtract(IOutputPair toolOutput, string name, string? description = null) : base(toolOutput, name, description)
+    public CookieCommandExtract(IOutputControl toolOutput, string name, string? description = null) : base(toolOutput, name, description)
     {
         BrowserOption = new Option<string>(new[] { "-b", "--browser" }, "Browser name") { ArgumentHelpName = "name", IsRequired = true };
         AddOption(BrowserOption);

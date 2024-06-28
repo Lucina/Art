@@ -1,6 +1,8 @@
 ﻿using System.CommandLine;
 using System.Diagnostics.CodeAnalysis;
 using Art.Common.Resources;
+using Art.Tesler.Profiles;
+using Art.Tesler.Properties;
 using Art.TestsBase;
 
 namespace Art.Tesler.Tests;
@@ -17,20 +19,20 @@ public class StreamCommandTests : CommandTestBase
     protected void InitCommandDefault(
         IToolLogHandlerProvider toolLogHandlerProvider,
         IArtifactToolRegistryStore artifactToolRegistryStore,
-        IDefaultPropertyProvider defaultPropertyProvider,
+        IToolPropertyProvider toolPropertyProvider,
         IProfileResolver profileResolver)
     {
-        Command = new StreamCommand(toolLogHandlerProvider, artifactToolRegistryStore, defaultPropertyProvider, profileResolver);
+        Command = new StreamCommand(toolLogHandlerProvider, artifactToolRegistryStore, toolPropertyProvider, profileResolver);
     }
 
     [Test]
     public void NoProfilesPassed_Fails()
     {
         var store = GetEmptyStore();
-        var defaultPropertyProvider = CreateInMemoryDefaultPropertyProvider();
+        var toolPropertyProvider = CreateInMemoryPropertyProvider();
         var profileResolver = CreateDictionaryProfileResolver();
         CreateStreamOutputs(out var toolOutput, out var console);
-        InitCommandDefault(toolOutput, store, defaultPropertyProvider, profileResolver);
+        InitCommandDefault(toolOutput, store, toolPropertyProvider, profileResolver);
         int rc = Command.Invoke(Array.Empty<string>(), console);
         Assert.That(Out.ToString(), Is.Not.Empty);
         Assert.That(Error.ToString(), Is.Not.Empty);
@@ -41,10 +43,10 @@ public class StreamCommandTests : CommandTestBase
     public void ItemPassed_Unmatched_Fails()
     {
         var store = GetEmptyStore();
-        var defaultPropertyProvider = CreateInMemoryDefaultPropertyProvider();
+        var toolPropertyProvider = CreateInMemoryPropertyProvider();
         var profileResolver = CreateDictionaryProfileResolver();
         CreateStreamOutputs(out var toolOutput, out var console);
-        InitCommandDefault(toolOutput, store, defaultPropertyProvider, profileResolver);
+        InitCommandDefault(toolOutput, store, toolPropertyProvider, profileResolver);
         string[] line = { BadProfileName };
         int rc = Command.Invoke(line, console);
         Assert.That(Out.ToString(), Is.Empty);
@@ -56,10 +58,10 @@ public class StreamCommandTests : CommandTestBase
     public void ItemPassed_Matches_WithNoResultingProfiles_Fails()
     {
         var store = GetEmptyStore();
-        var defaultPropertyProvider = CreateInMemoryDefaultPropertyProvider();
+        var toolPropertyProvider = CreateInMemoryPropertyProvider();
         var profileResolver = CreateDictionaryProfileResolver(ProfileName);
         CreateStreamOutputs(out var toolOutput, out var console);
-        InitCommandDefault(toolOutput, store, defaultPropertyProvider, profileResolver);
+        InitCommandDefault(toolOutput, store, toolPropertyProvider, profileResolver);
         string[] line = { ProfileName };
         int rc = Command.Invoke(line, console);
         Assert.That(Out.ToString(), Is.Empty);
@@ -71,10 +73,10 @@ public class StreamCommandTests : CommandTestBase
     public void ItemPassed_Matches_WithMultipleResultingProfiles_Fails()
     {
         var store = GetEmptyStore();
-        var defaultPropertyProvider = CreateInMemoryDefaultPropertyProvider();
+        var toolPropertyProvider = CreateInMemoryPropertyProvider();
         var profileResolver = CreateDictionaryProfileResolver(ProfileName, new ArtifactToolProfile("X1", "X2", null), new ArtifactToolProfile("X1", "X3", null));
         CreateStreamOutputs(out var toolOutput, out var console);
-        InitCommandDefault(toolOutput, store, defaultPropertyProvider, profileResolver);
+        InitCommandDefault(toolOutput, store, toolPropertyProvider, profileResolver);
         string[] line = { ProfileName };
         int rc = Command.Invoke(line, console);
         Assert.That(Out.ToString(), Is.Empty);
@@ -88,10 +90,10 @@ public class StreamCommandTests : CommandTestBase
         byte[] data = new byte[128];
         Random.Shared.NextBytes(data);
         var store = GetSingleStore(ProgrammableArtifactListTool.CreateRegistryEntry(s_toolId, v => new List<IArtifactData> { CommitStreamArtifact(v, new MemoryStream(data, true)) }));
-        var defaultPropertyProvider = CreateInMemoryDefaultPropertyProvider();
+        var toolPropertyProvider = CreateInMemoryPropertyProvider();
         var profileResolver = CreateDictionaryProfileResolver(ProfileName, new ArtifactToolProfile(s_toolId.GetToolString(), null, null));
         CreateStreamOutputs(out var toolOutput, out var console);
-        InitCommandDefault(toolOutput, store, defaultPropertyProvider, profileResolver);
+        InitCommandDefault(toolOutput, store, toolPropertyProvider, profileResolver);
         string[] line = { ProfileName };
         int rc = Command.Invoke(line, console);
         Assert.That(Out.ToString(), Is.Empty);
@@ -105,10 +107,10 @@ public class StreamCommandTests : CommandTestBase
     public void ItemPassed_Matches_WithOneResultingProfile_ProfileValid_BadToolType_Fails()
     {
         var store = GetSingleStore(ProgrammableArtifactFindTool.CreateRegistryEntry(s_toolId, (_, _) => null));
-        var defaultPropertyProvider = CreateInMemoryDefaultPropertyProvider();
+        var toolPropertyProvider = CreateInMemoryPropertyProvider();
         var profileResolver = CreateDictionaryProfileResolver(ProfileName, new ArtifactToolProfile(s_toolId.GetToolString(), null, null));
         CreateStreamOutputs(out var toolOutput, out var console);
-        InitCommandDefault(toolOutput, store, defaultPropertyProvider, profileResolver);
+        InitCommandDefault(toolOutput, store, toolPropertyProvider, profileResolver);
         string[] line = { ProfileName };
         int rc = Command.Invoke(line, console);
         Assert.That(Out.ToString(), Is.Empty);
@@ -120,10 +122,10 @@ public class StreamCommandTests : CommandTestBase
     public void ItemPassed_Matches_WithOneResultingProfile_ProfileValid_NoArtifacts_Fails()
     {
         var store = GetSingleStore(ProgrammableArtifactListTool.CreateRegistryEntry(s_toolId, _ => new List<IArtifactData>()));
-        var defaultPropertyProvider = CreateInMemoryDefaultPropertyProvider();
+        var toolPropertyProvider = CreateInMemoryPropertyProvider();
         var profileResolver = CreateDictionaryProfileResolver(ProfileName, new ArtifactToolProfile(s_toolId.GetToolString(), null, null));
         CreateStreamOutputs(out var toolOutput, out var console);
-        InitCommandDefault(toolOutput, store, defaultPropertyProvider, profileResolver);
+        InitCommandDefault(toolOutput, store, toolPropertyProvider, profileResolver);
         string[] line = { ProfileName };
         int rc = Command.Invoke(line, console);
         Assert.That(Out.ToString(), Is.Empty);
@@ -135,10 +137,10 @@ public class StreamCommandTests : CommandTestBase
     public void ItemPassed_Matches_WithOneResultingProfile_ProfileValid_MultiArtifacts_Fails()
     {
         var store = GetSingleStore(ProgrammableArtifactListTool.CreateRegistryEntry(s_toolId, v => new List<IArtifactData> { CommitStreamArtifact(v, new MemoryStream()), CommitStreamArtifact(v, new MemoryStream()) }));
-        var defaultPropertyProvider = CreateInMemoryDefaultPropertyProvider();
+        var toolPropertyProvider = CreateInMemoryPropertyProvider();
         var profileResolver = CreateDictionaryProfileResolver(ProfileName, new ArtifactToolProfile(s_toolId.GetToolString(), null, null));
         CreateStreamOutputs(out var toolOutput, out var console);
-        InitCommandDefault(toolOutput, store, defaultPropertyProvider, profileResolver);
+        InitCommandDefault(toolOutput, store, toolPropertyProvider, profileResolver);
         string[] line = { ProfileName };
         int rc = Command.Invoke(line, console);
         Assert.That(Out.ToString(), Is.Empty);
@@ -150,10 +152,10 @@ public class StreamCommandTests : CommandTestBase
     public void ItemPassed_Matches_WithOneResultingProfile_ProfileInvalid_Fails()
     {
         var store = GetSingleStore(ProgrammableArtifactListTool.CreateRegistryEntry(s_toolId, _ => new List<IArtifactData>()));
-        var defaultPropertyProvider = CreateInMemoryDefaultPropertyProvider();
+        var toolPropertyProvider = CreateInMemoryPropertyProvider();
         var profileResolver = CreateDictionaryProfileResolver(ProfileName, new ArtifactToolProfile(s_badToolId.GetToolString(), null, null));
         CreateStreamOutputs(out var toolOutput, out var console);
-        InitCommandDefault(toolOutput, store, defaultPropertyProvider, profileResolver);
+        InitCommandDefault(toolOutput, store, toolPropertyProvider, profileResolver);
         string[] line = { ProfileName };
         int rc = Command.Invoke(line, console);
         Assert.That(Out.ToString(), Is.Empty);

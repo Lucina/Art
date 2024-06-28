@@ -15,10 +15,18 @@ public interface IArtifactToolRegistry
     bool Contains(ArtifactToolID artifactToolId);
 
     /// <summary>
+    /// Attempts to get the <see cref="Type"/> of the artifact tool for the specified name.
+    /// </summary>
+    /// <param name="artifactToolId">Artifact tool ID.</param>
+    /// <param name="type"><see cref="Type"/> of the artifact tool, if successful.</param>
+    /// <returns>True if successful.</returns>
+    bool TryGetType(ArtifactToolID artifactToolId, [NotNullWhen(true)] out Type? type);
+
+    /// <summary>
     /// Attempts to create an artifact tool for the specified name.
     /// </summary>
     /// <param name="artifactToolId">Artifact tool ID.</param>
-    /// <param name="tool">Crated artifact tool, if successful.</param>
+    /// <param name="tool">Created artifact tool, if successful.</param>
     /// <returns>True if successful.</returns>
     bool TryLoad(ArtifactToolID artifactToolId, [NotNullWhen(true)] out IArtifactTool? tool);
 

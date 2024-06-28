@@ -3,6 +3,7 @@ using System.Text.Json;
 using System.Text.RegularExpressions;
 using Art.BrowserCookies;
 using Art.Common;
+using Art.Tesler.Properties;
 using EA;
 
 namespace Art.Tesler;
@@ -21,7 +22,7 @@ internal static class Common
         return errorCode != 0 ? errorCode : existingErrorCode;
     }
 
-    internal static async Task DisplayAsync(ArtifactInfo i, bool listResource, IArtifactRegistrationManager arm, bool detailed, IOutputPair console)
+    internal static async Task DisplayAsync(ArtifactInfo i, bool listResource, IArtifactRegistrationManager arm, bool detailed, IOutputControl console)
     {
         Display(i, detailed, console);
         if (listResource)
@@ -29,7 +30,7 @@ internal static class Common
                 Display(r, detailed, console);
     }
 
-    internal static Task DisplayAsync(IArtifactData d, bool listResource, bool detailed, IOutputPair console)
+    internal static Task DisplayAsync(IArtifactData d, bool listResource, bool detailed, IOutputControl console)
     {
         if (console is ObjectToolLogHandlerProvider provider)
         {
@@ -45,7 +46,7 @@ internal static class Common
         return Task.CompletedTask;
     }
 
-    private static async Task DisplayAsync(ArtifactInfo i, IEnumerable<ArtifactResourceInfo> resources, bool detailed, IOutputPair console)
+    private static async Task DisplayAsync(ArtifactInfo i, IEnumerable<ArtifactResourceInfo> resources, bool detailed, IOutputControl console)
     {
         Display(i, detailed, console);
         foreach (ArtifactResourceInfo r in resources)
@@ -69,7 +70,7 @@ internal static class Common
         }
     }
 
-    internal static void PrintFormat(string entry, bool detailed, Func<string> details, IOutputPair console)
+    internal static void PrintFormat(string entry, bool detailed, Func<string> details, IOutputControl console)
     {
         console.Out.WriteLine(entry);
         if (detailed)
@@ -80,19 +81,51 @@ internal static class Common
         }
     }
 
-    private static void Display(ArtifactInfo i, bool detailed, IOutputPair console)
+    private static void Display(ArtifactInfo i, bool detailed, IOutputControl console)
     {
         PrintFormat(i.Key.Tool + "/" + i.Key.Group + ": " + i.GetInfoTitleString(), detailed, i.GetInfoString, console);
     }
 
-    internal static void Display(ArtifactResourceInfo r, bool detailed, IOutputPair console)
+    internal static void Display(ArtifactResourceInfo r, bool detailed, IOutputControl console)
     {
         PrintFormat("-- " + r.GetInfoPathString(), detailed, r.GetInfoString, console);
     }
 
+    internal static JsonElement ParsePropToJsonElement(string prop)
+    {
+        if (prop.StartsWith('{') || prop.StartsWith('[') || prop.StartsWith('"'))
+        {
+            return JsonSerializer.Deserialize(prop, SourceGenerationContext.s_context.JsonElement);
+        }
+        else if (long.TryParse(prop, out long valLong))
+        {
+            return JsonSerializer.SerializeToElement(valLong, SourceGenerationContext.s_context.Int64);
+        }
+        else if (ulong.TryParse(prop, out ulong valULong))
+        {
+            return JsonSerializer.SerializeToElement(valULong, SourceGenerationContext.s_context.UInt64);
+        }
+        else if (double.TryParse(prop, out double valDouble))
+        {
+            return JsonSerializer.SerializeToElement(valDouble, SourceGenerationContext.s_context.Double);
+        }
+        else if (string.Equals(prop, "true", StringComparison.InvariantCulture))
+        {
+            return JsonSerializer.SerializeToElement(true, SourceGenerationContext.s_context.Boolean);
+        }
+        else if (string.Equals(prop, "false", StringComparison.InvariantCulture))
+        {
+            return JsonSerializer.SerializeToElement(false, SourceGenerationContext.s_context.Boolean);
+        }
+        else
+        {
+            return JsonSerializer.SerializeToElement(prop, SourceGenerationContext.s_context.String);
+        }
+    }
+
     private static readonly Regex s_propRe = new(@"(.+?):(.+)");
 
-    internal static void AddProps(this Dictionary<string, JsonElement> dictionary, IEnumerable<string> props, IOutputPair console)
+    internal static void AddProps(this Dictionary<string, JsonElement> dictionary, IEnumerable<string> props, IOutputControl console)
     {
         foreach (string prop in props)
         {
@@ -102,42 +135,13 @@ internal static class Common
             }
             string k = match.Groups[1].Value;
             string val = match.Groups[2].Value;
-            JsonElement v;
-            if (val.StartsWith('{') || val.StartsWith('['))
-            {
-                v = JsonSerializer.Deserialize(val, SourceGenerationContext.s_context.JsonElement);
-            }
-            else if (long.TryParse(val, out long valLong))
-            {
-                v = JsonSerializer.SerializeToElement(valLong, SourceGenerationContext.s_context.Int64);
-            }
-            else if (ulong.TryParse(val, out ulong valULong))
-            {
-                v = JsonSerializer.SerializeToElement(valULong, SourceGenerationContext.s_context.UInt64);
-            }
-            else if (double.TryParse(val, out double valDouble))
-            {
-                v = JsonSerializer.SerializeToElement(valDouble, SourceGenerationContext.s_context.Double);
-            }
-            else if (string.Equals(val, "true", StringComparison.InvariantCulture))
-            {
-                v = JsonSerializer.SerializeToElement(true, SourceGenerationContext.s_context.Boolean);
-            }
-            else if (string.Equals(val, "false", StringComparison.InvariantCulture))
-            {
-                v = JsonSerializer.SerializeToElement(false, SourceGenerationContext.s_context.Boolean);
-            }
-            else
-            {
-                v = JsonSerializer.SerializeToElement(val, SourceGenerationContext.s_context.String);
-            }
-            dictionary.AddPropWithWarning(k, v, console);
+            dictionary.AddPropWithWarning(k, ParsePropToJsonElement(val), console);
         }
     }
 
-    private static void AddPropWithWarning(this Dictionary<string, JsonElement> dictionary, string k, JsonElement v, IOutputPair console)
+    private static void AddPropWithWarning(this Dictionary<string, JsonElement> dictionary, string k, JsonElement v, IOutputControl console)
     {
-        if (dictionary.ContainsKey(k)) console.Out.WriteLine($@"Warning: property {k} already exists with value ""{dictionary[k].ToString()}"", overwriting");
+        if (dictionary.ContainsKey(k)) console.Warn.WriteLine($@"Warning: property {k} already exists with value ""{dictionary[k].ToString()}"", overwriting");
         dictionary[k] = v;
     }
 
@@ -192,17 +196,19 @@ internal static class Common
             .ToString();
     }
 
-    internal static ArtifactToolProfile GetWithConsoleOptions(this ArtifactToolProfile artifactToolProfile,
-        IDefaultPropertyProvider? defaultPropertyProvider,
+    internal static ArtifactToolProfile GetWithConsoleOptions(
+        this ArtifactToolProfile artifactToolProfile,
+        IArtifactToolRegistryStore registryStore,
+        IToolPropertyProvider? toolPropertyProvider,
         IEnumerable<string> properties,
         string? cookieFile,
         string? userAgent,
-        IOutputPair console)
+        IOutputControl console)
     {
         Dictionary<string, JsonElement> opts = new();
-        if (defaultPropertyProvider != null)
+        if (toolPropertyProvider != null)
         {
-            defaultPropertyProvider.WriteDefaultProperties(artifactToolProfile.GetID(), opts);
+            TeslerPropertyUtility.ApplyPropertiesDeep(registryStore, toolPropertyProvider, console, opts, artifactToolProfile.GetID());
         }
         if (artifactToolProfile.Options != null)
         {

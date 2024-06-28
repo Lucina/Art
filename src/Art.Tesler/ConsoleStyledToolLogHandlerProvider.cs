@@ -10,8 +10,14 @@ public class ConsoleStyledToolLogHandlerProvider : ToolLogHandlerProviderBase
     private readonly Func<bool> _errorRedirectedFunc;
     private readonly Func<int> _widthFunc;
 
-    public ConsoleStyledToolLogHandlerProvider(TextWriter outWriter, TextWriter errorWriter, Func<bool> errorRedirectedFunc, Func<int> widthFunc, Func<Stream> outStreamAccessFunc)
-        : base(outWriter, errorWriter, outStreamAccessFunc)
+    public ConsoleStyledToolLogHandlerProvider(
+        TextWriter outWriter,
+        TextWriter warnWriter,
+        TextWriter errorWriter,
+        Func<bool> errorRedirectedFunc,
+        Func<int> widthFunc,
+        Func<Stream> outStreamAccessFunc)
+        : base(outWriter, warnWriter, errorWriter, outStreamAccessFunc)
     {
         _errorRedirectedFunc = errorRedirectedFunc;
         _widthFunc = widthFunc;
@@ -19,12 +25,12 @@ public class ConsoleStyledToolLogHandlerProvider : ToolLogHandlerProviderBase
 
     public override IToolLogHandler GetStreamToolLogHandler()
     {
-        return new ConsoleStyledLogHandler(Out, Error, true, _errorRedirectedFunc, _widthFunc, true);
+        return new ConsoleStyledLogHandler(Out, Warn, Error, true, _errorRedirectedFunc, _widthFunc, true);
     }
 
     public override IToolLogHandler GetDefaultToolLogHandler()
     {
-        return new ConsoleStyledLogHandler(Out, Error, false, _errorRedirectedFunc, _widthFunc, false, OperatingSystem.IsMacOS());
+        return new ConsoleStyledLogHandler(Out, Warn, Error, false, _errorRedirectedFunc, _widthFunc, false, OperatingSystem.IsMacOS());
     }
 }
 
@@ -36,7 +42,16 @@ public class ConsoleStyledLogHandler : StyledLogHandler
     private static readonly Guid s_downloadOperation = Guid.ParseExact("c6d42b18f0ae452385f180aa74e9ef29", "N");
     private static readonly Guid s_operationWaitingForResult = Guid.ParseExact("4fd5c851a88c430c8f8da54dbcf70ab2", "N");
 
-    public ConsoleStyledLogHandler(TextWriter outWriter, TextWriter errorWriter, bool forceFallback, Func<bool> errorRedirectedFunc, Func<int> widthFunc, bool alwaysPrintToErrorStream, bool enableFancy = false) : base(outWriter, errorWriter, alwaysPrintToErrorStream, enableFancy)
+    public ConsoleStyledLogHandler(
+        TextWriter outWriter,
+        TextWriter warnWriter,
+        TextWriter errorWriter,
+        bool forceFallback,
+        Func<bool> errorRedirectedFunc,
+        Func<int> widthFunc,
+        bool alwaysPrintToErrorStream,
+        bool enableFancy = false)
+        : base(outWriter, warnWriter, errorWriter, alwaysPrintToErrorStream, enableFancy)
     {
         _forceFallback = forceFallback;
         _errorRedirectedFunc = errorRedirectedFunc;

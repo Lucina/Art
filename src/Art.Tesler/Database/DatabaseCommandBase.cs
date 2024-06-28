@@ -25,7 +25,7 @@ public abstract class DatabaseCommandBase : CommandBase
     protected Option<bool> DetailedOption;
 
     protected DatabaseCommandBase(
-        IOutputPair toolOutput,
+        IOutputControl toolOutput,
         ITeslerRegistrationProvider registrationProvider,
         string name,
         string? description = null)

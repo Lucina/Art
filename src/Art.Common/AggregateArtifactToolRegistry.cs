@@ -95,6 +95,20 @@ public class AggregateArtifactToolRegistry : IArtifactToolSelectableRegistry<str
     }
 
     /// <inheritdoc />
+    public bool TryGetType(ArtifactToolID artifactToolId, [NotNullWhen(true)] out Type? type)
+    {
+        for (int i = _registries.Count - 1; i >= 0; i--)
+        {
+            if (_registries[i].TryGetType(artifactToolId, out type))
+            {
+                return true;
+            }
+        }
+        type = null;
+        return false;
+    }
+
+    /// <inheritdoc />
     public bool TryLoad(ArtifactToolID artifactToolId, [NotNullWhen(true)] out IArtifactTool? tool)
     {
         for (int i = _registries.Count - 1; i >= 0; i--)

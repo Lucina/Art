@@ -2,6 +2,7 @@
 using System.Diagnostics.CodeAnalysis;
 using Art.Common;
 using Art.Common.Logging;
+using Art.Tesler.Properties;
 using Art.TestsBase;
 
 namespace Art.Tesler.Tests;
@@ -18,11 +19,11 @@ public class LoggingTests : CommandTestBase
     protected void InitCommandDefault(
         IToolLogHandlerProvider toolLogHandlerProvider,
         IArtifactToolRegistryStore artifactToolRegistryStore,
-        IDefaultPropertyProvider defaultPropertyProvider,
+        IToolPropertyProvider toolPropertyProvider,
         ITeslerDataProvider dataProvider,
         ITeslerRegistrationProvider registrationProvider)
     {
-        Command = new DumpCommand(toolLogHandlerProvider, artifactToolRegistryStore, defaultPropertyProvider, dataProvider, registrationProvider);
+        Command = new DumpCommand(toolLogHandlerProvider, artifactToolRegistryStore, toolPropertyProvider, dataProvider, registrationProvider);
     }
 
     [Test]
@@ -72,9 +73,9 @@ public class LoggingTests : CommandTestBase
         int code = Execute(toolOutput, console, t => t.LogWarning(Message), new[] { "-t", toolString, "-g", Group });
         Assert.That(code, Is.EqualTo(0));
         Assert.That(Out.ToString(), Is.Empty);
-        string errorContent = Error.ToString();
-        Assert.That(errorContent, Is.Not.Empty);
-        Assert.That(errorContent, Is.EqualTo(ConstructErrorOutput(OutputDelimiter, toolString, Group, Message, null, LogLevel.Warning)));
+        string warnContent = Warn.ToString();
+        Assert.That(warnContent, Is.Not.Empty);
+        Assert.That(warnContent, Is.EqualTo(ConstructWarnOutput(OutputDelimiter, toolString, Group, Message, null, LogLevel.Warning)));
     }
 
     [Test]
@@ -93,25 +94,33 @@ public class LoggingTests : CommandTestBase
     private int Execute(IToolLogHandlerProvider toolLogHandlerProvider, IConsole console, Action<ProgrammableArtifactDumpTool> action, string[] line)
     {
         var store = GetSingleStore(ProgrammableArtifactDumpTool.CreateRegistryEntry(t => action(t)));
-        var defaultPropertyProvider = CreateInMemoryDefaultPropertyProvider();
+        var toolPropertyProvider = CreateInMemoryPropertyProvider();
         var dataProvider = CreateSharedMemoryDataProvider();
         var registrationProvider = CreateSharedMemoryRegistrationProvider();
-        InitCommandDefault(toolLogHandlerProvider, store, defaultPropertyProvider, dataProvider, registrationProvider);
+        InitCommandDefault(toolLogHandlerProvider, store, toolPropertyProvider, dataProvider, registrationProvider);
         return Command.Invoke(line, console);
     }
 
     private static string ConstructOutput(string outputDelimiter, string toolString, string group, string? title, string? body, LogLevel logLevel)
     {
         var expectedOutput = new StringWriter { NewLine = outputDelimiter };
-        var expectedOutputHandler = new PlainLogHandler(expectedOutput, TextWriter.Null, false);
+        var expectedOutputHandler = new PlainLogHandler(expectedOutput, TextWriter.Null, TextWriter.Null, false);
         expectedOutputHandler.Log(toolString, group, title, body, logLevel);
         return expectedOutput.ToString();
+    }
+
+    private static string ConstructWarnOutput(string outputDelimiter, string toolString, string group, string? title, string? body, LogLevel logLevel)
+    {
+        var expectedWarnOutput = new StringWriter { NewLine = outputDelimiter };
+        var expectedWarnOutputHandler = new PlainLogHandler(TextWriter.Null, expectedWarnOutput, TextWriter.Null, false);
+        expectedWarnOutputHandler.Log(toolString, group, title, body, logLevel);
+        return expectedWarnOutput.ToString();
     }
 
     private static string ConstructErrorOutput(string outputDelimiter, string toolString, string group, string? title, string? body, LogLevel logLevel)
     {
         var expectedErrorOutput = new StringWriter { NewLine = outputDelimiter };
-        var expectedErrorOutputHandler = new PlainLogHandler(TextWriter.Null, expectedErrorOutput, false);
+        var expectedErrorOutputHandler = new PlainLogHandler(TextWriter.Null, TextWriter.Null, expectedErrorOutput, false);
         expectedErrorOutputHandler.Log(toolString, group, title, body, logLevel);
         return expectedErrorOutput.ToString();
     }

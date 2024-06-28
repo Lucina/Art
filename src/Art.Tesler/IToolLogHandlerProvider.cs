@@ -1,6 +1,6 @@
 ﻿namespace Art.Tesler;
 
-public interface IToolLogHandlerProvider : IOutputPair
+public interface IToolLogHandlerProvider : IOutputControl
 {
     internal IToolLogHandler GetStreamToolLogHandler();
 
