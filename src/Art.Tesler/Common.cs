@@ -205,7 +205,6 @@ internal static class Common
         string? userAgent,
         IOutputControl console)
     {
-        // TODO consider string comparer here and other places
         Dictionary<string, JsonElement> opts = new();
         if (toolPropertyProvider != null)
         {

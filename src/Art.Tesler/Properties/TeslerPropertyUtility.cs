@@ -87,13 +87,13 @@ public static class TeslerPropertyUtility
             }
             else
             {
-                console?.Warn.WriteLine($"Warning: tool type {artifactToolId} could not be found in the registry it should be stored in, configuration will not contain values inherited from base types");
+                console?.Warn.WriteLine($"Warning: tool type {artifactToolId.GetToolString()} could not be found in the registry it should be stored in, configuration will not contain values inherited from base types");
                 ApplyProperties(toolPropertyProvider, opts, artifactToolId);
             }
         }
         else
         {
-            console?.Warn.WriteLine($"Warning: tool type {artifactToolId} could not be found, configuration will not contain values inherited from base types");
+            console?.Warn.WriteLine($"Warning: tool type {artifactToolId.GetToolString()} could not be found, configuration will not contain values inherited from base types");
             ApplyProperties(toolPropertyProvider, opts, artifactToolId);
         }
     }
@@ -113,13 +113,13 @@ public static class TeslerPropertyUtility
             }
             else
             {
-                console?.Warn.WriteLine($"Warning: tool type {artifactToolId} could not be found in the registry it should be stored in, configuration will not contain values inherited from base types");
+                console?.Warn.WriteLine($"Warning: tool type {artifactToolId.GetToolString()} could not be found in the registry it should be stored in, configuration will not contain values inherited from base types");
                 return toolPropertyProvider.GetProperties(artifactToolId, configScopeFlags);
             }
         }
         else
         {
-            console?.Warn.WriteLine($"Warning: tool type {artifactToolId} could not be found, configuration will not contain values inherited from base types");
+            console?.Warn.WriteLine($"Warning: tool type {artifactToolId.GetToolString()} could not be found, configuration will not contain values inherited from base types");
             return toolPropertyProvider.GetProperties(artifactToolId, configScopeFlags);
         }
     }
@@ -141,13 +141,13 @@ public static class TeslerPropertyUtility
             }
             else
             {
-                console?.Warn.WriteLine($"Warning: tool type {artifactToolId} could not be found in the registry it should be stored in, configuration will not contain values inherited from base types");
+                console?.Warn.WriteLine($"Warning: tool type {artifactToolId.GetToolString()} could not be found in the registry it should be stored in, configuration will not contain values inherited from base types");
                 return toolPropertyProvider.TryGetProperty(artifactToolId, key, configScopeFlags, out configProperty);
             }
         }
         else
         {
-            console?.Warn.WriteLine($"Warning: tool type {artifactToolId} could not be found, configuration will not contain values inherited from base types");
+            console?.Warn.WriteLine($"Warning: tool type {artifactToolId.GetToolString()} could not be found, configuration will not contain values inherited from base types");
             return toolPropertyProvider.TryGetProperty(artifactToolId, key, configScopeFlags, out configProperty);
         }
     }
