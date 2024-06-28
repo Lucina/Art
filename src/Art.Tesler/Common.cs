@@ -1,5 +1,6 @@
 using System.Text;
 using System.Text.Json;
+using System.Text.Json.Serialization.Metadata;
 using System.Text.RegularExpressions;
 using Art.BrowserCookies;
 using Art.Common;
@@ -108,6 +109,10 @@ internal static class Common
         else if (double.TryParse(prop, out double valDouble))
         {
             return JsonSerializer.SerializeToElement(valDouble, SourceGenerationContext.s_context.Double);
+        }
+        else if (string.Equals(prop, "null", StringComparison.InvariantCulture))
+        {
+            return JsonSerializer.SerializeToElement(null, (JsonTypeInfo)SourceGenerationContext.s_context.Object);
         }
         else if (string.Equals(prop, "true", StringComparison.InvariantCulture))
         {
