@@ -109,45 +109,12 @@ internal partial class ArtifactToolBaseExtensions
 {
     public static async ValueTask<ItemStateFlags> CompareArtifactAsync(this IArtifactTool artifactTool, ArtifactInfo artifactInfo, CancellationToken cancellationToken = default)
     {
-        ItemStateFlags state = ItemStateFlags.None;
-        if (await artifactTool.RegistrationManager.TryGetArtifactAsync(artifactInfo.Key, cancellationToken).ConfigureAwait(false) is not { } oldArtifact)
-        {
-            state |= ItemStateFlags.New;
-            if (artifactInfo.Date != null || artifactInfo.UpdateDate != null)
-                state |= ItemStateFlags.NewerDate;
-        }
-        else
-        {
-            if (artifactInfo.UpdateDate != null && oldArtifact.UpdateDate != null)
-            {
-                if (artifactInfo.UpdateDate > oldArtifact.UpdateDate)
-                    state |= ItemStateFlags.NewerDate;
-                else if (artifactInfo.UpdateDate < oldArtifact.UpdateDate)
-                    state |= ItemStateFlags.OlderDate;
-            }
-            else if (artifactInfo.UpdateDate != null && oldArtifact.UpdateDate == null)
-                state |= ItemStateFlags.NewerDate;
-            else if (artifactInfo.UpdateDate == null && oldArtifact.UpdateDate == null)
-            {
-                if (artifactInfo.Date != null && oldArtifact.Date != null)
-                {
-                    if (artifactInfo.Date > oldArtifact.Date)
-                        state |= ItemStateFlags.NewerDate;
-                    else if (artifactInfo.Date < oldArtifact.Date)
-                        state |= ItemStateFlags.OlderDate;
-                }
-                else if (artifactInfo.Date != null && oldArtifact.Date == null)
-                    state |= ItemStateFlags.NewerDate;
-            }
-            if (artifactInfo.Full && !oldArtifact.Full)
-                state |= ItemStateFlags.New;
-        }
-        return state;
+        return ItemStateFlagsUtility.GetItemStateFlags(await artifactTool.RegistrationManager.TryGetArtifactAsync(artifactInfo.Key, cancellationToken).ConfigureAwait(false), artifactInfo);
     }
 
     public static async Task<ArtifactResourceInfoWithState> DetermineUpdatedResourceAsync(this IArtifactTool artifactTool, ArtifactResourceInfo resource, ResourceUpdateMode resourceUpdate, CancellationToken cancellationToken = default)
     {
-        ItemStateFlags state = resourceUpdate switch
+        ItemStateFlags initialState = resourceUpdate switch
         {
             ResourceUpdateMode.ArtifactSoft => ItemStateFlags.None,
             ResourceUpdateMode.ArtifactHard => ItemStateFlags.EnforceNew,
@@ -156,7 +123,70 @@ internal partial class ArtifactToolBaseExtensions
             _ => throw new ArgumentOutOfRangeException(nameof(resourceUpdate), resourceUpdate, null)
         };
         resource = await resource.WithMetadataAsync(cancellationToken).ConfigureAwait(false);
-        if (await artifactTool.RegistrationManager.TryGetResourceAsync(resource.Key, cancellationToken).ConfigureAwait(false) is not { } prev)
+        var state = initialState | ItemStateFlagsUtility.GetItemStateFlags(await artifactTool.RegistrationManager.TryGetResourceAsync(resource.Key, cancellationToken).ConfigureAwait(false), resource);
+        return new ArtifactResourceInfoWithState(resource, state);
+    }
+}
+
+/// <summary>
+/// Utility for working with item state flags.
+/// </summary>
+public static class ItemStateFlagsUtility
+{
+    /// <summary>
+    /// Evaluates item state flags.
+    /// </summary>
+    /// <param name="previousArtifactInfo">Previous artifact if one exists.</param>
+    /// <param name="artifactInfo">Current artifact.</param>
+    /// <returns>Flags.</returns>
+    public static ItemStateFlags GetItemStateFlags(ArtifactInfo? previousArtifactInfo, ArtifactInfo artifactInfo)
+    {
+        ItemStateFlags state = ItemStateFlags.None;
+        if (previousArtifactInfo == null)
+        {
+            state |= ItemStateFlags.New;
+            if (artifactInfo.Date != null || artifactInfo.UpdateDate != null)
+                state |= ItemStateFlags.NewerDate;
+        }
+        else
+        {
+            if (artifactInfo.UpdateDate != null && previousArtifactInfo.UpdateDate != null)
+            {
+                if (artifactInfo.UpdateDate > previousArtifactInfo.UpdateDate)
+                    state |= ItemStateFlags.NewerDate;
+                else if (artifactInfo.UpdateDate < previousArtifactInfo.UpdateDate)
+                    state |= ItemStateFlags.OlderDate;
+            }
+            else if (artifactInfo.UpdateDate != null && previousArtifactInfo.UpdateDate == null)
+                state |= ItemStateFlags.NewerDate;
+            else if (artifactInfo.UpdateDate == null && previousArtifactInfo.UpdateDate == null)
+            {
+                if (artifactInfo.Date != null && previousArtifactInfo.Date != null)
+                {
+                    if (artifactInfo.Date > previousArtifactInfo.Date)
+                        state |= ItemStateFlags.NewerDate;
+                    else if (artifactInfo.Date < previousArtifactInfo.Date)
+                        state |= ItemStateFlags.OlderDate;
+                }
+                else if (artifactInfo.Date != null && previousArtifactInfo.Date == null)
+                    state |= ItemStateFlags.NewerDate;
+            }
+            if (artifactInfo.Full && !previousArtifactInfo.Full)
+                state |= ItemStateFlags.New;
+        }
+        return state;
+    }
+
+    /// <summary>
+    /// Evaluates item state flags.
+    /// </summary>
+    /// <param name="previousResource">Previous resource if one exists.</param>
+    /// <param name="resource">Current resource.</param>
+    /// <returns></returns>
+    public static ItemStateFlags GetItemStateFlags(ArtifactResourceInfo? previousResource, ArtifactResourceInfo resource)
+    {
+        var state = ItemStateFlags.None;
+        if (previousResource == null)
         {
             state |= ItemStateFlags.ChangedMetadata | ItemStateFlags.New;
             if (resource.Updated != null)
@@ -168,17 +198,17 @@ internal partial class ArtifactToolBaseExtensions
         }
         else
         {
-            if (resource.Version != prev.Version)
+            if (resource.Version != previousResource.Version)
                 state |= ItemStateFlags.ChangedVersion;
-            if (resource.Updated > prev.Updated)
+            if (resource.Updated > previousResource.Updated)
                 state |= ItemStateFlags.NewerDate;
-            else if (resource.Updated < prev.Updated)
+            else if (resource.Updated < previousResource.Updated)
                 state |= ItemStateFlags.OlderDate;
-            if (resource.IsMetadataDifferent(prev))
+            if (resource.IsMetadataDifferent(previousResource))
                 state |= ItemStateFlags.ChangedMetadata;
-            if (resource.Checksum != null && !ChecksumUtility.DatawiseEquals(resource.Checksum, prev.Checksum))
+            if (resource.Checksum != null && !ChecksumUtility.DatawiseEquals(resource.Checksum, previousResource.Checksum))
                 state |= ItemStateFlags.NewChecksum;
         }
-        return new ArtifactResourceInfoWithState(resource, state);
+        return state;
     }
 }

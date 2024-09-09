@@ -24,6 +24,7 @@ public class TeslerRootCommand : RootCommand
         IWritableScopedToolPropertyProvider toolPropertyProvider,
         ITeslerDataProvider dataProvider,
         ITeslerRegistrationProvider registrationProvider,
+        ITeslerRegistrationProvider inputRegistrationProvider,
         IProfileResolver profileResolver)
     {
         return new TeslerRootCommand(pluginStore)
@@ -36,7 +37,7 @@ public class TeslerRootCommand : RootCommand
             new RehashCommand(toolLogHandlerProvider, dataProvider, registrationProvider),
             new ToolsCommand(toolLogHandlerProvider, pluginStore),
             new ValidateCommand(toolLogHandlerProvider, pluginStore, toolPropertyProvider, dataProvider, registrationProvider),
-            new DatabaseCommand(toolLogHandlerProvider, registrationProvider),
+            new DatabaseCommand(toolLogHandlerProvider, registrationProvider, inputRegistrationProvider),
             new CookieCommand(toolLogHandlerProvider),
             new ConfigCommand(toolLogHandlerProvider, runnerPropertyProvider, toolPropertyProvider, profileResolver, pluginStore)
         };
@@ -48,6 +49,7 @@ public class TeslerRootCommand : RootCommand
         IWritableScopedToolPropertyProvider toolPropertyProvider,
         ITeslerDataProvider dataProvider,
         ITeslerRegistrationProvider registrationProvider,
+        ITeslerRegistrationProvider inputRegistrationProvider,
         IProfileResolver profileResolver)
         where TTool : IArtifactToolFactory
     {
@@ -64,7 +66,7 @@ public class TeslerRootCommand : RootCommand
             new RehashCommand(toolLogHandlerProvider, dataProvider, registrationProvider),
             new ToolsCommand(toolLogHandlerProvider, pluginStore),
             new ValidateCommand(toolLogHandlerProvider, pluginStore, toolPropertyProvider, dataProvider, registrationProvider),
-            new DatabaseCommand(toolLogHandlerProvider, registrationProvider),
+            new DatabaseCommand(toolLogHandlerProvider, registrationProvider, inputRegistrationProvider),
             new CookieCommand(toolLogHandlerProvider),
             new ConfigCommand(toolLogHandlerProvider, runnerPropertyProvider, toolPropertyProvider, profileResolver, pluginStore)
         };
@@ -76,6 +78,7 @@ public class TeslerRootCommand : RootCommand
         IWritableScopedToolPropertyProvider toolPropertyProvider,
         ITeslerDataProvider dataProvider,
         ITeslerRegistrationProvider registrationProvider,
+        ITeslerRegistrationProvider inputRegistrationProvider,
         IProfileResolver profileResolver)
         where TTool : IArtifactToolFactory, IArtifactToolSelector<string>
     {
@@ -92,7 +95,7 @@ public class TeslerRootCommand : RootCommand
             new RehashCommand(toolLogHandlerProvider, dataProvider, registrationProvider),
             new ToolsCommand(toolLogHandlerProvider, pluginStore),
             new ValidateCommand(toolLogHandlerProvider, pluginStore, toolPropertyProvider, dataProvider, registrationProvider),
-            new DatabaseCommand(toolLogHandlerProvider, registrationProvider),
+            new DatabaseCommand(toolLogHandlerProvider, registrationProvider, inputRegistrationProvider),
             new CookieCommand(toolLogHandlerProvider),
             new ConfigCommand(toolLogHandlerProvider, runnerPropertyProvider, toolPropertyProvider, profileResolver, pluginStore)
         };
@@ -105,6 +108,7 @@ public class TeslerRootCommand : RootCommand
         IWritableScopedToolPropertyProvider toolPropertyProvider,
         ITeslerDataProvider dataProvider,
         ITeslerRegistrationProvider registrationProvider,
+        ITeslerRegistrationProvider inputRegistrationProvider,
         IProfileResolver profileResolver)
     {
         return Create(
@@ -114,6 +118,7 @@ public class TeslerRootCommand : RootCommand
             toolPropertyProvider,
             dataProvider,
             registrationProvider,
+            inputRegistrationProvider,
             profileResolver);
     }
 }

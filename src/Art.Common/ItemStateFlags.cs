@@ -15,7 +15,7 @@ public enum ItemStateFlags
     /// </summary>
     EnforceNew = 1 << 0,
     /// <summary>
-    /// Completely new item.
+    /// Completely new item (or full when previous was non-full).
     /// </summary>
     New = 1 << 1,
     /// <summary>
