@@ -9,7 +9,8 @@ namespace Art.Http.Resources;
 /// <param name="Uri">URI.</param>
 /// <param name="Key">Resource key.</param>
 /// <param name="ContentType">MIME content type.</param>
-/// <param name="Updated">Updated date.</param>
+/// <param name="Updated">Date this resource was updated.</param>
+/// <param name="Retrieved">Date this resource was retrieved.</param>
 /// <param name="Version">Version.</param>
 /// <param name="Checksum">Checksum.</param>
 /// <param name="HttpRequestConfig">Custom request configuration.</param>
@@ -20,9 +21,10 @@ public record UriArtifactResourceInfo(
         ArtifactResourceKey Key,
         string? ContentType = "application/octet-stream",
         DateTimeOffset? Updated = null,
+        DateTimeOffset? Retrieved = null,
         string? Version = null,
         Checksum? Checksum = null)
-    : QueryBaseArtifactResourceInfo(Key, ContentType, Updated, Version, Checksum)
+    : QueryBaseArtifactResourceInfo(Key, ContentType, Updated, Retrieved, Version, Checksum)
 {
     /// <inheritdoc/>
     public override bool CanExportStream => true;
@@ -72,7 +74,8 @@ public partial class HttpArtifactDataExtensions
     /// <param name="uri">URI.</param>
     /// <param name="key">Resource key.</param>
     /// <param name="contentType">MIME content type.</param>
-    /// <param name="updated">Updated date.</param>
+    /// <param name="updated">Date this resource was updated.</param>
+    /// <param name="retrieved">Date this resource was retrieved.</param>
     /// <param name="version">Version.</param>
     /// <param name="checksum">Checksum.</param>
     /// <param name="httpRequestConfig">Custom request configuration.</param>
@@ -82,10 +85,11 @@ public partial class HttpArtifactDataExtensions
         ArtifactResourceKey key,
         string? contentType = "application/octet-stream",
         DateTimeOffset? updated = null,
+        DateTimeOffset? retrieved = null,
         string? version = null,
         Checksum? checksum = null,
         HttpRequestConfig? httpRequestConfig = null)
-        => new(artifactData, new UriArtifactResourceInfo(artifactTool, uri, httpRequestConfig, key, contentType, updated, version, checksum));
+        => new(artifactData, new UriArtifactResourceInfo(artifactTool, uri, httpRequestConfig, key, contentType, updated, retrieved, version, checksum));
 
     /// <summary>
     /// Creates a <see cref="UriArtifactResourceInfo"/> resource.
@@ -96,7 +100,8 @@ public partial class HttpArtifactDataExtensions
     /// <param name="file">Filename.</param>
     /// <param name="path">Path.</param>
     /// <param name="contentType">MIME content type.</param>
-    /// <param name="updated">Updated date.</param>
+    /// <param name="updated">Date this resource was updated.</param>
+    /// <param name="retrieved">Date this resource was retrieved.</param>
     /// <param name="version">Version.</param>
     /// <param name="checksum">Checksum.</param>
     /// <param name="httpRequestConfig">Custom request configuration.</param>
@@ -107,10 +112,11 @@ public partial class HttpArtifactDataExtensions
         string path = "",
         string? contentType = "application/octet-stream",
         DateTimeOffset? updated = null,
+        DateTimeOffset? retrieved = null,
         string? version = null,
         Checksum? checksum = null,
         HttpRequestConfig? httpRequestConfig = null)
-        => new(artifactData, new UriArtifactResourceInfo(artifactTool, uri, httpRequestConfig, new ArtifactResourceKey(artifactData.Info.Key, file, path), contentType, updated, version, checksum));
+        => new(artifactData, new UriArtifactResourceInfo(artifactTool, uri, httpRequestConfig, new ArtifactResourceKey(artifactData.Info.Key, file, path), contentType, updated, retrieved, version, checksum));
 
     /// <summary>
     /// Creates a <see cref="UriArtifactResourceInfo"/> resource.
@@ -119,7 +125,8 @@ public partial class HttpArtifactDataExtensions
     /// <param name="uri">URI.</param>
     /// <param name="key">Resource key.</param>
     /// <param name="contentType">MIME content type.</param>
-    /// <param name="updated">Updated date.</param>
+    /// <param name="updated">Date this resource was updated.</param>
+    /// <param name="retrieved">Date this resource was retrieved.</param>
     /// <param name="version">Version.</param>
     /// <param name="checksum">Checksum.</param>
     /// <param name="httpRequestConfig">Custom request configuration.</param>
@@ -128,10 +135,11 @@ public partial class HttpArtifactDataExtensions
         ArtifactResourceKey key,
         string? contentType = "application/octet-stream",
         DateTimeOffset? updated = null,
+        DateTimeOffset? retrieved = null,
         string? version = null,
         Checksum? checksum = null,
         HttpRequestConfig? httpRequestConfig = null)
-        => artifactData.Uri(artifactData.GetArtifactTool<HttpArtifactTool>(), uri, key, contentType, updated, version, checksum, httpRequestConfig);
+        => artifactData.Uri(artifactData.GetArtifactTool<HttpArtifactTool>(), uri, key, contentType, updated, retrieved, version, checksum, httpRequestConfig);
 
     /// <summary>
     /// Creates a <see cref="UriArtifactResourceInfo"/> resource.
@@ -141,7 +149,8 @@ public partial class HttpArtifactDataExtensions
     /// <param name="file">Filename.</param>
     /// <param name="path">Path.</param>
     /// <param name="contentType">MIME content type.</param>
-    /// <param name="updated">Updated date.</param>
+    /// <param name="updated">Date this resource was updated.</param>
+    /// <param name="retrieved">Date this resource was retrieved.</param>
     /// <param name="version">Version.</param>
     /// <param name="checksum">Checksum.</param>
     /// <param name="httpRequestConfig">Custom request configuration.</param>
@@ -151,10 +160,11 @@ public partial class HttpArtifactDataExtensions
         string path = "",
         string? contentType = "application/octet-stream",
         DateTimeOffset? updated = null,
+        DateTimeOffset? retrieved = null,
         string? version = null,
         Checksum? checksum = null,
         HttpRequestConfig? httpRequestConfig = null)
-        => artifactData.Uri(artifactData.GetArtifactTool<HttpArtifactTool>(), uri, file, path, contentType, updated, version, checksum, httpRequestConfig);
+        => artifactData.Uri(artifactData.GetArtifactTool<HttpArtifactTool>(), uri, file, path, contentType, updated, retrieved, version, checksum, httpRequestConfig);
 
     /// <summary>
     /// Creates a <see cref="UriArtifactResourceInfo"/> resource.
@@ -164,7 +174,8 @@ public partial class HttpArtifactDataExtensions
     /// <param name="uri">URI.</param>
     /// <param name="key">Resource key.</param>
     /// <param name="contentType">MIME content type.</param>
-    /// <param name="updated">Updated date.</param>
+    /// <param name="updated">Date this resource was updated.</param>
+    /// <param name="retrieved">Date this resource was retrieved.</param>
     /// <param name="version">Version.</param>
     /// <param name="checksum">Checksum.</param>
     /// <param name="httpRequestConfig">Custom request configuration.</param>
@@ -174,10 +185,11 @@ public partial class HttpArtifactDataExtensions
         ArtifactResourceKey key,
         string? contentType = "application/octet-stream",
         DateTimeOffset? updated = null,
+        DateTimeOffset? retrieved = null,
         string? version = null,
         Checksum? checksum = null,
         HttpRequestConfig? httpRequestConfig = null)
-        => new(artifactData, new UriArtifactResourceInfo(artifactTool, new Uri(uri), httpRequestConfig, key, contentType, updated, version, checksum));
+        => new(artifactData, new UriArtifactResourceInfo(artifactTool, new Uri(uri), httpRequestConfig, key, contentType, updated, retrieved, version, checksum));
 
     /// <summary>
     /// Creates a <see cref="UriArtifactResourceInfo"/> resource.
@@ -188,7 +200,8 @@ public partial class HttpArtifactDataExtensions
     /// <param name="file">Filename.</param>
     /// <param name="path">Path.</param>
     /// <param name="contentType">MIME content type.</param>
-    /// <param name="updated">Updated date.</param>
+    /// <param name="updated">Date this resource was updated.</param>
+    /// <param name="retrieved">Date this resource was retrieved.</param>
     /// <param name="version">Version.</param>
     /// <param name="checksum">Checksum.</param>
     /// <param name="httpRequestConfig">Custom request configuration.</param>
@@ -199,10 +212,11 @@ public partial class HttpArtifactDataExtensions
         string path = "",
         string? contentType = "application/octet-stream",
         DateTimeOffset? updated = null,
+        DateTimeOffset? retrieved = null,
         string? version = null,
         Checksum? checksum = null,
         HttpRequestConfig? httpRequestConfig = null)
-        => new(artifactData, new UriArtifactResourceInfo(artifactTool, new Uri(uri), httpRequestConfig, new ArtifactResourceKey(artifactData.Info.Key, file, path), contentType, updated, version, checksum));
+        => new(artifactData, new UriArtifactResourceInfo(artifactTool, new Uri(uri), httpRequestConfig, new ArtifactResourceKey(artifactData.Info.Key, file, path), contentType, updated, retrieved, version, checksum));
 
     /// <summary>
     /// Creates a <see cref="UriArtifactResourceInfo"/> resource.
@@ -211,7 +225,8 @@ public partial class HttpArtifactDataExtensions
     /// <param name="uri">URI.</param>
     /// <param name="key">Resource key.</param>
     /// <param name="contentType">MIME content type.</param>
-    /// <param name="updated">Updated date.</param>
+    /// <param name="updated">Date this resource was updated.</param>
+    /// <param name="retrieved">Date this resource was retrieved.</param>
     /// <param name="version">Version.</param>
     /// <param name="checksum">Checksum.</param>
     /// <param name="httpRequestConfig">Custom request configuration.</param>
@@ -220,10 +235,11 @@ public partial class HttpArtifactDataExtensions
         ArtifactResourceKey key,
         string? contentType = "application/octet-stream",
         DateTimeOffset? updated = null,
+        DateTimeOffset? retrieved = null,
         string? version = null,
         Checksum? checksum = null,
         HttpRequestConfig? httpRequestConfig = null)
-        => artifactData.Uri(artifactData.GetArtifactTool<HttpArtifactTool>(), uri, key, contentType, updated, version, checksum, httpRequestConfig);
+        => artifactData.Uri(artifactData.GetArtifactTool<HttpArtifactTool>(), uri, key, contentType, updated, retrieved, version, checksum, httpRequestConfig);
 
     /// <summary>
     /// Creates a <see cref="UriArtifactResourceInfo"/> resource.
@@ -233,7 +249,8 @@ public partial class HttpArtifactDataExtensions
     /// <param name="file">Filename.</param>
     /// <param name="path">Path.</param>
     /// <param name="contentType">MIME content type.</param>
-    /// <param name="updated">Updated date.</param>
+    /// <param name="updated">Date this resource was updated.</param>
+    /// <param name="retrieved">Date this resource was retrieved.</param>
     /// <param name="version">Version.</param>
     /// <param name="checksum">Checksum.</param>
     /// <param name="httpRequestConfig">Custom request configuration.</param>
@@ -243,8 +260,9 @@ public partial class HttpArtifactDataExtensions
         string path = "",
         string? contentType = "application/octet-stream",
         DateTimeOffset? updated = null,
+        DateTimeOffset? retrieved = null,
         string? version = null,
         Checksum? checksum = null,
         HttpRequestConfig? httpRequestConfig = null)
-        => artifactData.Uri(artifactData.GetArtifactTool<HttpArtifactTool>(), uri, file, path, contentType, updated, version, checksum, httpRequestConfig);
+        => artifactData.Uri(artifactData.GetArtifactTool<HttpArtifactTool>(), uri, file, path, contentType, updated, retrieved, version, checksum, httpRequestConfig);
 }

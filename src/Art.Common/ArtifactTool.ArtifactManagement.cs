@@ -22,16 +22,19 @@ public partial class ArtifactTool
     /// <param name="name">Name.</param>
     /// <param name="date">Artifact creation date.</param>
     /// <param name="updateDate">Artifact update date.</param>
+    /// <param name="retrievalDate">Artifact retrieval date.</param>
     /// <param name="full">True if this is a full artifact.</param>
     /// <param name="group">Custom group.</param>
-    public ArtifactData CreateData(string id,
+    public ArtifactData CreateData(
+        string id,
         string? name = null,
         DateTimeOffset? date = null,
         DateTimeOffset? updateDate = null,
+        DateTimeOffset? retrievalDate = null,
         bool full = true,
         string? group = null)
     {
-        return new ArtifactData(this, Profile.Tool, ResolveGroup(group), id, name, date, updateDate, full);
+        return new ArtifactData(this, Profile.Tool, ResolveGroup(group), id, name, date, updateDate, retrievalDate, full);
     }
 
     /// <summary>

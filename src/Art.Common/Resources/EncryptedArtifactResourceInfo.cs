@@ -9,7 +9,13 @@ namespace Art.Common.Resources;
 /// <param name="EncryptionInfo">Encryption information.</param>
 /// <param name="BaseArtifactResourceInfo">Base resource.</param>
 public record EncryptedArtifactResourceInfo(EncryptionInfo EncryptionInfo, ArtifactResourceInfo BaseArtifactResourceInfo)
-    : ArtifactResourceInfo(BaseArtifactResourceInfo.Key, BaseArtifactResourceInfo.ContentType, BaseArtifactResourceInfo.Updated, BaseArtifactResourceInfo.Version, BaseArtifactResourceInfo.Checksum)
+    : ArtifactResourceInfo(
+        BaseArtifactResourceInfo.Key,
+        BaseArtifactResourceInfo.ContentType,
+        BaseArtifactResourceInfo.Updated,
+        BaseArtifactResourceInfo.Retrieved,
+        BaseArtifactResourceInfo.Version,
+        BaseArtifactResourceInfo.Checksum)
 {
     /// <inheritdoc/>
     public override bool CanExportStream => BaseArtifactResourceInfo.CanExportStream;

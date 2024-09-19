@@ -7,5 +7,12 @@
 /// <param name="Name">Name.</param>
 /// <param name="Date">Artifact creation date.</param>
 /// <param name="UpdateDate">Artifact update date.</param>
+/// <param name="RetrievalDate">Artifact retrieval date.</param>
 /// <param name="Full">True if this is a full artifact.</param>
-public record ArtifactInfo(ArtifactKey Key, string? Name = null, DateTimeOffset? Date = null, DateTimeOffset? UpdateDate = null, bool Full = true);
+public record ArtifactInfo(
+    ArtifactKey Key,
+    string? Name = null,
+    DateTimeOffset? Date = null,
+    DateTimeOffset? UpdateDate = null,
+    DateTimeOffset? RetrievalDate = null,
+    bool Full = true);

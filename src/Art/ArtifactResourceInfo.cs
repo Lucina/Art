@@ -7,10 +7,11 @@ namespace Art;
 /// </summary>
 /// <param name="Key">Resource key.</param>
 /// <param name="ContentType">MIME content type.</param>
-/// <param name="Updated">Updated date.</param>
+/// <param name="Updated">Date this resource was updated.</param>
+/// <param name="Retrieved">Date this resource was retrieved.</param>
 /// <param name="Version">Version.</param>
 /// <param name="Checksum">Checksum.</param>
-public record ArtifactResourceInfo(ArtifactResourceKey Key, string? ContentType = "application/octet-stream", DateTimeOffset? Updated = null, string? Version = null, Checksum? Checksum = null)
+public record ArtifactResourceInfo(ArtifactResourceKey Key, string? ContentType = "application/octet-stream", DateTimeOffset? Updated = null, DateTimeOffset? Retrieved = null, string? Version = null, Checksum? Checksum = null)
 {
     /// <summary>
     /// If true, it is possible to export the content referred to by this reference via <see cref="ExportStreamAsync"/>.

@@ -9,7 +9,14 @@ namespace Art.Common.Resources;
 /// <param name="ArtPaddingMode">Padding mode.</param>
 /// <param name="BlockSize">Block size, in bits.</param>
 /// <param name="BaseArtifactResourceInfo">Base resource.</param>
-public record PaddedArtifactResourceInfo(ArtPaddingMode ArtPaddingMode, int? BlockSize, ArtifactResourceInfo BaseArtifactResourceInfo) : ArtifactResourceInfo(BaseArtifactResourceInfo.Key, BaseArtifactResourceInfo.ContentType, BaseArtifactResourceInfo.Updated, BaseArtifactResourceInfo.Version, BaseArtifactResourceInfo.Checksum)
+public record PaddedArtifactResourceInfo(ArtPaddingMode ArtPaddingMode, int? BlockSize, ArtifactResourceInfo BaseArtifactResourceInfo)
+    : ArtifactResourceInfo(
+        BaseArtifactResourceInfo.Key,
+        BaseArtifactResourceInfo.ContentType,
+        BaseArtifactResourceInfo.Updated,
+        BaseArtifactResourceInfo.Retrieved,
+        BaseArtifactResourceInfo.Version,
+        BaseArtifactResourceInfo.Checksum)
 {
     /// <inheritdoc/>
     public override bool CanExportStream => BaseArtifactResourceInfo.CanExportStream;

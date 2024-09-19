@@ -4,7 +4,13 @@
 /// Represents a resource wrapping another resource and disabling metadata.
 /// </summary>
 /// <param name="BaseArtifactResourceInfo">Base resource.</param>
-public record NoMetadataArtifactResourceInfo(ArtifactResourceInfo BaseArtifactResourceInfo) : ArtifactResourceInfo(BaseArtifactResourceInfo.Key, BaseArtifactResourceInfo.ContentType, BaseArtifactResourceInfo.Updated, BaseArtifactResourceInfo.Version)
+public record NoMetadataArtifactResourceInfo(ArtifactResourceInfo BaseArtifactResourceInfo)
+    : ArtifactResourceInfo(
+        BaseArtifactResourceInfo.Key,
+        BaseArtifactResourceInfo.ContentType,
+        BaseArtifactResourceInfo.Updated,
+        BaseArtifactResourceInfo.Retrieved,
+        BaseArtifactResourceInfo.Version)
 {
     /// <inheritdoc/>
     public override bool CanExportStream => BaseArtifactResourceInfo.CanExportStream;
