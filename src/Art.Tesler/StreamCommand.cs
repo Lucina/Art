@@ -10,6 +10,8 @@ namespace Art.Tesler;
 
 public class StreamCommand : ToolCommandBase
 {
+    protected TimeProvider TimeProvider;
+
     protected IProfileResolver ProfileResolver;
 
     protected Argument<string> ProfileFileArg;
@@ -18,8 +20,9 @@ public class StreamCommand : ToolCommandBase
         IToolLogHandlerProvider toolLogHandlerProvider,
         IArtifactToolRegistryStore pluginStore,
         IToolPropertyProvider toolPropertyProvider,
+        TimeProvider timeProvider,
         IProfileResolver profileResolver)
-        : this(toolLogHandlerProvider, pluginStore, toolPropertyProvider, profileResolver, "stream", "Stream primary resource to standard output.")
+        : this(toolLogHandlerProvider, pluginStore, toolPropertyProvider, timeProvider, profileResolver, "stream", "Stream primary resource to standard output.")
     {
     }
 
@@ -27,11 +30,13 @@ public class StreamCommand : ToolCommandBase
         IToolLogHandlerProvider toolLogHandlerProvider,
         IArtifactToolRegistryStore pluginStore,
         IToolPropertyProvider toolPropertyProvider,
+        TimeProvider timeProvider,
         IProfileResolver profileResolver,
         string name,
         string? description = null)
         : base(toolLogHandlerProvider, pluginStore, toolPropertyProvider, name, description)
     {
+        TimeProvider = timeProvider;
         ProfileResolver = profileResolver;
         ProfileFileArg = new Argument<string>("profile", "Profile file") { HelpName = "profile", Arity = ArgumentArity.ExactlyOne };
         AddArgument(ProfileFileArg);
@@ -53,7 +58,7 @@ public class StreamCommand : ToolCommandBase
         var profile = PrepareProfile(context, profiles[0]);
         using var arm = new InMemoryArtifactRegistrationManager();
         using var adm = new InMemoryArtifactDataManager();
-        using var tool = await GetToolAsync(profile, arm, adm).ConfigureAwait(false);
+        using var tool = await GetToolAsync(profile, arm, adm, TimeProvider).ConfigureAwait(false);
         var listProxy = new ArtifactToolListProxy(tool, ArtifactToolListOptions.Default, l);
         var res = await listProxy.ListAsync().ToListAsync().ConfigureAwait(false);
         if (res.Count == 0)

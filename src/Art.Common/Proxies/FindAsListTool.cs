@@ -30,6 +30,7 @@ internal class FindAsListTool : IArtifactListTool
 
     public ArtifactToolProfile Profile => _baseFindTool.Profile;
     public ArtifactToolConfig Config => _baseFindTool.Config;
+    public TimeProvider TimeProvider => _baseFindTool.TimeProvider;
     public EagerFlags AllowedEagerModes => _baseFindTool.AllowedEagerModes;
 
     public IArtifactRegistrationManager RegistrationManager

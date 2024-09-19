@@ -4,6 +4,7 @@ using Art.Common;
 using Art.Common.Resources;
 using Art.Tesler.Properties;
 using Art.TestsBase;
+using Microsoft.Extensions.Time.Testing;
 
 namespace Art.Tesler.Tests;
 
@@ -15,9 +16,10 @@ public class FindCommandTests : CommandTestBase
     protected void InitCommandDefault(
         IToolLogHandlerProvider toolLogHandlerProvider,
         IArtifactToolRegistryStore artifactToolRegistryStore,
-        IToolPropertyProvider toolPropertyProvider)
+        IToolPropertyProvider toolPropertyProvider,
+        TimeProvider timeProvider)
     {
-        Command = new FindCommand(toolLogHandlerProvider, artifactToolRegistryStore, toolPropertyProvider);
+        Command = new FindCommand(toolLogHandlerProvider, artifactToolRegistryStore, toolPropertyProvider, timeProvider);
     }
 
     [Test]
@@ -26,7 +28,7 @@ public class FindCommandTests : CommandTestBase
         var store = GetSingleStore(ProgrammableArtifactFindTool.CreateRegistryEntry((_, _) => null));
         var toolPropertyProvider = CreateInMemoryPropertyProvider();
         CreateObjectOutputs(out var toolOutput, out var console);
-        InitCommandDefault(toolOutput, store, toolPropertyProvider);
+        InitCommandDefault(toolOutput, store, toolPropertyProvider, new FakeTimeProvider());
         int rc = Command.Invoke(Array.Empty<string>(), console);
         Assert.That(Out.ToString(), Is.Not.Empty);
         Assert.That(OutQueue, Is.Empty);
@@ -41,7 +43,7 @@ public class FindCommandTests : CommandTestBase
         var store = GetSingleStore(ProgrammableArtifactFindTool.CreateRegistryEntry((_, _) => null));
         var toolPropertyProvider = CreateInMemoryPropertyProvider();
         CreateObjectOutputs(out var toolOutput, out var console);
-        InitCommandDefault(toolOutput, store, toolPropertyProvider);
+        InitCommandDefault(toolOutput, store, toolPropertyProvider, new FakeTimeProvider());
         string[] line = { "-t", new ArtifactToolID("NOT_AN_ASSEMBLY", "MALO").GetToolString() };
         int rc = Command.Invoke(line, console);
         Assert.That(Out.ToString(), Is.Not.Empty);
@@ -57,7 +59,7 @@ public class FindCommandTests : CommandTestBase
         var store = GetSingleStore(ProgrammableArtifactFindTool.CreateRegistryEntry((_, _) => null));
         var toolPropertyProvider = CreateInMemoryPropertyProvider();
         CreateObjectOutputs(out var toolOutput, out var console);
-        InitCommandDefault(toolOutput, store, toolPropertyProvider);
+        InitCommandDefault(toolOutput, store, toolPropertyProvider, new FakeTimeProvider());
         string[] line = { "-t", ArtifactToolIDUtil.CreateToolString<ProgrammableArtifactFindTool>() };
         int rc = Command.Invoke(line, console);
         Assert.That(Out.ToString(), Is.Not.Empty);
@@ -74,7 +76,7 @@ public class FindCommandTests : CommandTestBase
         var store = GetSingleStore(ProgrammableArtifactFindTool.CreateRegistryEntry((_, _) => null));
         var toolPropertyProvider = CreateInMemoryPropertyProvider();
         CreateObjectOutputs(out var toolOutput, out var console);
-        InitCommandDefault(toolOutput, store, toolPropertyProvider);
+        InitCommandDefault(toolOutput, store, toolPropertyProvider, new FakeTimeProvider());
         string[] line = { "-t", ArtifactToolIDUtil.CreateToolString<ProgrammableArtifactFindTool>(), search };
         int rc = Command.Invoke(line, console);
         Assert.That(Out.ToString(), Is.Empty);
@@ -101,7 +103,7 @@ public class FindCommandTests : CommandTestBase
         }));
         var toolPropertyProvider = CreateInMemoryPropertyProvider();
         CreateObjectOutputs(out var toolOutput, out var console);
-        InitCommandDefault(toolOutput, store, toolPropertyProvider);
+        InitCommandDefault(toolOutput, store, toolPropertyProvider, new FakeTimeProvider());
         string toolString = ArtifactToolIDUtil.CreateToolString<ProgrammableArtifactFindTool>();
         string[] line = { "-t", toolString, "-g", group, search };
         int rc = Command.Invoke(line, console);

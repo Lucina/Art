@@ -12,6 +12,8 @@ public class ValidateCommand : ToolCommandBase
 
     protected ITeslerRegistrationProvider RegistrationProvider;
 
+    protected TimeProvider TimeProvider;
+
     protected Option<string> HashOption;
 
     protected Argument<List<string>> ProfileFilesArg;
@@ -27,8 +29,9 @@ public class ValidateCommand : ToolCommandBase
         IArtifactToolRegistryStore pluginStore,
         IToolPropertyProvider toolPropertyProvider,
         ITeslerDataProvider dataProvider,
-        ITeslerRegistrationProvider registrationProvider)
-        : this(toolLogHandlerProvider, pluginStore, toolPropertyProvider, dataProvider, registrationProvider, "validate", "Verify resource integrity.")
+        ITeslerRegistrationProvider registrationProvider,
+        TimeProvider timeProvider)
+        : this(toolLogHandlerProvider, pluginStore, toolPropertyProvider, dataProvider, registrationProvider, timeProvider, "validate", "Verify resource integrity.")
     {
     }
 
@@ -38,6 +41,7 @@ public class ValidateCommand : ToolCommandBase
         IToolPropertyProvider toolPropertyProvider,
         ITeslerDataProvider dataProvider,
         ITeslerRegistrationProvider registrationProvider,
+        TimeProvider timeProvider,
         string name,
         string? description = null) : base(toolLogHandlerProvider, pluginStore, toolPropertyProvider, name, description)
     {
@@ -45,6 +49,7 @@ public class ValidateCommand : ToolCommandBase
         DataProvider.Initialize(this);
         RegistrationProvider = registrationProvider;
         RegistrationProvider.Initialize(this);
+        TimeProvider = timeProvider;
         HashOption = new Option<string>(new[] { "-h", "--hash" }, $"Checksum algorithm ({Common.ChecksumAlgorithms})");
         HashOption.SetDefaultValue(Common.DefaultChecksumAlgorithm);
         AddOption(HashOption);
@@ -123,7 +128,7 @@ public class ValidateCommand : ToolCommandBase
         }
         l.Log($"{resourceFailCount} resources failed to validate and will be reacquired.", null, LogLevel.Information);
         var repairContext = validationContext.CreateRepairContext();
-        await repairContext.RepairAsync(profiles, context.ParseResult.GetValueForOption(DetailedOption), checksumSource, ToolOutput);
+        await repairContext.RepairAsync(profiles, context.ParseResult.GetValueForOption(DetailedOption), checksumSource, TimeProvider, ToolOutput);
         return 0;
     }
 }

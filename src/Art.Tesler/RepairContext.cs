@@ -10,7 +10,12 @@ public class RepairContext : ToolControlContext
     private readonly IArtifactDataManager _adm;
     private readonly IToolLogHandler _l;
 
-    public RepairContext(IArtifactToolRegistryStore pluginStore, IReadOnlyDictionary<ArtifactKey, List<ArtifactResourceInfo>> failed, IArtifactRegistrationManager arm, IArtifactDataManager adm, IToolLogHandler l) : base(pluginStore)
+    public RepairContext(
+        IArtifactToolRegistryStore pluginStore,
+        IReadOnlyDictionary<ArtifactKey, List<ArtifactResourceInfo>> failed,
+        IArtifactRegistrationManager arm,
+        IArtifactDataManager adm,
+        IToolLogHandler l) : base(pluginStore)
     {
         _failed = new Dictionary<ArtifactKey, List<ArtifactResourceInfo>>(failed);
         _arm = arm;
@@ -18,7 +23,7 @@ public class RepairContext : ToolControlContext
         _l = l;
     }
 
-    public async Task<bool> RepairAsync(List<ArtifactToolProfile> profiles, bool detailed, ChecksumSource? checksumSource, IOutputControl console)
+    public async Task<bool> RepairAsync(List<ArtifactToolProfile> profiles, bool detailed, ChecksumSource? checksumSource, TimeProvider timeProvider, IOutputControl console)
     {
         foreach (ArtifactToolProfile originalProfile in profiles)
         {
@@ -30,7 +35,7 @@ public class RepairContext : ToolControlContext
             {
                 continue;
             }
-            ArtifactToolConfig config = new(_arm, _adm);
+            ArtifactToolConfig config = new(_arm, _adm, timeProvider);
             await tool.InitializeAsync(config, actualProfile).ConfigureAwait(false);
             switch (tool)
             {

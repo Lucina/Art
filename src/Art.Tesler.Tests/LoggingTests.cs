@@ -4,6 +4,7 @@ using Art.Common;
 using Art.Common.Logging;
 using Art.Tesler.Properties;
 using Art.TestsBase;
+using Microsoft.Extensions.Time.Testing;
 
 namespace Art.Tesler.Tests;
 
@@ -21,9 +22,10 @@ public class LoggingTests : CommandTestBase
         IArtifactToolRegistryStore artifactToolRegistryStore,
         IToolPropertyProvider toolPropertyProvider,
         ITeslerDataProvider dataProvider,
-        ITeslerRegistrationProvider registrationProvider)
+        ITeslerRegistrationProvider registrationProvider,
+        TimeProvider timeProvider)
     {
-        Command = new DumpCommand(toolLogHandlerProvider, artifactToolRegistryStore, toolPropertyProvider, dataProvider, registrationProvider);
+        Command = new DumpCommand(toolLogHandlerProvider, artifactToolRegistryStore, toolPropertyProvider, dataProvider, registrationProvider, timeProvider);
     }
 
     [Test]
@@ -97,7 +99,7 @@ public class LoggingTests : CommandTestBase
         var toolPropertyProvider = CreateInMemoryPropertyProvider();
         var dataProvider = CreateSharedMemoryDataProvider();
         var registrationProvider = CreateSharedMemoryRegistrationProvider();
-        InitCommandDefault(toolLogHandlerProvider, store, toolPropertyProvider, dataProvider, registrationProvider);
+        InitCommandDefault(toolLogHandlerProvider, store, toolPropertyProvider, dataProvider, registrationProvider, new FakeTimeProvider());
         return Command.Invoke(line, console);
     }
 

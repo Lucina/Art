@@ -30,6 +30,9 @@ public partial class ArtifactTool : IArtifactTool
     public ArtifactToolConfig Config { get; private set; }
 
     /// <inheritdoc />
+    public TimeProvider TimeProvider { get; private set; }
+
+    /// <inheritdoc />
     public virtual EagerFlags AllowedEagerModes => EagerFlags.None;
 
     /// <inheritdoc />
@@ -73,6 +76,7 @@ public partial class ArtifactTool : IArtifactTool
         DataManager = null!;
         Profile = null!;
         Config = null!;
+        TimeProvider = null!;
     }
 
     #endregion
@@ -90,12 +94,23 @@ public partial class ArtifactTool : IArtifactTool
 
     private void InitializeCore(ArtifactToolConfig? config, ArtifactToolProfile? profile)
     {
-        config ??= new ArtifactToolConfig(new NullArtifactRegistrationManager(), new NullArtifactDataManager());
-        if (config.RegistrationManager == null) throw new ArgumentException("Cannot configure with null registration manager");
-        if (config.DataManager == null) throw new ArgumentException("Cannot configure with null data manager");
+        config ??= new ArtifactToolConfig(new NullArtifactRegistrationManager(), new NullArtifactDataManager(), TimeProvider.System);
+        if (config.RegistrationManager == null)
+        {
+            throw new ArgumentException("Cannot configure with null registration manager");
+        }
+        if (config.DataManager == null)
+        {
+            throw new ArgumentException("Cannot configure with null data manager");
+        }
+        if (config.TimeProvider == null)
+        {
+            throw new ArgumentException("Cannot configure with null time provider");
+        }
         Config = config;
         RegistrationManager = config.RegistrationManager;
         DataManager = config.DataManager;
+        TimeProvider = config.TimeProvider;
         Profile = profile ?? new ArtifactToolProfile(ArtifactToolIDUtil.CreateToolString(GetType()), null, null);
         if (Profile.Options != null)
             ConfigureOptions();
@@ -164,16 +179,22 @@ public partial class ArtifactTool : IArtifactTool
     /// <param name="artifactToolProfile">Tool profile.</param>
     /// <param name="artifactRegistrationManager">Registration manager.</param>
     /// <param name="artifactDataManager">Data manager.</param>
+    /// <param name="timeProvider">Time provider.</param>
     /// <param name="cancellationToken">Cancellation token.</param>
     /// <returns>Task.</returns>
     /// <exception cref="ArgumentException">Thrown when an invalid profile is provided.</exception>
     /// <exception cref="ArtifactToolNotFoundException">Thrown when tool is not found.</exception>
     [RequiresUnreferencedCode($"Loading artifact tools might require types that cannot be statically analyzed. Consider making use of the overload that takes {nameof(IArtifactToolRegistry)} where possible.")]
-    public static Task<IArtifactTool> PrepareToolAsync(ArtifactToolProfile artifactToolProfile, IArtifactRegistrationManager artifactRegistrationManager, IArtifactDataManager artifactDataManager, CancellationToken cancellationToken = default)
+    public static Task<IArtifactTool> PrepareToolAsync(
+        ArtifactToolProfile artifactToolProfile,
+        IArtifactRegistrationManager artifactRegistrationManager,
+        IArtifactDataManager artifactDataManager,
+        TimeProvider timeProvider,
+        CancellationToken cancellationToken = default)
     {
         if (!ArtifactToolLoader.TryLoad(artifactToolProfile.Tool, out IArtifactTool? t))
             throw new ArtifactToolNotFoundException(artifactToolProfile.Tool);
-        return PrepareToolInternalAsync(t, artifactToolProfile, artifactRegistrationManager, artifactDataManager, cancellationToken);
+        return PrepareToolInternalAsync(t, artifactToolProfile, artifactRegistrationManager, artifactDataManager, timeProvider, cancellationToken);
     }
 
     /// <summary>
@@ -183,16 +204,23 @@ public partial class ArtifactTool : IArtifactTool
     /// <param name="artifactToolProfile">Tool profile.</param>
     /// <param name="artifactRegistrationManager">Registration manager.</param>
     /// <param name="artifactDataManager">Data manager.</param>
+    /// <param name="timeProvider">Time provider.</param>
     /// <param name="cancellationToken">Cancellation token.</param>
     /// <returns>Task.</returns>
     /// <exception cref="ArgumentException">Thrown when an invalid profile is provided.</exception>
     /// <exception cref="ArtifactToolNotFoundException">Thrown when tool is not found.</exception>
     [RequiresUnreferencedCode($"Loading artifact tools might require types that cannot be statically analyzed. Consider making use of the overload that takes {nameof(IArtifactToolRegistry)} where possible.")]
-    public static Task<IArtifactTool> PrepareToolAsync(AssemblyLoadContext assemblyLoadContext, ArtifactToolProfile artifactToolProfile, IArtifactRegistrationManager artifactRegistrationManager, IArtifactDataManager artifactDataManager, CancellationToken cancellationToken = default)
+    public static Task<IArtifactTool> PrepareToolAsync(
+        AssemblyLoadContext assemblyLoadContext,
+        ArtifactToolProfile artifactToolProfile,
+        IArtifactRegistrationManager artifactRegistrationManager,
+        IArtifactDataManager artifactDataManager,
+        TimeProvider timeProvider,
+        CancellationToken cancellationToken = default)
     {
         if (!ArtifactToolLoader.TryLoad(assemblyLoadContext, artifactToolProfile.Tool, out IArtifactTool? t))
             throw new ArtifactToolNotFoundException(artifactToolProfile.Tool);
-        return PrepareToolInternalAsync(t, artifactToolProfile, artifactRegistrationManager, artifactDataManager, cancellationToken);
+        return PrepareToolInternalAsync(t, artifactToolProfile, artifactRegistrationManager, artifactDataManager, timeProvider, cancellationToken);
     }
 
     /// <summary>
@@ -202,15 +230,22 @@ public partial class ArtifactTool : IArtifactTool
     /// <param name="artifactToolProfile">Tool profile.</param>
     /// <param name="artifactRegistrationManager">Registration manager.</param>
     /// <param name="artifactDataManager">Data manager.</param>
+    /// <param name="timeProvider">Time provider.</param>
     /// <param name="cancellationToken">Cancellation token.</param>
     /// <returns>Task.</returns>
     /// <exception cref="ArgumentException">Thrown when an invalid profile is provided.</exception>
     /// <exception cref="ArtifactToolNotFoundException">Thrown when tool is not found.</exception>
-    public static Task<IArtifactTool> PrepareToolAsync(IArtifactToolRegistry artifactToolRegistry, ArtifactToolProfile artifactToolProfile, IArtifactRegistrationManager artifactRegistrationManager, IArtifactDataManager artifactDataManager, CancellationToken cancellationToken = default)
+    public static Task<IArtifactTool> PrepareToolAsync(
+        IArtifactToolRegistry artifactToolRegistry,
+        ArtifactToolProfile artifactToolProfile,
+        IArtifactRegistrationManager artifactRegistrationManager,
+        IArtifactDataManager artifactDataManager,
+        TimeProvider timeProvider,
+        CancellationToken cancellationToken = default)
     {
         if (!artifactToolRegistry.TryLoad(ArtifactToolIDUtil.ParseID(artifactToolProfile.Tool), out IArtifactTool? t))
             throw new ArtifactToolNotFoundException(artifactToolProfile.Tool);
-        return PrepareToolInternalAsync(t, artifactToolProfile, artifactRegistrationManager, artifactDataManager, cancellationToken);
+        return PrepareToolInternalAsync(t, artifactToolProfile, artifactRegistrationManager, artifactDataManager, timeProvider, cancellationToken);
     }
 
     /// <summary>
@@ -220,18 +255,30 @@ public partial class ArtifactTool : IArtifactTool
     /// <param name="artifactToolProfile">Tool profile.</param>
     /// <param name="artifactRegistrationManager">Registration manager.</param>
     /// <param name="artifactDataManager">Data manager.</param>
+    /// <param name="timeProvider">Time provider.</param>
     /// <param name="cancellationToken">Cancellation token.</param>
     /// <returns>Task.</returns>
     /// <exception cref="ArgumentException">Thrown when an invalid profile is provided.</exception>
-    public static Task<IArtifactTool> PrepareToolAsync<T>(ArtifactToolProfile artifactToolProfile, IArtifactRegistrationManager artifactRegistrationManager, IArtifactDataManager artifactDataManager, CancellationToken cancellationToken = default) where T : IArtifactToolFactory
+    public static Task<IArtifactTool> PrepareToolAsync<T>(
+        ArtifactToolProfile artifactToolProfile,
+        IArtifactRegistrationManager artifactRegistrationManager,
+        IArtifactDataManager artifactDataManager,
+        TimeProvider timeProvider,
+        CancellationToken cancellationToken = default) where T : IArtifactToolFactory
     {
         var t = T.CreateArtifactTool();
-        return PrepareToolInternalAsync(t, artifactToolProfile, artifactRegistrationManager, artifactDataManager, cancellationToken);
+        return PrepareToolInternalAsync(t, artifactToolProfile, artifactRegistrationManager, artifactDataManager, timeProvider, cancellationToken);
     }
 
-    private static async Task<IArtifactTool> PrepareToolInternalAsync(IArtifactTool tool, ArtifactToolProfile artifactToolProfile, IArtifactRegistrationManager artifactRegistrationManager, IArtifactDataManager artifactDataManager, CancellationToken cancellationToken = default)
+    private static async Task<IArtifactTool> PrepareToolInternalAsync(
+        IArtifactTool tool,
+        ArtifactToolProfile artifactToolProfile,
+        IArtifactRegistrationManager artifactRegistrationManager,
+        IArtifactDataManager artifactDataManager,
+        TimeProvider timeProvider,
+        CancellationToken cancellationToken = default)
     {
-        ArtifactToolConfig config = new(artifactRegistrationManager, artifactDataManager);
+        ArtifactToolConfig config = new(artifactRegistrationManager, artifactDataManager, timeProvider);
         artifactToolProfile = artifactToolProfile.WithCoreTool(tool);
         await tool.InitializeAsync(config, artifactToolProfile, cancellationToken).ConfigureAwait(false);
         return tool;

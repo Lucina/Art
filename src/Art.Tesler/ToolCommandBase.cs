@@ -61,13 +61,13 @@ public abstract class ToolCommandBase : CommandBase
         return artifactToolProfiles.Select(p => p.GetWithConsoleOptions(PluginStore, toolPropertyProvider, properties, cookieFile, userAgent, ToolOutput));
     }
 
-    protected async Task<IArtifactTool> GetToolAsync(ArtifactToolProfile artifactToolProfile, IArtifactRegistrationManager arm, IArtifactDataManager adm, CancellationToken cancellationToken = default)
+    protected async Task<IArtifactTool> GetToolAsync(ArtifactToolProfile artifactToolProfile, IArtifactRegistrationManager arm, IArtifactDataManager adm, TimeProvider timeProvider, CancellationToken cancellationToken = default)
     {
         if (!PluginStore.TryLoadRegistry(ArtifactToolIDUtil.ParseID(artifactToolProfile.Tool), out var plugin))
         {
             throw new ArtifactToolNotFoundException(artifactToolProfile.Tool);
         }
-        return await ArtifactTool.PrepareToolAsync(plugin, artifactToolProfile, arm, adm, cancellationToken).ConfigureAwait(false);
+        return await ArtifactTool.PrepareToolAsync(plugin, artifactToolProfile, arm, adm, timeProvider, cancellationToken).ConfigureAwait(false);
     }
 
     protected IToolPropertyProvider? GetOptionalToolPropertyProvider(InvocationContext context)

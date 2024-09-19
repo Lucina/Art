@@ -14,6 +14,8 @@ public class DumpCommand : ToolCommandBase
 
     protected ITeslerRegistrationProvider RegistrationProvider;
 
+    protected TimeProvider TimeProvider;
+
     protected Option<string> HashOption;
 
     protected Option<bool> NoDatabaseOption;
@@ -29,8 +31,9 @@ public class DumpCommand : ToolCommandBase
         IArtifactToolRegistryStore pluginStore,
         IToolPropertyProvider toolPropertyProvider,
         ITeslerDataProvider dataProvider,
-        ITeslerRegistrationProvider registrationProvider)
-        : this(toolLogHandlerProvider, pluginStore, toolPropertyProvider, dataProvider, registrationProvider, "dump", "Execute artifact dump tools.")
+        ITeslerRegistrationProvider registrationProvider,
+        TimeProvider timeProvider)
+        : this(toolLogHandlerProvider, pluginStore, toolPropertyProvider, dataProvider, registrationProvider, timeProvider, "dump", "Execute artifact dump tools.")
     {
     }
 
@@ -40,6 +43,7 @@ public class DumpCommand : ToolCommandBase
         IToolPropertyProvider toolPropertyProvider,
         ITeslerDataProvider dataProvider,
         ITeslerRegistrationProvider registrationProvider,
+        TimeProvider timeProvider,
         string name,
         string? description = null)
         : base(toolLogHandlerProvider, pluginStore, toolPropertyProvider, name, description)
@@ -48,6 +52,7 @@ public class DumpCommand : ToolCommandBase
         DataProvider.Initialize(this);
         RegistrationProvider = registrationProvider;
         RegistrationProvider.Initialize(this);
+        TimeProvider = timeProvider;
         HashOption = new Option<string>(new[] { "-h", "--hash" }, $"Checksum algorithm ({Common.ChecksumAlgorithms})");
         HashOption.SetDefaultValue(Common.DefaultChecksumAlgorithm);
         AddOption(HashOption);
@@ -120,7 +125,7 @@ public class DumpCommand : ToolCommandBase
     {
         ArtifactToolDumpOptions options = new(ChecksumSource: checksumSource);
         profile = PrepareProfile(context, profile);
-        using var tool = await GetToolAsync(profile, arm, adm);
+        using var tool = await GetToolAsync(profile, arm, adm, TimeProvider);
         ArtifactToolDumpProxy dProxy = new(tool, options, ToolLogHandlerProvider.GetDefaultToolLogHandler());
         await dProxy.DumpAsync();
         return 0;

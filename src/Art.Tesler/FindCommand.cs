@@ -10,6 +10,8 @@ namespace Art.Tesler;
 
 public class FindCommand : ToolCommandBase
 {
+    protected TimeProvider TimeProvider;
+
     protected Argument<List<string>> IdsArg;
 
     protected Option<string> ProfileFileOption;
@@ -25,9 +27,10 @@ public class FindCommand : ToolCommandBase
     public FindCommand(
         IToolLogHandlerProvider toolLogHandlerProvider,
         IArtifactToolRegistryStore pluginStore,
-        IToolPropertyProvider toolPropertyProvider
+        IToolPropertyProvider toolPropertyProvider,
+        TimeProvider timeProvider
     )
-        : this(toolLogHandlerProvider, pluginStore, toolPropertyProvider, "find", "Execute artifact finder tools.")
+        : this(toolLogHandlerProvider, pluginStore, toolPropertyProvider, timeProvider, "find", "Execute artifact finder tools.")
     {
     }
 
@@ -35,10 +38,12 @@ public class FindCommand : ToolCommandBase
         IToolLogHandlerProvider toolLogHandlerProvider,
         IArtifactToolRegistryStore pluginStore,
         IToolPropertyProvider toolPropertyProvider,
+        TimeProvider timeProvider,
         string name,
         string? description = null) :
         base(toolLogHandlerProvider, pluginStore, toolPropertyProvider, name, description)
     {
+        TimeProvider = timeProvider;
         IdsArg = new Argument<List<string>>("ids", "IDs") { HelpName = "id", Arity = ArgumentArity.OneOrMore };
         AddArgument(IdsArg);
         ListResourceOption = new Option<bool>(new[] { "-l", "--list-resource" }, "List associated resources");
@@ -84,7 +89,7 @@ public class FindCommand : ToolCommandBase
         using var arm = new InMemoryArtifactRegistrationManager();
         using var adm = new NullArtifactDataManager();
         profile = PrepareProfile(context, profile);
-        using var tool = await GetToolAsync(profile, arm, adm);
+        using var tool = await GetToolAsync(profile, arm, adm, TimeProvider);
         ArtifactToolFindProxy proxy = new(tool, ToolLogHandlerProvider.GetDefaultToolLogHandler());
         bool listResource = context.ParseResult.GetValueForOption(ListResourceOption);
         bool detailed = context.ParseResult.GetValueForOption(DetailedOption);

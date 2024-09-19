@@ -15,19 +15,26 @@ public static class ArtifactDumping
     /// </summary>
     /// <param name="artifactToolProfilePath">Path to tool profile.</param>
     /// <param name="targetDirectory">Base directory.</param>
+    /// <param name="timeProvider">Time provider.</param>
     /// <param name="dumpOptions">Dump options.</param>
     /// <param name="toolLogHandler">Tool log handler.</param>
     /// <param name="cancellationToken">Cancellation token.</param>
     /// <returns>Task.</returns>
     /// <exception cref="ArtifactToolNotFoundException">Thrown when tool is not found.</exception>
     [RequiresUnreferencedCode($"Loading artifact tools might require types that cannot be statically analyzed. Consider making use of the overload that takes {nameof(IArtifactToolRegistry)} where possible.")]
-    public static async Task DumpAsync(string artifactToolProfilePath, string targetDirectory, ArtifactToolDumpOptions? dumpOptions = null, IToolLogHandler? toolLogHandler = null, CancellationToken cancellationToken = default)
+    public static async Task DumpAsync(
+        string artifactToolProfilePath,
+        string targetDirectory,
+        TimeProvider timeProvider,
+        ArtifactToolDumpOptions? dumpOptions = null,
+        IToolLogHandler? toolLogHandler = null,
+        CancellationToken cancellationToken = default)
     {
         dumpOptions ??= new ArtifactToolDumpOptions();
         using var srm = new DiskArtifactRegistrationManager(targetDirectory);
         using var sdm = new DiskArtifactDataManager(targetDirectory);
         foreach (ArtifactToolProfile profile in ArtifactToolProfileUtil.DeserializeProfilesFromFile(artifactToolProfilePath))
-            await DumpAsync(profile, srm, sdm, dumpOptions, toolLogHandler, cancellationToken).ConfigureAwait(false);
+            await DumpAsync(profile, srm, sdm, timeProvider, dumpOptions, toolLogHandler, cancellationToken).ConfigureAwait(false);
     }
 
     /// <summary>
@@ -36,19 +43,27 @@ public static class ArtifactDumping
     /// <param name="assemblyLoadContext">Custom <see cref="AssemblyLoadContext"/>.</param>
     /// <param name="artifactToolProfilePath">Path to tool profile.</param>
     /// <param name="targetDirectory">Base directory.</param>
+    /// <param name="timeProvider">Time provider.</param>
     /// <param name="dumpOptions">Dump options.</param>
     /// <param name="toolLogHandler">Tool log handler.</param>
     /// <param name="cancellationToken">Cancellation token.</param>
     /// <returns>Task.</returns>
     /// <exception cref="ArtifactToolNotFoundException">Thrown when tool is not found.</exception>
     [RequiresUnreferencedCode($"Loading artifact tools might require types that cannot be statically analyzed. Consider making use of the overload that takes {nameof(IArtifactToolRegistry)} where possible.")]
-    public static async Task DumpAsync(AssemblyLoadContext assemblyLoadContext, string artifactToolProfilePath, string targetDirectory, ArtifactToolDumpOptions? dumpOptions = null, IToolLogHandler? toolLogHandler = null, CancellationToken cancellationToken = default)
+    public static async Task DumpAsync(
+        AssemblyLoadContext assemblyLoadContext,
+        string artifactToolProfilePath,
+        string targetDirectory,
+        TimeProvider timeProvider,
+        ArtifactToolDumpOptions? dumpOptions = null,
+        IToolLogHandler? toolLogHandler = null,
+        CancellationToken cancellationToken = default)
     {
         dumpOptions ??= new ArtifactToolDumpOptions();
         using var srm = new DiskArtifactRegistrationManager(targetDirectory);
         using var sdm = new DiskArtifactDataManager(targetDirectory);
         foreach (ArtifactToolProfile profile in ArtifactToolProfileUtil.DeserializeProfilesFromFile(artifactToolProfilePath))
-            await DumpAsync(assemblyLoadContext, profile, srm, sdm, dumpOptions, toolLogHandler, cancellationToken).ConfigureAwait(false);
+            await DumpAsync(assemblyLoadContext, profile, srm, sdm, timeProvider, dumpOptions, toolLogHandler, cancellationToken).ConfigureAwait(false);
     }
 
     /// <summary>
@@ -57,18 +72,26 @@ public static class ArtifactDumping
     /// <param name="artifactToolRegistry">Custom <see cref="IArtifactToolRegistry"/>.</param>
     /// <param name="artifactToolProfilePath">Path to tool profile.</param>
     /// <param name="targetDirectory">Base directory.</param>
+    /// <param name="timeProvider">Time provider.</param>
     /// <param name="dumpOptions">Dump options.</param>
     /// <param name="toolLogHandler">Tool log handler.</param>
     /// <param name="cancellationToken">Cancellation token.</param>
     /// <returns>Task.</returns>
     /// <exception cref="ArtifactToolNotFoundException">Thrown when tool is not found.</exception>
-    public static async Task DumpAsync(IArtifactToolRegistry artifactToolRegistry, string artifactToolProfilePath, string targetDirectory, ArtifactToolDumpOptions? dumpOptions = null, IToolLogHandler? toolLogHandler = null, CancellationToken cancellationToken = default)
+    public static async Task DumpAsync(
+        IArtifactToolRegistry artifactToolRegistry,
+        string artifactToolProfilePath,
+        string targetDirectory,
+        TimeProvider timeProvider,
+        ArtifactToolDumpOptions? dumpOptions = null,
+        IToolLogHandler? toolLogHandler = null,
+        CancellationToken cancellationToken = default)
     {
         dumpOptions ??= new ArtifactToolDumpOptions();
         using var srm = new DiskArtifactRegistrationManager(targetDirectory);
         using var sdm = new DiskArtifactDataManager(targetDirectory);
         foreach (ArtifactToolProfile profile in ArtifactToolProfileUtil.DeserializeProfilesFromFile(artifactToolProfilePath))
-            await DumpAsync(artifactToolRegistry, profile, srm, sdm, dumpOptions, toolLogHandler, cancellationToken).ConfigureAwait(false);
+            await DumpAsync(artifactToolRegistry, profile, srm, sdm, timeProvider, dumpOptions, toolLogHandler, cancellationToken).ConfigureAwait(false);
     }
 
     /// <summary>
@@ -77,6 +100,7 @@ public static class ArtifactDumping
     /// <param name="artifactToolProfile">Tool profile.</param>
     /// <param name="artifactRegistrationManager">Registration manager.</param>
     /// <param name="artifactDataManager">Data manager.</param>
+    /// <param name="timeProvider">Time provider.</param>
     /// <param name="dumpOptions">Dump options.</param>
     /// <param name="toolLogHandler">Tool log handler.</param>
     /// <param name="cancellationToken">Cancellation token.</param>
@@ -84,9 +108,16 @@ public static class ArtifactDumping
     /// <exception cref="ArgumentException">Thrown when an invalid profile is provided.</exception>
     /// <exception cref="ArtifactToolNotFoundException">Thrown when tool is not found.</exception>
     [RequiresUnreferencedCode($"Loading artifact tools might require types that cannot be statically analyzed. Consider making use of the overload that takes {nameof(IArtifactToolRegistry)} where possible.")]
-    public static async Task DumpAsync(ArtifactToolProfile artifactToolProfile, IArtifactRegistrationManager artifactRegistrationManager, IArtifactDataManager artifactDataManager, ArtifactToolDumpOptions? dumpOptions = null, IToolLogHandler? toolLogHandler = null, CancellationToken cancellationToken = default)
+    public static async Task DumpAsync(
+        ArtifactToolProfile artifactToolProfile,
+        IArtifactRegistrationManager artifactRegistrationManager,
+        IArtifactDataManager artifactDataManager,
+        TimeProvider timeProvider,
+        ArtifactToolDumpOptions? dumpOptions = null,
+        IToolLogHandler? toolLogHandler = null,
+        CancellationToken cancellationToken = default)
     {
-        using IArtifactTool tool = await ArtifactTool.PrepareToolAsync(artifactToolProfile, artifactRegistrationManager, artifactDataManager, cancellationToken).ConfigureAwait(false);
+        using IArtifactTool tool = await ArtifactTool.PrepareToolAsync(artifactToolProfile, artifactRegistrationManager, artifactDataManager, timeProvider, cancellationToken).ConfigureAwait(false);
         await new ArtifactToolDumpProxy(tool, dumpOptions ?? new ArtifactToolDumpOptions(), toolLogHandler).DumpAsync(cancellationToken).ConfigureAwait(false);
     }
 
@@ -97,6 +128,7 @@ public static class ArtifactDumping
     /// <param name="artifactToolProfile">Tool profile.</param>
     /// <param name="artifactRegistrationManager">Registration manager.</param>
     /// <param name="artifactDataManager">Data manager.</param>
+    /// <param name="timeProvider">Time provider.</param>
     /// <param name="dumpOptions">Dump options.</param>
     /// <param name="toolLogHandler">Tool log handler.</param>
     /// <param name="cancellationToken">Cancellation token.</param>
@@ -104,9 +136,17 @@ public static class ArtifactDumping
     /// <exception cref="ArgumentException">Thrown when an invalid profile is provided.</exception>
     /// <exception cref="ArtifactToolNotFoundException">Thrown when tool is not found.</exception>
     [RequiresUnreferencedCode($"Loading artifact tools might require types that cannot be statically analyzed. Consider making use of the overload that takes {nameof(IArtifactToolRegistry)} where possible.")]
-    public static async Task DumpAsync(AssemblyLoadContext assemblyLoadContext, ArtifactToolProfile artifactToolProfile, IArtifactRegistrationManager artifactRegistrationManager, IArtifactDataManager artifactDataManager, ArtifactToolDumpOptions? dumpOptions = null, IToolLogHandler? toolLogHandler = null, CancellationToken cancellationToken = default)
+    public static async Task DumpAsync(
+        AssemblyLoadContext assemblyLoadContext,
+        ArtifactToolProfile artifactToolProfile,
+        IArtifactRegistrationManager artifactRegistrationManager,
+        IArtifactDataManager artifactDataManager,
+        TimeProvider timeProvider,
+        ArtifactToolDumpOptions? dumpOptions = null,
+        IToolLogHandler? toolLogHandler = null,
+        CancellationToken cancellationToken = default)
     {
-        using IArtifactTool tool = await ArtifactTool.PrepareToolAsync(assemblyLoadContext, artifactToolProfile, artifactRegistrationManager, artifactDataManager, cancellationToken).ConfigureAwait(false);
+        using IArtifactTool tool = await ArtifactTool.PrepareToolAsync(assemblyLoadContext, artifactToolProfile, artifactRegistrationManager, artifactDataManager, timeProvider, cancellationToken).ConfigureAwait(false);
         await new ArtifactToolDumpProxy(tool, dumpOptions ?? new ArtifactToolDumpOptions(), toolLogHandler).DumpAsync(cancellationToken).ConfigureAwait(false);
     }
 
@@ -117,15 +157,24 @@ public static class ArtifactDumping
     /// <param name="artifactToolProfile">Tool profile.</param>
     /// <param name="artifactRegistrationManager">Registration manager.</param>
     /// <param name="artifactDataManager">Data manager.</param>
+    /// <param name="timeProvider">Time provider.</param>
     /// <param name="dumpOptions">Dump options.</param>
     /// <param name="toolLogHandler">Tool log handler.</param>
     /// <param name="cancellationToken">Cancellation token.</param>
     /// <returns>Task.</returns>
     /// <exception cref="ArgumentException">Thrown when an invalid profile is provided.</exception>
     /// <exception cref="ArtifactToolNotFoundException">Thrown when tool is not found.</exception>
-    public static async Task DumpAsync(IArtifactToolRegistry artifactToolRegistry, ArtifactToolProfile artifactToolProfile, IArtifactRegistrationManager artifactRegistrationManager, IArtifactDataManager artifactDataManager, ArtifactToolDumpOptions? dumpOptions = null, IToolLogHandler? toolLogHandler = null, CancellationToken cancellationToken = default)
+    public static async Task DumpAsync(
+        IArtifactToolRegistry artifactToolRegistry,
+        ArtifactToolProfile artifactToolProfile,
+        IArtifactRegistrationManager artifactRegistrationManager,
+        IArtifactDataManager artifactDataManager,
+        TimeProvider timeProvider,
+        ArtifactToolDumpOptions? dumpOptions = null,
+        IToolLogHandler? toolLogHandler = null,
+        CancellationToken cancellationToken = default)
     {
-        using IArtifactTool tool = await ArtifactTool.PrepareToolAsync(artifactToolRegistry, artifactToolProfile, artifactRegistrationManager, artifactDataManager, cancellationToken).ConfigureAwait(false);
+        using IArtifactTool tool = await ArtifactTool.PrepareToolAsync(artifactToolRegistry, artifactToolProfile, artifactRegistrationManager, artifactDataManager, timeProvider, cancellationToken).ConfigureAwait(false);
         await new ArtifactToolDumpProxy(tool, dumpOptions ?? new ArtifactToolDumpOptions(), toolLogHandler).DumpAsync(cancellationToken).ConfigureAwait(false);
     }
 
@@ -136,15 +185,23 @@ public static class ArtifactDumping
     /// <param name="artifactToolProfile">Tool profile.</param>
     /// <param name="artifactRegistrationManager">Registration manager.</param>
     /// <param name="artifactDataManager">Data manager.</param>
+    /// <param name="timeProvider">Time provider.</param>
     /// <param name="dumpOptions">Dump options.</param>
     /// <param name="toolLogHandler">Tool log handler.</param>
     /// <param name="cancellationToken">Cancellation token.</param>
     /// <returns>Task.</returns>
     /// <exception cref="ArgumentException">Thrown when an invalid profile is provided.</exception>
     /// <exception cref="ArtifactToolNotFoundException">Thrown when tool is not found.</exception>
-    public static async Task DumpAsync<T>(ArtifactToolProfile artifactToolProfile, IArtifactRegistrationManager artifactRegistrationManager, IArtifactDataManager artifactDataManager, ArtifactToolDumpOptions? dumpOptions = null, IToolLogHandler? toolLogHandler = null, CancellationToken cancellationToken = default) where T : IArtifactToolFactory
+    public static async Task DumpAsync<T>(
+        ArtifactToolProfile artifactToolProfile,
+        IArtifactRegistrationManager artifactRegistrationManager,
+        IArtifactDataManager artifactDataManager,
+        TimeProvider timeProvider,
+        ArtifactToolDumpOptions? dumpOptions = null,
+        IToolLogHandler? toolLogHandler = null,
+        CancellationToken cancellationToken = default) where T : IArtifactToolFactory
     {
-        using IArtifactTool tool = await ArtifactTool.PrepareToolAsync<T>(artifactToolProfile, artifactRegistrationManager, artifactDataManager, cancellationToken).ConfigureAwait(false);
+        using IArtifactTool tool = await ArtifactTool.PrepareToolAsync<T>(artifactToolProfile, artifactRegistrationManager, artifactDataManager, timeProvider, cancellationToken).ConfigureAwait(false);
         await new ArtifactToolDumpProxy(tool, dumpOptions ?? new ArtifactToolDumpOptions(), toolLogHandler).DumpAsync(cancellationToken).ConfigureAwait(false);
     }
 

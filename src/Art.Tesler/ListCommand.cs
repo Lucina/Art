@@ -10,6 +10,8 @@ namespace Art.Tesler;
 
 public class ListCommand : ToolCommandBase
 {
+    protected TimeProvider TimeProvider;
+
     protected Option<string> ProfileFileOption;
 
     protected Option<bool> ListResourceOption;
@@ -23,9 +25,10 @@ public class ListCommand : ToolCommandBase
     public ListCommand(
         IToolLogHandlerProvider toolLogHandlerProvider,
         IArtifactToolRegistryStore pluginStore,
-        IToolPropertyProvider toolPropertyProvider
+        IToolPropertyProvider toolPropertyProvider,
+        TimeProvider timeProvider
     )
-        : this(toolLogHandlerProvider, pluginStore, toolPropertyProvider, "list", "Execute artifact list tools.")
+        : this(toolLogHandlerProvider, pluginStore, toolPropertyProvider, timeProvider, "list", "Execute artifact list tools.")
     {
     }
 
@@ -33,10 +36,12 @@ public class ListCommand : ToolCommandBase
         IToolLogHandlerProvider toolLogHandlerProvider,
         IArtifactToolRegistryStore pluginStore,
         IToolPropertyProvider toolPropertyProvider,
+        TimeProvider timeProvider,
         string name,
         string? description = null)
         : base(toolLogHandlerProvider, pluginStore, toolPropertyProvider, name, description)
     {
+        TimeProvider = timeProvider;
         ProfileFileOption = new Option<string>(new[] { "-i", "--input" }, "Profile file") { ArgumentHelpName = "file" };
         AddOption(ProfileFileOption);
         ListResourceOption = new Option<bool>(new[] { "-l", "--list-resource" }, "List associated resources");
@@ -76,7 +81,7 @@ public class ListCommand : ToolCommandBase
         using var arm = new InMemoryArtifactRegistrationManager();
         using var adm = new NullArtifactDataManager();
         profile = PrepareProfile(context, profile);
-        using var tool = await GetToolAsync(profile, arm, adm);
+        using var tool = await GetToolAsync(profile, arm, adm, TimeProvider);
         ArtifactToolListOptions options = new();
         ArtifactToolListProxy proxy = new(tool, options, ToolLogHandlerProvider.GetDefaultToolLogHandler());
         bool listResource = context.ParseResult.GetValueForOption(ListResourceOption);

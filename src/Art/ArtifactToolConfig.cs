@@ -5,4 +5,5 @@
 /// </summary>
 /// <param name="RegistrationManager">Registration manager.</param>
 /// <param name="DataManager">Data manager.</param>
-public record ArtifactToolConfig(IArtifactRegistrationManager RegistrationManager, IArtifactDataManager DataManager);
+/// <param name="TimeProvider">Time provider.</param>
+public record ArtifactToolConfig(IArtifactRegistrationManager RegistrationManager, IArtifactDataManager DataManager, TimeProvider TimeProvider);

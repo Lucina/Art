@@ -4,6 +4,7 @@ using Art.Common.Resources;
 using Art.Tesler.Profiles;
 using Art.Tesler.Properties;
 using Art.TestsBase;
+using Microsoft.Extensions.Time.Testing;
 
 namespace Art.Tesler.Tests;
 
@@ -20,9 +21,10 @@ public class StreamCommandTests : CommandTestBase
         IToolLogHandlerProvider toolLogHandlerProvider,
         IArtifactToolRegistryStore artifactToolRegistryStore,
         IToolPropertyProvider toolPropertyProvider,
+        TimeProvider timeProvider,
         IProfileResolver profileResolver)
     {
-        Command = new StreamCommand(toolLogHandlerProvider, artifactToolRegistryStore, toolPropertyProvider, profileResolver);
+        Command = new StreamCommand(toolLogHandlerProvider, artifactToolRegistryStore, toolPropertyProvider, timeProvider, profileResolver);
     }
 
     [Test]
@@ -32,7 +34,7 @@ public class StreamCommandTests : CommandTestBase
         var toolPropertyProvider = CreateInMemoryPropertyProvider();
         var profileResolver = CreateDictionaryProfileResolver();
         CreateStreamOutputs(out var toolOutput, out var console);
-        InitCommandDefault(toolOutput, store, toolPropertyProvider, profileResolver);
+        InitCommandDefault(toolOutput, store, toolPropertyProvider, new FakeTimeProvider(), profileResolver);
         int rc = Command.Invoke(Array.Empty<string>(), console);
         Assert.That(Out.ToString(), Is.Not.Empty);
         Assert.That(Error.ToString(), Is.Not.Empty);
@@ -46,7 +48,7 @@ public class StreamCommandTests : CommandTestBase
         var toolPropertyProvider = CreateInMemoryPropertyProvider();
         var profileResolver = CreateDictionaryProfileResolver();
         CreateStreamOutputs(out var toolOutput, out var console);
-        InitCommandDefault(toolOutput, store, toolPropertyProvider, profileResolver);
+        InitCommandDefault(toolOutput, store, toolPropertyProvider, new FakeTimeProvider(), profileResolver);
         string[] line = { BadProfileName };
         int rc = Command.Invoke(line, console);
         Assert.That(Out.ToString(), Is.Empty);
@@ -61,7 +63,7 @@ public class StreamCommandTests : CommandTestBase
         var toolPropertyProvider = CreateInMemoryPropertyProvider();
         var profileResolver = CreateDictionaryProfileResolver(ProfileName);
         CreateStreamOutputs(out var toolOutput, out var console);
-        InitCommandDefault(toolOutput, store, toolPropertyProvider, profileResolver);
+        InitCommandDefault(toolOutput, store, toolPropertyProvider, new FakeTimeProvider(), profileResolver);
         string[] line = { ProfileName };
         int rc = Command.Invoke(line, console);
         Assert.That(Out.ToString(), Is.Empty);
@@ -76,7 +78,7 @@ public class StreamCommandTests : CommandTestBase
         var toolPropertyProvider = CreateInMemoryPropertyProvider();
         var profileResolver = CreateDictionaryProfileResolver(ProfileName, new ArtifactToolProfile("X1", "X2", null), new ArtifactToolProfile("X1", "X3", null));
         CreateStreamOutputs(out var toolOutput, out var console);
-        InitCommandDefault(toolOutput, store, toolPropertyProvider, profileResolver);
+        InitCommandDefault(toolOutput, store, toolPropertyProvider, new FakeTimeProvider(), profileResolver);
         string[] line = { ProfileName };
         int rc = Command.Invoke(line, console);
         Assert.That(Out.ToString(), Is.Empty);
@@ -93,7 +95,7 @@ public class StreamCommandTests : CommandTestBase
         var toolPropertyProvider = CreateInMemoryPropertyProvider();
         var profileResolver = CreateDictionaryProfileResolver(ProfileName, new ArtifactToolProfile(s_toolId.GetToolString(), null, null));
         CreateStreamOutputs(out var toolOutput, out var console);
-        InitCommandDefault(toolOutput, store, toolPropertyProvider, profileResolver);
+        InitCommandDefault(toolOutput, store, toolPropertyProvider, new FakeTimeProvider(), profileResolver);
         string[] line = { ProfileName };
         int rc = Command.Invoke(line, console);
         Assert.That(Out.ToString(), Is.Empty);
@@ -110,7 +112,7 @@ public class StreamCommandTests : CommandTestBase
         var toolPropertyProvider = CreateInMemoryPropertyProvider();
         var profileResolver = CreateDictionaryProfileResolver(ProfileName, new ArtifactToolProfile(s_toolId.GetToolString(), null, null));
         CreateStreamOutputs(out var toolOutput, out var console);
-        InitCommandDefault(toolOutput, store, toolPropertyProvider, profileResolver);
+        InitCommandDefault(toolOutput, store, toolPropertyProvider, new FakeTimeProvider(), profileResolver);
         string[] line = { ProfileName };
         int rc = Command.Invoke(line, console);
         Assert.That(Out.ToString(), Is.Empty);
@@ -125,7 +127,7 @@ public class StreamCommandTests : CommandTestBase
         var toolPropertyProvider = CreateInMemoryPropertyProvider();
         var profileResolver = CreateDictionaryProfileResolver(ProfileName, new ArtifactToolProfile(s_toolId.GetToolString(), null, null));
         CreateStreamOutputs(out var toolOutput, out var console);
-        InitCommandDefault(toolOutput, store, toolPropertyProvider, profileResolver);
+        InitCommandDefault(toolOutput, store, toolPropertyProvider, new FakeTimeProvider(), profileResolver);
         string[] line = { ProfileName };
         int rc = Command.Invoke(line, console);
         Assert.That(Out.ToString(), Is.Empty);
@@ -140,7 +142,7 @@ public class StreamCommandTests : CommandTestBase
         var toolPropertyProvider = CreateInMemoryPropertyProvider();
         var profileResolver = CreateDictionaryProfileResolver(ProfileName, new ArtifactToolProfile(s_toolId.GetToolString(), null, null));
         CreateStreamOutputs(out var toolOutput, out var console);
-        InitCommandDefault(toolOutput, store, toolPropertyProvider, profileResolver);
+        InitCommandDefault(toolOutput, store, toolPropertyProvider, new FakeTimeProvider(), profileResolver);
         string[] line = { ProfileName };
         int rc = Command.Invoke(line, console);
         Assert.That(Out.ToString(), Is.Empty);
@@ -155,7 +157,7 @@ public class StreamCommandTests : CommandTestBase
         var toolPropertyProvider = CreateInMemoryPropertyProvider();
         var profileResolver = CreateDictionaryProfileResolver(ProfileName, new ArtifactToolProfile(s_badToolId.GetToolString(), null, null));
         CreateStreamOutputs(out var toolOutput, out var console);
-        InitCommandDefault(toolOutput, store, toolPropertyProvider, profileResolver);
+        InitCommandDefault(toolOutput, store, toolPropertyProvider, new FakeTimeProvider(), profileResolver);
         string[] line = { ProfileName };
         int rc = Command.Invoke(line, console);
         Assert.That(Out.ToString(), Is.Empty);

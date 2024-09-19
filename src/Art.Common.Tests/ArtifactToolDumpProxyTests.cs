@@ -2,6 +2,7 @@
 using Art.Common.Management;
 using Art.Common.Proxies;
 using Art.TestsBase;
+using Microsoft.Extensions.Time.Testing;
 using NUnit.Framework;
 
 namespace Art.Common.Tests;
@@ -32,7 +33,7 @@ public class ArtifactToolDumpProxyTests
         var options = new Dictionary<string, JsonElement> { { "artifactList", JsonSerializer.SerializeToElement(new[] { "1", "2", "3" }) } };
         var profile = new ArtifactToolProfile("tool", null, options);
         var arm = new InMemoryArtifactRegistrationManager();
-        var config = new ArtifactToolConfig(arm, new NullArtifactDataManager());
+        var config = new ArtifactToolConfig(arm, new NullArtifactDataManager(), new FakeTimeProvider());
         var tool = new ProgrammableArtifactFindTool((v, k) =>
         {
             int i = int.Parse(k);
@@ -54,7 +55,7 @@ public class ArtifactToolDumpProxyTests
         var options = new Dictionary<string, JsonElement> { { "artifactList", JsonSerializer.SerializeToElement(new[] { "1", "2", "3" }) } };
         var profile = new ArtifactToolProfile("tool", null, options);
         var arm = new InMemoryArtifactRegistrationManager();
-        var config = new ArtifactToolConfig(arm, new NullArtifactDataManager());
+        var config = new ArtifactToolConfig(arm, new NullArtifactDataManager(), new FakeTimeProvider());
         var tool = new AsyncProgrammableArtifactDumpTool(async v =>
         {
             for (int i = 1; i <= 3; i++)
@@ -74,7 +75,7 @@ public class ArtifactToolDumpProxyTests
         var options = new Dictionary<string, JsonElement> { { "artifactList", JsonSerializer.SerializeToElement(new[] { "1", "2" }) } };
         var profile = new ArtifactToolProfile("tool", null, options);
         var arm = new InMemoryArtifactRegistrationManager();
-        var config = new ArtifactToolConfig(arm, new NullArtifactDataManager());
+        var config = new ArtifactToolConfig(arm, new NullArtifactDataManager(), new FakeTimeProvider());
         var tool = new AsyncProgrammableArtifactDumpTool(async v =>
         {
             for (int i = 1; i <= 3; i++)
