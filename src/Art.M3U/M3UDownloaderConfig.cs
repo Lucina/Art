@@ -8,21 +8,21 @@ namespace Art.M3U;
 /// <param name="SkipExistingSegments">Skip registered segments.</param>
 /// <param name="Decrypt">Decrypt data inline.</param>
 /// <param name="PrioritizeResolution">Prioritize resolution in stream selection.</param>
-/// <param name="MaxFails">Maximum allowed consecutive failures.</param>
+/// <param name="MaxConsecutiveRetries">Maximum allowed consecutive retries to perform.</param>
+/// <param name="MaxTotalRetries">Maximum allowed total retries to perform.</param>
 /// <param name="Referrer">Stream download referrer.</param>
 /// <param name="Origin">Stream download origin.</param>
 /// <param name="Headers">Headers to add to each request.</param>
-/// <param name="RequestTimeout">Timeout for requests, in milliseconds.</param>
-/// <param name="RequestTimeoutRetries">Number of consecutive retries before attempting recovery.</param>
+/// <param name="Timing">Timing values.</param>
 public record M3UDownloaderConfig(
     string URL,
     ArtifactKey ArtifactKey,
     bool SkipExistingSegments = true,
     bool Decrypt = false,
     bool PrioritizeResolution = false,
-    int MaxFails = 1,
+    int? MaxConsecutiveRetries = 1,
+    int? MaxTotalRetries = null,
     string? Referrer = null,
     string? Origin = null,
     IReadOnlyCollection<KeyValuePair<string, string>>? Headers = null,
-    int RequestTimeout = 5000,
-    int RequestTimeoutRetries = 10);
+    M3UTiming? Timing = null);

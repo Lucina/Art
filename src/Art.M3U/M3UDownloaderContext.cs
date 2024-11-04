@@ -31,6 +31,14 @@ public class M3UDownloaderContext
     /// </summary>
     public HttpArtifactTool Tool { get; }
 
+    /// <summary>
+    /// Resolved timing.
+    /// </summary>
+    /// <remarks>
+    /// Uses <see cref="M3UDownloaderConfig.Timing"/> provided by <see cref="Config"/>, falls back to <see cref="M3UTiming.Default"/>.
+    /// </remarks>
+    public M3UTiming ResolvedTiming => Config.Timing ?? M3UTiming.Default;
+
     private M3UDownloaderContext(HttpArtifactTool tool, M3UDownloaderConfig config, Uri mainUri, M3UFile streamInfo)
     {
         Tool = tool;
@@ -65,17 +73,32 @@ public class M3UDownloaderContext
 
     private void ValidateConfig()
     {
-        if (Config.MaxFails < 0)
+        if (Config.MaxConsecutiveRetries < 0)
         {
-            Config = Config with { MaxFails = 0 };
+            Config = Config with { MaxConsecutiveRetries = 0 };
         }
-        if (Config.RequestTimeoutRetries < 0)
+        if (Config.MaxTotalRetries < 0)
         {
-            Config = Config with { RequestTimeoutRetries = 0 };
+            Config = Config with { MaxTotalRetries = 0 };
         }
-        if (Config.RequestTimeout <= 0)
+        if (Config.Timing is { } timingValue)
         {
-            Config = Config with { RequestTimeout = 1 };
+            bool changeTiming = false;
+            M3UTiming newTiming = timingValue;
+            if (timingValue.RequestTimeoutRetries < 0)
+            {
+                newTiming = newTiming with { RequestTimeoutRetries = 1 };
+                changeTiming = true;
+            }
+            if (timingValue.RequestTimeout < TimeSpan.Zero)
+            {
+                newTiming = newTiming with { RequestTimeout = null };
+                changeTiming = true;
+            }
+            if (changeTiming)
+            {
+                Config = Config with { Timing = newTiming };
+            }
         }
     }
 
@@ -86,6 +109,7 @@ public class M3UDownloaderContext
             return null;
         }
         return SetupRequest;
+
         void SetupRequest(HttpRequestMessage hrm)
         {
             foreach (var v in config.Headers)
@@ -108,6 +132,7 @@ public class M3UDownloaderContext
     {
         string? referrer = config.Referrer;
         string? origin = config.Origin;
+        tool.LogInformation($"Performing operation with consecutive retry limit {config.MaxConsecutiveRetries?.ToString() ?? "<unspecified>"}, total retry limit {config.MaxTotalRetries?.ToString() ?? "<unspecified>"}");
         tool.LogInformation("Getting stream info...");
         Uri mainUri = await SelectSubStreamAsync(tool, config, cancellationToken).ConfigureAwait(false);
         tool.LogInformation("Getting sub stream info...");
@@ -281,7 +306,7 @@ public class M3UDownloaderContext
     private ArtifactResourceInfo GetResourceInternal(ArtifactResourceKey artifactResourceKey, Uri uri, M3UFile file, long? mediaSequenceNumber, SegmentSettings? segmentSettings)
     {
         // Use ResponseHeadersRead to make timeout only count up to headers
-        var httpRequestConfig = new HttpRequestConfig(Referrer: Config.Referrer, Origin: Config.Origin, RequestAction: CreateRequestAction(Config, Tool.LogHandler), HttpCompletionOption: HttpCompletionOption.ResponseHeadersRead, Timeout: TimeSpan.FromMilliseconds(Config.RequestTimeout));
+        var httpRequestConfig = new HttpRequestConfig(Referrer: Config.Referrer, Origin: Config.Origin, RequestAction: CreateRequestAction(Config, Tool.LogHandler), HttpCompletionOption: HttpCompletionOption.ResponseHeadersRead, Timeout: ResolvedTiming.RequestTimeout);
         ArtifactResourceInfo ari = new UriArtifactResourceInfo(Tool, uri, httpRequestConfig, artifactResourceKey);
         if (file.EncryptionInfo is not { Encrypted: true } ei)
         {
@@ -313,12 +338,12 @@ public class M3UDownloaderContext
                 {
                     throw;
                 }
-                if (retries >= Config.RequestTimeoutRetries)
+                if (retries >= ResolvedTiming.RequestTimeoutRetries)
                 {
                     throw;
                 }
                 retries++;
-                Tool.LogWarning($"timeout, retrying {retries}/{Config.RequestTimeoutRetries}");
+                Tool.LogWarning($"timeout, retrying {retries}/{ResolvedTiming.RequestTimeoutRetries.ToString() ?? "infinite"}");
                 if (initPosition is not { } initPositionV)
                 {
                     throw new IOException("Cannot retry operation: output stream is not seekable.");

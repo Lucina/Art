@@ -10,10 +10,10 @@ namespace Art.M3U;
 /// </summary>
 public partial class M3UDownloaderContextTopDownSaver : M3UDownloaderContextSaver, IExtraSaverOperation
 {
-    [GeneratedRegex("(^[\\S\\s]*[^\\d]|)\\d+(\\.\\w+)$")]
+    [GeneratedRegex(@"(^[\S\s]*[^\d]|)\d+(\.\w+)$")]
     private static partial Regex GetBitRegex();
 
-    [GeneratedRegex("(?<prefix>^[\\S\\s]*[^\\d]|)(?<number>\\d+)(?<suffix>\\.\\w+)$")]
+    [GeneratedRegex(@"(?<prefix>^[\S\s]*[^\d]|)(?<number>\d+)(?<suffix>\.\w+)$")]
     private static partial Regex GetBit2Regex();
 
     private readonly long _top;
@@ -119,7 +119,8 @@ public partial class M3UDownloaderContextTopDownSaver : M3UDownloaderContextSave
     {
         _ended = false;
         _currentTop = _top;
-        FailCounter = 0;
+        ConsecutiveFailCounter = 0;
+        TotalFailCounter = 0;
     }
 
     Task<bool> IExtraSaverOperation.TickAsync(M3UFile m3, CancellationToken cancellationToken)
@@ -165,7 +166,7 @@ public partial class M3UDownloaderContextTopDownSaver : M3UDownloaderContextSave
             }
             await HandleRequestExceptionAsync(e, cancellationToken).ConfigureAwait(false);
         }
-        FailCounter = 0;
+        ConsecutiveFailCounter = 0;
         return true;
     }
 }
