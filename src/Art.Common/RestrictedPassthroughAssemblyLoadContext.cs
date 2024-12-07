@@ -9,7 +9,7 @@ namespace Art.Modular;
 /// Provides an <see cref="AssemblyLoadContext"/> that restricts passthrough of assemblies to a specified set.
 /// </summary>
 [RequiresUnreferencedCode("Loading artifact tools might require types that cannot be statically analyzed.")]
-public class RestrictedPassthroughAssemblyLoadContext : AssemblyLoadContext
+public class RestrictedPassthroughAssemblyLoadContext : AssemblyLoadContext, IBasedAssemblyLoadContext
 {
     /// <summary>
     /// Base path of resolver.

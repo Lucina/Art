@@ -1,5 +1,7 @@
 using System.Diagnostics;
+using System.Reflection;
 using System.Runtime.InteropServices;
+using System.Runtime.Loader;
 using System.Security.Cryptography;
 using System.Text.Json;
 
@@ -75,8 +77,8 @@ internal static class ChromiumKeychainUtil
 
     private static Func<string>[] s_wcunlockASearchPathFuncs =
     [
-        () => Path.Join(AppDomain.CurrentDomain.BaseDirectory, "runtimes", RuntimeInformation.RuntimeIdentifier, "native", "wcunlockA.exe"), //
-        () => Path.Join(AppDomain.CurrentDomain.BaseDirectory, "wcunlockA.exe") //
+        () => Path.Join(GetBaseDirectory(typeof(ChromiumKeychainUtil).Assembly), "runtimes", RuntimeInformation.RuntimeIdentifier, "native", "wcunlockA.exe"), //
+        () => Path.Join(GetBaseDirectory(typeof(ChromiumKeychainUtil).Assembly), "wcunlockA.exe") //
     ];
 
     private static string? GetFile(IEnumerable<Func<string>> pathFuncs)
@@ -90,6 +92,16 @@ internal static class ChromiumKeychainUtil
             }
         }
         return null;
+    }
+
+    private static string GetBaseDirectory(Assembly assembly)
+    {
+        var context = AssemblyLoadContext.GetLoadContext(assembly);
+        if (context is IBasedAssemblyLoadContext basedAssemblyLoadContext)
+        {
+            return basedAssemblyLoadContext.BasePath;
+        }
+        return AppDomain.CurrentDomain.BaseDirectory;
     }
 
     private static ChromiumWindowsKeychain GetWindowsKeychainInternal(ChromiumVariant chromiumVariant, ChromiumWindowsLocalState state, IToolLogHandler? toolLogHandler)
