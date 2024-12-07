@@ -9,6 +9,7 @@ public interface IChromiumKeychain : IDisposable
     /// Gets the decrypted content for a buffer.
     /// </summary>
     /// <param name="buffer">Buffer to decrypt.</param>
+    /// <param name="toolLogHandler">Tool log handler.</param>
     /// <returns>Decrypted content.</returns>
-    string Unlock(byte[] buffer);
+    string Unlock(byte[] buffer, IToolLogHandler? toolLogHandler);
 }

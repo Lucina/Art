@@ -64,11 +64,11 @@ public record EdgeCookieSource(string Profile = "Default") : ChromiumProfileCook
     }
 
     /// <inheritdoc />
-    protected override IChromiumKeychain GetKeychain()
+    protected override IChromiumKeychain GetKeychain(IToolLogHandler? toolLogHandler)
     {
         if (OperatingSystem.IsWindows())
         {
-            return ChromiumKeychainUtil.GetWindowsKeychain(GetUserDataDirectory());
+            return ChromiumKeychainUtil.GetWindowsKeychain(ChromiumVariant.Edge, GetUserDataDirectory(), toolLogHandler);
         }
         if (OperatingSystem.IsMacOS())
         {
@@ -82,11 +82,11 @@ public record EdgeCookieSource(string Profile = "Default") : ChromiumProfileCook
     }
 
     /// <inheritdoc />
-    protected override Task<IChromiumKeychain> GetKeychainAsync(CancellationToken cancellationToken = default)
+    protected override Task<IChromiumKeychain> GetKeychainAsync(IToolLogHandler? toolLogHandler, CancellationToken cancellationToken = default)
     {
         if (OperatingSystem.IsWindows())
         {
-            return ChromiumKeychainUtil.GetWindowsKeychainAsync(GetUserDataDirectory(), cancellationToken);
+            return ChromiumKeychainUtil.GetWindowsKeychainAsync(ChromiumVariant.Edge, GetUserDataDirectory(), toolLogHandler, cancellationToken);
         }
         if (OperatingSystem.IsMacOS())
         {

@@ -5,17 +5,17 @@ namespace Art.Tesler.Cookie;
 public class CookieCommand : Command
 {
     public CookieCommand(
-        IOutputControl toolOutput)
-        : this(toolOutput, "cookie", "Perform operations on browser cookies.")
+        IToolLogHandlerProvider toolLogHandlerProvider)
+        : this(toolLogHandlerProvider, "cookie", "Perform operations on browser cookies.")
     {
     }
 
     public CookieCommand(
-        IOutputControl toolOutput,
+        IToolLogHandlerProvider toolLogHandlerProvider,
         string name,
         string? description = null)
         : base(name, description)
     {
-        AddCommand(new CookieCommandExtract(toolOutput, "extract", "Extracts cookies."));
+        AddCommand(new CookieCommandExtract(toolLogHandlerProvider, "extract", "Extracts cookies."));
     }
 }

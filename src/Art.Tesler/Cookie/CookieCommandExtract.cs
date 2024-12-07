@@ -14,8 +14,9 @@ public class CookieCommandExtract : CommandBase
     protected Option<List<string>> DomainsOption;
     protected Option<string> OutputOption;
     protected Option<bool> NoSubdomainsOption;
+    private readonly IToolLogHandlerProvider _toolLogHandlerProvider;
 
-    public CookieCommandExtract(IOutputControl toolOutput, string name, string? description = null) : base(toolOutput, name, description)
+    public CookieCommandExtract(IToolLogHandlerProvider toolLogHandlerProvider, string name, string? description = null) : base(toolLogHandlerProvider, name, description)
     {
         BrowserOption = new Option<string>(new[] { "-b", "--browser" }, "Browser name") { ArgumentHelpName = "name", IsRequired = true };
         AddOption(BrowserOption);
@@ -27,6 +28,7 @@ public class CookieCommandExtract : CommandBase
         AddOption(OutputOption);
         NoSubdomainsOption = new Option<bool>(new[] { "--no-subdomains" }, "Do not include subdomains");
         AddOption(NoSubdomainsOption);
+        _toolLogHandlerProvider = toolLogHandlerProvider;
     }
 
     protected override async Task<int> RunAsync(InvocationContext context)
@@ -52,10 +54,10 @@ public class CookieCommandExtract : CommandBase
         return 0;
     }
 
-    private static async Task ExportAsync(CookieSource source, IEnumerable<string> domains, bool includeSubdomains, TextWriter output)
+    private async Task ExportAsync(CookieSource source, IEnumerable<string> domains, bool includeSubdomains, TextWriter output)
     {
         CookieContainer cc = new();
-        await source.LoadCookiesAsync(cc, domains.Select(v => new CookieFilter(v, includeSubdomains)).ToList());
+        await source.LoadCookiesAsync(cc, domains.Select(v => new CookieFilter(v, includeSubdomains)).ToList(), _toolLogHandlerProvider.GetDefaultToolLogHandler());
         output.Write("# Netscape HTTP Cookie File\n");
         StringBuilder sb = new();
         foreach (object? cookie in cc.GetAllCookies())

@@ -47,6 +47,15 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Content Include="$(MSBuildThisFileDirectory)wcunlockA/wcunlockA.exe">
+      <Link>wcunlockA.exe</Link>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <PackagePath>runtimes\win-x64\native</PackagePath>
+      <Pack>true</Pack>
+    </Content>
+  </ItemGroup>
+
+  <ItemGroup>
     <PackageReference Include="Microsoft.Data.Sqlite" />
     <PackageReference Include="System.Security.Cryptography.ProtectedData" />
   </ItemGroup>

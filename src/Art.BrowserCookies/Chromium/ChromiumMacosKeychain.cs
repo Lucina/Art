@@ -19,7 +19,7 @@ internal class ChromiumMacosKeychain : IChromiumKeychain
         keyV10.AsSpan().Clear();
     }
 
-    public string Unlock(byte[] buffer)
+    public string Unlock(byte[] buffer, IToolLogHandler? toolLogHandler)
     {
         EnsureNotDisposed();
         ReadOnlySpan<byte> src = buffer;

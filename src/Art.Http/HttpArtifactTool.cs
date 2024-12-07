@@ -168,7 +168,7 @@ public abstract partial class HttpArtifactTool : ArtifactTool
         {
             string? profile = optKeyProfile != null && TryGetOption(optKeyProfile, out string? profileValue, SourceGenerationContext.Default.String) ? profileValue : null;
             var mappedDomains = domains.Select(v => new CookieFilter(v)).ToList();
-            CookieSource.LoadCookies(cookies, mappedDomains, browserName, profile);
+            CookieSource.LoadCookies(cookies, mappedDomains, browserName, profile, LogHandler);
         }
         return false;
     }
@@ -188,7 +188,7 @@ public abstract partial class HttpArtifactTool : ArtifactTool
         {
             string? profile = optKeyProfile != null && TryGetOption(optKeyProfile, out string? profileValue, SourceGenerationContext.Default.String) ? profileValue : null;
             var mappedDomains = domains.Select(v => new CookieFilter(v)).ToList();
-            await CookieSource.LoadCookiesAsync(cookies, mappedDomains, browserName, profile, cancellationToken: cancellationToken).ConfigureAwait(false);
+            await CookieSource.LoadCookiesAsync(cookies, mappedDomains, browserName, profile, LogHandler, cancellationToken: cancellationToken).ConfigureAwait(false);
         }
         return false;
     }

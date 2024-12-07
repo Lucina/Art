@@ -9,19 +9,19 @@ namespace Art.BrowserCookies.Chromium;
 public abstract record ChromiumCookieSource : CookieSource
 {
     /// <inheritdoc />
-    public override void LoadCookies(CookieContainer cookieContainer, CookieFilter domain)
+    public override void LoadCookies(CookieContainer cookieContainer, CookieFilter domain, IToolLogHandler? toolLogHandler)
     {
-        LoadCookies(cookieContainer, new[] { domain });
+        LoadCookies(cookieContainer, new[] { domain }, toolLogHandler);
     }
 
     /// <inheritdoc />
-    public override Task LoadCookiesAsync(CookieContainer cookieContainer, CookieFilter domain, CancellationToken cancellationToken = default)
+    public override Task LoadCookiesAsync(CookieContainer cookieContainer, CookieFilter domain, IToolLogHandler? toolLogHandler, CancellationToken cancellationToken = default)
     {
-        return LoadCookiesAsync(cookieContainer, new[] { domain }, cancellationToken);
+        return LoadCookiesAsync(cookieContainer, new[] { domain }, toolLogHandler, cancellationToken);
     }
 
     /// <inheritdoc />
-    public override void LoadCookies(CookieContainer cookieContainer, IReadOnlyCollection<CookieFilter> domains)
+    public override void LoadCookies(CookieContainer cookieContainer, IReadOnlyCollection<CookieFilter> domains, IToolLogHandler? toolLogHandler)
     {
         foreach (var domain in domains)
         {
@@ -69,7 +69,7 @@ public abstract record ChromiumCookieSource : CookieSource
                             byte[] buf = ReadBytes(reader.GetStream(2));
                             if (buf.Length != 0)
                             {
-                                value = (keychain ??= GetKeychain()).Unlock(buf);
+                                value = (keychain ??= GetKeychain(toolLogHandler)).Unlock(buf, toolLogHandler);
                             }
                             else
                             {
@@ -102,7 +102,7 @@ public abstract record ChromiumCookieSource : CookieSource
     }
 
     /// <inheritdoc />
-    public override async Task LoadCookiesAsync(CookieContainer cookieContainer, IReadOnlyCollection<CookieFilter> domains, CancellationToken cancellationToken = default)
+    public override async Task LoadCookiesAsync(CookieContainer cookieContainer, IReadOnlyCollection<CookieFilter> domains, IToolLogHandler? toolLogHandler, CancellationToken cancellationToken = default)
     {
         foreach (var domain in domains)
         {
@@ -150,7 +150,7 @@ public abstract record ChromiumCookieSource : CookieSource
                             byte[] buf = ReadBytes(reader.GetStream(2));
                             if (buf.Length != 0)
                             {
-                                value = (keychain ??= await GetKeychainAsync(cancellationToken).ConfigureAwait(false)).Unlock(buf);
+                                value = (keychain ??= await GetKeychainAsync(toolLogHandler, cancellationToken).ConfigureAwait(false)).Unlock(buf, toolLogHandler);
                             }
                             else
                             {
@@ -193,15 +193,17 @@ public abstract record ChromiumCookieSource : CookieSource
     /// <summary>
     /// Synchronously gets a keychain accessor corresponding to this browser for the current user.
     /// </summary>
+    /// <param name="toolLogHandler">Tool log handler.</param>
     /// <returns>Keychain.</returns>
-    protected abstract IChromiumKeychain GetKeychain();
+    protected abstract IChromiumKeychain GetKeychain(IToolLogHandler? toolLogHandler);
 
     /// <summary>
     /// Gets a keychain accessor corresponding to this browser for the current user.
     /// </summary>
+    /// <param name="toolLogHandler">Tool log handler.</param>
     /// <param name="cancellationToken">Cancellation token.</param>
     /// <returns>Task returning a keychain.</returns>
-    protected abstract Task<IChromiumKeychain> GetKeychainAsync(CancellationToken cancellationToken = default);
+    protected abstract Task<IChromiumKeychain> GetKeychainAsync(IToolLogHandler? toolLogHandler, CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Gets the primary user data directory.
