@@ -2,6 +2,7 @@
 using Art.Common.Management;
 using Art.Common.Resources;
 using Art.TestsBase;
+using Microsoft.Extensions.Time.Testing;
 using NUnit.Framework;
 
 namespace Art.Common.Tests;
@@ -19,7 +20,7 @@ public class ArtifactToolTests
         Assert.That(async () => await arm.TryGetResourceAsync(fakeKey), Throws.Nothing);
         var tool = new ArtifactTool();
         var profile = new ArtifactToolProfile(toolString, null, null);
-        var config = new ArtifactToolConfig(arm, adm);
+        var config = new ArtifactToolConfig(arm, adm, new FakeTimeProvider(), true, true);
         await tool.InitializeAsync(config: config, profile: profile);
         Assert.That(tool.Config.DataManager, Is.EqualTo(adm));
         Assert.That(tool.Config.RegistrationManager, Is.EqualTo(arm));
@@ -46,7 +47,7 @@ public class ArtifactToolTests
         Assert.That(async () => await arm.TryGetResourceAsync(fakeKey), Throws.Nothing);
         var tool = new ArtifactTool();
         var profile = new ArtifactToolProfile(toolString, null, null);
-        var config = new ArtifactToolConfig(arm, adm);
+        var config = new ArtifactToolConfig(arm, adm, new FakeTimeProvider(), true, true);
         await tool.InitializeAsync(config: config, profile: profile);
         Assert.That(tool.Config.DataManager, Is.EqualTo(adm));
         Assert.That(tool.Config.RegistrationManager, Is.EqualTo(arm));
@@ -141,7 +142,7 @@ public class ArtifactToolTests
         var profile = new ArtifactToolProfile(toolString, group, opts);
         var adm = new InMemoryArtifactDataManager();
         var arm = new InMemoryArtifactRegistrationManager();
-        var config = new ArtifactToolConfig(arm, adm);
+        var config = new ArtifactToolConfig(arm, adm, new FakeTimeProvider(), true, true);
         await tool.InitializeAsync(config: config, profile: profile);
         Assert.That(tool.Profile.Tool, Is.EqualTo(toolString));
         Assert.That(tool.Profile.Group, Is.EqualTo(group));
@@ -169,7 +170,7 @@ public class ArtifactToolTests
             var profile = new ArtifactToolProfile(toolString, group, opts);
             var adm = new InMemoryArtifactDataManager();
             var arm = new InMemoryArtifactRegistrationManager();
-            var config = new ArtifactToolConfig(arm, adm);
+            var config = new ArtifactToolConfig(arm, adm, new FakeTimeProvider(), true, true);
             await tool.InitializeAsync(config: config, profile: profile);
             Assert.That(tool.Profile.Tool, Is.EqualTo(toolString));
             Assert.That(tool.Profile.Group, Is.EqualTo(group));

@@ -47,7 +47,7 @@ public class InMemoryArtifactDataManager : ArtifactDataManager
         ArtifactKey ak = key.Artifact;
         if (!_artifacts.TryGetValue(ak, out List<ArtifactResourceInfo>? list))
             _artifacts.Add(ak, list = new List<ArtifactResourceInfo>());
-        list.Add(new ResultStreamArtifactResourceInfo(stream, key, null, null, null));
+        list.Add(new ResultStreamArtifactResourceInfo(stream, key, null, null, null, null));
         _entries[key] = stream;
         return new ValueTask<CommittableStream>(stream);
     }
@@ -78,8 +78,8 @@ public class InMemoryArtifactDataManager : ArtifactDataManager
         return ValueTask.FromResult<Stream>(new MemoryStream(oms.GetBuffer(), 0, (int)oms.Length, false, false));
     }
 
-    private record ResultStreamArtifactResourceInfo(Stream Resource, ArtifactResourceKey Key, string? ContentType, DateTimeOffset? Updated, string? Version)
-        : StreamArtifactResourceInfo(Resource, Key, ContentType, Updated, Version);
+    private record ResultStreamArtifactResourceInfo(Stream Resource, ArtifactResourceKey Key, string? ContentType, DateTimeOffset? Updated, DateTimeOffset? Retrieved, string? Version)
+        : StreamArtifactResourceInfo(Resource, Key, ContentType, Updated, Retrieved, Version);
 
     private void EnsureNotDisposed()
     {

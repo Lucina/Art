@@ -5,7 +5,13 @@
 /// </summary>
 /// <param name="UpdatedValue">Updated date.</param>
 /// <param name="BaseArtifactResourceInfo">Base resource.</param>
-public record WithUpdatedArtifactResourceInfo(DateTimeOffset? UpdatedValue, ArtifactResourceInfo BaseArtifactResourceInfo) : ArtifactResourceInfo(BaseArtifactResourceInfo.Key, BaseArtifactResourceInfo.ContentType, UpdatedValue, BaseArtifactResourceInfo.Version)
+public record WithUpdatedArtifactResourceInfo(DateTimeOffset? UpdatedValue, ArtifactResourceInfo BaseArtifactResourceInfo)
+    : ArtifactResourceInfo(
+        BaseArtifactResourceInfo.Key,
+        BaseArtifactResourceInfo.ContentType,
+        UpdatedValue,
+        BaseArtifactResourceInfo.Retrieved,
+        BaseArtifactResourceInfo.Version)
 {
     /// <inheritdoc/>
     public override bool CanExportStream => BaseArtifactResourceInfo.CanExportStream;

@@ -5,7 +5,13 @@
 /// </summary>
 /// <param name="VersionValue">Version.</param>
 /// <param name="BaseArtifactResourceInfo">Base resource.</param>
-public record WithVersionArtifactResourceInfo(string? VersionValue, ArtifactResourceInfo BaseArtifactResourceInfo) : ArtifactResourceInfo(BaseArtifactResourceInfo.Key, BaseArtifactResourceInfo.ContentType, BaseArtifactResourceInfo.Updated, VersionValue)
+public record WithVersionArtifactResourceInfo(string? VersionValue, ArtifactResourceInfo BaseArtifactResourceInfo)
+    : ArtifactResourceInfo(
+        BaseArtifactResourceInfo.Key,
+        BaseArtifactResourceInfo.ContentType,
+        BaseArtifactResourceInfo.Updated,
+        BaseArtifactResourceInfo.Retrieved,
+        VersionValue)
 {
     /// <inheritdoc/>
     public override bool CanExportStream => BaseArtifactResourceInfo.CanExportStream;

@@ -50,10 +50,19 @@ public class ArtifactData : IArtifactData
     /// <param name="name">Name.</param>
     /// <param name="date">Artifact creation date.</param>
     /// <param name="updateDate">Artifact update date.</param>
+    /// <param name="retrievalDate">Artifact retrieval date.</param>
     /// <param name="full">True if this is a full artifact.</param>
-    public ArtifactData(string tool, string group, string id, string? name = null, DateTimeOffset? date = null, DateTimeOffset? updateDate = null, bool full = true)
+    public ArtifactData(
+        string tool,
+        string group,
+        string id,
+        string? name = null,
+        DateTimeOffset? date = null,
+        DateTimeOffset? updateDate = null,
+        DateTimeOffset? retrievalDate = null,
+        bool full = true)
     {
-        Info = new ArtifactInfo(new ArtifactKey(tool, group, id), name, date, updateDate, full);
+        Info = new ArtifactInfo(new ArtifactKey(tool, group, id), name, date, updateDate, retrievalDate, full);
     }
 
     /// <summary>
@@ -63,10 +72,17 @@ public class ArtifactData : IArtifactData
     /// <param name="name">Name.</param>
     /// <param name="date">Artifact creation date.</param>
     /// <param name="updateDate">Artifact update date.</param>
+    /// <param name="retrievalDate">Artifact retrieval date.</param>
     /// <param name="full">True if this is a full artifact.</param>
-    public ArtifactData(ArtifactKey key, string? name = null, DateTimeOffset? date = null, DateTimeOffset? updateDate = null, bool full = true)
+    public ArtifactData(
+        ArtifactKey key,
+        string? name = null,
+        DateTimeOffset? date = null,
+        DateTimeOffset? updateDate = null,
+        DateTimeOffset? retrievalDate = null,
+        bool full = true)
     {
-        Info = new ArtifactInfo(key, name, date, updateDate, full);
+        Info = new ArtifactInfo(key, name, date, updateDate, retrievalDate, full);
     }
 
     /// <summary>
@@ -79,10 +95,20 @@ public class ArtifactData : IArtifactData
     /// <param name="name">Name.</param>
     /// <param name="date">Artifact creation date.</param>
     /// <param name="updateDate">Artifact update date.</param>
+    /// <param name="retrievalDate">Artifact retrieval date.</param>
     /// <param name="full">True if this is a full artifact.</param>
-    public ArtifactData(IArtifactTool artifactTool, string tool, string group, string id, string? name = null, DateTimeOffset? date = null, DateTimeOffset? updateDate = null, bool full = true)
+    public ArtifactData(
+        IArtifactTool artifactTool,
+        string tool,
+        string group,
+        string id,
+        string? name = null,
+        DateTimeOffset? date = null,
+        DateTimeOffset? updateDate = null,
+        DateTimeOffset? retrievalDate = null,
+        bool full = true)
     {
-        Info = new ArtifactInfo(new ArtifactKey(tool, group, id), name, date, updateDate, full);
+        Info = new ArtifactInfo(new ArtifactKey(tool, group, id), name, date, updateDate, retrievalDate, full);
         Tool = artifactTool;
     }
 
@@ -94,10 +120,18 @@ public class ArtifactData : IArtifactData
     /// <param name="name">Name.</param>
     /// <param name="date">Artifact creation date.</param>
     /// <param name="updateDate">Artifact update date.</param>
+    /// <param name="retrievalDate">Artifact retrieval date.</param>
     /// <param name="full">True if this is a full artifact.</param>
-    public ArtifactData(IArtifactTool artifactTool, ArtifactKey key, string? name = null, DateTimeOffset? date = null, DateTimeOffset? updateDate = null, bool full = true)
+    public ArtifactData(
+        IArtifactTool artifactTool,
+        ArtifactKey key,
+        string? name = null,
+        DateTimeOffset? date = null,
+        DateTimeOffset? updateDate = null,
+        DateTimeOffset? retrievalDate = null,
+        bool full = true)
     {
-        Info = new ArtifactInfo(key, name, date, updateDate, full);
+        Info = new ArtifactInfo(key, name, date, updateDate, retrievalDate, full);
         Tool = artifactTool;
     }
 

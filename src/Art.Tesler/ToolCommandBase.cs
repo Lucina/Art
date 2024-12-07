@@ -23,6 +23,12 @@ public abstract class ToolCommandBase : CommandBase
 
     protected Option<bool> NoDefaultPropertiesOption;
 
+    protected Option<bool> NoRetrievalTimestampsOption;
+
+    protected Option<bool> NoArtifactRetrievalTimestampsOption;
+
+    protected Option<bool> NoResourceRetrievalTimestampsOption;
+
     protected ToolCommandBase(
         IToolLogHandlerProvider toolLogHandlerProvider,
         IArtifactToolRegistryStore pluginStore,
@@ -41,6 +47,12 @@ public abstract class ToolCommandBase : CommandBase
         AddOption(PropertiesOption);
         NoDefaultPropertiesOption = new Option<bool>(new[] { "--no-default-properties" }, "Don't apply default properties");
         AddOption(NoDefaultPropertiesOption);
+        NoRetrievalTimestampsOption = new Option<bool>(new[] { "--no-retrieval-timestamps" }, "Don't apply retrieval timestamps");
+        AddOption(NoRetrievalTimestampsOption);
+        NoArtifactRetrievalTimestampsOption = new Option<bool>(new[] { "--no-artifact-retrieval-timestamps" }, "Don't apply artifact retrieval timestamps");
+        AddOption(NoArtifactRetrievalTimestampsOption);
+        NoResourceRetrievalTimestampsOption = new Option<bool>(new[] { "--no-resource-retrieval-timestamps" }, "Don't apply resource retrieval timestamps");
+        AddOption(NoResourceRetrievalTimestampsOption);
     }
 
     protected ArtifactToolProfile PrepareProfile(InvocationContext context, ArtifactToolProfile artifactToolProfile)
@@ -61,13 +73,28 @@ public abstract class ToolCommandBase : CommandBase
         return artifactToolProfiles.Select(p => p.GetWithConsoleOptions(PluginStore, toolPropertyProvider, properties, cookieFile, userAgent, ToolOutput));
     }
 
-    protected async Task<IArtifactTool> GetToolAsync(ArtifactToolProfile artifactToolProfile, IArtifactRegistrationManager arm, IArtifactDataManager adm, CancellationToken cancellationToken = default)
+    protected (bool getArtifactRetrievalTimestamps, bool getResourceRetrievalTimestamps) GetArtifactRetrievalOptions(InvocationContext context)
+    {
+        bool noRetrievalTimestamps = context.ParseResult.GetValueForOption(NoRetrievalTimestampsOption);
+        bool noArtifactRetrievalTimestamps = noRetrievalTimestamps || context.ParseResult.GetValueForOption(NoArtifactRetrievalTimestampsOption);
+        bool noResourceRetrievalTimestamps = noRetrievalTimestamps|| context.ParseResult.GetValueForOption(NoResourceRetrievalTimestampsOption);
+        return (getArtifactRetrievalTimestamps: !noArtifactRetrievalTimestamps, getResourceRetrievalTimestamps: !noResourceRetrievalTimestamps);
+    }
+
+    protected async Task<IArtifactTool> GetToolAsync(
+        ArtifactToolProfile artifactToolProfile,
+        IArtifactRegistrationManager arm,
+        IArtifactDataManager adm,
+        TimeProvider timeProvider,
+        bool getArtifactRetrievalTimestamps,
+        bool getResourceRetrievalTimestamps,
+        CancellationToken cancellationToken = default)
     {
         if (!PluginStore.TryLoadRegistry(ArtifactToolIDUtil.ParseID(artifactToolProfile.Tool), out var plugin))
         {
             throw new ArtifactToolNotFoundException(artifactToolProfile.Tool);
         }
-        return await ArtifactTool.PrepareToolAsync(plugin, artifactToolProfile, arm, adm, cancellationToken).ConfigureAwait(false);
+        return await ArtifactTool.PrepareToolAsync(plugin, artifactToolProfile, arm, adm, timeProvider, getArtifactRetrievalTimestamps, getResourceRetrievalTimestamps, cancellationToken).ConfigureAwait(false);
     }
 
     protected IToolPropertyProvider? GetOptionalToolPropertyProvider(InvocationContext context)

@@ -45,7 +45,7 @@ public class ArtifactContext : DbContext
         }
         try
         {
-            ((string tool, string group, string id), string? _, DateTimeOffset? date, DateTimeOffset? updateDate, bool full) = artifactInfo;
+            ((string tool, string group, string id), string? _, DateTimeOffset? date, DateTimeOffset? updateDate, DateTimeOffset? retrievalDate, bool full) = artifactInfo;
             ArtifactInfoModel? model = await ArtifactInfoModels.FindAsync(new object?[] { tool, group, id }, cancellationToken).ConfigureAwait(false);
             if (model == null)
             {
@@ -56,6 +56,7 @@ public class ArtifactContext : DbContext
             {
                 model.Date = date;
                 model.UpdateDate = updateDate;
+                model.RetrievalDate = retrievalDate;
                 model.Full = full;
                 ArtifactInfoModels.Update(model);
                 await SaveChangesAsync(cancellationToken).ConfigureAwait(false);
@@ -197,7 +198,7 @@ public class ArtifactContext : DbContext
         }
         try
         {
-            (((string tool, string group, string id), string file, string? path), string? contentType, DateTimeOffset? updated, string? version, Checksum? checksum) = artifactResourceInfo;
+            (((string tool, string group, string id), string file, string? path), string? contentType, DateTimeOffset? updated, DateTimeOffset? retrieved, string? version, Checksum? checksum) = artifactResourceInfo;
             ArtifactInfoModel? model = await ArtifactInfoModels.FindAsync(new object?[] { tool, group, id }, cancellationToken).ConfigureAwait(false);
             if (model == null) throw new InvalidOperationException("Can't add resource for missing artifact");
             ArtifactResourceInfoModel? model2 = await ArtifactResourceInfoModels.FindAsync(new object?[] { tool, group, id, file, path }, cancellationToken).ConfigureAwait(false);
@@ -210,6 +211,7 @@ public class ArtifactContext : DbContext
             {
                 model2.ContentType = contentType;
                 model2.Updated = updated;
+                model2.Retrieved = retrieved;
                 model2.Version = version;
                 model2.ChecksumId = checksum?.Id;
                 model2.ChecksumValue = checksum?.Value;

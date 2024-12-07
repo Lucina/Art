@@ -28,6 +28,11 @@ public interface IArtifactTool : IDisposable
     ArtifactToolConfig Config { get; }
 
     /// <summary>
+    /// Time provider.
+    /// </summary>
+    TimeProvider TimeProvider { get; }
+
+    /// <summary>
     /// Allowed eager evaluation modes for this tool.
     /// </summary>
     EagerFlags AllowedEagerModes { get; }

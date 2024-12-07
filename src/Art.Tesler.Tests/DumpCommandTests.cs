@@ -3,6 +3,7 @@ using System.Diagnostics.CodeAnalysis;
 using Art.Common;
 using Art.Tesler.Properties;
 using Art.TestsBase;
+using Microsoft.Extensions.Time.Testing;
 
 namespace Art.Tesler.Tests;
 
@@ -16,9 +17,10 @@ public class DumpCommandTests : CommandTestBase
         IArtifactToolRegistryStore artifactToolRegistryStore,
         IToolPropertyProvider toolPropertyProvider,
         ITeslerDataProvider dataProvider,
-        ITeslerRegistrationProvider registrationProvider)
+        ITeslerRegistrationProvider registrationProvider,
+        TimeProvider timeProvider)
     {
-        Command = new DumpCommand(toolLogHandlerProvider, artifactToolRegistryStore, toolPropertyProvider, dataProvider, registrationProvider);
+        Command = new DumpCommand(toolLogHandlerProvider, artifactToolRegistryStore, toolPropertyProvider, dataProvider, registrationProvider, timeProvider);
     }
 
     [Test]
@@ -29,7 +31,7 @@ public class DumpCommandTests : CommandTestBase
         var dataProvider = CreateSharedMemoryDataProvider();
         var registrationProvider = CreateSharedMemoryRegistrationProvider();
         CreateOutputs(out var toolOutput, out var console);
-        InitCommandDefault(toolOutput, store, toolPropertyProvider, dataProvider, registrationProvider);
+        InitCommandDefault(toolOutput, store, toolPropertyProvider, dataProvider, registrationProvider, new FakeTimeProvider());
         Assert.That(Command.Invoke(Array.Empty<string>(), console), Is.Not.EqualTo(0));
         Assert.That(Out.ToString(), Is.Not.Empty);
         Assert.That(Error.ToString(), Is.Not.Empty);
@@ -43,7 +45,7 @@ public class DumpCommandTests : CommandTestBase
         var dataProvider = CreateSharedMemoryDataProvider();
         var registrationProvider = CreateSharedMemoryRegistrationProvider();
         CreateOutputs(out var toolOutput, out var console);
-        InitCommandDefault(toolOutput, store, toolPropertyProvider, dataProvider, registrationProvider);
+        InitCommandDefault(toolOutput, store, toolPropertyProvider, dataProvider, registrationProvider, new FakeTimeProvider());
         string[] line = { "-t", new ArtifactToolID("NOT_AN_ASSEMBLY", "MALO").GetToolString() };
         Assert.That(Command.Invoke(line, console), Is.Not.EqualTo(0));
         Assert.That(Out.ToString(), Is.Empty);
@@ -58,7 +60,7 @@ public class DumpCommandTests : CommandTestBase
         var dataProvider = CreateSharedMemoryDataProvider();
         var registrationProvider = CreateSharedMemoryRegistrationProvider();
         CreateOutputs(out var toolOutput, out var console);
-        InitCommandDefault(toolOutput, store, toolPropertyProvider, dataProvider, registrationProvider);
+        InitCommandDefault(toolOutput, store, toolPropertyProvider, dataProvider, registrationProvider, new FakeTimeProvider());
         string[] line = { "-t", ArtifactToolIDUtil.CreateToolString<ProgrammableArtifactDumpTool>() };
         Assert.That(Command.Invoke(line, console), Is.EqualTo(0));
         Assert.That(Out.ToString(), Is.Empty);

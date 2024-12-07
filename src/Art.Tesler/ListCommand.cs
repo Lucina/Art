@@ -10,6 +10,8 @@ namespace Art.Tesler;
 
 public class ListCommand : ToolCommandBase
 {
+    protected TimeProvider TimeProvider;
+
     protected Option<string> ProfileFileOption;
 
     protected Option<bool> ListResourceOption;
@@ -23,9 +25,10 @@ public class ListCommand : ToolCommandBase
     public ListCommand(
         IToolLogHandlerProvider toolLogHandlerProvider,
         IArtifactToolRegistryStore pluginStore,
-        IToolPropertyProvider toolPropertyProvider
+        IToolPropertyProvider toolPropertyProvider,
+        TimeProvider timeProvider
     )
-        : this(toolLogHandlerProvider, pluginStore, toolPropertyProvider, "list", "Execute artifact list tools.")
+        : this(toolLogHandlerProvider, pluginStore, toolPropertyProvider, timeProvider, "list", "Execute artifact list tools.")
     {
     }
 
@@ -33,10 +36,12 @@ public class ListCommand : ToolCommandBase
         IToolLogHandlerProvider toolLogHandlerProvider,
         IArtifactToolRegistryStore pluginStore,
         IToolPropertyProvider toolPropertyProvider,
+        TimeProvider timeProvider,
         string name,
         string? description = null)
         : base(toolLogHandlerProvider, pluginStore, toolPropertyProvider, name, description)
     {
+        TimeProvider = timeProvider;
         ProfileFileOption = new Option<string>(new[] { "-i", "--input" }, "Profile file") { ArgumentHelpName = "file" };
         AddOption(ProfileFileOption);
         ListResourceOption = new Option<bool>(new[] { "-l", "--list-resource" }, "List associated resources");
@@ -61,22 +66,27 @@ public class ListCommand : ToolCommandBase
         string? profileFile = context.ParseResult.HasOption(ProfileFileOption) ? context.ParseResult.GetValueForOption(ProfileFileOption) : null;
         string? tool = context.ParseResult.HasOption(ToolOption) ? context.ParseResult.GetValueForOption(ToolOption) : null;
         string? group = context.ParseResult.HasOption(GroupOption) ? context.ParseResult.GetValueForOption(GroupOption) : null;
-        if (profileFile == null) return await ExecAsync(context, new ArtifactToolProfile(tool!, group, null));
+        (bool getArtifactRetrievalTimestamps, bool getResourceRetrievalTimestamps) = GetArtifactRetrievalOptions(context);
+        if (profileFile == null) return await ExecAsync(context, new ArtifactToolProfile(tool!, group, null), getArtifactRetrievalTimestamps, getResourceRetrievalTimestamps);
         int ec = 0;
         foreach (ArtifactToolProfile profile in ArtifactToolProfileUtil.DeserializeProfilesFromFile(profileFile))
         {
             if (group != null && group != profile.Group || tool != null && tool != profile.Tool) continue;
-            ec = Common.AccumulateErrorCode(await ExecAsync(context, profile), ec);
+            ec = Common.AccumulateErrorCode(await ExecAsync(context, profile, getArtifactRetrievalTimestamps, getResourceRetrievalTimestamps), ec);
         }
         return ec;
     }
 
-    private async Task<int> ExecAsync(InvocationContext context, ArtifactToolProfile profile)
+    private async Task<int> ExecAsync(
+        InvocationContext context,
+        ArtifactToolProfile profile,
+        bool getArtifactRetrievalTimestamps,
+        bool getResourceRetrievalTimestamps)
     {
         using var arm = new InMemoryArtifactRegistrationManager();
         using var adm = new NullArtifactDataManager();
         profile = PrepareProfile(context, profile);
-        using var tool = await GetToolAsync(profile, arm, adm);
+        using var tool = await GetToolAsync(profile, arm, adm, TimeProvider, getArtifactRetrievalTimestamps, getResourceRetrievalTimestamps);
         ArtifactToolListOptions options = new();
         ArtifactToolListProxy proxy = new(tool, options, ToolLogHandlerProvider.GetDefaultToolLogHandler());
         bool listResource = context.ParseResult.GetValueForOption(ListResourceOption);

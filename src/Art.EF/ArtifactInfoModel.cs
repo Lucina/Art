@@ -36,6 +36,11 @@ public class ArtifactInfoModel
     public virtual DateTimeOffset? UpdateDate { get; set; }
 
     /// <summary>
+    /// Artifact retrieval date.
+    /// </summary>
+    public virtual DateTimeOffset? RetrievalDate { get; set; }
+
+    /// <summary>
     /// True if this is a full artifact.
     /// </summary>
     public virtual bool Full { get; set; }
@@ -51,7 +56,7 @@ public class ArtifactInfoModel
     /// <param name="value">Model.</param>
     /// <returns>Record.</returns>
     public static implicit operator ArtifactInfo(ArtifactInfoModel value)
-        => new(new ArtifactKey(value.Tool, value.Group, value.Id), value.Name, value.Date, value.UpdateDate, value.Full);
+        => new(new ArtifactKey(value.Tool, value.Group, value.Id), value.Name, value.Date, value.UpdateDate, value.RetrievalDate, value.Full);
 
     /// <summary>
     /// Converts model to info record.
@@ -67,6 +72,7 @@ public class ArtifactInfoModel
             Name = value.Name,
             Date = value.Date,
             UpdateDate = value.UpdateDate,
+            RetrievalDate = value.RetrievalDate,
             Full = value.Full
         };
 }

@@ -15,6 +15,8 @@ public class ArcCommand : ToolCommandBase
 
     protected ITeslerRegistrationProvider RegistrationProvider;
 
+    protected TimeProvider TimeProvider;
+
     protected IProfileResolver ProfileResolver;
 
     protected Option<string> HashOption;
@@ -37,8 +39,9 @@ public class ArcCommand : ToolCommandBase
         IToolPropertyProvider toolPropertyProvider,
         ITeslerDataProvider dataProvider,
         ITeslerRegistrationProvider registrationProvider,
+        TimeProvider timeProvider,
         IProfileResolver profileResolver)
-        : this(toolLogHandlerProvider, pluginStore, toolPropertyProvider, dataProvider, registrationProvider, profileResolver, "arc", "Execute archival artifact tools.")
+        : this(toolLogHandlerProvider, pluginStore, toolPropertyProvider, dataProvider, registrationProvider, timeProvider, profileResolver, "arc", "Execute archival artifact tools.")
     {
     }
 
@@ -48,6 +51,7 @@ public class ArcCommand : ToolCommandBase
         IToolPropertyProvider toolPropertyProvider,
         ITeslerDataProvider dataProvider,
         ITeslerRegistrationProvider registrationProvider,
+        TimeProvider timeProvider,
         IProfileResolver profileResolver,
         string name,
         string? description = null)
@@ -57,6 +61,7 @@ public class ArcCommand : ToolCommandBase
         DataProvider.Initialize(this);
         RegistrationProvider = registrationProvider;
         RegistrationProvider.Initialize(this);
+        TimeProvider = timeProvider;
         ProfileResolver = profileResolver;
         HashOption = new Option<string>(new[] { "-h", "--hash" }, $"Checksum algorithm ({Common.ChecksumAlgorithms})");
         HashOption.SetDefaultValue(Common.DefaultChecksumAlgorithm);
@@ -109,9 +114,10 @@ public class ArcCommand : ToolCommandBase
         {
             ResolveAndAddProfiles(ProfileResolver, profiles, profileFile);
         }
+        (bool getArtifactRetrievalTimestamps, bool getResourceRetrievalTimestamps) = GetArtifactRetrievalOptions(context);
         foreach (ArtifactToolProfile profile in PrepareProfiles(context, profiles))
         {
-            using var tool = await GetToolAsync(profile, arm, adm).ConfigureAwait(false);
+            using var tool = await GetToolAsync(profile, arm, adm, TimeProvider, getArtifactRetrievalTimestamps, getResourceRetrievalTimestamps).ConfigureAwait(false);
             await new ArtifactToolDumpProxy(tool, options, l).DumpAsync().ConfigureAwait(false);
         }
         return 0;

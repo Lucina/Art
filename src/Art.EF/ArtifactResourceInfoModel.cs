@@ -41,9 +41,14 @@ public class ArtifactResourceInfoModel
     public virtual string? ContentType { get; set; }
 
     /// <summary>
-    /// Updated date.
+    /// Date this resource was updated.
     /// </summary>
     public virtual DateTimeOffset? Updated { get; set; }
+
+    /// <summary>
+    /// Date this resource was retrieved.
+    /// </summary>
+    public virtual DateTimeOffset? Retrieved { get; set; }
 
     /// <summary>
     /// Version.
@@ -66,7 +71,7 @@ public class ArtifactResourceInfoModel
     /// <param name="value">Model.</param>
     /// <returns>Record.</returns>
     public static implicit operator ArtifactResourceInfo(ArtifactResourceInfoModel value)
-        => new(new ArtifactResourceKey(new ArtifactKey(value.ArtifactTool, value.ArtifactGroup, value.ArtifactId), value.File, value.Path), value.ContentType, value.Updated, value.Version,
+        => new(new ArtifactResourceKey(new ArtifactKey(value.ArtifactTool, value.ArtifactGroup, value.ArtifactId), value.File, value.Path), value.ContentType, value.Updated, value.Retrieved, value.Version,
             value.ChecksumId != null && value.ChecksumValue != null ? new Checksum(value.ChecksumId, value.ChecksumValue) : null);
 
     /// <summary>
@@ -84,6 +89,7 @@ public class ArtifactResourceInfoModel
             Path = value.Key.Path,
             ContentType = value.ContentType,
             Updated = value.Updated,
+            Retrieved = value.Retrieved,
             Version = value.Version,
             ChecksumId = value.Checksum?.Id,
             ChecksumValue = value.Checksum?.Value
