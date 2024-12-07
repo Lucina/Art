@@ -34,6 +34,10 @@ public partial class ArtifactTool
         bool full = true,
         string? group = null)
     {
+        if (retrievalDate == null && Config.GetArtifactRetrievalTimestamps)
+        {
+            retrievalDate = TimeProvider.GetUtcNow();
+        }
         return new ArtifactData(this, Profile.Tool, ResolveGroup(group), id, name, date, updateDate, retrievalDate, full);
     }
 

@@ -114,9 +114,10 @@ public class ArcCommand : ToolCommandBase
         {
             ResolveAndAddProfiles(ProfileResolver, profiles, profileFile);
         }
+        (bool getArtifactRetrievalTimestamps, bool getResourceRetrievalTimestamps) = GetArtifactRetrievalOptions(context);
         foreach (ArtifactToolProfile profile in PrepareProfiles(context, profiles))
         {
-            using var tool = await GetToolAsync(profile, arm, adm, TimeProvider).ConfigureAwait(false);
+            using var tool = await GetToolAsync(profile, arm, adm, TimeProvider, getArtifactRetrievalTimestamps, getResourceRetrievalTimestamps).ConfigureAwait(false);
             await new ArtifactToolDumpProxy(tool, options, l).DumpAsync().ConfigureAwait(false);
         }
         return 0;

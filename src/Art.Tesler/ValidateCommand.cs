@@ -128,7 +128,8 @@ public class ValidateCommand : ToolCommandBase
         }
         l.Log($"{resourceFailCount} resources failed to validate and will be reacquired.", null, LogLevel.Information);
         var repairContext = validationContext.CreateRepairContext();
-        await repairContext.RepairAsync(profiles, context.ParseResult.GetValueForOption(DetailedOption), checksumSource, TimeProvider, ToolOutput);
+        (bool getArtifactRetrievalTimestamps, bool getResourceRetrievalTimestamps) = GetArtifactRetrievalOptions(context);
+        await repairContext.RepairAsync(profiles, context.ParseResult.GetValueForOption(DetailedOption), checksumSource, TimeProvider, getArtifactRetrievalTimestamps, getResourceRetrievalTimestamps, ToolOutput);
         return 0;
     }
 }

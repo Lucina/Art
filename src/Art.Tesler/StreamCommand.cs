@@ -58,7 +58,8 @@ public class StreamCommand : ToolCommandBase
         var profile = PrepareProfile(context, profiles[0]);
         using var arm = new InMemoryArtifactRegistrationManager();
         using var adm = new InMemoryArtifactDataManager();
-        using var tool = await GetToolAsync(profile, arm, adm, TimeProvider).ConfigureAwait(false);
+        (bool getArtifactRetrievalTimestamps, bool getResourceRetrievalTimestamps) = GetArtifactRetrievalOptions(context);
+        using var tool = await GetToolAsync(profile, arm, adm, TimeProvider, getArtifactRetrievalTimestamps, getResourceRetrievalTimestamps).ConfigureAwait(false);
         var listProxy = new ArtifactToolListProxy(tool, ArtifactToolListOptions.Default, l);
         var res = await listProxy.ListAsync().ToListAsync().ConfigureAwait(false);
         if (res.Count == 0)

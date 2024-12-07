@@ -89,7 +89,8 @@ public class FindCommand : ToolCommandBase
         using var arm = new InMemoryArtifactRegistrationManager();
         using var adm = new NullArtifactDataManager();
         profile = PrepareProfile(context, profile);
-        using var tool = await GetToolAsync(profile, arm, adm, TimeProvider);
+        (bool getArtifactRetrievalTimestamps, bool getResourceRetrievalTimestamps) = GetArtifactRetrievalOptions(context);
+        using var tool = await GetToolAsync(profile, arm, adm, TimeProvider, getArtifactRetrievalTimestamps, getResourceRetrievalTimestamps);
         ArtifactToolFindProxy proxy = new(tool, ToolLogHandlerProvider.GetDefaultToolLogHandler());
         bool listResource = context.ParseResult.GetValueForOption(ListResourceOption);
         bool detailed = context.ParseResult.GetValueForOption(DetailedOption);

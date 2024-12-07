@@ -23,7 +23,14 @@ public class RepairContext : ToolControlContext
         _l = l;
     }
 
-    public async Task<bool> RepairAsync(List<ArtifactToolProfile> profiles, bool detailed, ChecksumSource? checksumSource, TimeProvider timeProvider, IOutputControl console)
+    public async Task<bool> RepairAsync(
+        List<ArtifactToolProfile> profiles,
+        bool detailed,
+        ChecksumSource? checksumSource,
+        TimeProvider timeProvider,
+        bool getArtifactRetrievalTimestamps,
+        bool getResourceRetrievalTimestamps,
+        IOutputControl console)
     {
         foreach (ArtifactToolProfile originalProfile in profiles)
         {
@@ -35,7 +42,7 @@ public class RepairContext : ToolControlContext
             {
                 continue;
             }
-            ArtifactToolConfig config = new(_arm, _adm, timeProvider);
+            ArtifactToolConfig config = new(_arm, _adm, timeProvider, getArtifactRetrievalTimestamps, getResourceRetrievalTimestamps);
             await tool.InitializeAsync(config, actualProfile).ConfigureAwait(false);
             switch (tool)
             {
@@ -44,7 +51,7 @@ public class RepairContext : ToolControlContext
                     {
                         var proxy = new ArtifactToolFindProxy(tool, _l);
                         foreach ((ArtifactKey key, List<ArtifactResourceInfo> list) in _failed.Where(v => v.Key.Tool == actualProfile.Tool && v.Key.Group == group).ToList())
-                            if (await proxy.FindAsync(key.Id) is { } data) await Fixup(tool, key, list, data, checksumSource);
+                            if (await proxy.FindAsync(key.Id) is { } data) await Fixup(tool, key, list, data, checksumSource, timeProvider, getResourceRetrievalTimestamps);
                             else _l.Log($"Failed to obtain artifact {key.Tool}/{key.Group}:{key.Id}", null, LogLevel.Error);
                         break;
                     }
@@ -52,7 +59,7 @@ public class RepairContext : ToolControlContext
                     {
                         await foreach (IArtifactData data in (new ArtifactToolListProxy(tool, ArtifactToolListOptions.Default, _l).ListAsync()))
                             if (_failed.TryGetValue(data.Info.Key, out List<ArtifactResourceInfo>? list))
-                                await Fixup(tool, data.Info.Key, list, data, checksumSource);
+                                await Fixup(tool, data.Info.Key, list, data, checksumSource, timeProvider, getResourceRetrievalTimestamps);
                         break;
                     }
                 // ReSharper restore SuspiciousTypeConversion.Global
@@ -68,7 +75,14 @@ public class RepairContext : ToolControlContext
         return true;
     }
 
-    private async Task Fixup(IArtifactTool tool, ArtifactKey key, ICollection<ArtifactResourceInfo> list, IArtifactData data, ChecksumSource? checksumSource)
+    private async Task Fixup(
+        IArtifactTool tool,
+        ArtifactKey key,
+        ICollection<ArtifactResourceInfo> list,
+        IArtifactData data,
+        ChecksumSource? checksumSource,
+        TimeProvider timeProvider,
+        bool getResourceRetrievalTimestamps)
     {
         foreach (ArtifactResourceInfo resource in list.ToList())
         {
@@ -77,7 +91,7 @@ public class RepairContext : ToolControlContext
                 _l.Log($"Failed to obtain resource {resource.GetInfoPathString()} for artifact {key.Tool}/{key.Group}:{key.Id}", null, LogLevel.Error);
                 continue;
             }
-            await tool.DumpResourceAsync(resourceActual, ResourceUpdateMode.Hard, _l, checksumSource);
+            await tool.DumpResourceAsync(resourceActual, ResourceUpdateMode.Hard, _l, checksumSource, timeProvider, getResourceRetrievalTimestamps);
             list.Remove(resource);
         }
         if (list.Count == 0) _failed.Remove(key);

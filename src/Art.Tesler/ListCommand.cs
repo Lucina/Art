@@ -66,22 +66,27 @@ public class ListCommand : ToolCommandBase
         string? profileFile = context.ParseResult.HasOption(ProfileFileOption) ? context.ParseResult.GetValueForOption(ProfileFileOption) : null;
         string? tool = context.ParseResult.HasOption(ToolOption) ? context.ParseResult.GetValueForOption(ToolOption) : null;
         string? group = context.ParseResult.HasOption(GroupOption) ? context.ParseResult.GetValueForOption(GroupOption) : null;
-        if (profileFile == null) return await ExecAsync(context, new ArtifactToolProfile(tool!, group, null));
+        (bool getArtifactRetrievalTimestamps, bool getResourceRetrievalTimestamps) = GetArtifactRetrievalOptions(context);
+        if (profileFile == null) return await ExecAsync(context, new ArtifactToolProfile(tool!, group, null), getArtifactRetrievalTimestamps, getResourceRetrievalTimestamps);
         int ec = 0;
         foreach (ArtifactToolProfile profile in ArtifactToolProfileUtil.DeserializeProfilesFromFile(profileFile))
         {
             if (group != null && group != profile.Group || tool != null && tool != profile.Tool) continue;
-            ec = Common.AccumulateErrorCode(await ExecAsync(context, profile), ec);
+            ec = Common.AccumulateErrorCode(await ExecAsync(context, profile, getArtifactRetrievalTimestamps, getResourceRetrievalTimestamps), ec);
         }
         return ec;
     }
 
-    private async Task<int> ExecAsync(InvocationContext context, ArtifactToolProfile profile)
+    private async Task<int> ExecAsync(
+        InvocationContext context,
+        ArtifactToolProfile profile,
+        bool getArtifactRetrievalTimestamps,
+        bool getResourceRetrievalTimestamps)
     {
         using var arm = new InMemoryArtifactRegistrationManager();
         using var adm = new NullArtifactDataManager();
         profile = PrepareProfile(context, profile);
-        using var tool = await GetToolAsync(profile, arm, adm, TimeProvider);
+        using var tool = await GetToolAsync(profile, arm, adm, TimeProvider, getArtifactRetrievalTimestamps, getResourceRetrievalTimestamps);
         ArtifactToolListOptions options = new();
         ArtifactToolListProxy proxy = new(tool, options, ToolLogHandlerProvider.GetDefaultToolLogHandler());
         bool listResource = context.ParseResult.GetValueForOption(ListResourceOption);

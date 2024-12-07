@@ -108,24 +108,32 @@ public class DumpCommand : ToolCommandBase
         string? profileFile = context.ParseResult.HasOption(ProfileFileOption) ? context.ParseResult.GetValueForOption(ProfileFileOption) : null;
         string? tool = context.ParseResult.HasOption(ToolOption) ? context.ParseResult.GetValueForOption(ToolOption) : null;
         string? group = context.ParseResult.HasOption(GroupOption) ? context.ParseResult.GetValueForOption(GroupOption) : null;
+        (bool getArtifactRetrievalTimestamps, bool getResourceRetrievalTimestamps) = GetArtifactRetrievalOptions(context);
         if (profileFile == null)
         {
-            return await ExecAsync(context, new ArtifactToolProfile(tool!, group, null), arm, adm, checksumSource);
+            return await ExecAsync(context, new ArtifactToolProfile(tool!, group, null), arm, adm, checksumSource, getArtifactRetrievalTimestamps, getResourceRetrievalTimestamps);
         }
         int ec = 0;
         foreach (ArtifactToolProfile profile in ArtifactToolProfileUtil.DeserializeProfilesFromFile(profileFile))
         {
             if (group != null && group != profile.Group || tool != null && tool != profile.Tool) continue;
-            ec = Common.AccumulateErrorCode(await ExecAsync(context, profile, arm, adm, checksumSource), ec);
+            ec = Common.AccumulateErrorCode(await ExecAsync(context, profile, arm, adm, checksumSource, getArtifactRetrievalTimestamps, getResourceRetrievalTimestamps), ec);
         }
         return ec;
     }
 
-    private async Task<int> ExecAsync(InvocationContext context, ArtifactToolProfile profile, IArtifactRegistrationManager arm, IArtifactDataManager adm, ChecksumSource? checksumSource)
+    private async Task<int> ExecAsync(
+        InvocationContext context,
+        ArtifactToolProfile profile,
+        IArtifactRegistrationManager arm,
+        IArtifactDataManager adm,
+        ChecksumSource? checksumSource,
+        bool getArtifactRetrievalTimestamps,
+        bool getResourceRetrievalTimestamps)
     {
         ArtifactToolDumpOptions options = new(ChecksumSource: checksumSource);
         profile = PrepareProfile(context, profile);
-        using var tool = await GetToolAsync(profile, arm, adm, TimeProvider);
+        using var tool = await GetToolAsync(profile, arm, adm, TimeProvider, getArtifactRetrievalTimestamps, getResourceRetrievalTimestamps);
         ArtifactToolDumpProxy dProxy = new(tool, options, ToolLogHandlerProvider.GetDefaultToolLogHandler());
         await dProxy.DumpAsync();
         return 0;
