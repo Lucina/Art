@@ -1,8 +1,6 @@
 using System.Diagnostics;
-using System.Reflection;
-using System.Runtime.InteropServices;
-using System.Runtime.Loader;
 using System.Security.Cryptography;
+using System.Text;
 using System.Text.Json;
 
 namespace Art.BrowserCookies.Chromium;
@@ -75,35 +73,6 @@ internal static class ChromiumKeychainUtil
         return GetWindowsKeychainInternal(chromiumVariant, await JsonSerializer.DeserializeAsync(stream, SourceGenerationContext.Default.ChromiumWindowsLocalState, cancellationToken: cancellationToken).ConfigureAwait(false) ?? throw new InvalidDataException(), toolLogHandler);
     }
 
-    private static Func<string>[] s_wcunlockASearchPathFuncs =
-    [
-        () => Path.Join(GetBaseDirectory(typeof(ChromiumKeychainUtil).Assembly), "runtimes", RuntimeInformation.RuntimeIdentifier, "native", "wcunlockA.exe"), //
-        () => Path.Join(GetBaseDirectory(typeof(ChromiumKeychainUtil).Assembly), "wcunlockA.exe") //
-    ];
-
-    private static string? GetFile(IEnumerable<Func<string>> pathFuncs)
-    {
-        foreach (var func in pathFuncs)
-        {
-            string path = func();
-            if (File.Exists(path))
-            {
-                return path;
-            }
-        }
-        return null;
-    }
-
-    private static string GetBaseDirectory(Assembly assembly)
-    {
-        var context = AssemblyLoadContext.GetLoadContext(assembly);
-        if (context is IBasedAssemblyLoadContext basedAssemblyLoadContext)
-        {
-            return basedAssemblyLoadContext.BasePath;
-        }
-        return AppDomain.CurrentDomain.BaseDirectory;
-    }
-
     private static ChromiumWindowsKeychain GetWindowsKeychainInternal(ChromiumVariant chromiumVariant, ChromiumWindowsLocalState state, IToolLogHandler? toolLogHandler)
     {
         if (!OperatingSystem.IsWindows())
@@ -120,11 +89,6 @@ internal static class ChromiumKeychainUtil
         }
         byte[] data20Sub = data20[4..];
         data20.AsSpan().Clear();
-        string? wcunlockA = GetFile(s_wcunlockASearchPathFuncs);
-        if (wcunlockA == null)
-        {
-            throw new FileNotFoundException("Missing required executable wcunlockA.exe");
-        }
         string tmpIn = Path.GetTempFileName();
         try
         {
@@ -133,23 +97,13 @@ internal static class ChromiumKeychainUtil
             {
                 File.WriteAllBytes(tmpIn, data20Sub);
                 data20Sub.AsSpan().Clear();
-                ProcessStartInfo psi = new() { FileName = "psexec", Verb = "runas", UseShellExecute = true };
-                psi.ArgumentList.Add("-nobanner");
-                psi.ArgumentList.Add("-s");
-                psi.ArgumentList.Add(wcunlockA);
-                psi.ArgumentList.Add(tmpIn);
-                psi.ArgumentList.Add(tmpOut);
+                ProcessStartInfo psi = new() { FileName = "powershell", Verb = "runas", UseShellExecute = true };
+                psi.ArgumentList.Add("-Command");
+                psi.ArgumentList.Add(s_wcunlockB.Replace("%%SCRIPTARG_IN%%", tmpIn).Replace("%%SCRIPTARG_OUT%%", tmpOut));
                 toolLogHandler?.Log("Need Elevation", "Elevation is needed to decrypt keys. A UAC prompt may appear.", LogLevel.Information);
-                try
-                {
-                    var process = Process.Start(psi);
-                    toolLogHandler?.Log("Running decryption helper via psexec...", null, LogLevel.Information);
-                    process?.WaitForExit();
-                }
-                catch (Exception e)
-                {
-                    throw new IOException("An error occurred. Please make sure psexec is on your path.", e);
-                }
+                var process = Process.Start(psi);
+                toolLogHandler?.Log("Running cookie decryption helper...", null, LogLevel.Information);
+                process?.WaitForExit();
                 byte[] res20 = ProtectedData.Unprotect(File.ReadAllBytes(tmpOut), null, DataProtectionScope.CurrentUser);
                 var keychain = new ChromiumWindowsKeychain(res10, res20, chromiumVariant);
                 res10.AsSpan().Clear();
@@ -165,5 +119,27 @@ internal static class ChromiumKeychainUtil
         {
             File.Delete(tmpIn);
         }
+    }
+
+    private static string s_wcunlockB => s_wcunlockBValue ??= Encoding.UTF8.GetString(LoadResource("wcunlockB"));
+    private static string? s_wcunlockBValue;
+
+    private static byte[] LoadResource(string name)
+    {
+        using Stream s = typeof(ChromiumKeychainUtil).Assembly.GetManifestResourceStream(name) ?? throw new IOException($"Failed to load manifest resource [{name}]");
+        if (s.CanSeek)
+        {
+            long l = s.Length;
+            if (l > int.MaxValue)
+            {
+                throw new InvalidOperationException($"Manifest resource [{name}] has length {l} which exceeds supported length");
+            }
+            byte[] result = new byte[l];
+            s.ReadExactly(result);
+            return result;
+        }
+        var ms = new MemoryStream();
+        s.CopyTo(ms);
+        return ms.ToArray();
     }
 }

@@ -43,16 +43,19 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Content Update="NOTICE.Art.BrowserCookies.md">
+      <Link>NOTICE.Art.BrowserCookies.md</Link>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <PackagePath>contentFiles/any/any/</PackagePath>
+    </Content>
+  </ItemGroup>
+
+  <ItemGroup>
     <None Include="../../README.md" Pack="true" PackagePath="\" />
   </ItemGroup>
 
   <ItemGroup>
-    <Content Include="$(MSBuildThisFileDirectory)wcunlockA/wcunlockA.exe">
-      <Link>wcunlockA.exe</Link>
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-      <PackagePath>runtimes\win-x64\native</PackagePath>
-      <Pack>true</Pack>
-    </Content>
+    <EmbeddedResource Include="wcunlockB.txt" LogicalName="wcunlockB" />
   </ItemGroup>
 
   <ItemGroup>
