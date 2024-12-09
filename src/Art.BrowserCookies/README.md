@@ -29,9 +29,9 @@ the [Invoke-CommandAs](https://github.com/mkellerman/Invoke-CommandAs) library a
 ultimately execute a decryption via the System account. Getting the job scheduled requires elevation to administrator, so the
 PowerShell process that runs the helper script is elevated which will trigger a UAC prompt if those are enabled.
 
-v10 cookies on macOS go through Keychain, specifically via the [security](https://www.unix.com/man-page/osx/1/security/)
+v10 cookies on macOS go through Keychain, specifically via the [`security`](https://www.unix.com/man-page/osx/1/security/)
 CLI which accesses the browser's store in Keychain. This will trigger a privilege check with an option to
-always allow the calling program access to that store.
+always allow the calling program access to that store. ***Do not*** select Always Allow, as the permissions are being granted to the `security` utility.
 
 ### Resources
 
