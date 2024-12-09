@@ -1,4 +1,5 @@
-﻿using System.Net;
+﻿using System.Diagnostics.CodeAnalysis;
+using System.Net;
 using System.Net.WebSockets;
 using Art.BrowserCookies;
 using Art.Common;
@@ -21,6 +22,11 @@ public abstract partial class HttpArtifactTool : ArtifactTool
     /// Optional option used to specify browser profile to get cookies from if applicable.
     /// </summary>
     public const string OptCookieBrowserProfile = "cookieBrowserProfile";
+
+    /// <summary>
+    /// Option used to specify one domain to filter when extracting browser cookies.
+    /// </summary>
+    public const string OptCookieBrowserDomain = "cookieBrowserDomain";
 
     /// <summary>
     /// Option used to specify domains to filter when extracting browser cookies.
@@ -128,12 +134,12 @@ public abstract partial class HttpArtifactTool : ArtifactTool
     /// </summary>
     /// <returns>A cookie container.</returns>
     /// <remarks>
-    /// By default, this uses the <see cref="OptCookieBrowser"/>, <see cref="OptCookieBrowserDomains"/> <see cref="OptCookieBrowserProfile"/>, and <see cref="OptCookieFile"/> configuration options.
+    /// By default, this uses the <see cref="OptCookieBrowser"/>, <see cref="OptCookieBrowserDomain"/>, <see cref="OptCookieBrowserDomains"/>, <see cref="OptCookieBrowserProfile"/>, and <see cref="OptCookieFile"/> configuration options.
     /// </remarks>
     public virtual CookieContainer CreateCookieContainer()
     {
         CookieContainer cookies = new();
-        TryLoadBrowserCookiesFromOption(cookies, OptCookieBrowser, OptCookieBrowserDomains, OptCookieBrowserProfile);
+        TryLoadBrowserCookiesFromOption(cookies, OptCookieBrowser, OptCookieBrowserDomain, OptCookieBrowserDomains, OptCookieBrowserProfile);
         TryLoadCookieFileFromOption(cookies, OptCookieFile);
         return cookies;
     }
@@ -144,12 +150,12 @@ public abstract partial class HttpArtifactTool : ArtifactTool
     /// <param name="cancellationToken">Cancellation token.</param>
     /// <returns>Task returning a cookie container.</returns>
     /// <remarks>
-    /// By default, this uses the <see cref="OptCookieBrowser"/>, <see cref="OptCookieBrowserDomains"/> <see cref="OptCookieBrowserProfile"/>, and <see cref="OptCookieFile"/> configuration options.
+    /// By default, this uses the <see cref="OptCookieBrowser"/>, <see cref="OptCookieBrowserDomain"/>, <see cref="OptCookieBrowserDomains"/>, <see cref="OptCookieBrowserProfile"/>, and <see cref="OptCookieFile"/> configuration options.
     /// </remarks>
     public virtual async Task<CookieContainer> CreateCookieContainerAsync(CancellationToken cancellationToken = default)
     {
         CookieContainer cookies = new();
-        await TryLoadBrowserCookiesFromOptionAsync(cookies, OptCookieBrowser, OptCookieBrowserDomains, OptCookieBrowserProfile, cancellationToken).ConfigureAwait(false);
+        await TryLoadBrowserCookiesFromOptionAsync(cookies, OptCookieBrowser, OptCookieBrowserDomain, OptCookieBrowserDomains, OptCookieBrowserProfile, cancellationToken).ConfigureAwait(false);
         await TryLoadCookieFileFromOptionAsync(cookies, OptCookieFile, cancellationToken).ConfigureAwait(false);
         return cookies;
     }
@@ -159,15 +165,14 @@ public abstract partial class HttpArtifactTool : ArtifactTool
     /// </summary>
     /// <param name="cookies">Cookie container to populate.</param>
     /// <param name="optKeyBrowserName">Option key for browser name.</param>
+    /// <param name="optKeyBrowserDomain">Option key for domains to filter by.</param>
     /// <param name="optKeyBrowserDomains">Option key for domains to filter by.</param>
     /// <param name="optKeyProfile">Optional option key for browser profile name.</param>
     /// <returns>True if necessary keys were found.</returns>
-    public bool TryLoadBrowserCookiesFromOption(CookieContainer cookies, string optKeyBrowserName, string optKeyBrowserDomains, string? optKeyProfile)
+    public bool TryLoadBrowserCookiesFromOption(CookieContainer cookies, string optKeyBrowserName, string optKeyBrowserDomain, string optKeyBrowserDomains, string? optKeyProfile)
     {
-        if (TryGetOption(optKeyBrowserName, out string? browserName, SourceGenerationContext.Default.String) && TryGetOption(optKeyBrowserDomains, out string[]? domains, SourceGenerationContext.Default.StringArray))
+        if (TryPrepareCookiesFromOption(optKeyBrowserName, optKeyBrowserDomain, optKeyBrowserDomains, optKeyProfile, out List<CookieFilter>? mappedDomains, out string? browserName, out string? profile))
         {
-            string? profile = optKeyProfile != null && TryGetOption(optKeyProfile, out string? profileValue, SourceGenerationContext.Default.String) ? profileValue : null;
-            var mappedDomains = domains.Select(v => new CookieFilter(v)).ToList();
             CookieSource.LoadCookies(cookies, mappedDomains, browserName, profile, LogHandler);
         }
         return false;
@@ -178,18 +183,46 @@ public abstract partial class HttpArtifactTool : ArtifactTool
     /// </summary>
     /// <param name="cookies">Cookie container to populate.</param>
     /// <param name="optKeyBrowserName">Option key for browser name.</param>
+    /// <param name="optKeyBrowserDomain">Option key for domains to filter by.</param>
     /// <param name="optKeyBrowserDomains">Option key for domains to filter by.</param>
     /// <param name="optKeyProfile">Optional option key for browser profile name.</param>
     /// <param name="cancellationToken">Cancellation token.</param>
     /// <returns>Task returning if necessary keys were found.</returns>
-    public async Task<bool> TryLoadBrowserCookiesFromOptionAsync(CookieContainer cookies, string optKeyBrowserName, string optKeyBrowserDomains, string? optKeyProfile, CancellationToken cancellationToken = default)
+    public async Task<bool> TryLoadBrowserCookiesFromOptionAsync(CookieContainer cookies, string optKeyBrowserName, string optKeyBrowserDomain, string optKeyBrowserDomains, string? optKeyProfile, CancellationToken cancellationToken = default)
     {
-        if (TryGetOption(optKeyBrowserName, out string? browserName, SourceGenerationContext.Default.String) && TryGetOption(optKeyBrowserDomains, out string[]? domains, SourceGenerationContext.Default.StringArray))
+        if (TryPrepareCookiesFromOption(optKeyBrowserName, optKeyBrowserDomain, optKeyBrowserDomains, optKeyProfile, out List<CookieFilter>? mappedDomains, out string? browserName, out string? profile))
         {
-            string? profile = optKeyProfile != null && TryGetOption(optKeyProfile, out string? profileValue, SourceGenerationContext.Default.String) ? profileValue : null;
-            var mappedDomains = domains.Select(v => new CookieFilter(v)).ToList();
             await CookieSource.LoadCookiesAsync(cookies, mappedDomains, browserName, profile, LogHandler, cancellationToken: cancellationToken).ConfigureAwait(false);
         }
+        return false;
+    }
+
+    private bool TryPrepareCookiesFromOption(
+        string optKeyBrowserName,
+        string optKeyBrowserDomain,
+        string optKeyBrowserDomains,
+        string? optKeyProfile,
+        [NotNullWhen(true)] out List<CookieFilter>? mappedDomains,
+        [NotNullWhen(true)] out string? browserName,
+        out string? profile)
+    {
+        if (TryGetOption(optKeyBrowserName, out browserName, SourceGenerationContext.Default.String))
+        {
+            mappedDomains = [];
+            if (TryGetOption(optKeyBrowserDomain, out string? domain, SourceGenerationContext.Default.String))
+            {
+                mappedDomains.Add(new CookieFilter(domain));
+            }
+            if (TryGetOption(optKeyBrowserDomains, out string[]? domains, SourceGenerationContext.Default.StringArray))
+            {
+                mappedDomains.AddRange(domains.Select(v => new CookieFilter(v)));
+            }
+            profile = optKeyProfile != null && TryGetOption(optKeyProfile, out string? profileValue, SourceGenerationContext.Default.String) ? profileValue : null;
+            return true;
+        }
+        mappedDomains = null;
+        browserName = null;
+        profile = null;
         return false;
     }
 

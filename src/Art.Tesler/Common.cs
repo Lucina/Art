@@ -144,10 +144,40 @@ internal static class Common
         }
     }
 
+    internal static void AddPropElements(this Dictionary<string, JsonElement> dictionary, IEnumerable<string> props, IOutputControl console)
+    {
+        foreach (string prop in props)
+        {
+            if (s_propRe.Match(prop) is not { Success: true } match)
+            {
+                throw new ArgumentException($@"Invalid property entry ""{prop}""");
+            }
+            string k = match.Groups[1].Value;
+            string val = match.Groups[2].Value;
+            dictionary.AddPropElement(k, ParsePropToJsonElement(val));
+        }
+    }
+
     private static void AddPropWithWarning(this Dictionary<string, JsonElement> dictionary, string k, JsonElement v, IOutputControl console)
     {
         if (dictionary.ContainsKey(k)) console.Warn.WriteLine($@"Warning: property {k} already exists with value ""{dictionary[k].ToString()}"", overwriting");
         dictionary[k] = v;
+    }
+
+    private static void AddPropElement(this Dictionary<string, JsonElement> dictionary, string k, JsonElement v)
+    {
+        if (!dictionary.ContainsKey(k))
+        {
+            dictionary[k] = JsonSerializer.SerializeToElement([v], SourceGenerationContext.s_context.JsonElementArray);
+            return;
+        }
+        JsonElement existing = dictionary[k];
+        if (existing.ValueKind != JsonValueKind.Array)
+        {
+            throw new ArtUserException($"Property {k} is a {existing.ValueKind}, cannot add an element value to a non-{JsonValueKind.Array} value");
+        }
+        var value = existing.Deserialize<JsonElement[]>(SourceGenerationContext.s_context.JsonElementArray) ?? [];
+        dictionary[k] = JsonSerializer.SerializeToElement([..value, v], SourceGenerationContext.s_context.JsonElementArray);
     }
 
     // https://stackoverflow.com/a/4146349
@@ -206,6 +236,7 @@ internal static class Common
         IArtifactToolRegistryStore registryStore,
         IToolPropertyProvider? toolPropertyProvider,
         IEnumerable<string> properties,
+        IEnumerable<string> propertyElements,
         string? cookieFile,
         string? userAgent,
         IOutputControl console)
@@ -225,6 +256,7 @@ internal static class Common
         if (cookieFile != null) opts.AddPropWithWarning("cookieFile", JsonSerializer.SerializeToElement(cookieFile, SourceGenerationContext.s_context.String), console);
         if (userAgent != null) opts.AddPropWithWarning("userAgent", JsonSerializer.SerializeToElement(userAgent, SourceGenerationContext.s_context.String), console);
         opts.AddProps(properties, console);
+        opts.AddPropElements(propertyElements, console);
         return artifactToolProfile with { Options = opts };
     }
 }

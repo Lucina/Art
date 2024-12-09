@@ -13,6 +13,7 @@ namespace Art.Tesler;
 [JsonSerializable(typeof(List<string>))]
 [JsonSerializable(typeof(List<ArtifactToolProfile>))]
 [JsonSerializable(typeof(JsonElement))]
+[JsonSerializable(typeof(JsonElement[]))]
 [JsonSerializable(typeof(IReadOnlyDictionary<string, JsonElement>))]
 [JsonSerializable(typeof(Dictionary<string, JsonElement>))]
 [JsonSerializable(typeof(object))]
