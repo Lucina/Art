@@ -2,9 +2,8 @@
 using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Runtime.Loader;
-using Art.Common;
 
-namespace Art.Modular;
+namespace Art.Common;
 
 /// <summary>
 /// Represents a plugin containing <see cref="IArtifactTool"/> implementations.

@@ -1,8 +1,9 @@
 ﻿using System.Text;
+using Art.Common.IO;
 using Art.Common.Management;
 using NUnit.Framework;
 
-namespace Art.Common.Tests.Management;
+namespace Art.Common.Tests.IO;
 
 public class CommittableFileStreamTests
 {
@@ -11,10 +12,10 @@ public class CommittableFileStreamTests
     {
         string tempDir = Path.GetTempPath();
         Assert.That(Directory.Exists(tempDir), Is.True);
-        string temp = CommittableFileStream.CreateRandomPath(tempDir);
-        Assert.That(Path.GetRelativePath(tempDir, temp), Is.EqualTo(Path.GetFileName(temp)));
+        string temp = ArtIOUtility.CreateRandomPath(tempDir, ".tmp");
         try
         {
+            Assert.That(Path.GetRelativePath(tempDir, temp), Is.EqualTo(Path.GetFileName(temp)));
             string mess = $"ya like jazz? {Random.Shared.Next()}";
             byte[] data = Encoding.UTF8.GetBytes(mess);
             using (CommittableFileStream cfs = new(temp, FileMode.Create, preferTemporaryLocation: false))
@@ -37,10 +38,10 @@ public class CommittableFileStreamTests
     {
         string tempDir = Path.GetTempPath();
         Assert.That(Directory.Exists(tempDir), Is.True);
-        string temp = CommittableFileStream.CreateRandomPath(tempDir);
-        Assert.That(Path.GetRelativePath(tempDir, temp), Is.EqualTo(Path.GetFileName(temp)));
+        string temp = ArtIOUtility.CreateRandomPath(tempDir, ".tmp");
         try
         {
+            Assert.That(Path.GetRelativePath(tempDir, temp), Is.EqualTo(Path.GetFileName(temp)));
             string mess = $"ya like jazz? {Random.Shared.Next()}";
             byte[] data = Encoding.UTF8.GetBytes(mess);
             using (CommittableFileStream cfs = new(temp, FileMode.Create, preferTemporaryLocation: true))
@@ -63,10 +64,10 @@ public class CommittableFileStreamTests
     {
         string tempDir = Path.GetTempPath();
         Assert.That(Directory.Exists(tempDir), Is.True);
-        string temp = CommittableFileStream.CreateRandomPath(tempDir);
-        Assert.That(Path.GetRelativePath(tempDir, temp), Is.EqualTo(Path.GetFileName(temp)));
+        string temp = ArtIOUtility.CreateRandomPath(tempDir, ".tmp");
         try
         {
+            Assert.That(Path.GetRelativePath(tempDir, temp), Is.EqualTo(Path.GetFileName(temp)));
             string mess = $"ya like jazz? {Random.Shared.Next()}";
             byte[] data = Encoding.UTF8.GetBytes(mess);
             using (CommittableFileStream cfs = new(temp, FileMode.Create, preferTemporaryLocation: false))
@@ -88,10 +89,10 @@ public class CommittableFileStreamTests
     {
         string tempDir = Path.GetTempPath();
         Assert.That(Directory.Exists(tempDir), Is.True);
-        string temp = CommittableFileStream.CreateRandomPath(tempDir);
-        Assert.That(Path.GetRelativePath(tempDir, temp), Is.EqualTo(Path.GetFileName(temp)));
+        string temp = ArtIOUtility.CreateRandomPath(tempDir, ".tmp");
         try
         {
+            Assert.That(Path.GetRelativePath(tempDir, temp), Is.EqualTo(Path.GetFileName(temp)));
             string mess = $"ya like jazz? {Random.Shared.Next()}";
             byte[] data = Encoding.UTF8.GetBytes(mess);
             using (CommittableFileStream cfs = new(temp, FileMode.Create, preferTemporaryLocation: true))

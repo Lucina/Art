@@ -1,6 +1,8 @@
 using System;
 using System.IO;
 using System.Threading.Tasks;
+using Art.Common.IO;
+using Microsoft.Data.Sqlite;
 using NUnit.Framework;
 
 namespace Art.EF.Sqlite.Tests;
@@ -10,11 +12,17 @@ public class SqliteTests
     [Test]
     public async Task TestSqliteDatabaseFile()
     {
-        string tempDir = Path.GetTempPath();
-        string tempFile = Path.Combine(tempDir, "art_ef_sqlite_test_database.db");
-        File.Delete(tempFile);
-        using SqliteArtifactRegistrationManager r = new(tempFile);
-        await TestSqliteDatabase(r);
+        string tempFile = ArtIOUtility.CreateRandomPath(Path.GetTempPath(), ".db");
+        try
+        {
+            using SqliteArtifactRegistrationManager r = new(tempFile);
+            await TestSqliteDatabase(r);
+        }
+        finally
+        {
+            SqliteConnection.ClearAllPools();
+            File.Delete(tempFile);
+        }
     }
 
     [Test]

@@ -8,6 +8,7 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\Art.Common\Art.Common.csproj" />
     <ProjectReference Include="..\Art.EF.Sqlite\Art.EF.Sqlite.csproj" />
   </ItemGroup>
 

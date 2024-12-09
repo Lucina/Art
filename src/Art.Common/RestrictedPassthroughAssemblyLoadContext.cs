@@ -3,7 +3,7 @@ using System.Diagnostics.CodeAnalysis;
 using System.Reflection;
 using System.Runtime.Loader;
 
-namespace Art.Modular;
+namespace Art.Common;
 
 /// <summary>
 /// Provides an <see cref="AssemblyLoadContext"/> that restricts passthrough of assemblies to a specified set.

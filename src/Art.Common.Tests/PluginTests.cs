@@ -1,5 +1,4 @@
 ﻿using System.Text.RegularExpressions;
-using Art.Modular;
 using NUnit.Framework;
 
 namespace Art.Common.Tests;
