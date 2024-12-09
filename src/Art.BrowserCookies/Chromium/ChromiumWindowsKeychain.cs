@@ -56,7 +56,7 @@ internal class ChromiumWindowsKeychain : IChromiumKeychain
         aes.Decrypt(nonce, source, tag, target);
     }
 
-    public string Unlock(byte[] buffer, IToolLogHandler? toolLogHandler)
+    public string Unlock(string domain, byte[] buffer, IToolLogHandler? toolLogHandler)
     {
         if (!OperatingSystem.IsWindows())
         {

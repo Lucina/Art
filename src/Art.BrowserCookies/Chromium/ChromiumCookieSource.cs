@@ -66,10 +66,11 @@ public abstract record ChromiumCookieSource : CookieSource
                         string value = reader.GetString(1);
                         if (string.IsNullOrWhiteSpace(value))
                         {
+                            string cookieDomain = reader.GetString(6);
                             byte[] buf = ReadBytes(reader.GetStream(2));
                             if (buf.Length != 0)
                             {
-                                value = (keychain ??= GetKeychain(toolLogHandler)).Unlock(buf, toolLogHandler);
+                                value = (keychain ??= GetKeychain(toolLogHandler)).Unlock(cookieDomain, buf, toolLogHandler);
                             }
                             else
                             {
@@ -83,7 +84,7 @@ public abstract record ChromiumCookieSource : CookieSource
                             Expires = expires,
                             Secure = reader.GetBoolean(5),
                             Name = reader.GetString(0),
-                            Value = value,
+                            Value = EscapeValue(value),
                             Path = reader.GetString(3),
                             Domain = reader.GetString(6)
                         });
@@ -147,10 +148,11 @@ public abstract record ChromiumCookieSource : CookieSource
                         string value = reader.GetString(1);
                         if (string.IsNullOrWhiteSpace(value))
                         {
+                            string cookieDomain = reader.GetString(6);
                             byte[] buf = ReadBytes(reader.GetStream(2));
                             if (buf.Length != 0)
                             {
-                                value = (keychain ??= await GetKeychainAsync(toolLogHandler, cancellationToken).ConfigureAwait(false)).Unlock(buf, toolLogHandler);
+                                value = (keychain ??= await GetKeychainAsync(toolLogHandler, cancellationToken).ConfigureAwait(false)).Unlock(cookieDomain, buf, toolLogHandler);
                             }
                             else
                             {
@@ -164,7 +166,7 @@ public abstract record ChromiumCookieSource : CookieSource
                             Expires = expires,
                             Secure = reader.GetBoolean(5),
                             Name = reader.GetString(0),
-                            Value = value,
+                            Value = EscapeValue(value),
                             Path = reader.GetString(3),
                             Domain = reader.GetString(6)
                         });
@@ -180,6 +182,17 @@ public abstract record ChromiumCookieSource : CookieSource
         {
             keychain?.Dispose();
         }
+    }
+
+    private static string EscapeValue(string value)
+    {
+        // rfc6265-nonconforming...
+        // https://www.rfc-editor.org/rfc/rfc6265
+        if (value.Contains(';') || value.Contains(','))
+        {
+            return $"\"{value.Replace("\"", "\\\"")}\"";
+        }
+        return value;
     }
 
     private static byte[] ReadBytes(Stream stream)

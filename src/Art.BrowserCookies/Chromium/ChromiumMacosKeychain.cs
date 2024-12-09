@@ -19,30 +19,42 @@ internal class ChromiumMacosKeychain : IChromiumKeychain
         keyV10.AsSpan().Clear();
     }
 
-    public string Unlock(byte[] buffer, IToolLogHandler? toolLogHandler)
+    public string Unlock(string domain, byte[] buffer, IToolLogHandler? toolLogHandler)
     {
         EnsureNotDisposed();
         ReadOnlySpan<byte> src = buffer;
-        if (!src[..3].SequenceEqual("v10"u8))
+        if (src[..3].SequenceEqual("v10"u8))
         {
-            // fallback
-            return Encoding.UTF8.GetString(src);
+            src = src[3..];
+            Span<byte> iv = stackalloc byte[16];
+            iv.Fill((int)' ');
+            byte[] buf = ArrayPool<byte>.Shared.Rent(src.Length);
+            Span<byte> span = buf;
+            try
+            {
+                int count = _aes.DecryptCbc(src, iv, span, paddingMode: PaddingMode.PKCS7);
+                var resBuf = buf.AsSpan()[..count];
+                if (resBuf.Length >= 32)
+                {
+                    // https://gist.github.com/creachadair/937179894a24571ce9860e2475a2d2ec#storage-format
+                    // db version >= 24... check?
+                    using var sha256 = SHA256.Create();
+                    byte[] digest = sha256.ComputeHash(Encoding.UTF8.GetBytes(domain));
+                    if (resBuf.StartsWith(digest))
+                    {
+                        resBuf = resBuf[32..];
+                    }
+                }
+                return Encoding.UTF8.GetString(resBuf);
+            }
+            finally
+            {
+                span.Clear();
+                ArrayPool<byte>.Shared.Return(buf);
+            }
         }
-        src = src[3..];
-        Span<byte> iv = stackalloc byte[16];
-        iv.Fill((int)' ');
-        byte[] buf = ArrayPool<byte>.Shared.Rent(src.Length);
-        Span<byte> span = buf;
-        try
-        {
-            int count = _aes.DecryptCbc(src, iv, span, paddingMode: PaddingMode.PKCS7);
-            return Encoding.UTF8.GetString(buf[..count]);
-        }
-        finally
-        {
-            span.Clear();
-            ArrayPool<byte>.Shared.Return(buf);
-        }
+        // fallback
+        return Encoding.UTF8.GetString(src);
     }
 
     public void Dispose()

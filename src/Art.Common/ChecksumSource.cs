@@ -15,7 +15,7 @@ public class ChecksumSource
     /// <summary>
     /// Main instance of a SHA256 checksum source.
     /// </summary>
-    public static ChecksumSource SHA256 = new("SHA256", System.Security.Cryptography.SHA256.Create);
+    public static readonly ChecksumSource SHA256 = new("SHA256", System.Security.Cryptography.SHA256.Create);
 
     /// <summary>
     /// Main instance of a SHA256 checksum source.
