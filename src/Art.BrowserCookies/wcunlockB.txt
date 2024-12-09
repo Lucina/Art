@@ -630,10 +630,19 @@ function Invoke-CommandAs {
 
 }
 
-$InputFile = "%%SCRIPTARG_IN%%"
-$OutputFile = "%%SCRIPTARG_OUT%%"
-$Script = [ScriptBlock]::create("`$SourceData = Get-Content -Path `"$InputFile`" -Encoding Byte -Raw
-    Add-Type -AssemblyName System.Security
-    `$Unprotected = [Security.Cryptography.ProtectedData]::Unprotect(`$SourceData, `$null, [Security.Cryptography.DataProtectionScope]::CurrentUser)
-    Set-Content -Path `"$OutputFile`" -Encoding Byte -Value `$Unprotected")
-Invoke-CommandAs -ScriptBlock $Script -AsSystem
+function Invoke-WcunlockB {
+    Param(
+    $InputFile,
+    $OutputFile
+    )
+
+    $Script = {
+        $SourceData = Get-Content -Path "$($args[0])" -Encoding Byte -Raw
+        Add-Type -AssemblyName System.Security
+        $Unprotected = [Security.Cryptography.ProtectedData]::Unprotect($SourceData, $null, [Security.Cryptography.DataProtectionScope]::CurrentUser)
+        Set-Content -Path "$($args[1])" -Encoding Byte -Value $Unprotected
+    }
+    Invoke-CommandAs -ScriptBlock $Script -ArgumentList $InputFile,$OutputFile -AsSystem
+}
+
+Invoke-WcunlockB `

@@ -99,7 +99,9 @@ internal static class ChromiumKeychainUtil
                 data20Sub.AsSpan().Clear();
                 ProcessStartInfo psi = new() { FileName = "powershell", Verb = "runas", UseShellExecute = true };
                 psi.ArgumentList.Add("-Command");
-                psi.ArgumentList.Add(s_wcunlockB.Replace("%%SCRIPTARG_IN%%", tmpIn).Replace("%%SCRIPTARG_OUT%%", tmpOut));
+                psi.ArgumentList.Add(s_wcunlockB);
+                psi.ArgumentList.Add(tmpIn);
+                psi.ArgumentList.Add(tmpOut);
                 toolLogHandler?.Log("Need Elevation", "Elevation is needed to decrypt keys. A UAC prompt may appear.", LogLevel.Information);
                 var process = Process.Start(psi);
                 toolLogHandler?.Log("Running cookie decryption helper...", null, LogLevel.Information);
