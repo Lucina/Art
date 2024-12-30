@@ -15,7 +15,7 @@ public class EFArtifactRegistrationManager<TContext> : IArtifactRegistrationMana
     public TContext Context { get; private set; }
 
     /// <summary>
-    /// Creates a new instance of <see cref="EFArtifactRegistrationManager"/> using the specified factory.
+    /// Creates a new instance of <see cref="EFArtifactRegistrationManager{T}"/> using the specified factory.
     /// </summary>
     /// <param name="factory">Context factory.</param>
     public EFArtifactRegistrationManager(ArtifactContextFactoryBase<TContext> factory)

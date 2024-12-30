@@ -12,8 +12,8 @@ public class ArtifactContext : DbContext
     /// Wait handle for detecting attempts at concurrent access.
     /// </summary>
     /// <remarks>
-    /// Instance methods should wrap database operations with a <see cref="AutoResetEvent.WaitOne(int)"/>/<see cref="AutoResetEvent.Set"/> pair
-    /// and throw if <see cref="AutoResetEvent.WaitOne(int)"/> fails.
+    /// Instance methods should wrap database operations with a <see cref="WaitHandle.WaitOne(int)"/>/<see cref="EventWaitHandle.Set"/> pair
+    /// and throw if <see cref="WaitHandle.WaitOne(int)"/> fails.
     /// </remarks>
     protected readonly AutoResetEvent WaitGuard;
     private bool _disposed;
