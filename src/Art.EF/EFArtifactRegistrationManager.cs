@@ -5,20 +5,20 @@ namespace Art.EF;
 /// <summary>
 /// Represents an EF artifact registration manager.
 /// </summary>
-public class EFArtifactRegistrationManager : IArtifactRegistrationManager, IDisposable, IAsyncDisposable
+public class EFArtifactRegistrationManager<TContext> : IArtifactRegistrationManager, IDisposable, IAsyncDisposable where TContext : ArtifactContext
 {
     private bool _disposed;
 
     /// <summary>
     /// Database context.
     /// </summary>
-    public ArtifactContext Context { get; private set; }
+    public TContext Context { get; private set; }
 
     /// <summary>
     /// Creates a new instance of <see cref="EFArtifactRegistrationManager"/> using the specified factory.
     /// </summary>
     /// <param name="factory">Context factory.</param>
-    public EFArtifactRegistrationManager(ArtifactContextFactoryBase factory)
+    public EFArtifactRegistrationManager(ArtifactContextFactoryBase<TContext> factory)
     {
         Context = factory.CreateDbContext(Array.Empty<string>());
     }
@@ -145,6 +145,6 @@ public class EFArtifactRegistrationManager : IArtifactRegistrationManager, IDisp
 
     private void EnsureNotDisposed()
     {
-        if (_disposed) throw new ObjectDisposedException(nameof(EFArtifactRegistrationManager));
+        if (_disposed) throw new ObjectDisposedException(nameof(EFArtifactRegistrationManager<TContext>));
     }
 }

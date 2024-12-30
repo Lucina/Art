@@ -24,6 +24,8 @@ public class SqliteTeslerRegistrationProvider : ITeslerRegistrationProvider
         command.AddOption(DatabaseOption);
     }
 
+    public Type GetArtifactRegistrationManagerType() => typeof(SqliteArtifactRegistrationManager);
+
     public IArtifactRegistrationManager CreateArtifactRegistrationManager(InvocationContext context)
     {
         return new SqliteArtifactRegistrationManager(context.ParseResult.GetValueForOption(DatabaseOption)!);

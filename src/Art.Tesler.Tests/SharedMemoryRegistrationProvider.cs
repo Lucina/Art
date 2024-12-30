@@ -12,6 +12,8 @@ internal class SharedMemoryRegistrationProvider : ITeslerRegistrationProvider
     {
     }
 
+    public Type GetArtifactRegistrationManagerType() => typeof(PersistentProxyArtifactRegistrationManager);
+
     public IArtifactRegistrationManager CreateArtifactRegistrationManager(InvocationContext context)
     {
         return new PersistentProxyArtifactRegistrationManager(_artifactRegistrationManager);

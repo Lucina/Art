@@ -9,7 +9,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 namespace Art.EF.Sqlite.Migrations
 {
-    [DbContext(typeof(ArtifactContext))]
+    [DbContext(typeof(SqliteArtifactContext))]
     partial class ArtifactContextModelSnapshot : ModelSnapshot
     {
         protected override void BuildModel(ModelBuilder modelBuilder)

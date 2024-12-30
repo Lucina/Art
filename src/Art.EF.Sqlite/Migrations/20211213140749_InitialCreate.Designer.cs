@@ -10,7 +10,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 namespace Art.EF.Sqlite.Migrations
 {
-    [DbContext(typeof(ArtifactContext))]
+    [DbContext(typeof(SqliteArtifactContext))]
     [Migration("20211213140749_InitialCreate")]
     partial class InitialCreate
     {

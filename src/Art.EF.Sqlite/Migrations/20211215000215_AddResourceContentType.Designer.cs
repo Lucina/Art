@@ -10,7 +10,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 namespace Art.EF.Sqlite.Migrations
 {
-    [DbContext(typeof(ArtifactContext))]
+    [DbContext(typeof(SqliteArtifactContext))]
     [Migration("20211215000215_AddResourceContentType")]
     partial class AddResourceContentType
     {

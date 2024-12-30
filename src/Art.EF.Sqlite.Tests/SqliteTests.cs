@@ -1,5 +1,6 @@
 using System;
 using System.IO;
+using System.Linq;
 using System.Threading.Tasks;
 using Art.Common.IO;
 using Microsoft.Data.Sqlite;
@@ -17,6 +18,71 @@ public class SqliteTests
         {
             using SqliteArtifactRegistrationManager r = new(tempFile);
             await TestSqliteDatabase(r);
+        }
+        finally
+        {
+            SqliteConnection.ClearAllPools();
+            File.Delete(tempFile);
+        }
+    }
+
+    [Test]
+    public async Task TestSqliteDatabaseFileVacuum()
+    {
+        string tempFile = ArtIOUtility.CreateRandomPath(Path.GetTempPath(), ".db");
+        const int n = 64;
+        const int denominator = 4;
+        string testValue = new('x', 2048);
+        try
+        {
+            // create base (large) set
+            try
+            {
+                using SqliteArtifactRegistrationManager r = new(tempFile);
+                for (int i = 0; i < n; i++)
+                {
+                    await r.AddArtifactAsync(new ArtifactInfo(new ArtifactKey("TOOL", "GROUP", $"{testValue}{i}")));
+                }
+            }
+            finally
+            {
+                SqliteConnection.ClearAllPools();
+            }
+            // remove large number of entries
+            try
+            {
+                using SqliteArtifactRegistrationManager r = new(tempFile);
+                foreach (var artifactInfo in (await r.ListArtifactsAsync()).ToList().Take(n - n / denominator))
+                {
+                    await r.RemoveArtifactAsync(artifactInfo.Key);
+                }
+            }
+            finally
+            {
+                SqliteConnection.ClearAllPools();
+            }
+            // get stable file size
+            try
+            {
+                using SqliteArtifactRegistrationManager r = new(tempFile);
+            }
+            finally
+            {
+                SqliteConnection.ClearAllPools();
+            }
+            long fileSizeC = new FileInfo(tempFile).Length;
+            // cleanup and measure
+            try
+            {
+                using SqliteArtifactRegistrationManager r = new(tempFile);
+                await r.CleanupDatabaseAsync();
+            }
+            finally
+            {
+                SqliteConnection.ClearAllPools();
+            }
+            long fileSizeD = new FileInfo(tempFile).Length;
+            Assert.That(fileSizeD, Is.LessThan(fileSizeC));
         }
         finally
         {

@@ -5,7 +5,7 @@ namespace Art.EF.Sqlite;
 /// <summary>
 /// Represents an sqlite-backed artifact registration manager.
 /// </summary>
-public class SqliteArtifactRegistrationManager : EFArtifactRegistrationManager
+public class SqliteArtifactRegistrationManager : EFArtifactRegistrationManager<SqliteArtifactContext>, IArtifactRegistrationManagerCleanup
 {
     private SqliteArtifactRegistrationManager(SqliteArtifactContextFactory factory) : base(factory)
     {
@@ -33,9 +33,6 @@ public class SqliteArtifactRegistrationManager : EFArtifactRegistrationManager
     /// <summary>
     /// Creates a new instance of <see cref="SqliteArtifactRegistrationManager"/> with in-memory Sqlite backing.
     /// </summary>
-    /// <remarks>
-    ///  Sqlite file backing if environment variable art_ef_sqlite_backing_file is set, otherwise in-memory Sqlite backing
-    /// </remarks>
     /// <param name="inMemory">If true, use in-memory otherwise allow fallback to environment variable.</param>
     /// <remarks>
     /// Sqlite file backing if environment variable art_ef_sqlite_backing_file is set and <paramref name="inMemory"/> is false, otherwise in-memory Sqlite backing
@@ -50,5 +47,10 @@ public class SqliteArtifactRegistrationManager : EFArtifactRegistrationManager
     /// <param name="file">Sqlite backing file.</param>
     public SqliteArtifactRegistrationManager(string file) : this(new SqliteArtifactContextFactory(file))
     {
+    }
+
+    public Task CleanupDatabaseAsync(CancellationToken cancellationToken = default)
+    {
+        return Context.CleanupDatabaseAsync(cancellationToken);
     }
 }

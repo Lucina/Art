@@ -5,8 +5,8 @@ namespace Art.EF;
 /// <summary>
 /// Context factory for artifact registration.
 /// </summary>
-public abstract class ArtifactContextFactoryBase : IDesignTimeDbContextFactory<ArtifactContext>
+public abstract class ArtifactContextFactoryBase<TContext> : IDesignTimeDbContextFactory<TContext> where TContext : ArtifactContext
 {
     /// <inheritdoc />
-    public abstract ArtifactContext CreateDbContext(string[] args);
+    public abstract TContext CreateDbContext(string[] args);
 }

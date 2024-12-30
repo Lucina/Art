@@ -6,7 +6,7 @@ namespace Art.EF.Sqlite;
 /// <summary>
 /// Factory for sqlite-backed context for artifact registration.
 /// </summary>
-public class SqliteArtifactContextFactory : ArtifactContextFactoryBase
+public class SqliteArtifactContextFactory : ArtifactContextFactoryBase<SqliteArtifactContext>
 {
     /// <summary>
     /// Creates a new instance of <see cref="SqliteArtifactContextFactory"/>.
@@ -61,7 +61,7 @@ public class SqliteArtifactContextFactory : ArtifactContextFactoryBase
     public virtual Assembly MigrationAssembly => GetType().Assembly;
 
     /// <inheritdoc />
-    public override ArtifactContext CreateDbContext(string[] args)
+    public override SqliteArtifactContext CreateDbContext(string[] args)
     {
         string? file = StorageFile ?? (_inMemory ? null : Environment.GetEnvironmentVariable(EnvStorageFile));
         if (file == null)
@@ -72,6 +72,6 @@ public class SqliteArtifactContextFactory : ArtifactContextFactoryBase
         var ob = new DbContextOptionsBuilder<ArtifactContext>();
         ob.UseSqlite($"DataSource={file};",
             b => b.MigrationsAssembly(MigrationAssembly.FullName));
-        return new ArtifactContext(ob.Options);
+        return new SqliteArtifactContext(ob.Options);
     }
 }

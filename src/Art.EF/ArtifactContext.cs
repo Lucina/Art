@@ -8,18 +8,25 @@ namespace Art.EF;
 /// </summary>
 public class ArtifactContext : DbContext
 {
-    private readonly AutoResetEvent _wh;
+    /// <summary>
+    /// Wait handle for detecting attempts at concurrent access.
+    /// </summary>
+    /// <remarks>
+    /// Instance methods should wrap database operations with a <see cref="AutoResetEvent.WaitOne(int)"/>/<see cref="AutoResetEvent.Set"/> pair
+    /// and throw if <see cref="AutoResetEvent.WaitOne(int)"/> fails.
+    /// </remarks>
+    protected readonly AutoResetEvent WaitGuard;
     private bool _disposed;
 
     /// <summary>
     /// Artifact info.
     /// </summary>
-    private DbSet<ArtifactInfoModel> ArtifactInfoModels { get; set; } = null!;
+    protected DbSet<ArtifactInfoModel> ArtifactInfoModels { get; set; } = null!;
 
     /// <summary>
     /// Artifact resource info.
     /// </summary>
-    private DbSet<ArtifactResourceInfoModel> ArtifactResourceInfoModels { get; set; } = null!;
+    protected DbSet<ArtifactResourceInfoModel> ArtifactResourceInfoModels { get; set; } = null!;
 
     /// <summary>
     /// Creates an instance of <see cref="ArtifactContext"/> with the specified options.
@@ -27,7 +34,7 @@ public class ArtifactContext : DbContext
     /// <param name="options">Options.</param>
     public ArtifactContext(DbContextOptions<ArtifactContext> options) : base(options)
     {
-        _wh = new AutoResetEvent(true);
+        WaitGuard = new AutoResetEvent(true);
     }
 
     /// <summary>
@@ -39,7 +46,7 @@ public class ArtifactContext : DbContext
     public async ValueTask AddArtifactAsync(ArtifactInfo artifactInfo, CancellationToken cancellationToken = default)
     {
         EnsureNotDisposed();
-        if (!_wh.WaitOne(0))
+        if (!WaitGuard.WaitOne(0))
         {
             throw new InvalidOperationException($"Concurrent access to {nameof(ArtifactContext)} is disallowed");
         }
@@ -64,7 +71,7 @@ public class ArtifactContext : DbContext
         }
         finally
         {
-            _wh.Set();
+            WaitGuard.Set();
         }
     }
 
@@ -75,7 +82,7 @@ public class ArtifactContext : DbContext
     /// <returns>Task returning artifacts.</returns>
     public async Task<List<ArtifactInfo>> ListArtifactsAsync(CancellationToken cancellationToken = default)
     {
-        if (!_wh.WaitOne(0))
+        if (!WaitGuard.WaitOne(0))
         {
             throw new InvalidOperationException($"Concurrent access to {nameof(ArtifactContext)} is disallowed");
         }
@@ -86,7 +93,7 @@ public class ArtifactContext : DbContext
         }
         finally
         {
-            _wh.Set();
+            WaitGuard.Set();
         }
     }
 
@@ -98,7 +105,7 @@ public class ArtifactContext : DbContext
     /// <returns>Task returning artifacts.</returns>
     public async Task<List<ArtifactInfo>> ListArtifactsAsync(Func<ArtifactInfo, bool> predicate, CancellationToken cancellationToken = default)
     {
-        if (!_wh.WaitOne(0))
+        if (!WaitGuard.WaitOne(0))
         {
             throw new InvalidOperationException($"Concurrent access to {nameof(ArtifactContext)} is disallowed");
         }
@@ -109,7 +116,7 @@ public class ArtifactContext : DbContext
         }
         finally
         {
-            _wh.Set();
+            WaitGuard.Set();
         }
     }
 
@@ -121,7 +128,7 @@ public class ArtifactContext : DbContext
     /// <returns>Task returning artifacts.</returns>
     public async Task<List<ArtifactInfo>> ListArtifactsAsync(Expression<Func<ArtifactInfoModel, bool>> predicate, CancellationToken cancellationToken = default)
     {
-        if (!_wh.WaitOne(0))
+        if (!WaitGuard.WaitOne(0))
         {
             throw new InvalidOperationException($"Concurrent access to {nameof(ArtifactContext)} is disallowed");
         }
@@ -132,7 +139,7 @@ public class ArtifactContext : DbContext
         }
         finally
         {
-            _wh.Set();
+            WaitGuard.Set();
         }
     }
 
@@ -144,7 +151,7 @@ public class ArtifactContext : DbContext
     /// <returns>Task returning artifacts.</returns>
     public async Task<List<ArtifactInfo>> ListArtifactsAsync(string tool, CancellationToken cancellationToken = default)
     {
-        if (!_wh.WaitOne(0))
+        if (!WaitGuard.WaitOne(0))
         {
             throw new InvalidOperationException($"Concurrent access to {nameof(ArtifactContext)} is disallowed");
         }
@@ -155,7 +162,7 @@ public class ArtifactContext : DbContext
         }
         finally
         {
-            _wh.Set();
+            WaitGuard.Set();
         }
     }
 
@@ -168,7 +175,7 @@ public class ArtifactContext : DbContext
     /// <returns>Task returning artifacts.</returns>
     public async Task<List<ArtifactInfo>> ListArtifactsAsync(string tool, string group, CancellationToken cancellationToken = default)
     {
-        if (!_wh.WaitOne(0))
+        if (!WaitGuard.WaitOne(0))
         {
             throw new InvalidOperationException($"Concurrent access to {nameof(ArtifactContext)} is disallowed");
         }
@@ -179,7 +186,7 @@ public class ArtifactContext : DbContext
         }
         finally
         {
-            _wh.Set();
+            WaitGuard.Set();
         }
     }
 
@@ -192,7 +199,7 @@ public class ArtifactContext : DbContext
     public async ValueTask AddResourceAsync(ArtifactResourceInfo artifactResourceInfo, CancellationToken cancellationToken = default)
     {
         EnsureNotDisposed();
-        if (!_wh.WaitOne(0))
+        if (!WaitGuard.WaitOne(0))
         {
             throw new InvalidOperationException($"Concurrent access to {nameof(ArtifactContext)} is disallowed");
         }
@@ -221,7 +228,7 @@ public class ArtifactContext : DbContext
         }
         finally
         {
-            _wh.Set();
+            WaitGuard.Set();
         }
     }
 
@@ -233,7 +240,7 @@ public class ArtifactContext : DbContext
     /// <returns>Task returning resources.</returns>
     public async Task<List<ArtifactResourceInfo>> ListResourcesAsync(ArtifactKey key, CancellationToken cancellationToken = default)
     {
-        if (!_wh.WaitOne(0))
+        if (!WaitGuard.WaitOne(0))
         {
             throw new InvalidOperationException($"Concurrent access to {nameof(ArtifactContext)} is disallowed");
         }
@@ -245,7 +252,7 @@ public class ArtifactContext : DbContext
         }
         finally
         {
-            _wh.Set();
+            WaitGuard.Set();
         }
     }
 
@@ -258,7 +265,7 @@ public class ArtifactContext : DbContext
     public async ValueTask<ArtifactInfo?> TryGetArtifactAsync(ArtifactKey key, CancellationToken cancellationToken = default)
     {
         EnsureNotDisposed();
-        if (!_wh.WaitOne(0))
+        if (!WaitGuard.WaitOne(0))
         {
             throw new InvalidOperationException($"Concurrent access to {nameof(ArtifactContext)} is disallowed");
         }
@@ -270,7 +277,7 @@ public class ArtifactContext : DbContext
         }
         finally
         {
-            _wh.Set();
+            WaitGuard.Set();
         }
     }
 
@@ -283,7 +290,7 @@ public class ArtifactContext : DbContext
     public async ValueTask<ArtifactResourceInfo?> TryGetResourceAsync(ArtifactResourceKey key, CancellationToken cancellationToken = default)
     {
         EnsureNotDisposed();
-        if (!_wh.WaitOne(0))
+        if (!WaitGuard.WaitOne(0))
         {
             throw new InvalidOperationException($"Concurrent access to {nameof(ArtifactContext)} is disallowed");
         }
@@ -295,7 +302,7 @@ public class ArtifactContext : DbContext
         }
         finally
         {
-            _wh.Set();
+            WaitGuard.Set();
         }
     }
 
@@ -308,7 +315,7 @@ public class ArtifactContext : DbContext
     public async ValueTask RemoveArtifactAsync(ArtifactKey key, CancellationToken cancellationToken = default)
     {
         EnsureNotDisposed();
-        if (!_wh.WaitOne(0))
+        if (!WaitGuard.WaitOne(0))
         {
             throw new InvalidOperationException($"Concurrent access to {nameof(ArtifactContext)} is disallowed");
         }
@@ -324,7 +331,7 @@ public class ArtifactContext : DbContext
         }
         finally
         {
-            _wh.Set();
+            WaitGuard.Set();
         }
     }
 
@@ -337,7 +344,7 @@ public class ArtifactContext : DbContext
     public async ValueTask RemoveResourceAsync(ArtifactResourceKey key, CancellationToken cancellationToken = default)
     {
         EnsureNotDisposed();
-        if (!_wh.WaitOne(0))
+        if (!WaitGuard.WaitOne(0))
         {
             throw new InvalidOperationException($"Concurrent access to {nameof(ArtifactContext)} is disallowed");
         }
@@ -353,7 +360,7 @@ public class ArtifactContext : DbContext
         }
         finally
         {
-            _wh.Set();
+            WaitGuard.Set();
         }
     }
 
@@ -394,22 +401,22 @@ public class ArtifactContext : DbContext
     /// <inheritdoc />
     public override void Dispose()
     {
-        _wh.WaitOne();
+        WaitGuard.WaitOne();
         base.Dispose();
         if (_disposed) return;
         _disposed = true;
-        _wh.Dispose();
+        WaitGuard.Dispose();
         GC.SuppressFinalize(this);
     }
 
     /// <inheritdoc />
     public override async ValueTask DisposeAsync()
     {
-        _wh.WaitOne();
+        WaitGuard.WaitOne();
         await base.DisposeAsync().ConfigureAwait(false);
         if (_disposed) return;
         _disposed = true;
-        _wh.Dispose();
+        WaitGuard.Dispose();
         GC.SuppressFinalize(this);
     }
 

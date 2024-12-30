@@ -7,5 +7,7 @@ public interface ITeslerRegistrationProvider
 {
     void Initialize(Command command);
 
+    Type GetArtifactRegistrationManagerType();
+
     IArtifactRegistrationManager CreateArtifactRegistrationManager(InvocationContext context);
 }

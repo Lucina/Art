@@ -21,6 +21,10 @@ public class DatabaseCommand : Command
         : base(name, description)
     {
         AddCommand(new DatabaseCommandList(toolOutput, registrationProvider, "list", "List archives in database."));
+        if (typeof(IArtifactRegistrationManagerCleanup).IsAssignableFrom(registrationProvider.GetArtifactRegistrationManagerType()))
+        {
+            AddCommand(new DatabaseCommandCleanup(toolOutput, registrationProvider, "cleanup", "Cleanup database."));
+        }
         AddCommand(new DatabaseCommandDelete(toolOutput, registrationProvider, "delete", "Delete archives in database."));
         AddCommand(new DatabaseCommandMerge(toolOutput, registrationProvider, inputRegistrationProvider, "merge", "Merge from another database."));
     }
