@@ -2,15 +2,19 @@
 
 namespace Art.Tesler.Database;
 
-public class DatabaseCommandCleanup : DatabaseCommandBase
+public class DatabaseCommandCleanup : CommandBase
 {
+    protected ITeslerRegistrationProvider RegistrationProvider;
+
     public DatabaseCommandCleanup(
         IOutputControl toolOutput,
         ITeslerRegistrationProvider registrationProvider,
         string name,
         string? description = null)
-        : base(toolOutput, registrationProvider, name, description)
+        : base(toolOutput, name, description)
     {
+        RegistrationProvider = registrationProvider;
+        RegistrationProvider.Initialize(this);
     }
 
     protected override async Task<int> RunAsync(InvocationContext context)
