@@ -7,24 +7,26 @@ namespace Art.Http.Resources;
 /// </summary>
 /// <param name="ArtifactTool">Artifact tool.</param>
 /// <param name="Request">Request.</param>
+/// <param name="HttpRequestConfig">Custom request configuration.</param>
 /// <param name="Key">Resource key.</param>
 /// <param name="ContentType">MIME content type.</param>
 /// <param name="Updated">Date this resource was updated.</param>
 /// <param name="Retrieved">Date this resource was retrieved.</param>
 /// <param name="Version">Version.</param>
 /// <param name="Checksum">Checksum.</param>
-/// <param name="HttpRequestConfig">Custom request configuration.</param>
+/// <param name="UseDynamicFileName">If true, attempt to use metadata to set a dynamic name.</param>
 public record HttpRequestMessageArtifactResourceInfo(
-        HttpArtifactTool ArtifactTool,
-        HttpRequestMessage Request,
-        HttpRequestConfig? HttpRequestConfig,
-        ArtifactResourceKey Key,
-        string? ContentType = "application/octet-stream",
-        DateTimeOffset? Updated = null,
-        DateTimeOffset? Retrieved = null,
-        string? Version = null,
-        Checksum? Checksum = null)
-    : QueryBaseArtifactResourceInfo(Key, ContentType, Updated, Retrieved, Version, Checksum)
+    HttpArtifactTool ArtifactTool,
+    HttpRequestMessage Request,
+    HttpRequestConfig? HttpRequestConfig,
+    ArtifactResourceKey Key,
+    string? ContentType = "application/octet-stream",
+    DateTimeOffset? Updated = null,
+    DateTimeOffset? Retrieved = null,
+    string? Version = null,
+    Checksum? Checksum = null,
+    bool UseDynamicFileName = false)
+    : QueryBaseArtifactResourceInfo(Key, ContentType, Updated, Retrieved, Version, Checksum, UseDynamicFileName)
 {
     /// <inheritdoc/>
     public override bool CanExportStream => true;
@@ -66,6 +68,7 @@ public partial class HttpArtifactDataExtensions
     /// <param name="version">Version.</param>
     /// <param name="checksum">Checksum.</param>
     /// <param name="httpRequestConfig">Custom request configuration.</param>
+    /// <param name="useDynamicFileName">If true, attempt to use metadata to set a dynamic name.</param>
     public static ArtifactDataResource HttpRequestMessage(this ArtifactData artifactData,
         HttpArtifactTool artifactTool,
         HttpRequestMessage request,
@@ -75,8 +78,9 @@ public partial class HttpArtifactDataExtensions
         DateTimeOffset? retrieved = null,
         string? version = null,
         Checksum? checksum = null,
-        HttpRequestConfig? httpRequestConfig = null)
-        => new(artifactData, new HttpRequestMessageArtifactResourceInfo(artifactTool, request, httpRequestConfig, key, contentType, updated, retrieved, version, checksum));
+        HttpRequestConfig? httpRequestConfig = null,
+        bool useDynamicFileName = false)
+        => new(artifactData, new HttpRequestMessageArtifactResourceInfo(artifactTool, request, httpRequestConfig, key, contentType, updated, retrieved, version, checksum, useDynamicFileName));
 
     /// <summary>
     /// Creates a <see cref="HttpRequestMessageArtifactResourceInfo"/> resource.
@@ -92,6 +96,7 @@ public partial class HttpArtifactDataExtensions
     /// <param name="version">Version.</param>
     /// <param name="checksum">Checksum.</param>
     /// <param name="httpRequestConfig">Custom request configuration.</param>
+    /// <param name="useDynamicFileName">If true, attempt to use metadata to set a dynamic name.</param>
     public static ArtifactDataResource HttpRequestMessage(this ArtifactData artifactData,
         HttpArtifactTool artifactTool,
         HttpRequestMessage request,
@@ -102,8 +107,9 @@ public partial class HttpArtifactDataExtensions
         DateTimeOffset? retrieved = null,
         string? version = null,
         Checksum? checksum = null,
-        HttpRequestConfig? httpRequestConfig = null)
-        => new(artifactData, new HttpRequestMessageArtifactResourceInfo(artifactTool, request, httpRequestConfig, new ArtifactResourceKey(artifactData.Info.Key, file, path), contentType, updated, retrieved, version, checksum));
+        HttpRequestConfig? httpRequestConfig = null,
+        bool useDynamicFileName = false)
+        => new(artifactData, new HttpRequestMessageArtifactResourceInfo(artifactTool, request, httpRequestConfig, new ArtifactResourceKey(artifactData.Info.Key, file, path), contentType, updated, retrieved, version, checksum, useDynamicFileName));
 
     /// <summary>
     /// Creates a <see cref="HttpRequestMessageArtifactResourceInfo"/> resource.
@@ -117,6 +123,7 @@ public partial class HttpArtifactDataExtensions
     /// <param name="version">Version.</param>
     /// <param name="checksum">Checksum.</param>
     /// <param name="httpRequestConfig">Custom request configuration.</param>
+    /// <param name="useDynamicFileName">If true, attempt to use metadata to set a dynamic name.</param>
     public static ArtifactDataResource HttpRequestMessage(this ArtifactData artifactData,
         HttpRequestMessage request,
         ArtifactResourceKey key,
@@ -125,8 +132,9 @@ public partial class HttpArtifactDataExtensions
         DateTimeOffset? retrieved = null,
         string? version = null,
         Checksum? checksum = null,
-        HttpRequestConfig? httpRequestConfig = null)
-        => artifactData.HttpRequestMessage(artifactData.GetArtifactTool<HttpArtifactTool>(), request, key, contentType, updated, retrieved, version, checksum);
+        HttpRequestConfig? httpRequestConfig = null,
+        bool useDynamicFileName = false)
+        => artifactData.HttpRequestMessage(artifactData.GetArtifactTool<HttpArtifactTool>(), request, key, contentType, updated, retrieved, version, checksum, httpRequestConfig, useDynamicFileName);
 
     /// <summary>
     /// Creates a <see cref="HttpRequestMessageArtifactResourceInfo"/> resource.
@@ -141,6 +149,7 @@ public partial class HttpArtifactDataExtensions
     /// <param name="version">Version.</param>
     /// <param name="checksum">Checksum.</param>
     /// <param name="httpRequestConfig">Custom request configuration.</param>
+    /// <param name="useDynamicFileName">If true, attempt to use metadata to set a dynamic name.</param>
     public static ArtifactDataResource HttpRequestMessage(this ArtifactData artifactData,
         HttpRequestMessage request,
         string file,
@@ -150,6 +159,7 @@ public partial class HttpArtifactDataExtensions
         DateTimeOffset? retrieved = null,
         string? version = null,
         Checksum? checksum = null,
-        HttpRequestConfig? httpRequestConfig = null)
-        => artifactData.HttpRequestMessage(artifactData.GetArtifactTool<HttpArtifactTool>(), request, file, path, contentType, updated, retrieved, version, checksum, httpRequestConfig);
+        HttpRequestConfig? httpRequestConfig = null,
+        bool useDynamicFileName = false)
+        => artifactData.HttpRequestMessage(artifactData.GetArtifactTool<HttpArtifactTool>(), request, file, path, contentType, updated, retrieved, version, checksum, httpRequestConfig, useDynamicFileName);
 }
