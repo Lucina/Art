@@ -34,7 +34,7 @@ public class ToolsCommand : CommandBase
         AddOption(DetailedOption);
     }
 
-    protected override Task<int> RunAsync(InvocationContext context)
+    protected override Task<int> RunAsync(InvocationContext context, CancellationToken cancellationToken)
     {
         foreach (var plugin in PluginStore.LoadAllRegistries())
         {

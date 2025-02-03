@@ -17,7 +17,7 @@ public abstract class CommandBase : Command
     {
         try
         {
-            return await RunAsync(context);
+            return await RunAsync(context, default).ConfigureAwait(false);
         }
         catch (ArtUserException e)
         {
@@ -41,5 +41,5 @@ public abstract class CommandBase : Command
         console.Error.WriteLine(message);
     }
 
-    protected abstract Task<int> RunAsync(InvocationContext context);
+    protected abstract Task<int> RunAsync(InvocationContext context, CancellationToken cancellationToken);
 }

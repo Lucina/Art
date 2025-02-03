@@ -31,7 +31,7 @@ public class CookieCommandExtract : CommandBase
         _toolLogHandlerProvider = toolLogHandlerProvider;
     }
 
-    protected override async Task<int> RunAsync(InvocationContext context)
+    protected override async Task<int> RunAsync(InvocationContext context, CancellationToken cancellationToken)
     {
         string browserName = context.ParseResult.GetValueForOption(BrowserOption)!;
         string? browserProfile = context.ParseResult.HasOption(BrowserProfileOption) ? context.ParseResult.GetValueForOption(BrowserProfileOption) : null;
@@ -44,20 +44,21 @@ public class CookieCommandExtract : CommandBase
         }
         if (context.ParseResult.HasOption(OutputOption))
         {
-            await using var output = File.CreateText(context.ParseResult.GetValueForOption(OutputOption)!);
-            await ExportAsync(source, domains, includeSubdomains, output);
+            var output = File.CreateText(context.ParseResult.GetValueForOption(OutputOption)!);
+            await using var output1 = output.ConfigureAwait(false);
+            await ExportAsync(source, domains, includeSubdomains, output, cancellationToken).ConfigureAwait(false);
         }
         else
         {
-            await ExportAsync(source, domains, includeSubdomains, ToolOutput.Out);
+            await ExportAsync(source, domains, includeSubdomains, ToolOutput.Out, cancellationToken).ConfigureAwait(false);
         }
         return 0;
     }
 
-    private async Task ExportAsync(CookieSource source, IEnumerable<string> domains, bool includeSubdomains, TextWriter output)
+    private async Task ExportAsync(CookieSource source, IEnumerable<string> domains, bool includeSubdomains, TextWriter output, CancellationToken cancellationToken)
     {
         CookieContainer cc = new();
-        await source.LoadCookiesAsync(cc, domains.Select(v => new CookieFilter(v, includeSubdomains)).ToList(), _toolLogHandlerProvider.GetDefaultToolLogHandler());
+        await source.LoadCookiesAsync(cc, domains.Select(v => new CookieFilter(v, includeSubdomains)).ToList(), _toolLogHandlerProvider.GetDefaultToolLogHandler(), cancellationToken).ConfigureAwait(false);
         output.Write("# Netscape HTTP Cookie File\n");
         StringBuilder sb = new();
         foreach (object? cookie in cc.GetAllCookies())

@@ -83,7 +83,7 @@ public class ArcCommand : ToolCommandBase
         AddOption(NullOutputOption);
     }
 
-    protected override async Task<int> RunAsync(InvocationContext context)
+    protected override async Task<int> RunAsync(InvocationContext context, CancellationToken cancellationToken)
     {
         ChecksumSource? checksumSource;
         string? hash = context.ParseResult.HasOption(HashOption) ? context.ParseResult.GetValueForOption(HashOption) : null;
@@ -117,8 +117,8 @@ public class ArcCommand : ToolCommandBase
         (bool getArtifactRetrievalTimestamps, bool getResourceRetrievalTimestamps) = GetArtifactRetrievalOptions(context);
         foreach (ArtifactToolProfile profile in PrepareProfiles(context, profiles))
         {
-            using var tool = await GetToolAsync(profile, arm, adm, TimeProvider, getArtifactRetrievalTimestamps, getResourceRetrievalTimestamps).ConfigureAwait(false);
-            await new ArtifactToolDumpProxy(tool, options, l).DumpAsync().ConfigureAwait(false);
+            using var tool = await GetToolAsync(profile, arm, adm, TimeProvider, getArtifactRetrievalTimestamps, getResourceRetrievalTimestamps, cancellationToken).ConfigureAwait(false);
+            await new ArtifactToolDumpProxy(tool, options, l).DumpAsync(cancellationToken).ConfigureAwait(false);
         }
         return 0;
     }

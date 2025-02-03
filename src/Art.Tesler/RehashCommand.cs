@@ -41,7 +41,7 @@ internal class RehashCommand : CommandBase
         AddOption(DetailedOption);
     }
 
-    protected override async Task<int> RunAsync(InvocationContext context)
+    protected override async Task<int> RunAsync(InvocationContext context, CancellationToken cancellationToken)
     {
         string hash = context.ParseResult.GetValueForOption(HashOption)!;
         if (!ChecksumSource.DefaultSources.ContainsKey(hash))
@@ -61,13 +61,13 @@ internal class RehashCommand : CommandBase
         }
 
         bool detailed = context.ParseResult.GetValueForOption(DetailedOption);
-        foreach (ArtifactInfo inf in await arm.ListArtifactsAsync())
-        foreach (ArtifactResourceInfo rInf in await arm.ListResourcesAsync(inf.Key))
+        foreach (ArtifactInfo inf in await arm.ListArtifactsAsync(cancellationToken).ConfigureAwait(false))
+        foreach (ArtifactResourceInfo rInf in await arm.ListResourcesAsync(inf.Key, cancellationToken).ConfigureAwait(false))
         {
             if (rInf.Checksum == null || !ChecksumSource.DefaultSources.TryGetValue(rInf.Checksum.Id, out ChecksumSource? haOriginalV))
                 continue;
             using HashAlgorithm haOriginal = haOriginalV.CreateHashAlgorithm();
-            if (!await adm.ExistsAsync(rInf.Key))
+            if (!await adm.ExistsAsync(rInf.Key, cancellationToken).ConfigureAwait(false))
             {
                 AddFail(rInf);
                 continue;
@@ -79,18 +79,19 @@ internal class RehashCommand : CommandBase
             }
             Common.PrintFormat(rInf.GetInfoPathString(), detailed, () => rInf.GetInfoString(), ToolOutput);
             using HashAlgorithm haNew = haNewV.CreateHashAlgorithm();
-            await using Stream sourceStream = await adm.OpenInputStreamAsync(rInf.Key);
+            Stream sourceStream = await adm.OpenInputStreamAsync(rInf.Key, cancellationToken).ConfigureAwait(false);
+            await using var stream = sourceStream.ConfigureAwait(false);
             await using HashProxyStream hpsOriginal = new(sourceStream, haOriginal, true, true);
             await using HashProxyStream hpsNew = new(hpsOriginal, haNew, true, true);
             await using MemoryStream ms = new();
-            await hpsNew.CopyToAsync(ms);
+            await hpsNew.CopyToAsync(ms, cancellationToken).ConfigureAwait(false);
             if (!rInf.Checksum.Value.AsSpan().SequenceEqual(hpsOriginal.GetHash()))
             {
                 AddFail(rInf);
                 continue;
             }
             ArtifactResourceInfo nInf = rInf with { Checksum = new Checksum(haNewV.Id, hpsNew.GetHash()) };
-            await arm.AddResourceAsync(nInf);
+            await arm.AddResourceAsync(nInf, cancellationToken).ConfigureAwait(false);
             Common.PrintFormat(nInf.GetInfoPathString(), detailed, () => nInf.GetInfoString(), ToolOutput);
             rehashed++;
         }

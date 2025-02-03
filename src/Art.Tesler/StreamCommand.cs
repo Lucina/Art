@@ -42,7 +42,7 @@ public class StreamCommand : ToolCommandBase
         AddArgument(ProfileFileArg);
     }
 
-    protected override async Task<int> RunAsync(InvocationContext context)
+    protected override async Task<int> RunAsync(InvocationContext context, CancellationToken cancellationToken)
     {
         IToolLogHandler l = ToolLogHandlerProvider.GetStreamToolLogHandler();
         List<ArtifactToolProfile> profiles = new();
@@ -59,9 +59,9 @@ public class StreamCommand : ToolCommandBase
         using var arm = new InMemoryArtifactRegistrationManager();
         using var adm = new InMemoryArtifactDataManager();
         (bool getArtifactRetrievalTimestamps, bool getResourceRetrievalTimestamps) = GetArtifactRetrievalOptions(context);
-        using var tool = await GetToolAsync(profile, arm, adm, TimeProvider, getArtifactRetrievalTimestamps, getResourceRetrievalTimestamps).ConfigureAwait(false);
+        using var tool = await GetToolAsync(profile, arm, adm, TimeProvider, getArtifactRetrievalTimestamps, getResourceRetrievalTimestamps, cancellationToken).ConfigureAwait(false);
         var listProxy = new ArtifactToolListProxy(tool, ArtifactToolListOptions.Default, l);
-        var res = await listProxy.ListAsync().ToListAsync().ConfigureAwait(false);
+        var res = await listProxy.ListAsync(cancellationToken).ToListAsync(cancellationToken: cancellationToken).ConfigureAwait(false);
         if (res.Count == 0)
         {
             l.Log($"No artifacts found for profile {profile}, this command requires exactly one", null, LogLevel.Error);
@@ -82,8 +82,9 @@ public class StreamCommand : ToolCommandBase
         {
             l.Log($"Primary resource {primaryResource} does not support exporting, this command requires this functionality", null, LogLevel.Error);
         }
-        await using var output = ToolLogHandlerProvider.GetOutStream();
-        await primaryResource.ExportStreamAsync(output).ConfigureAwait(false);
+        var output = ToolLogHandlerProvider.GetOutStream();
+        await using var output1 = output.ConfigureAwait(false);
+        await primaryResource.ExportStreamAsync(output, cancellationToken).ConfigureAwait(false);
         return 0;
     }
 }

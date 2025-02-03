@@ -28,7 +28,7 @@ public class ConfigCommandUnset : ConfigCommandGetSetBase
         _profileResolver = profileResolver;
     }
 
-    protected override Task<int> RunAsync(InvocationContext context)
+    protected override Task<int> RunAsync(InvocationContext context, CancellationToken cancellationToken)
     {
         ConfigScope configScope = GetConfigScope(context);
         string key = context.ParseResult.GetValueForArgument(KeyArgument);

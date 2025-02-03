@@ -65,7 +65,7 @@ public class FindCommand : ToolCommandBase
         });
     }
 
-    protected override async Task<int> RunAsync(InvocationContext context)
+    protected override async Task<int> RunAsync(InvocationContext context, CancellationToken cancellationToken)
     {
         string? profileFile = context.ParseResult.HasOption(ProfileFileOption) ? context.ParseResult.GetValueForOption(ProfileFileOption) : null;
         string? tool = context.ParseResult.HasOption(ToolOption) ? context.ParseResult.GetValueForOption(ToolOption) : null;
@@ -73,24 +73,24 @@ public class FindCommand : ToolCommandBase
         if (profileFile == null)
         {
             ArtifactToolProfile profile = new(tool!, group, null);
-            return await ExecAsync(context, profile);
+            return await ExecAsync(context, profile, cancellationToken).ConfigureAwait(false);
         }
         int ec = 0;
         foreach (ArtifactToolProfile profile in ArtifactToolProfileUtil.DeserializeProfilesFromFile(profileFile))
         {
             if (group != null && group != profile.Group || tool != null && tool != profile.Tool) continue;
-            ec = Common.AccumulateErrorCode(await ExecAsync(context, profile), ec);
+            ec = Common.AccumulateErrorCode(await ExecAsync(context, profile, cancellationToken).ConfigureAwait(false), ec);
         }
         return ec;
     }
 
-    private async Task<int> ExecAsync(InvocationContext context, ArtifactToolProfile profile)
+    private async Task<int> ExecAsync(InvocationContext context, ArtifactToolProfile profile, CancellationToken cancellationToken)
     {
         using var arm = new InMemoryArtifactRegistrationManager();
         using var adm = new NullArtifactDataManager();
         profile = PrepareProfile(context, profile);
         (bool getArtifactRetrievalTimestamps, bool getResourceRetrievalTimestamps) = GetArtifactRetrievalOptions(context);
-        using var tool = await GetToolAsync(profile, arm, adm, TimeProvider, getArtifactRetrievalTimestamps, getResourceRetrievalTimestamps);
+        using var tool = await GetToolAsync(profile, arm, adm, TimeProvider, getArtifactRetrievalTimestamps, getResourceRetrievalTimestamps, cancellationToken).ConfigureAwait(false);
         ArtifactToolFindProxy proxy = new(tool, ToolLogHandlerProvider.GetDefaultToolLogHandler());
         bool listResource = context.ParseResult.GetValueForOption(ListResourceOption);
         bool detailed = context.ParseResult.GetValueForOption(DetailedOption);
@@ -99,7 +99,7 @@ public class FindCommand : ToolCommandBase
             IArtifactData? data = null;
             try
             {
-                data = await proxy.FindAsync(id);
+                data = await proxy.FindAsync(id, cancellationToken).ConfigureAwait(false);
             }
             catch (Exception ex)
             {
@@ -112,7 +112,7 @@ public class FindCommand : ToolCommandBase
             }
             if (data != null)
             {
-                await Common.DisplayAsync(data, listResource, detailed, ToolOutput);
+                await Common.DisplayAsync(data, listResource, detailed, ToolOutput).ConfigureAwait(false);
             }
         }
         return 0;

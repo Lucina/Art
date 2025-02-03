@@ -39,7 +39,7 @@ public class ConfigCommandGet : ConfigCommandGetSetBase
         AddOption(PrettyPrintOption);
     }
 
-    protected override Task<int> RunAsync(InvocationContext context)
+    protected override Task<int> RunAsync(InvocationContext context, CancellationToken cancellationToken)
     {
         bool prettyPrint = context.ParseResult.GetValueForOption(PrettyPrintOption);
         PropertyFormatter propertyFormatter = context.ParseResult.GetValueForOption(VerboseOption)

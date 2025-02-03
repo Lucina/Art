@@ -29,14 +29,14 @@ public class ValidationContext : ToolControlContext
         list.Add(r);
     }
 
-    public async Task<ValidationProcessResult> ProcessAsync(IEnumerable<ArtifactInfo> artifacts, ChecksumSource? checksumSourceForAdd)
+    public async Task<ValidationProcessResult> ProcessAsync(IEnumerable<ArtifactInfo> artifacts, ChecksumSource? checksumSourceForAdd, CancellationToken cancellationToken)
     {
         int artifactCount = 0, resourceCount = 0;
         if (checksumSourceForAdd == null)
         {
             foreach (ArtifactInfo inf in artifacts)
             {
-                var result = await ProcessAsync(inf, (ActiveHashAlgorithm?)null);
+                var result = await ProcessAsync(inf, (ActiveHashAlgorithm?)null, cancellationToken).ConfigureAwait(false);
                 artifactCount += result.Artifacts;
                 resourceCount += result.Resources;
             }
@@ -46,7 +46,7 @@ public class ValidationContext : ToolControlContext
             using var hashAlgorithm = checksumSourceForAdd.CreateHashAlgorithm();
             foreach (ArtifactInfo inf in artifacts)
             {
-                var result = await ProcessAsync(inf, new ActiveHashAlgorithm(checksumSourceForAdd.Id, hashAlgorithm));
+                var result = await ProcessAsync(inf, new ActiveHashAlgorithm(checksumSourceForAdd.Id, hashAlgorithm), cancellationToken).ConfigureAwait(false);
                 artifactCount += result.Artifacts;
                 resourceCount += result.Resources;
             }
@@ -54,30 +54,30 @@ public class ValidationContext : ToolControlContext
         return new ValidationProcessResult(artifactCount, resourceCount);
     }
 
-    public async Task<ValidationProcessResult> ProcessAsync(ArtifactInfo artifact, ChecksumSource? checksumSourceForAdd)
+    public async Task<ValidationProcessResult> ProcessAsync(ArtifactInfo artifact, ChecksumSource? checksumSourceForAdd, CancellationToken cancellationToken)
     {
         ValidationProcessResult result;
         if (checksumSourceForAdd == null)
         {
-            result = await ProcessAsync(artifact, (ActiveHashAlgorithm?)null);
+            result = await ProcessAsync(artifact, (ActiveHashAlgorithm?)null, cancellationToken).ConfigureAwait(false);
         }
         else
         {
             using var hashAlgorithm = checksumSourceForAdd.CreateHashAlgorithm();
-            result = await ProcessAsync(artifact, new ActiveHashAlgorithm(checksumSourceForAdd.Id, hashAlgorithm));
+            result = await ProcessAsync(artifact, new ActiveHashAlgorithm(checksumSourceForAdd.Id, hashAlgorithm), cancellationToken).ConfigureAwait(false);
         }
         return result;
     }
 
     private readonly record struct ActiveHashAlgorithm(string Id, HashAlgorithm HashAlgorithm);
 
-    private async Task<ValidationProcessResult> ProcessAsync(ArtifactInfo artifact, ActiveHashAlgorithm? activeHashAlgorithmForAdd)
+    private async Task<ValidationProcessResult> ProcessAsync(ArtifactInfo artifact, ActiveHashAlgorithm? activeHashAlgorithmForAdd, CancellationToken cancellationToken)
     {
         int resourceCount = 0;
-        foreach (ArtifactResourceInfo rInf in await _arm.ListResourcesAsync(artifact.Key))
+        foreach (ArtifactResourceInfo rInf in await _arm.ListResourcesAsync(artifact.Key, cancellationToken).ConfigureAwait(false))
         {
             resourceCount++;
-            if (!await _adm.ExistsAsync(rInf.Key))
+            if (!await _adm.ExistsAsync(rInf.Key, cancellationToken).ConfigureAwait(false))
             {
                 AddFail(rInf);
                 continue;
@@ -90,9 +90,10 @@ public class ValidationContext : ToolControlContext
                 }
                 else
                 {
-                    await using Stream sourceStreamAdd = await _adm.OpenInputStreamAsync(rInf.Key);
-                    byte[] newHash = await activeHashAlgorithmForAddReal.HashAlgorithm.ComputeHashAsync(sourceStreamAdd);
-                    await _arm.AddResourceAsync(rInf with { Checksum = new Checksum(activeHashAlgorithmForAddReal.Id, newHash) });
+                    Stream sourceStreamAdd = await _adm.OpenInputStreamAsync(rInf.Key, cancellationToken).ConfigureAwait(false);
+                    await using var streamAdd = sourceStreamAdd.ConfigureAwait(false);
+                    byte[] newHash = await activeHashAlgorithmForAddReal.HashAlgorithm.ComputeHashAsync(sourceStreamAdd, cancellationToken).ConfigureAwait(false);
+                    await _arm.AddResourceAsync(rInf with { Checksum = new Checksum(activeHashAlgorithmForAddReal.Id, newHash) }, cancellationToken).ConfigureAwait(false);
                 }
                 continue;
             }
@@ -102,14 +103,15 @@ public class ValidationContext : ToolControlContext
                 continue;
             }
             using var hashAlgorithm = checksumSource.CreateHashAlgorithm();
-            await using Stream sourceStream = await _adm.OpenInputStreamAsync(rInf.Key);
-            byte[] existingHash = await hashAlgorithm.ComputeHashAsync(sourceStream);
+            Stream sourceStream = await _adm.OpenInputStreamAsync(rInf.Key, cancellationToken).ConfigureAwait(false);
+            await using var stream = sourceStream.ConfigureAwait(false);
+            byte[] existingHash = await hashAlgorithm.ComputeHashAsync(sourceStream, cancellationToken).ConfigureAwait(false);
             if (!rInf.Checksum.Value.AsSpan().SequenceEqual(existingHash)) AddFail(rInf);
         }
         return new ValidationProcessResult(1, resourceCount);
     }
 
-    public async Task<ValidationProcessResult> ProcessAsync(IEnumerable<ArtifactToolProfile> profiles, ChecksumSource? checksumSourceForAdd)
+    public async Task<ValidationProcessResult> ProcessAsync(IEnumerable<ArtifactToolProfile> profiles, ChecksumSource? checksumSourceForAdd, CancellationToken cancellationToken)
     {
         int artifactCount = 0, resourceCount = 0;
         foreach (ArtifactToolProfile originalProfile in profiles)
@@ -124,7 +126,7 @@ public class ValidationContext : ToolControlContext
                 isFindTool = tool is IArtifactFindTool;
             }
             _l.Log($"Processing entries for profile {toolName}/{group}", null, LogLevel.Title);
-            var artifacts = await _arm.ListArtifactsAsync(toolName, group);
+            var artifacts = await _arm.ListArtifactsAsync(toolName, group, cancellationToken).ConfigureAwait(false);
             // respect profile's artifact list
             // (checking against it being a find tool matches the behaviour of dump / list proxies)
             if (originalProfile.Options.TryGetOption("artifactList", out string[]? artifactList, SourceGenerationContext.s_context.StringArray) && isFindTool)
@@ -132,7 +134,7 @@ public class ValidationContext : ToolControlContext
                 var set = artifactList.ToHashSet();
                 artifacts.RemoveAll(v => !set.Contains(v.Key.Id));
             }
-            var result = await ProcessAsync(artifacts, checksumSourceForAdd);
+            var result = await ProcessAsync(artifacts, checksumSourceForAdd, cancellationToken).ConfigureAwait(false);
             _l.Log($"Processed {result.Artifacts} artifacts and {result.Resources} resources for profile {toolName}/{group}", null, LogLevel.Information);
             artifactCount += result.Artifacts;
             resourceCount += result.Resources;

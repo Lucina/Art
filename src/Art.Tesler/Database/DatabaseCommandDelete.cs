@@ -49,13 +49,13 @@ public class DatabaseCommandDelete : DatabaseCommandBase
         });
     }
 
-    protected override async Task<int> RunAsync(InvocationContext context)
+    protected override async Task<int> RunAsync(InvocationContext context, CancellationToken cancellationToken)
     {
         using var arm = RegistrationProvider.CreateArtifactRegistrationManager(context);
         IEnumerable<ArtifactInfo> en;
         if (context.ParseResult.GetValueForOption(AllOption))
         {
-            en = await arm.ListArtifactsAsync();
+            en = await arm.ListArtifactsAsync(cancellationToken).ConfigureAwait(false);
         }
         else
         {
@@ -66,7 +66,7 @@ public class DatabaseCommandDelete : DatabaseCommandBase
             string? id = context.ParseResult.GetValueForOption(IdOption);
             string? idLike = context.ParseResult.GetValueForOption(IdLikeOption);
             string? nameLike = context.ParseResult.GetValueForOption(NameLikeOption);
-            en = (await arm.ListArtifactsOptionalsAsync(tool, group)).WithFilters(tool, toolLike, group, groupLike, id, idLike, nameLike);
+            en = (await arm.ListArtifactsOptionalsAsync(tool, group, cancellationToken: cancellationToken).ConfigureAwait(false)).WithFilters(tool, toolLike, group, groupLike, id, idLike, nameLike);
         }
         int v = 0;
         bool list = context.ParseResult.GetValueForOption(ListOption);
@@ -75,8 +75,8 @@ public class DatabaseCommandDelete : DatabaseCommandBase
         bool detailed = context.ParseResult.GetValueForOption(DetailedOption);
         foreach (ArtifactInfo i in en.ToList())
         {
-            if (list) await Common.DisplayAsync(i, listResource, arm, detailed, ToolOutput);
-            if (doDelete) await arm.RemoveArtifactAsync(i.Key);
+            if (list) await Common.DisplayAsync(i, listResource, arm, detailed, ToolOutput).ConfigureAwait(false);
+            if (doDelete) await arm.RemoveArtifactAsync(i.Key, cancellationToken).ConfigureAwait(false);
             v++;
         }
         ToolOutput.Out.WriteLine(doDelete ? $"Deleted {v} records." : $"{v} records would be affected.");

@@ -76,14 +76,14 @@ public class DatabaseCommandMerge : DatabaseCommandBase
         });
     }
 
-    protected override async Task<int> RunAsync(InvocationContext context)
+    protected override async Task<int> RunAsync(InvocationContext context, CancellationToken cancellationToken)
     {
         using var arm = RegistrationProvider.CreateArtifactRegistrationManager(context);
         using var inputArm = InputRegistrationProvider.CreateArtifactRegistrationManager(context);
         IEnumerable<ArtifactInfo> en;
         if (context.ParseResult.GetValueForOption(AllOption))
         {
-            en = await inputArm.ListArtifactsAsync();
+            en = await inputArm.ListArtifactsAsync(cancellationToken).ConfigureAwait(false);
         }
         else
         {
@@ -94,7 +94,7 @@ public class DatabaseCommandMerge : DatabaseCommandBase
             string? id = context.ParseResult.GetValueForOption(IdOption);
             string? idLike = context.ParseResult.GetValueForOption(IdLikeOption);
             string? nameLike = context.ParseResult.GetValueForOption(NameLikeOption);
-            en = (await inputArm.ListArtifactsOptionalsAsync(tool, group)).WithFilters(tool, toolLike, group, groupLike, id, idLike, nameLike);
+            en = (await inputArm.ListArtifactsOptionalsAsync(tool, group, cancellationToken: cancellationToken).ConfigureAwait(false)).WithFilters(tool, toolLike, group, groupLike, id, idLike, nameLike);
         }
         MergeFilter mergeFilter = context.ParseResult.GetValueForOption(MergeFilterOption);
         int v = 0;
@@ -104,7 +104,7 @@ public class DatabaseCommandMerge : DatabaseCommandBase
         bool detailed = context.ParseResult.GetValueForOption(DetailedOption);
         foreach (ArtifactInfo i in en.ToList())
         {
-            ArtifactInfo? existing = await arm.TryGetArtifactAsync(i.Key);
+            ArtifactInfo? existing = await arm.TryGetArtifactAsync(i.Key, cancellationToken).ConfigureAwait(false);
             switch (mergeFilter)
             {
                 case MergeFilter.Updated:
@@ -126,22 +126,22 @@ public class DatabaseCommandMerge : DatabaseCommandBase
             }
             if (list)
             {
-                await Common.DisplayAsync(i, listResource, inputArm, detailed, ToolOutput);
+                await Common.DisplayAsync(i, listResource, inputArm, detailed, ToolOutput).ConfigureAwait(false);
                 if (existing != null)
                 {
-                    await Common.DisplayAsync(existing, listResource, arm, detailed, ToolOutput);
+                    await Common.DisplayAsync(existing, listResource, arm, detailed, ToolOutput).ConfigureAwait(false);
                 }
             }
             if (doMerge)
             {
                 if (existing != null)
                 {
-                    await arm.RemoveArtifactAsync(i.Key);
+                    await arm.RemoveArtifactAsync(i.Key, cancellationToken).ConfigureAwait(false);
                 }
-                await arm.AddArtifactAsync(i);
-                foreach (var resource in await inputArm.ListResourcesAsync(i.Key))
+                await arm.AddArtifactAsync(i, cancellationToken).ConfigureAwait(false);
+                foreach (var resource in await inputArm.ListResourcesAsync(i.Key, cancellationToken).ConfigureAwait(false))
                 {
-                    await arm.AddResourceAsync(resource);
+                    await arm.AddResourceAsync(resource, cancellationToken).ConfigureAwait(false);
                 }
             }
             v++;

@@ -25,7 +25,7 @@ public class DatabaseCommandList : DatabaseCommandBase
         AddOption(OutputOption);
     }
 
-    protected override async Task<int> RunAsync(InvocationContext context)
+    protected override async Task<int> RunAsync(InvocationContext context, CancellationToken cancellationToken)
     {
         string? augment = context.ParseResult.HasOption(AugmentOption) ? context.ParseResult.GetValueForOption(AugmentOption) : null;
         string? output = context.ParseResult.HasOption(OutputOption) ? context.ParseResult.GetValueForOption(OutputOption) : null;
@@ -38,12 +38,12 @@ public class DatabaseCommandList : DatabaseCommandBase
         string? id = context.ParseResult.HasOption(IdOption) ? context.ParseResult.GetValueForOption(IdOption) : null;
         string? idLike = context.ParseResult.HasOption(IdLikeOption) ? context.ParseResult.GetValueForOption(IdLikeOption) : null;
         string? nameLike = context.ParseResult.HasOption(NameLikeOption) ? context.ParseResult.GetValueForOption(NameLikeOption) : null;
-        IEnumerable<ArtifactInfo> en = (await arm.ListArtifactsOptionalsAsync(tool, group)).WithFilters(tool, toolLike, group, groupLike, id, idLike, nameLike);
+        IEnumerable<ArtifactInfo> en = (await arm.ListArtifactsOptionalsAsync(tool, group, cancellationToken: cancellationToken).ConfigureAwait(false)).WithFilters(tool, toolLike, group, groupLike, id, idLike, nameLike);
         bool listResource = context.ParseResult.GetValueForOption(ListResourceOption);
         bool detailed = context.ParseResult.GetValueForOption(DetailedOption);
         foreach (ArtifactInfo i in en)
         {
-            await Common.DisplayAsync(i, listResource, arm, detailed, ToolOutput);
+            await Common.DisplayAsync(i, listResource, arm, detailed, ToolOutput).ConfigureAwait(false);
             selection?.Add(i.Key);
         }
         if (output != null && selection != null)
@@ -52,7 +52,8 @@ public class DatabaseCommandList : DatabaseCommandBase
             List<ArtifactToolProfile> profiles = new();
             if (augment != null)
             {
-                await using FileStream afs = File.OpenRead(augment);
+                FileStream afs = File.OpenRead(augment);
+                await using var afs1 = afs.ConfigureAwait(false);
                 var augmentProfiles = ArtifactToolProfileUtil.DeserializeProfiles(afs);
                 Dictionary<ToolAndGroup, ArtifactToolProfile> adict = augmentProfiles.ToDictionary(x => new ToolAndGroup(x.Tool, x.Group), x => x);
                 foreach ((ToolAndGroup profile, List<string> value) in dict)
@@ -65,8 +66,9 @@ public class DatabaseCommandList : DatabaseCommandBase
             {
                 foreach ((ToolAndGroup profile, List<string> value) in dict) profiles.Add(CreateNewProfile(profile, value));
             }
-            await using FileStream fs = File.Create(output);
-            await JsonSerializer.SerializeAsync(fs, profiles, SourceGenerationContext.s_context.ListArtifactToolProfile);
+            FileStream fs = File.Create(output);
+            await using var fs1 = fs.ConfigureAwait(false);
+            await JsonSerializer.SerializeAsync(fs, profiles, SourceGenerationContext.s_context.ListArtifactToolProfile, cancellationToken).ConfigureAwait(false);
         }
         return 0;
     }

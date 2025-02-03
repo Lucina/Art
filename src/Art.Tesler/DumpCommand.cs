@@ -73,22 +73,22 @@ public class DumpCommand : ToolCommandBase
         });
     }
 
-    protected override async Task<int> RunAsync(InvocationContext context)
+    protected override async Task<int> RunAsync(InvocationContext context, CancellationToken cancellationToken)
     {
         using var adm = DataProvider.CreateArtifactDataManager(context);
         if (context.ParseResult.GetValueForOption(NoDatabaseOption))
         {
             InMemoryArtifactRegistrationManager arm = new();
-            return await RunAsync(context, adm, arm);
+            return await RunAsync(context, adm, arm, cancellationToken).ConfigureAwait(false);
         }
         else
         {
             using var arm = RegistrationProvider.CreateArtifactRegistrationManager(context);
-            return await RunAsync(context, adm, arm);
+            return await RunAsync(context, adm, arm, cancellationToken).ConfigureAwait(false);
         }
     }
 
-    private async Task<int> RunAsync(InvocationContext context, IArtifactDataManager adm, IArtifactRegistrationManager arm)
+    private async Task<int> RunAsync(InvocationContext context, IArtifactDataManager adm, IArtifactRegistrationManager arm, CancellationToken cancellationToken)
     {
         ChecksumSource? checksumSource;
         string? hash = context.ParseResult.HasOption(HashOption) ? context.ParseResult.GetValueForOption(HashOption) : null;
@@ -111,13 +111,13 @@ public class DumpCommand : ToolCommandBase
         (bool getArtifactRetrievalTimestamps, bool getResourceRetrievalTimestamps) = GetArtifactRetrievalOptions(context);
         if (profileFile == null)
         {
-            return await ExecAsync(context, new ArtifactToolProfile(tool!, group, null), arm, adm, checksumSource, getArtifactRetrievalTimestamps, getResourceRetrievalTimestamps);
+            return await ExecAsync(context, new ArtifactToolProfile(tool!, group, null), arm, adm, checksumSource, getArtifactRetrievalTimestamps, getResourceRetrievalTimestamps, cancellationToken).ConfigureAwait(false);
         }
         int ec = 0;
         foreach (ArtifactToolProfile profile in ArtifactToolProfileUtil.DeserializeProfilesFromFile(profileFile))
         {
             if (group != null && group != profile.Group || tool != null && tool != profile.Tool) continue;
-            ec = Common.AccumulateErrorCode(await ExecAsync(context, profile, arm, adm, checksumSource, getArtifactRetrievalTimestamps, getResourceRetrievalTimestamps), ec);
+            ec = Common.AccumulateErrorCode(await ExecAsync(context, profile, arm, adm, checksumSource, getArtifactRetrievalTimestamps, getResourceRetrievalTimestamps, cancellationToken).ConfigureAwait(false), ec);
         }
         return ec;
     }
@@ -129,13 +129,14 @@ public class DumpCommand : ToolCommandBase
         IArtifactDataManager adm,
         ChecksumSource? checksumSource,
         bool getArtifactRetrievalTimestamps,
-        bool getResourceRetrievalTimestamps)
+        bool getResourceRetrievalTimestamps,
+        CancellationToken cancellationToken)
     {
         ArtifactToolDumpOptions options = new(ChecksumSource: checksumSource);
         profile = PrepareProfile(context, profile);
-        using var tool = await GetToolAsync(profile, arm, adm, TimeProvider, getArtifactRetrievalTimestamps, getResourceRetrievalTimestamps);
+        using var tool = await GetToolAsync(profile, arm, adm, TimeProvider, getArtifactRetrievalTimestamps, getResourceRetrievalTimestamps, cancellationToken).ConfigureAwait(false);
         ArtifactToolDumpProxy dProxy = new(tool, options, ToolLogHandlerProvider.GetDefaultToolLogHandler());
-        await dProxy.DumpAsync();
+        await dProxy.DumpAsync(cancellationToken).ConfigureAwait(false);
         return 0;
     }
 }

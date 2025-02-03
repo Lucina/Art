@@ -17,7 +17,7 @@ public class DatabaseCommandCleanup : CommandBase
         RegistrationProvider.Initialize(this);
     }
 
-    protected override async Task<int> RunAsync(InvocationContext context)
+    protected override async Task<int> RunAsync(InvocationContext context, CancellationToken cancellationToken)
     {
         using var arm = RegistrationProvider.CreateArtifactRegistrationManager(context);
         if (arm is not IArtifactRegistrationManagerCleanup armCleanup)
@@ -25,7 +25,7 @@ public class DatabaseCommandCleanup : CommandBase
             ToolOutput.Error.WriteLine($"Artifact registration provider {arm} does not support cleanup.");
             return 5;
         }
-        await armCleanup.CleanupDatabaseAsync();
+        await armCleanup.CleanupDatabaseAsync(cancellationToken).ConfigureAwait(false);
         return 0;
     }
 }

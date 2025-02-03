@@ -63,7 +63,7 @@ public class ValidateCommand : ToolCommandBase
         AddOption(DetailedOption);
     }
 
-    protected override async Task<int> RunAsync(InvocationContext context)
+    protected override async Task<int> RunAsync(InvocationContext context, CancellationToken cancellationToken)
     {
         ChecksumSource? checksumSource;
         string? hash = context.ParseResult.HasOption(HashOption) ? context.ParseResult.GetValueForOption(HashOption) : null;
@@ -104,11 +104,11 @@ public class ValidateCommand : ToolCommandBase
         ChecksumSource? checksumSourceForAdd = context.ParseResult.GetValueForOption(AddChecksumOption) ? checksumSource : null;
         if (profiles.Count == 0)
         {
-            result = await validationContext.ProcessAsync(await arm.ListArtifactsAsync(), checksumSourceForAdd);
+            result = await validationContext.ProcessAsync(await arm.ListArtifactsAsync(cancellationToken).ConfigureAwait(false), checksumSourceForAdd, cancellationToken).ConfigureAwait(false);
         }
         else
         {
-            result = await validationContext.ProcessAsync(profiles, checksumSourceForAdd);
+            result = await validationContext.ProcessAsync(profiles, checksumSourceForAdd, cancellationToken).ConfigureAwait(false);
         }
         l.Log($"Total: {result.Artifacts} artifacts and {result.Resources} processed.", null, LogLevel.Information);
         if (!validationContext.AnyFailed)
@@ -129,7 +129,7 @@ public class ValidateCommand : ToolCommandBase
         l.Log($"{resourceFailCount} resources failed to validate and will be reacquired.", null, LogLevel.Information);
         var repairContext = validationContext.CreateRepairContext();
         (bool getArtifactRetrievalTimestamps, bool getResourceRetrievalTimestamps) = GetArtifactRetrievalOptions(context);
-        await repairContext.RepairAsync(profiles, context.ParseResult.GetValueForOption(DetailedOption), checksumSource, TimeProvider, getArtifactRetrievalTimestamps, getResourceRetrievalTimestamps, ToolOutput);
+        await repairContext.RepairAsync(profiles, context.ParseResult.GetValueForOption(DetailedOption), checksumSource, TimeProvider, getArtifactRetrievalTimestamps, getResourceRetrievalTimestamps, ToolOutput, cancellationToken).ConfigureAwait(false);
         return 0;
     }
 }

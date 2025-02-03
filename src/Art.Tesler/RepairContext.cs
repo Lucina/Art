@@ -30,7 +30,8 @@ public class RepairContext : ToolControlContext
         TimeProvider timeProvider,
         bool getArtifactRetrievalTimestamps,
         bool getResourceRetrievalTimestamps,
-        IOutputControl console)
+        IOutputControl console,
+        CancellationToken cancellationToken)
     {
         foreach (ArtifactToolProfile originalProfile in profiles)
         {
@@ -43,7 +44,7 @@ public class RepairContext : ToolControlContext
                 continue;
             }
             ArtifactToolConfig config = new(_arm, _adm, timeProvider, getArtifactRetrievalTimestamps, getResourceRetrievalTimestamps);
-            await tool.InitializeAsync(config, actualProfile).ConfigureAwait(false);
+            await tool.InitializeAsync(config, actualProfile, cancellationToken).ConfigureAwait(false);
             switch (tool)
             {
                 // ReSharper disable SuspiciousTypeConversion.Global
@@ -51,15 +52,15 @@ public class RepairContext : ToolControlContext
                     {
                         var proxy = new ArtifactToolFindProxy(tool, _l);
                         foreach ((ArtifactKey key, List<ArtifactResourceInfo> list) in _failed.Where(v => v.Key.Tool == actualProfile.Tool && v.Key.Group == group).ToList())
-                            if (await proxy.FindAsync(key.Id) is { } data) await Fixup(tool, key, list, data, checksumSource, timeProvider, getResourceRetrievalTimestamps);
+                            if (await proxy.FindAsync(key.Id, cancellationToken).ConfigureAwait(false) is { } data) await Fixup(tool, key, list, data, checksumSource, timeProvider, getResourceRetrievalTimestamps, cancellationToken).ConfigureAwait(false);
                             else _l.Log($"Failed to obtain artifact {key.Tool}/{key.Group}:{key.Id}", null, LogLevel.Error);
                         break;
                     }
                 case IArtifactListTool:
                     {
-                        await foreach (IArtifactData data in (new ArtifactToolListProxy(tool, ArtifactToolListOptions.Default, _l).ListAsync()))
+                        await foreach (IArtifactData data in (new ArtifactToolListProxy(tool, ArtifactToolListOptions.Default, _l).ListAsync(cancellationToken)).ConfigureAwait(false))
                             if (_failed.TryGetValue(data.Info.Key, out List<ArtifactResourceInfo>? list))
-                                await Fixup(tool, data.Info.Key, list, data, checksumSource, timeProvider, getResourceRetrievalTimestamps);
+                                await Fixup(tool, data.Info.Key, list, data, checksumSource, timeProvider, getResourceRetrievalTimestamps, cancellationToken).ConfigureAwait(false);
                         break;
                     }
                 // ReSharper restore SuspiciousTypeConversion.Global
@@ -82,7 +83,8 @@ public class RepairContext : ToolControlContext
         IArtifactData data,
         ChecksumSource? checksumSource,
         TimeProvider timeProvider,
-        bool getResourceRetrievalTimestamps)
+        bool getResourceRetrievalTimestamps,
+        CancellationToken cancellationToken)
     {
         foreach (ArtifactResourceInfo resource in list.ToList())
         {
@@ -91,7 +93,7 @@ public class RepairContext : ToolControlContext
                 _l.Log($"Failed to obtain resource {resource.GetInfoPathString()} for artifact {key.Tool}/{key.Group}:{key.Id}", null, LogLevel.Error);
                 continue;
             }
-            await tool.DumpResourceAsync(resourceActual, ResourceUpdateMode.Hard, _l, checksumSource, timeProvider, getResourceRetrievalTimestamps);
+            await tool.DumpResourceAsync(resourceActual, ResourceUpdateMode.Hard, _l, checksumSource, timeProvider, getResourceRetrievalTimestamps, cancellationToken: cancellationToken).ConfigureAwait(false);
             list.Remove(resource);
         }
         if (list.Count == 0) _failed.Remove(key);

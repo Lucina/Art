@@ -27,7 +27,7 @@ internal static class Common
     {
         Display(i, detailed, console);
         if (listResource)
-            foreach (ArtifactResourceInfo r in await arm.ListResourcesAsync(i.Key))
+            foreach (ArtifactResourceInfo r in await arm.ListResourcesAsync(i.Key).ConfigureAwait(false))
                 Display(r, detailed, console);
     }
 
@@ -56,7 +56,7 @@ internal static class Common
             {
                 try
                 {
-                    ArtifactResourceInfo r2 = await r.WithMetadataAsync();
+                    ArtifactResourceInfo r2 = await r.WithMetadataAsync().ConfigureAwait(false);
                     Display(r2, detailed, console);
                 }
                 catch
