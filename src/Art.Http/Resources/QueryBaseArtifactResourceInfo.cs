@@ -12,7 +12,7 @@ namespace Art.Http.Resources;
 /// <param name="Retrieved">Date this resource was retrieved.</param>
 /// <param name="Version">Version.</param>
 /// <param name="Checksum">Checksum.</param>
-/// <param name="UseDynamicFileName">If true, attempt to use metadata to set a dynamic name.</param>
+/// <param name="DynamicFileNameFunction">Function to use for transforming retrieved filename.</param>
 /// <param name="ContentLength">Content length.</param>
 public partial record QueryBaseArtifactResourceInfo(
     ArtifactResourceKey Key,
@@ -21,7 +21,7 @@ public partial record QueryBaseArtifactResourceInfo(
     DateTimeOffset? Retrieved = null,
     string? Version = null,
     Checksum? Checksum = null,
-    bool UseDynamicFileName = false,
+    Func<string, string>? DynamicFileNameFunction = null,
     long? ContentLength = null)
     : ArtifactResourceInfo(Key, ContentType, Updated, Retrieved, Version, Checksum)
 {
@@ -47,17 +47,17 @@ public partial record QueryBaseArtifactResourceInfo(
         string? version = response.Headers.ETag?.Tag;
         long? contentLength = response.Content.Headers.ContentLength;
         string? fileName = null;
-        if (UseDynamicFileName
+        if (DynamicFileNameFunction != null
             && response.Content.Headers.TryGetValues("Content-Disposition", out var contentDispositionValues)
             && contentDispositionValues.LastOrDefault() is { } contentDispositionValue)
         {
             if (GetContentDispositionRegex().Match(contentDispositionValue) is { Success: true } fileNameMatch)
             {
-                fileName = HttpUtility.UrlDecode(fileNameMatch.Groups["nameUrlEncoded"].Value);
+                fileName = DynamicFileNameFunction(HttpUtility.UrlDecode(fileNameMatch.Groups["nameUrlEncoded"].Value));
             }
-            else if (GetContentDispositionRegex().Match(contentDispositionValue) is { Success: true } fileNameMatchAlternate)
+            else if (GetContentDispositionRegexAlternate().Match(contentDispositionValue) is { Success: true } fileNameMatchAlternate)
             {
-                fileName = fileNameMatchAlternate.Groups["name"].Value;
+                fileName = DynamicFileNameFunction(fileNameMatchAlternate.Groups["name"].Value);
             }
         }
         ArtifactResourceKey key = fileName != null ? Key with { File = fileName } : Key;
